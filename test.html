@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<script>
+fetch("https://api.football-data.org/v4/competitions/DED/standings",{
+    headers:{
+        "X-Auth-Token":"2ce8e59609ae4863b717ae5c423ae7db"
+    }
+})
+.then(r=>{
+    console.log(r.status);
+    return r.text();
+})
+.then(console.log)
+.catch(console.error);
+</script>
+
+</body>
+</html>

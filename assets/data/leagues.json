@@ -1,0 +1,22 @@
+{
+  "countries": [
+    {
+      "country": "England",
+      "code": "england",
+      "flag": "/assets/flags/england.svg",
+      "leagues": []
+    },
+    {
+      "country": "Spain",
+      "code": "spain",
+      "flag": "/assets/flags/spain.svg",
+      "leagues": []
+    },
+    {
+      "country": "Germany",
+      "code": "germany",
+      "flag": "/assets/flags/germany.svg",
+      "leagues": []
+    }
+  ]
+}
