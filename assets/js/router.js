@@ -1,3 +1,17 @@
+document.addEventListener("click", e => {
+  const link = e.target.closest("a[href]");
+  
+  if (!link) return;
+  
+  const url = new URL(link.href);
+  
+  if (url.origin !== location.origin) return;
+  
+  e.preventDefault();
+  
+  navigate(url.pathname);
+});
+
 const routes = {
   404: "/pages/404.html",
   "/overview": "/pages/overview.html",
@@ -14,6 +28,12 @@ const mainPage = document.getElementById("main-page");
 
 const pageCache = new Map();
 
+let navigationToken = 0;
+
+/* ==========================
+   Loader
+========================== */
+
 function showLoader() {
   loader?.classList.remove("hidden");
 }
@@ -22,10 +42,15 @@ function hideLoader() {
   loader?.classList.add("hidden");
 }
 
+/* ==========================
+   Bottom Navigation
+========================== */
+
 function updateActiveNav() {
   const current = window.location.pathname;
   
   document.querySelectorAll(".bottom-nav .nav-item[href]").forEach(link => {
+    
     const href = link.getAttribute("href");
     
     if (!href || href.startsWith("#") || href.startsWith("http")) return;
@@ -34,8 +59,13 @@ function updateActiveNav() {
     
     link.classList.toggle("active", active);
     link.querySelector("svg")?.classList.toggle("active", active);
+    
   });
 }
+
+/* ==========================
+   Load HTML
+========================== */
 
 async function loadPage(path) {
   
@@ -50,7 +80,7 @@ async function loadPage(path) {
   });
   
   if (!response.ok) {
-    throw new Error("Page not found");
+    throw new Error(`Failed to load ${page}`);
   }
   
   const html = await response.text();
@@ -58,26 +88,41 @@ async function loadPage(path) {
   pageCache.set(page, html);
   
   return html;
+  
 }
 
-async function navigate(path, addHistory = true) {
-  
-  showLoader();
+/* ==========================
+   Navigate
+========================== */
+
+async function navigate(path, pushHistory = true) {
   
   if (path === "/") {
     path = "/overview";
   }
   
+  const page = routes[path] || routes[404];
+  const cached = pageCache.has(page);
+  
+  const token = ++navigationToken;
+  
+  if (!cached) {
+    showLoader();
+  }
+  
   try {
     
-    // Load FIRST
     const html = await loadPage(path);
     
-    // Render
-    mainPage.innerHTML = html;
+    // Ignore old navigation requests
+    if (token !== navigationToken) return;
     
-    // Change URL AFTER rendering
-    if (addHistory) {
+    if (!mainPage) return;
+    
+    mainPage.replaceChildren();
+    mainPage.insertAdjacentHTML("afterbegin", html);
+    
+    if (pushHistory) {
       history.pushState({}, "", path);
     } else {
       history.replaceState({}, "", path);
@@ -89,25 +134,54 @@ async function navigate(path, addHistory = true) {
     
   } catch (err) {
     
-    mainPage.innerHTML = "<h1>404 - Page Not Found</h1>";
     console.error(err);
+    
+    if (mainPage) {
+      mainPage.innerHTML = `
+        <section class="page-error">
+          <h1>404</h1>
+          <p>Page not found.</p>
+        </section>
+      `;
+    }
     
   } finally {
     
-    hideLoader();
+    if (token === navigationToken) {
+      hideLoader();
+    }
     
   }
+  
 }
+
+/* ==========================
+   Link Routing
+========================== */
 
 window.route = function(event) {
   
-  event.preventDefault();
+  event = event || window.event;
   
-  const link = event.currentTarget || event.target.closest("a");
+  if (event) {
+    event.preventDefault();
+  }
+  
+  const link =
+    event?.currentTarget ||
+    event?.target?.closest("a");
   
   if (!link) return;
   
-  const path = new URL(link.href).pathname;
+  const url = new URL(link.href, location.origin);
+  
+  // External link
+  if (url.origin !== location.origin) {
+    location.href = url.href;
+    return;
+  }
+  
+  const path = url.pathname;
   
   if (path === window.location.pathname) return;
   
@@ -115,9 +189,16 @@ window.route = function(event) {
   
 };
 
+/* ==========================
+   Browser Back/Forward
+========================== */
+
 window.addEventListener("popstate", () => {
   navigate(window.location.pathname, false);
 });
 
-// Initial load
+/* ==========================
+   Initial Page
+========================== */
+
 navigate(window.location.pathname, false);
