@@ -1,22 +1,1722 @@
 {
   "countries": [
     {
-      "country": "England",
-      "code": "england",
-      "flag": "/assets/flags/england.svg",
-      "leagues": []
+  "country": "England",
+  "code": "england",
+  "flag": "/assets/icons/england.svg",
+  "leagues": [
+    {
+      "id": 39,
+      "name": "Premier League",
+      "slug": "premier-league",
+      "icon": "/assets/icons/england_premier-league.svg",
+      "type": "league",
+      "division": 1
     },
     {
-      "country": "Spain",
-      "code": "spain",
-      "flag": "/assets/flags/spain.svg",
-      "leagues": []
+      "id": 40,
+      "name": "Championship",
+      "slug": "championship",
+      "icon": "/assets/icons/england_championship.svg",
+      "type": "league",
+      "division": 2
     },
     {
-      "country": "Germany",
-      "code": "germany",
-      "flag": "/assets/flags/germany.svg",
-      "leagues": []
+      "id": 41,
+      "name": "League One",
+      "slug": "league-one",
+      "icon": "/assets/icons/england_league-one.svg",
+      "type": "league",
+      "division": 3
+    },
+    {
+      "id": 42,
+      "name": "League Two",
+      "slug": "league-two",
+      "icon": "/assets/icons/england_league-two.svg",
+      "type": "league",
+      "division": 4
+    },
+    {
+      "id": 44,
+      "name": "National League",
+      "slug": "national-league",
+      "icon": "/assets/icons/england_national-league.svg",
+      "type": "league",
+      "division": 5
+    },
+    {
+      "id": 1001,
+      "name": "National League North",
+      "slug": "national-league-north",
+      "icon": "/assets/icons/england_national-league-north.svg",
+      "type": "league",
+      "division": 6
+    },
+    {
+      "id": 1002,
+      "name": "National League South",
+      "slug": "national-league-south",
+      "icon": "/assets/icons/england_national-league-south.svg",
+      "type": "league",
+      "division": 6
+    },
+    {
+      "id": 1003,
+      "name": "Northern Premier League",
+      "slug": "northern-premier-league",
+      "icon": "/assets/icons/england_northern-premier-league.svg",
+      "type": "league",
+      "division": 7
+    },
+    {
+      "id": 1004,
+      "name": "Southern League Premier Central",
+      "slug": "southern-league-premier-central",
+      "icon": "/assets/icons/england_southern-league-premier-central.svg",
+      "type": "league",
+      "division": 7
+    },
+    {
+      "id": 1005,
+      "name": "Southern League Premier South",
+      "slug": "southern-league-premier-south",
+      "icon": "/assets/icons/england_southern-league-premier-south.svg",
+      "type": "league",
+      "division": 7
+    },
+    {
+      "id": 1006,
+      "name": "Isthmian League Premier Division",
+      "slug": "isthmian-league-premier-division",
+      "icon": "/assets/icons/england_isthmian-league-premier-division.svg",
+      "type": "league",
+      "division": 7
+    },
+    {
+      "id": 45,
+      "name": "FA Cup",
+      "slug": "fa-cup",
+      "icon": "/assets/icons/england_fa-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 48,
+      "name": "EFL Cup",
+      "slug": "efl-cup",
+      "icon": "/assets/icons/england_efl-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 528,
+      "name": "FA Community Shield",
+      "slug": "fa-community-shield",
+      "icon": "/assets/icons/england_fa-community-shield.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 1007,
+      "name": "EFL Trophy",
+      "slug": "efl-trophy",
+      "icon": "/assets/icons/england_efl-trophy.svg",
+      "type": "cup"
+    },
+    {
+      "id": 1008,
+      "name": "FA Trophy",
+      "slug": "fa-trophy",
+      "icon": "/assets/icons/england_fa-trophy.svg",
+      "type": "cup"
+    },
+    {
+      "id": 1009,
+      "name": "FA Vase",
+      "slug": "fa-vase",
+      "icon": "/assets/icons/england_fa-vase.svg",
+      "type": "cup"
+    },
+    {
+      "id": 1010,
+      "name": "Premier League 2",
+      "slug": "premier-league-2",
+      "icon": "/assets/icons/england_premier-league-2.svg",
+      "type": "youth"
+    },
+    {
+      "id": 1011,
+      "name": "Professional Development League",
+      "slug": "professional-development-league",
+      "icon": "/assets/icons/england_professional-development-league.svg",
+      "type": "youth"
+    },
+    {
+      "id": 1012,
+      "name": "U18 Premier League",
+      "slug": "u18-premier-league",
+      "icon": "/assets/icons/england_u18-premier-league.svg",
+      "type": "youth"
     }
+  ]
+},
+    {
+  "country": "Spain",
+  "code": "spain",
+  "flag": "/assets/icons/spain.svg",
+  "leagues": [
+    {
+      "id": 140,
+      "name": "LALIGA EA SPORTS",
+      "slug": "laliga-ea-sports",
+      "icon": "/assets/icons/spain_laliga-ea-sports.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 141,
+      "name": "LALIGA HYPERMOTION",
+      "slug": "laliga-hypermotion",
+      "icon": "/assets/icons/spain_laliga-hypermotion.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 142,
+      "name": "Primera Federación",
+      "slug": "primera-federacion",
+      "icon": "/assets/icons/spain_primera-federacion.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 143,
+      "name": "Segunda Federación",
+      "slug": "segunda-federacion",
+      "icon": "/assets/icons/spain_segunda-federacion.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 144,
+      "name": "Tercera Federación",
+      "slug": "tercera-federacion",
+      "icon": "/assets/icons/spain_tercera-federacion.svg",
+      "type": "league",
+      "division": 5,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 145,
+      "name": "División de Honor Juvenil",
+      "slug": "division-de-honor-juvenil",
+      "icon": "/assets/icons/spain_division-de-honor-juvenil.svg",
+      "type": "youth",
+      "division": null,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 146,
+      "name": "Copa de S.M. el Rey",
+      "slug": "copa-de-su-majestad-el-rey",
+      "icon": "/assets/icons/spain_copa-del-rey.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 147,
+      "name": "Supercopa de España",
+      "slug": "supercopa-de-espana",
+      "icon": "/assets/icons/spain_supercopa-de-espana.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 148,
+      "name": "Copa Federación",
+      "slug": "copa-federacion",
+      "icon": "/assets/icons/spain_copa-federacion.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 149,
+      "name": "Copa del Rey Juvenil",
+      "slug": "copa-del-rey-juvenil",
+      "icon": "/assets/icons/spain_copa-del-rey-juvenil.svg",
+      "type": "youth",
+      "division": null,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Italy",
+  "code": "italy",
+  "flag": "/assets/icons/italy.svg",
+  "leagues": [
+    {
+      "id": 135,
+      "name": "Serie A",
+      "slug": "serie-a",
+      "icon": "/assets/icons/italy_serie-a.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 136,
+      "name": "Serie B",
+      "slug": "serie-b",
+      "icon": "/assets/icons/italy_serie-b.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 137,
+      "name": "Serie C",
+      "slug": "serie-c",
+      "icon": "/assets/icons/italy_serie-c.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 138,
+      "name": "Serie D",
+      "slug": "serie-d",
+      "icon": "/assets/icons/italy_serie-d.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 139,
+      "name": "Coppa Italia",
+      "slug": "coppa-italia",
+      "icon": "/assets/icons/italy_coppa-italia.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 547,
+      "name": "Supercoppa Italiana",
+      "slug": "supercoppa-italiana",
+      "icon": "/assets/icons/italy_supercoppa-italiana.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 591,
+      "name": "Campionato Primavera 1",
+      "slug": "campionato-primavera-1",
+      "icon": "/assets/icons/italy_primavera-1.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 592,
+      "name": "Campionato Primavera 2",
+      "slug": "campionato-primavera-2",
+      "icon": "/assets/icons/italy_primavera-2.svg",
+      "type": "youth",
+      "division": 2,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 593,
+      "name": "Coppa Italia Primavera",
+      "slug": "coppa-italia-primavera",
+      "icon": "/assets/icons/italy_coppa-italia-primavera.svg",
+      "type": "youth",
+      "division": null,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 594,
+      "name": "Supercoppa Primavera",
+      "slug": "supercoppa-primavera",
+      "icon": "/assets/icons/italy_supercoppa-primavera.svg",
+      "type": "youth_super_cup",
+      "division": null,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+   {
+  "country": "France",
+  "code": "france",
+  "flag": "/assets/icons/france.svg",
+  "leagues": [
+    {
+      "id": 61,
+      "name": "Ligue 1",
+      "slug": "ligue-1",
+      "icon": "/assets/icons/france_ligue-1.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 62,
+      "name": "Ligue 2",
+      "slug": "ligue-2",
+      "icon": "/assets/icons/france_ligue-2.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 63,
+      "name": "National",
+      "slug": "national",
+      "icon": "/assets/icons/france_national.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 64,
+      "name": "National 2",
+      "slug": "national-2",
+      "icon": "/assets/icons/france_national-2.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 65,
+      "name": "National 3",
+      "slug": "national-3",
+      "icon": "/assets/icons/france_national-3.svg",
+      "type": "league",
+      "division": 5,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 66,
+      "name": "Coupe de France",
+      "slug": "coupe-de-france",
+      "icon": "/assets/icons/france_coupe-de-france.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 67,
+      "name": "Trophée des Champions",
+      "slug": "trophee-des-champions",
+      "icon": "/assets/icons/france_trophee-des-champions.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 68,
+      "name": "Coupe Gambardella",
+      "slug": "coupe-gambardella",
+      "icon": "/assets/icons/france_coupe-gambardella.svg",
+      "type": "youth",
+      "division": null,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 69,
+      "name": "Championnat National U19",
+      "slug": "championnat-national-u19",
+      "icon": "/assets/icons/france_championnat-national-u19.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 70,
+      "name": "Championnat National U17",
+      "slug": "championnat-national-u17",
+      "icon": "/assets/icons/france_championnat-national-u17.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Germany",
+  "code": "germany",
+  "flag": "/assets/icons/germany.svg",
+  "leagues": [
+    {
+      "id": 78,
+      "name": "Bundesliga",
+      "slug": "bundesliga",
+      "icon": "/assets/icons/germany_bundesliga.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 79,
+      "name": "2. Bundesliga",
+      "slug": "2-bundesliga",
+      "icon": "/assets/icons/germany_2-bundesliga.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 80,
+      "name": "3. Liga",
+      "slug": "3-liga",
+      "icon": "/assets/icons/germany_3-liga.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 81,
+      "name": "Regionalliga",
+      "slug": "regionalliga",
+      "icon": "/assets/icons/germany_regionalliga.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 82,
+      "name": "Oberliga",
+      "slug": "oberliga",
+      "icon": "/assets/icons/germany_oberliga.svg",
+      "type": "league",
+      "division": 5,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 81,
+      "name": "DFB Pokal",
+      "slug": "dfb-pokal",
+      "icon": "/assets/icons/germany_dfb-pokal.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 529,
+      "name": "DFL Supercup",
+      "slug": "dfl-supercup",
+      "icon": "/assets/icons/germany_dfl-supercup.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 570,
+      "name": "Regionalliga Play-offs",
+      "slug": "regionalliga-play-offs",
+      "icon": "/assets/icons/germany_regionalliga-play-offs.svg",
+      "type": "playoffs",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 571,
+      "name": "A-Junioren Bundesliga",
+      "slug": "a-junioren-bundesliga",
+      "icon": "/assets/icons/germany_a-junioren-bundesliga.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 572,
+      "name": "B-Junioren Bundesliga",
+      "slug": "b-junioren-bundesliga",
+      "icon": "/assets/icons/germany_b-junioren-bundesliga.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Netherlands",
+  "code": "netherlands",
+  "flag": "/assets/icons/netherlands.svg",
+  "leagues": [
+    {
+      "id": 88,
+      "name": "Eredivisie",
+      "slug": "eredivisie",
+      "icon": "/assets/icons/netherlands_eredivisie.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 89,
+      "name": "Eerste Divisie",
+      "slug": "eerste-divisie",
+      "icon": "/assets/icons/netherlands_eerste-divisie.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 90,
+      "name": "Tweede Divisie",
+      "slug": "tweede-divisie",
+      "icon": "/assets/icons/netherlands_tweede-divisie.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 91,
+      "name": "Derde Divisie",
+      "slug": "derde-divisie",
+      "icon": "/assets/icons/netherlands_derde-divisie.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 92,
+      "name": "Hoofdklasse",
+      "slug": "hoofdklasse",
+      "icon": "/assets/icons/netherlands_hoofdklasse.svg",
+      "type": "league",
+      "division": 5,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 93,
+      "name": "KNVB Beker",
+      "slug": "knvb-beker",
+      "icon": "/assets/icons/netherlands_knvb-beker.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 94,
+      "name": "Johan Cruyff Shield",
+      "slug": "johan-cruyff-shield",
+      "icon": "/assets/icons/netherlands_johan-cruyff-shield.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 95,
+      "name": "Reserve League",
+      "slug": "reserve-league",
+      "icon": "/assets/icons/netherlands_reserve-league.svg",
+      "type": "reserve",
+      "division": 1,
+      "gender": "reserve",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 96,
+      "name": "O21 Divisie 1",
+      "slug": "o21-divisie-1",
+      "icon": "/assets/icons/netherlands_o21-divisie-1.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 97,
+      "name": "O21 Divisie 2",
+      "slug": "o21-divisie-2",
+      "icon": "/assets/icons/netherlands_o21-divisie-2.svg",
+      "type": "youth",
+      "division": 2,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Portugal",
+  "code": "portugal",
+  "flag": "/assets/icons/portugal.svg",
+  "leagues": [
+    {
+      "id": 94,
+      "name": "Primeira Liga",
+      "slug": "primeira-liga",
+      "icon": "/assets/icons/portugal_primeira-liga.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 95,
+      "name": "Liga Portugal 2",
+      "slug": "liga-portugal-2",
+      "icon": "/assets/icons/portugal_liga-portugal-2.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 96,
+      "name": "Liga 3",
+      "slug": "liga-3",
+      "icon": "/assets/icons/portugal_liga-3.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 97,
+      "name": "Campeonato de Portugal",
+      "slug": "campeonato-de-portugal",
+      "icon": "/assets/icons/portugal_campeonato-de-portugal.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 98,
+      "name": "Taça de Portugal",
+      "slug": "taca-de-portugal",
+      "icon": "/assets/icons/portugal_taca-de-portugal.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 99,
+      "name": "Taça da Liga",
+      "slug": "taca-da-liga",
+      "icon": "/assets/icons/portugal_taca-da-liga.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 550,
+      "name": "Supertaça Cândido de Oliveira",
+      "slug": "supertaca-candido-de-oliveira",
+      "icon": "/assets/icons/portugal_supertaca-candido-de-oliveira.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 551,
+      "name": "Campeonato Nacional de Juniores U19",
+      "slug": "campeonato-nacional-de-juniores-u19",
+      "icon": "/assets/icons/portugal_campeonato-nacional-de-juniores-u19.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 552,
+      "name": "Taça de Portugal Juniores",
+      "slug": "taca-de-portugal-juniores",
+      "icon": "/assets/icons/portugal_taca-de-portugal-juniores.svg",
+      "type": "youth",
+      "division": null,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 553,
+      "name": "Liga Revelação U23",
+      "slug": "liga-revelacao-u23",
+      "icon": "/assets/icons/portugal_liga-revelacao-u23.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Belgium",
+  "code": "belgium",
+  "flag": "/assets/icons/belgium.svg",
+  "leagues": [
+    {
+      "id": 144,
+      "name": "Belgian Pro League",
+      "slug": "belgian-pro-league",
+      "icon": "/assets/icons/belgium_belgian-pro-league.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 145,
+      "name": "Challenger Pro League",
+      "slug": "challenger-pro-league",
+      "icon": "/assets/icons/belgium_challenger-pro-league.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 146,
+      "name": "National Division 1",
+      "slug": "national-division-1",
+      "icon": "/assets/icons/belgium_national-division-1.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 147,
+      "name": "Belgian Division 2 VV",
+      "slug": "belgian-division-2-vv",
+      "icon": "/assets/icons/belgium_belgian-division-2-vv.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 148,
+      "name": "Belgian Division 2 ACFF",
+      "slug": "belgian-division-2-acff",
+      "icon": "/assets/icons/belgium_belgian-division-2-acff.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 149,
+      "name": "Belgian Cup",
+      "slug": "belgian-cup",
+      "icon": "/assets/icons/belgium_belgian-cup.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 150,
+      "name": "Belgian Super Cup",
+      "slug": "belgian-super-cup",
+      "icon": "/assets/icons/belgium_belgian-super-cup.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 151,
+      "name": "Elite 1 U21",
+      "slug": "elite-1-u21",
+      "icon": "/assets/icons/belgium_elite-1-u21.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 152,
+      "name": "Elite 2 U21",
+      "slug": "elite-2-u21",
+      "icon": "/assets/icons/belgium_elite-2-u21.svg",
+      "type": "youth",
+      "division": 2,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 153,
+      "name": "Belgian U18 League",
+      "slug": "belgian-u18-league",
+      "icon": "/assets/icons/belgium_belgian-u18-league.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Turkey",
+  "code": "turkey",
+  "flag": "/assets/icons/turkey.svg",
+  "leagues": [
+    {
+      "id": 203,
+      "name": "Süper Lig",
+      "slug": "super-lig",
+      "icon": "/assets/icons/turkey_super-lig.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 204,
+      "name": "1. Lig",
+      "slug": "1-lig",
+      "icon": "/assets/icons/turkey_1-lig.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 205,
+      "name": "2. Lig",
+      "slug": "2-lig",
+      "icon": "/assets/icons/turkey_2-lig.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 206,
+      "name": "3. Lig",
+      "slug": "3-lig",
+      "icon": "/assets/icons/turkey_3-lig.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 207,
+      "name": "Bölgesel Amatör Lig",
+      "slug": "bolgesel-amator-lig",
+      "icon": "/assets/icons/turkey_bolgesel-amator-lig.svg",
+      "type": "league",
+      "division": 5,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 208,
+      "name": "Türkiye Kupası",
+      "slug": "turkiye-kupasi",
+      "icon": "/assets/icons/turkey_turkiye-kupasi.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 209,
+      "name": "Süper Kupa",
+      "slug": "super-kupa",
+      "icon": "/assets/icons/turkey_super-kupa.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 210,
+      "name": "U19 Elit A Ligi",
+      "slug": "u19-elit-a-ligi",
+      "icon": "/assets/icons/turkey_u19-elit-a-ligi.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 211,
+      "name": "U19 Elit B Ligi",
+      "slug": "u19-elit-b-ligi",
+      "icon": "/assets/icons/turkey_u19-elit-b-ligi.svg",
+      "type": "youth",
+      "division": 2,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 212,
+      "name": "U17 Elit A Ligi",
+      "slug": "u17-elit-a-ligi",
+      "icon": "/assets/icons/turkey_u17-elit-a-ligi.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Brazil",
+  "code": "brazil",
+  "flag": "/assets/icons/brazil.svg",
+  "leagues": [
+    {
+      "id": 71,
+      "name": "Brasileirão Série A",
+      "slug": "brasileirao-serie-a",
+      "icon": "/assets/icons/brazil_brasileirao-serie-a.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 72,
+      "name": "Brasileirão Série B",
+      "slug": "brasileirao-serie-b",
+      "icon": "/assets/icons/brazil_brasileirao-serie-b.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 73,
+      "name": "Brasileirão Série C",
+      "slug": "brasileirao-serie-c",
+      "icon": "/assets/icons/brazil_brasileirao-serie-c.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 74,
+      "name": "Brasileirão Série D",
+      "slug": "brasileirao-serie-d",
+      "icon": "/assets/icons/brazil_brasileirao-serie-d.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 75,
+      "name": "Copa do Brasil",
+      "slug": "copa-do-brasil",
+      "icon": "/assets/icons/brazil_copa-do-brasil.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 76,
+      "name": "Supercopa Rei",
+      "slug": "supercopa-rei",
+      "icon": "/assets/icons/brazil_supercopa-rei.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 77,
+      "name": "Copa do Nordeste",
+      "slug": "copa-do-nordeste",
+      "icon": "/assets/icons/brazil_copa-do-nordeste.svg",
+      "type": "regional_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 78,
+      "name": "Copa Verde",
+      "slug": "copa-verde",
+      "icon": "/assets/icons/brazil_copa-verde.svg",
+      "type": "regional_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 79,
+      "name": "Copa São Paulo de Futebol Júnior",
+      "slug": "copa-sao-paulo-de-futebol-junior",
+      "icon": "/assets/icons/brazil_copa-sao-paulo-junior.svg",
+      "type": "youth",
+      "division": null,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 80,
+      "name": "Campeonato Brasileiro Sub-20",
+      "slug": "campeonato-brasileiro-sub-20",
+      "icon": "/assets/icons/brazil_campeonato-brasileiro-sub-20.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 81,
+      "name": "Campeonato Brasileiro Sub-17",
+      "slug": "campeonato-brasileiro-sub-17",
+      "icon": "/assets/icons/brazil_campeonato-brasileiro-sub-17.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 82,
+      "name": "Brasileirão Aspirantes",
+      "slug": "brasileirao-aspirantes",
+      "icon": "/assets/icons/brazil_brasileirao-aspirantes.svg",
+      "type": "reserve",
+      "division": 1,
+      "gender": "reserve",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Argentina",
+  "code": "argentina",
+  "flag": "/assets/icons/argentina.svg",
+  "leagues": [
+    {
+      "id": 128,
+      "name": "Liga Profesional",
+      "slug": "liga-profesional",
+      "icon": "/assets/icons/argentina_liga-profesional.svg",
+      "type": "league",
+      "division": 1,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 129,
+      "name": "Primera Nacional",
+      "slug": "primera-nacional",
+      "icon": "/assets/icons/argentina_primera-nacional.svg",
+      "type": "league",
+      "division": 2,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 130,
+      "name": "Primera B Metropolitana",
+      "slug": "primera-b-metropolitana",
+      "icon": "/assets/icons/argentina_primera-b-metropolitana.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 131,
+      "name": "Torneo Federal A",
+      "slug": "torneo-federal-a",
+      "icon": "/assets/icons/argentina_torneo-federal-a.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 132,
+      "name": "Primera C",
+      "slug": "primera-c",
+      "icon": "/assets/icons/argentina_primera-c.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 133,
+      "name": "Primera D",
+      "slug": "primera-d",
+      "icon": "/assets/icons/argentina_primera-d.svg",
+      "type": "league",
+      "division": 5,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 134,
+      "name": "Copa Argentina",
+      "slug": "copa-argentina",
+      "icon": "/assets/icons/argentina_copa-argentina.svg",
+      "type": "cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 135,
+      "name": "Supercopa Argentina",
+      "slug": "supercopa-argentina",
+      "icon": "/assets/icons/argentina_supercopa-argentina.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": 136,
+      "name": "Trofeo de Campeones",
+      "slug": "trofeo-de-campeones",
+      "icon": "/assets/icons/argentina_trofeo-de-campeones.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 137,
+      "name": "Primera División Reserva",
+      "slug": "primera-division-reserva",
+      "icon": "/assets/icons/argentina_primera-division-reserva.svg",
+      "type": "reserve",
+      "division": 1,
+      "gender": "reserve",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 138,
+      "name": "Liga Profesional U20",
+      "slug": "liga-profesional-u20",
+      "icon": "/assets/icons/argentina_liga-profesional-u20.svg",
+      "type": "youth",
+      "division": 1,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    }
+  ]
+},
+{
+  "country": "Scotland",
+  "code": "scotland",
+  "flag": "/assets/icons/scotland.svg",
+  "leagues": [
+    {
+      "id": 179,
+      "name": "Premiership",
+      "slug": "premiership",
+      "icon": "/assets/icons/scotland_premiership.svg",
+      "type": "league"
+    },
+    {
+      "id": 180,
+      "name": "Championship",
+      "slug": "championship",
+      "icon": "/assets/icons/scotland_championship.svg",
+      "type": "league"
+    },
+    {
+      "id": 181,
+      "name": "League One",
+      "slug": "league-one",
+      "icon": "/assets/icons/scotland_league-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 182,
+      "name": "League Two",
+      "slug": "league-two",
+      "icon": "/assets/icons/scotland_league-two.svg",
+      "type": "league"
+    },
+    {
+      "id": 556,
+      "name": "Championship Play-offs",
+      "slug": "championship-play-offs",
+      "icon": "/assets/icons/scotland_championship-play-offs.svg",
+      "type": "playoffs"
+    },
+    {
+      "id": 184,
+      "name": "Scottish Cup",
+      "slug": "scottish-cup",
+      "icon": "/assets/icons/scotland_scottish-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 185,
+      "name": "League Cup",
+      "slug": "league-cup",
+      "icon": "/assets/icons/scotland_league-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 557,
+      "name": "Challenge Cup",
+      "slug": "challenge-cup",
+      "icon": "/assets/icons/scotland_challenge-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 558,
+      "name": "Highland League",
+      "slug": "highland-league",
+      "icon": "/assets/icons/scotland_highland-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 559,
+      "name": "Lowland League",
+      "slug": "lowland-league",
+      "icon": "/assets/icons/scotland_lowland-league.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Switzerland",
+  "code": "switzerland",
+  "flag": "/assets/icons/switzerland.svg",
+  "leagues": [
+    {
+      "id": 207,
+      "name": "Super League",
+      "slug": "super-league",
+      "icon": "/assets/icons/switzerland_super-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 208,
+      "name": "Challenge League",
+      "slug": "challenge-league",
+      "icon": "/assets/icons/switzerland_challenge-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 209,
+      "name": "Promotion League",
+      "slug": "promotion-league",
+      "icon": "/assets/icons/switzerland_promotion-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 210,
+      "name": "1. Liga Classic",
+      "slug": "1-liga-classic",
+      "icon": "/assets/icons/switzerland_1-liga-classic.svg",
+      "type": "league"
+    },
+    {
+      "id": 211,
+      "name": "Schweizer Cup",
+      "slug": "schweizer-cup",
+      "icon": "/assets/icons/switzerland_schweizer-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Czech Republic",
+  "code": "czech-republic",
+  "flag": "/assets/icons/czech-republic.svg",
+  "leagues": [
+    {
+      "id": 345,
+      "name": "Czech Liga",
+      "slug": "czech-liga",
+      "icon": "/assets/icons/czech-republic_czech-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 346,
+      "name": "FNL",
+      "slug": "fnl",
+      "icon": "/assets/icons/czech-republic_fnl.svg",
+      "type": "league"
+    },
+    {
+      "id": 347,
+      "name": "CFL",
+      "slug": "cfl",
+      "icon": "/assets/icons/czech-republic_cfl.svg",
+      "type": "league"
+    },
+    {
+      "id": 348,
+      "name": "MSFL",
+      "slug": "msfl",
+      "icon": "/assets/icons/czech-republic_msfl.svg",
+      "type": "league"
+    },
+    {
+      "id": 349,
+      "name": "Cup",
+      "slug": "cup",
+      "icon": "/assets/icons/czech-republic_cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Denmark",
+  "code": "denmark",
+  "flag": "/assets/icons/denmark.svg",
+  "leagues": [
+    {
+      "id": 119,
+      "name": "Superliga",
+      "slug": "superliga",
+      "icon": "/assets/icons/denmark_superliga.svg",
+      "type": "league"
+    },
+    {
+      "id": 120,
+      "name": "1. Division",
+      "slug": "1-division",
+      "icon": "/assets/icons/denmark_1-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 121,
+      "name": "2. Division",
+      "slug": "2-division",
+      "icon": "/assets/icons/denmark_2-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 122,
+      "name": "DBU Pokalen",
+      "slug": "dbu-pokalen",
+      "icon": "/assets/icons/denmark_dbu-pokalen.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Norway",
+  "code": "norway",
+  "flag": "/assets/icons/norway.svg",
+  "leagues": [
+    {
+      "id": 103,
+      "name": "Eliteserien",
+      "slug": "eliteserien",
+      "icon": "/assets/icons/norway_eliteserien.svg",
+      "type": "league"
+    },
+    {
+      "id": 104,
+      "name": "1. Division",
+      "slug": "1-division",
+      "icon": "/assets/icons/norway_1-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 105,
+      "name": "2. Division",
+      "slug": "2-division",
+      "icon": "/assets/icons/norway_2-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 106,
+      "name": "3. Division",
+      "slug": "3-division",
+      "icon": "/assets/icons/norway_3-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 107,
+      "name": "NM Cupen",
+      "slug": "nm-cupen",
+      "icon": "/assets/icons/norway_nm-cupen.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Sweden",
+  "code": "sweden",
+  "flag": "/assets/icons/sweden.svg",
+  "leagues": [
+    {
+      "id": 113,
+      "name": "Allsvenskan",
+      "slug": "allsvenskan",
+      "icon": "/assets/icons/sweden_allsvenskan.svg",
+      "type": "league"
+    },
+    {
+      "id": 114,
+      "name": "Superettan",
+      "slug": "superettan",
+      "icon": "/assets/icons/sweden_superettan.svg",
+      "type": "league"
+    },
+    {
+      "id": 115,
+      "name": "Division 1",
+      "slug": "division-1",
+      "icon": "/assets/icons/sweden_division-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 116,
+      "name": "Division 2",
+      "slug": "division-2",
+      "icon": "/assets/icons/sweden_division-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 117,
+      "name": "Svenska Cupen",
+      "slug": "svenska-cupen",
+      "icon": "/assets/icons/sweden_svenska-cupen.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Poland",
+  "code": "poland",
+  "flag": "/assets/icons/poland.svg",
+  "leagues": [
+    {
+      "id": 106,
+      "name": "Ekstraklasa",
+      "slug": "ekstraklasa",
+      "icon": "/assets/icons/poland_ekstraklasa.svg",
+      "type": "league"
+    },
+    {
+      "id": 107,
+      "name": "I Liga",
+      "slug": "i-liga",
+      "icon": "/assets/icons/poland_i-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 108,
+      "name": "II Liga",
+      "slug": "ii-liga",
+      "icon": "/assets/icons/poland_ii-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 109,
+      "name": "III Liga",
+      "slug": "iii-liga",
+      "icon": "/assets/icons/poland_iii-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 110,
+      "name": "Puchar Polski",
+      "slug": "puchar-polski",
+      "icon": "/assets/icons/poland_puchar-polski.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Greece",
+  "code": "greece",
+  "flag": "/assets/icons/greece.svg",
+  "leagues": [
+    {
+      "id": 197,
+      "name": "Super League 1",
+      "slug": "super-league-1",
+      "icon": "/assets/icons/greece_super-league-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 198,
+      "name": "Super League 2",
+      "slug": "super-league-2",
+      "icon": "/assets/icons/greece_super-league-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 199,
+      "name": "Gamma Ethniki",
+      "slug": "gamma-ethniki",
+      "icon": "/assets/icons/greece_gamma-ethniki.svg",
+      "type": "league"
+    },
+    {
+      "id": 200,
+      "name": "Greek Cup",
+      "slug": "greek-cup",
+      "icon": "/assets/icons/greece_greek-cup.svg",
+      "type": "cup"
+    }
+  ]
+}
   ]
 }
