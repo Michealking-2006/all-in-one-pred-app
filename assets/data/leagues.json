@@ -1717,6 +1717,3457 @@
       "type": "cup"
     }
   ]
+},
+{
+  "country": "Serbia",
+  "code": "serbia",
+  "flag": "/assets/icons/serbia.svg",
+  "leagues": [
+    {
+      "id": 286,
+      "name": "Super Liga",
+      "slug": "super-liga",
+      "icon": "/assets/icons/serbia_super-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 287,
+      "name": "Prva Liga",
+      "slug": "prva-liga",
+      "icon": "/assets/icons/serbia_prva-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 288,
+      "name": "Srpska Liga",
+      "slug": "srpska-liga",
+      "icon": "/assets/icons/serbia_srpska-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 289,
+      "name": "Serbian Cup",
+      "slug": "serbian-cup",
+      "icon": "/assets/icons/serbia_serbian-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Croatia",
+  "code": "croatia",
+  "flag": "/assets/icons/croatia.svg",
+  "leagues": [
+    {
+      "id": 210,
+      "name": "HNL",
+      "slug": "hnl",
+      "icon": "/assets/icons/croatia_hnl.svg",
+      "type": "league"
+    },
+    {
+      "id": 211,
+      "name": "Prva NL",
+      "slug": "prva-nl",
+      "icon": "/assets/icons/croatia_prva-nl.svg",
+      "type": "league"
+    },
+    {
+      "id": 212,
+      "name": "Druga NL",
+      "slug": "druga-nl",
+      "icon": "/assets/icons/croatia_druga-nl.svg",
+      "type": "league"
+    },
+    {
+      "id": 213,
+      "name": "Croatian Cup",
+      "slug": "croatian-cup",
+      "icon": "/assets/icons/croatia_croatian-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Ukraine",
+  "code": "ukraine",
+  "flag": "/assets/icons/ukraine.svg",
+  "leagues": [
+    {
+      "id": 218,
+      "name": "Premier League",
+      "slug": "premier-league",
+      "icon": "/assets/icons/ukraine_premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 219,
+      "name": "Persha Liga",
+      "slug": "persha-liga",
+      "icon": "/assets/icons/ukraine_persha-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 220,
+      "name": "Druha Liga",
+      "slug": "druha-liga",
+      "icon": "/assets/icons/ukraine_druha-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 221,
+      "name": "Ukrainian Cup",
+      "slug": "ukrainian-cup",
+      "icon": "/assets/icons/ukraine_ukrainian-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Hungary",
+  "code": "hungary",
+  "flag": "/assets/icons/hungary.svg",
+  "leagues": [
+    {
+      "id": 245,
+      "name": "NB I",
+      "slug": "nb-i",
+      "icon": "/assets/icons/hungary_nb-i.svg",
+      "type": "league"
+    },
+    {
+      "id": 246,
+      "name": "NB II",
+      "slug": "nb-ii",
+      "icon": "/assets/icons/hungary_nb-ii.svg",
+      "type": "league"
+    },
+    {
+      "id": 247,
+      "name": "NB III",
+      "slug": "nb-iii",
+      "icon": "/assets/icons/hungary_nb-iii.svg",
+      "type": "league"
+    },
+    {
+      "id": 248,
+      "name": "Magyar Kupa",
+      "slug": "magyar-kupa",
+      "icon": "/assets/icons/hungary_magyar-kupa.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Romania",
+  "code": "romania",
+  "flag": "/assets/icons/romania.svg",
+  "leagues": [
+    {
+      "id": 283,
+      "name": "Liga I",
+      "slug": "liga-i",
+      "icon": "/assets/icons/romania_liga-i.svg",
+      "type": "league"
+    },
+    {
+      "id": 284,
+      "name": "Liga II",
+      "slug": "liga-ii",
+      "icon": "/assets/icons/romania_liga-ii.svg",
+      "type": "league"
+    },
+    {
+      "id": 285,
+      "name": "Liga III",
+      "slug": "liga-iii",
+      "icon": "/assets/icons/romania_liga-iii.svg",
+      "type": "league"
+    },
+    {
+      "id": 286,
+      "name": "Cupa României",
+      "slug": "cupa-romaniei",
+      "icon": "/assets/icons/romania_cupa-romaniei.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Slovakia",
+  "code": "slovakia",
+  "flag": "/assets/icons/slovakia.svg",
+  "leagues": [
+    {
+      "id": 314,
+      "name": "Super Liga",
+      "slug": "super-liga",
+      "icon": "/assets/icons/slovakia_super-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 315,
+      "name": "2. Liga",
+      "slug": "2-liga",
+      "icon": "/assets/icons/slovakia_2-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 316,
+      "name": "3. Liga",
+      "slug": "3-liga",
+      "icon": "/assets/icons/slovakia_3-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 317,
+      "name": "Slovnaft Cup",
+      "slug": "slovnaft-cup",
+      "icon": "/assets/icons/slovakia_slovnaft-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Slovenia",
+  "code": "slovenia",
+  "flag": "/assets/icons/slovenia.svg",
+  "leagues": [
+    {
+      "id": 307,
+      "name": "1. SNL",
+      "slug": "1-snl",
+      "icon": "/assets/icons/slovenia_1-snl.svg",
+      "type": "league"
+    },
+    {
+      "id": 308,
+      "name": "2. SNL",
+      "slug": "2-snl",
+      "icon": "/assets/icons/slovenia_2-snl.svg",
+      "type": "league"
+    },
+    {
+      "id": 309,
+      "name": "3. SNL",
+      "slug": "3-snl",
+      "icon": "/assets/icons/slovenia_3-snl.svg",
+      "type": "league"
+    },
+    {
+      "id": 310,
+      "name": "Slovenian Cup",
+      "slug": "slovenian-cup",
+      "icon": "/assets/icons/slovenia_slovenian-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Bulgaria",
+  "code": "bulgaria",
+  "flag": "/assets/icons/bulgaria.svg",
+  "leagues": [
+    {
+      "id": 172,
+      "name": "First League",
+      "slug": "first-league",
+      "icon": "/assets/icons/bulgaria_first-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 173,
+      "name": "Second League",
+      "slug": "second-league",
+      "icon": "/assets/icons/bulgaria_second-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 174,
+      "name": "Third League",
+      "slug": "third-league",
+      "icon": "/assets/icons/bulgaria_third-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 175,
+      "name": "Bulgarian Cup",
+      "slug": "bulgarian-cup",
+      "icon": "/assets/icons/bulgaria_bulgarian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 176,
+      "name": "Bulgarian Super Cup",
+      "slug": "bulgarian-super-cup",
+      "icon": "/assets/icons/bulgaria_bulgarian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Cyprus",
+  "code": "cyprus",
+  "flag": "/assets/icons/cyprus.svg",
+  "leagues": [
+    {
+      "id": 162,
+      "name": "1. Division",
+      "slug": "1-division",
+      "icon": "/assets/icons/cyprus_1-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 163,
+      "name": "2. Division",
+      "slug": "2-division",
+      "icon": "/assets/icons/cyprus_2-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 164,
+      "name": "3. Division",
+      "slug": "3-division",
+      "icon": "/assets/icons/cyprus_3-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 165,
+      "name": "Cyprus Cup",
+      "slug": "cyprus-cup",
+      "icon": "/assets/icons/cyprus_cyprus-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 166,
+      "name": "Cyprus Super Cup",
+      "slug": "cyprus-super-cup",
+      "icon": "/assets/icons/cyprus_cyprus-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Israel",
+  "code": "israel",
+  "flag": "/assets/icons/israel.svg",
+  "leagues": [
+    {
+      "id": 274,
+      "name": "Ligat Ha'Al",
+      "slug": "ligat-haal",
+      "icon": "/assets/icons/israel_ligat-haal.svg",
+      "type": "league"
+    },
+    {
+      "id": 275,
+      "name": "Liga Leumit",
+      "slug": "liga-leumit",
+      "icon": "/assets/icons/israel_liga-leumit.svg",
+      "type": "league"
+    },
+    {
+      "id": 276,
+      "name": "Liga Alef",
+      "slug": "liga-alef",
+      "icon": "/assets/icons/israel_liga-alef.svg",
+      "type": "league"
+    },
+    {
+      "id": 277,
+      "name": "State Cup",
+      "slug": "state-cup",
+      "icon": "/assets/icons/israel_state-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 278,
+      "name": "Toto Cup",
+      "slug": "toto-cup",
+      "icon": "/assets/icons/israel_toto-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Russia",
+  "code": "russia",
+  "flag": "/assets/icons/russia.svg",
+  "leagues": [
+    {
+      "id": 235,
+      "name": "Premier League",
+      "slug": "premier-league",
+      "icon": "/assets/icons/russia_premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 236,
+      "name": "First League",
+      "slug": "first-league",
+      "icon": "/assets/icons/russia_first-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 237,
+      "name": "Second League A",
+      "slug": "second-league-a",
+      "icon": "/assets/icons/russia_second-league-a.svg",
+      "type": "league"
+    },
+    {
+      "id": 238,
+      "name": "Russian Cup",
+      "slug": "russian-cup",
+      "icon": "/assets/icons/russia_russian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 239,
+      "name": "Russian Super Cup",
+      "slug": "russian-super-cup",
+      "icon": "/assets/icons/russia_russian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Kazakhstan",
+  "code": "kazakhstan",
+  "flag": "/assets/icons/kazakhstan.svg",
+  "leagues": [
+    {
+      "id": 329,
+      "name": "Premier League",
+      "slug": "premier-league",
+      "icon": "/assets/icons/kazakhstan_premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 330,
+      "name": "First Division",
+      "slug": "first-division",
+      "icon": "/assets/icons/kazakhstan_first-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 331,
+      "name": "Second League",
+      "slug": "second-league",
+      "icon": "/assets/icons/kazakhstan_second-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 332,
+      "name": "Kazakhstan Cup",
+      "slug": "kazakhstan-cup",
+      "icon": "/assets/icons/kazakhstan_kazakhstan-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 333,
+      "name": "Kazakhstan Super Cup",
+      "slug": "kazakhstan-super-cup",
+      "icon": "/assets/icons/kazakhstan_kazakhstan-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Azerbaijan",
+  "code": "azerbaijan",
+  "flag": "/assets/icons/azerbaijan.svg",
+  "leagues": [
+    {
+      "id": 265,
+      "name": "Premyer Liqa",
+      "slug": "premyer-liqa",
+      "icon": "/assets/icons/azerbaijan_premyer-liqa.svg",
+      "type": "league"
+    },
+    {
+      "id": 266,
+      "name": "Birinci Liqa",
+      "slug": "birinci-liqa",
+      "icon": "/assets/icons/azerbaijan_birinci-liqa.svg",
+      "type": "league"
+    },
+    {
+      "id": 267,
+      "name": "Azərbaycan Kuboku",
+      "slug": "azerbaijan-kuboku",
+      "icon": "/assets/icons/azerbaijan_azerbaijan-kuboku.svg",
+      "type": "cup"
+    },
+    {
+      "id": 268,
+      "name": "Azərbaycan Superkuboku",
+      "slug": "azerbaijan-superkuboku",
+      "icon": "/assets/icons/azerbaijan_azerbaijan-superkuboku.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Finland",
+  "code": "finland",
+  "flag": "/assets/icons/finland.svg",
+  "leagues": [
+    {
+      "id": 244,
+      "name": "Veikkausliiga",
+      "slug": "veikkausliiga",
+      "icon": "/assets/icons/finland_veikkausliiga.svg",
+      "type": "league"
+    },
+    {
+      "id": 245,
+      "name": "Ykkösliiga",
+      "slug": "ykkosliiga",
+      "icon": "/assets/icons/finland_ykkosliiga.svg",
+      "type": "league"
+    },
+    {
+      "id": 246,
+      "name": "Ykkönen",
+      "slug": "ykkonen",
+      "icon": "/assets/icons/finland_ykkonen.svg",
+      "type": "league"
+    },
+    {
+      "id": 247,
+      "name": "Suomen Cup",
+      "slug": "suomen-cup",
+      "icon": "/assets/icons/finland_suomen-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 248,
+      "name": "Liigacup",
+      "slug": "liigacup",
+      "icon": "/assets/icons/finland_liigacup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Ireland",
+  "code": "ireland",
+  "flag": "/assets/icons/ireland.svg",
+  "leagues": [
+    {
+      "id": 265,
+      "name": "Premier Division",
+      "slug": "premier-division",
+      "icon": "/assets/icons/ireland_premier-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 266,
+      "name": "First Division",
+      "slug": "first-division",
+      "icon": "/assets/icons/ireland_first-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 267,
+      "name": "FAI Cup",
+      "slug": "fai-cup",
+      "icon": "/assets/icons/ireland_fai-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 268,
+      "name": "President's Cup",
+      "slug": "presidents-cup",
+      "icon": "/assets/icons/ireland_presidents-cup.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 269,
+      "name": "League Cup",
+      "slug": "league-cup",
+      "icon": "/assets/icons/ireland_league-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Wales",
+  "code": "wales",
+  "flag": "/assets/icons/wales.svg",
+  "leagues": [
+    {
+      "id": 322,
+      "name": "Cymru Premier",
+      "slug": "cymru-premier",
+      "icon": "/assets/icons/wales_cymru-premier.svg",
+      "type": "league"
+    },
+    {
+      "id": 323,
+      "name": "Cymru North",
+      "slug": "cymru-north",
+      "icon": "/assets/icons/wales_cymru-north.svg",
+      "type": "league"
+    },
+    {
+      "id": 324,
+      "name": "Cymru South",
+      "slug": "cymru-south",
+      "icon": "/assets/icons/wales_cymru-south.svg",
+      "type": "league"
+    },
+    {
+      "id": 325,
+      "name": "Welsh Cup",
+      "slug": "welsh-cup",
+      "icon": "/assets/icons/wales_welsh-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 326,
+      "name": "Nathaniel MG Cup",
+      "slug": "nathaniel-mg-cup",
+      "icon": "/assets/icons/wales_nathaniel-mg-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Iceland",
+  "code": "iceland",
+  "flag": "/assets/icons/iceland.svg",
+  "leagues": [
+    {
+      "id": 164,
+      "name": "Besta deild karla",
+      "slug": "besta-deild-karla",
+      "icon": "/assets/icons/iceland_besta-deild-karla.svg",
+      "type": "league"
+    },
+    {
+      "id": 165,
+      "name": "1. deild karla",
+      "slug": "1-deild-karla",
+      "icon": "/assets/icons/iceland_1-deild-karla.svg",
+      "type": "league"
+    },
+    {
+      "id": 166,
+      "name": "2. deild karla",
+      "slug": "2-deild-karla",
+      "icon": "/assets/icons/iceland_2-deild-karla.svg",
+      "type": "league"
+    },
+    {
+      "id": 167,
+      "name": "3. deild karla",
+      "slug": "3-deild-karla",
+      "icon": "/assets/icons/iceland_3-deild-karla.svg",
+      "type": "league"
+    },
+    {
+      "id": 168,
+      "name": "Bikarinn",
+      "slug": "bikarinn",
+      "icon": "/assets/icons/iceland_bikarinn.svg",
+      "type": "cup"
+    },
+    {
+      "id": 169,
+      "name": "Meistarakeppni karla",
+      "slug": "meistarakeppni-karla",
+      "icon": "/assets/icons/iceland_meistarakeppni-karla.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Georgia",
+  "code": "georgia",
+  "flag": "/assets/icons/georgia.svg",
+  "leagues": [
+    {
+      "id": 327,
+      "name": "Erovnuli Liga",
+      "slug": "erovnuli-liga",
+      "icon": "/assets/icons/georgia_erovnuli-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 328,
+      "name": "Erovnuli Liga 2",
+      "slug": "erovnuli-liga-2",
+      "icon": "/assets/icons/georgia_erovnuli-liga-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 329,
+      "name": "Liga 3",
+      "slug": "liga-3",
+      "icon": "/assets/icons/georgia_liga-3.svg",
+      "type": "league"
+    },
+    {
+      "id": 330,
+      "name": "David Kipiani Cup",
+      "slug": "david-kipiani-cup",
+      "icon": "/assets/icons/georgia_david-kipiani-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 331,
+      "name": "Georgian Super Cup",
+      "slug": "georgian-super-cup",
+      "icon": "/assets/icons/georgia_georgian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Armenia",
+  "code": "armenia",
+  "flag": "/assets/icons/armenia.svg",
+  "leagues": [
+    {
+      "id": 325,
+      "name": "Premier League",
+      "slug": "premier-league",
+      "icon": "/assets/icons/armenia_premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 326,
+      "name": "First League",
+      "slug": "first-league",
+      "icon": "/assets/icons/armenia_first-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 327,
+      "name": "Armenian Cup",
+      "slug": "armenian-cup",
+      "icon": "/assets/icons/armenia_armenian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 328,
+      "name": "Armenian Super Cup",
+      "slug": "armenian-super-cup",
+      "icon": "/assets/icons/armenia_armenian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Belarus",
+  "code": "belarus",
+  "flag": "/assets/icons/belarus.svg",
+  "leagues": [
+    {
+      "id": 335,
+      "name": "Premier League",
+      "slug": "premier-league",
+      "icon": "/assets/icons/belarus_premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 336,
+      "name": "First League",
+      "slug": "first-league",
+      "icon": "/assets/icons/belarus_first-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 337,
+      "name": "Second League",
+      "slug": "second-league",
+      "icon": "/assets/icons/belarus_second-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 338,
+      "name": "Belarus Cup",
+      "slug": "belarus-cup",
+      "icon": "/assets/icons/belarus_belarus-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 339,
+      "name": "Belarus Super Cup",
+      "slug": "belarus-super-cup",
+      "icon": "/assets/icons/belarus_belarus-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Bosnia & Herzegovina",
+  "code": "bosnia-herzegovina",
+  "flag": "/assets/icons/bosnia-herzegovina.svg",
+  "leagues": [
+    {
+      "id": 340,
+      "name": "Premijer Liga",
+      "slug": "premijer-liga",
+      "icon": "/assets/icons/bosnia-herzegovina_premijer-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 341,
+      "name": "Prva Liga FBiH",
+      "slug": "prva-liga-fbih",
+      "icon": "/assets/icons/bosnia-herzegovina_prva-liga-fbih.svg",
+      "type": "league"
+    },
+    {
+      "id": 342,
+      "name": "Prva Liga RS",
+      "slug": "prva-liga-rs",
+      "icon": "/assets/icons/bosnia-herzegovina_prva-liga-rs.svg",
+      "type": "league"
+    },
+    {
+      "id": 343,
+      "name": "Kup Bosne i Hercegovine",
+      "slug": "kup-bosne-i-hercegovine",
+      "icon": "/assets/icons/bosnia-herzegovina_kup-bosne-i-hercegovine.svg",
+      "type": "cup"
+    },
+    {
+      "id": 344,
+      "name": "Superkup Bosne i Hercegovine",
+      "slug": "superkup-bosne-i-hercegovine",
+      "icon": "/assets/icons/bosnia-herzegovina_superkup-bosne-i-hercegovine.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Bosnia & Herzegovina",
+  "code": "bosnia-herzegovina",
+  "flag": "/assets/icons/bosnia-herzegovina.svg",
+  "leagues": [
+    {
+      "id": 340,
+      "name": "Premijer Liga",
+      "slug": "premijer-liga",
+      "icon": "/assets/icons/bosnia-herzegovina_premijer-liga.svg",
+      "type": "league"
+    },
+    {
+      "id": 341,
+      "name": "Prva Liga FBiH",
+      "slug": "prva-liga-fbih",
+      "icon": "/assets/icons/bosnia-herzegovina_prva-liga-fbih.svg",
+      "type": "league"
+    },
+    {
+      "id": 342,
+      "name": "Prva Liga RS",
+      "slug": "prva-liga-rs",
+      "icon": "/assets/icons/bosnia-herzegovina_prva-liga-rs.svg",
+      "type": "league"
+    },
+    {
+      "id": 343,
+      "name": "Kup Bosne i Hercegovine",
+      "slug": "kup-bosne-i-hercegovine",
+      "icon": "/assets/icons/bosnia-herzegovina_kup-bosne-i-hercegovine.svg",
+      "type": "cup"
+    },
+    {
+      "id": 344,
+      "name": "Superkup Bosne i Hercegovine",
+      "slug": "superkup-bosne-i-hercegovine",
+      "icon": "/assets/icons/bosnia-herzegovina_superkup-bosne-i-hercegovine.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Montenegro",
+  "code": "montenegro",
+  "flag": "/assets/icons/montenegro.svg",
+  "leagues": [
+    {
+      "id": 345,
+      "name": "Montenegrin First League",
+      "slug": "montenegrin-first-league",
+      "icon": "/assets/icons/montenegro_montenegrin-first-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 346,
+      "name": "Montenegrin Second League",
+      "slug": "montenegrin-second-league",
+      "icon": "/assets/icons/montenegro_montenegrin-second-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 347,
+      "name": "Montenegrin Third League",
+      "slug": "montenegrin-third-league",
+      "icon": "/assets/icons/montenegro_montenegrin-third-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 348,
+      "name": "Montenegro Cup",
+      "slug": "montenegro-cup",
+      "icon": "/assets/icons/montenegro_montenegro-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Japan",
+  "code": "japan",
+  "flag": "/assets/icons/japan.svg",
+  "leagues": [
+    {
+      "id": 98,
+      "name": "J1 League",
+      "slug": "j1-league",
+      "icon": "/assets/icons/japan_j1-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 99,
+      "name": "J2 League",
+      "slug": "j2-league",
+      "icon": "/assets/icons/japan_j2-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 100,
+      "name": "J3 League",
+      "slug": "j3-league",
+      "icon": "/assets/icons/japan_j3-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 101,
+      "name": "Japan Football League",
+      "slug": "japan-football-league",
+      "icon": "/assets/icons/japan_japan-football-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 102,
+      "name": "Emperor's Cup",
+      "slug": "emperors-cup",
+      "icon": "/assets/icons/japan_emperors-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 103,
+      "name": "J.League Cup",
+      "slug": "jleague-cup",
+      "icon": "/assets/icons/japan_jleague-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 104,
+      "name": "Japanese Super Cup",
+      "slug": "japanese-super-cup",
+      "icon": "/assets/icons/japan_japanese-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "South Korea",
+  "code": "south-korea",
+  "flag": "/assets/icons/south-korea.svg",
+  "leagues": [
+    {
+      "id": 292,
+      "name": "K League 1",
+      "slug": "k-league-1",
+      "icon": "/assets/icons/south-korea_k-league-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 293,
+      "name": "K League 2",
+      "slug": "k-league-2",
+      "icon": "/assets/icons/south-korea_k-league-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 294,
+      "name": "K3 League",
+      "slug": "k3-league",
+      "icon": "/assets/icons/south-korea_k3-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 295,
+      "name": "K4 League",
+      "slug": "k4-league",
+      "icon": "/assets/icons/south-korea_k4-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 296,
+      "name": "Korea Cup",
+      "slug": "korea-cup",
+      "icon": "/assets/icons/south-korea_korea-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 297,
+      "name": "K League Promotion-Relegation Play-offs",
+      "slug": "promotion-relegation-playoffs",
+      "icon": "/assets/icons/south-korea_promotion-relegation-playoffs.svg",
+      "type": "playoffs"
+    }
+  ]
+},
+{
+  "country": "Saudi Arabia",
+  "code": "saudi-arabia",
+  "flag": "/assets/icons/saudi-arabia.svg",
+  "leagues": [
+    {
+      "id": 307,
+      "name": "Saudi Pro League",
+      "slug": "saudi-pro-league",
+      "icon": "/assets/icons/saudi-arabia_saudi-pro-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 308,
+      "name": "First Division League",
+      "slug": "first-division-league",
+      "icon": "/assets/icons/saudi-arabia_first-division-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 309,
+      "name": "Second Division",
+      "slug": "second-division",
+      "icon": "/assets/icons/saudi-arabia_second-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 310,
+      "name": "Third Division",
+      "slug": "third-division",
+      "icon": "/assets/icons/saudi-arabia_third-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 311,
+      "name": "King Cup",
+      "slug": "king-cup",
+      "icon": "/assets/icons/saudi-arabia_king-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 312,
+      "name": "Saudi Super Cup",
+      "slug": "saudi-super-cup",
+      "icon": "/assets/icons/saudi-arabia_saudi-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "United Arab Emirates",
+  "code": "united-arab-emirates",
+  "flag": "/assets/icons/united-arab-emirates.svg",
+  "leagues": [
+    {
+      "id": 301,
+      "name": "UAE Pro League",
+      "slug": "uae-pro-league",
+      "icon": "/assets/icons/united-arab-emirates_uae-pro-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 302,
+      "name": "Division One",
+      "slug": "division-one",
+      "icon": "/assets/icons/united-arab-emirates_division-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 303,
+      "name": "President's Cup",
+      "slug": "presidents-cup",
+      "icon": "/assets/icons/united-arab-emirates_presidents-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 304,
+      "name": "League Cup",
+      "slug": "league-cup",
+      "icon": "/assets/icons/united-arab-emirates_league-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 305,
+      "name": "UAE Super Cup",
+      "slug": "uae-super-cup",
+      "icon": "/assets/icons/united-arab-emirates_uae-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Qatar",
+  "code": "qatar",
+  "flag": "/assets/icons/qatar.svg",
+  "leagues": [
+    {
+      "id": 320,
+      "name": "Qatar Stars League",
+      "slug": "qatar-stars-league",
+      "icon": "/assets/icons/qatar_qatar-stars-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 321,
+      "name": "Qatargas League",
+      "slug": "qatargas-league",
+      "icon": "/assets/icons/qatar_qatargas-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 322,
+      "name": "Qatar Second Division",
+      "slug": "qatar-second-division",
+      "icon": "/assets/icons/qatar_qatar-second-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 323,
+      "name": "Emir Cup",
+      "slug": "emir-cup",
+      "icon": "/assets/icons/qatar_emir-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 324,
+      "name": "Qatar Cup",
+      "slug": "qatar-cup",
+      "icon": "/assets/icons/qatar_qatar-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 325,
+      "name": "Sheikh Jassim Cup",
+      "slug": "sheikh-jassim-cup",
+      "icon": "/assets/icons/qatar_sheikh-jassim-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "China",
+  "code": "china",
+  "flag": "/assets/icons/china.svg",
+  "leagues": [
+    {
+      "id": 169,
+      "name": "Chinese Super League",
+      "slug": "chinese-super-league",
+      "icon": "/assets/icons/china_chinese-super-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 170,
+      "name": "China League One",
+      "slug": "china-league-one",
+      "icon": "/assets/icons/china_china-league-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 171,
+      "name": "China League Two",
+      "slug": "china-league-two",
+      "icon": "/assets/icons/china_china-league-two.svg",
+      "type": "league"
+    },
+    {
+      "id": 172,
+      "name": "Chinese FA Cup",
+      "slug": "chinese-fa-cup",
+      "icon": "/assets/icons/china_chinese-fa-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 173,
+      "name": "Chinese FA Super Cup",
+      "slug": "chinese-fa-super-cup",
+      "icon": "/assets/icons/china_chinese-fa-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Iran",
+  "code": "iran",
+  "flag": "/assets/icons/iran.svg",
+  "leagues": [
+    {
+      "id": 179,
+      "name": "Persian Gulf Pro League",
+      "slug": "persian-gulf-pro-league",
+      "icon": "/assets/icons/iran_persian-gulf-pro-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 180,
+      "name": "Azadegan League",
+      "slug": "azadegan-league",
+      "icon": "/assets/icons/iran_azadegan-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 181,
+      "name": "League 2",
+      "slug": "league-2",
+      "icon": "/assets/icons/iran_league-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 182,
+      "name": "League 3",
+      "slug": "league-3",
+      "icon": "/assets/icons/iran_league-3.svg",
+      "type": "league"
+    },
+    {
+      "id": 183,
+      "name": "Hazfi Cup",
+      "slug": "hazfi-cup",
+      "icon": "/assets/icons/iran_hazfi-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 184,
+      "name": "Iranian Super Cup",
+      "slug": "iranian-super-cup",
+      "icon": "/assets/icons/iran_iranian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Uzbekistan",
+  "code": "uzbekistan",
+  "flag": "/assets/icons/uzbekistan.svg",
+  "leagues": [
+    {
+      "id": 310,
+      "name": "Super League",
+      "slug": "super-league",
+      "icon": "/assets/icons/uzbekistan_super-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 311,
+      "name": "Pro League",
+      "slug": "pro-league",
+      "icon": "/assets/icons/uzbekistan_pro-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 312,
+      "name": "First League",
+      "slug": "first-league",
+      "icon": "/assets/icons/uzbekistan_first-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 313,
+      "name": "Uzbekistan Cup",
+      "slug": "uzbekistan-cup",
+      "icon": "/assets/icons/uzbekistan_uzbekistan-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 314,
+      "name": "Uzbekistan Super Cup",
+      "slug": "uzbekistan-super-cup",
+      "icon": "/assets/icons/uzbekistan_uzbekistan-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Australia",
+  "code": "australia",
+  "flag": "/assets/icons/australia.svg",
+  "leagues": [
+    {
+      "id": 188,
+      "name": "A-League Men",
+      "slug": "a-league-men",
+      "icon": "/assets/icons/australia_a-league-men.svg",
+      "type": "league"
+    },
+    {
+      "id": 189,
+      "name": "National Premier Leagues",
+      "slug": "national-premier-leagues",
+      "icon": "/assets/icons/australia_national-premier-leagues.svg",
+      "type": "league"
+    },
+    {
+      "id": 190,
+      "name": "National Premier Leagues NSW",
+      "slug": "npl-nsw",
+      "icon": "/assets/icons/australia_npl-nsw.svg",
+      "type": "league"
+    },
+    {
+      "id": 191,
+      "name": "National Premier Leagues Victoria",
+      "slug": "npl-victoria",
+      "icon": "/assets/icons/australia_npl-victoria.svg",
+      "type": "league"
+    },
+    {
+      "id": 192,
+      "name": "National Premier Leagues Queensland",
+      "slug": "npl-queensland",
+      "icon": "/assets/icons/australia_npl-queensland.svg",
+      "type": "league"
+    },
+    {
+      "id": 193,
+      "name": "National Premier Leagues South Australia",
+      "slug": "npl-south-australia",
+      "icon": "/assets/icons/australia_npl-south-australia.svg",
+      "type": "league"
+    },
+    {
+      "id": 194,
+      "name": "National Premier Leagues Western Australia",
+      "slug": "npl-western-australia",
+      "icon": "/assets/icons/australia_npl-western-australia.svg",
+      "type": "league"
+    },
+    {
+      "id": 195,
+      "name": "National Premier Leagues ACT",
+      "slug": "npl-act",
+      "icon": "/assets/icons/australia_npl-act.svg",
+      "type": "league"
+    },
+    {
+      "id": 196,
+      "name": "National Premier Leagues Tasmania",
+      "slug": "npl-tasmania",
+      "icon": "/assets/icons/australia_npl-tasmania.svg",
+      "type": "league"
+    },
+    {
+      "id": 197,
+      "name": "National Premier Leagues Northern NSW",
+      "slug": "npl-northern-nsw",
+      "icon": "/assets/icons/australia_npl-northern-nsw.svg",
+      "type": "league"
+    },
+    {
+      "id": 198,
+      "name": "Australia Cup",
+      "slug": "australia-cup",
+      "icon": "/assets/icons/australia_australia-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 199,
+      "name": "Australia Cup Preliminary",
+      "slug": "australia-cup-preliminary",
+      "icon": "/assets/icons/australia_australia-cup-preliminary.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "India",
+  "code": "india",
+  "flag": "/assets/icons/india.svg",
+  "leagues": [
+    {
+      "id": 271,
+      "name": "Indian Super League",
+      "slug": "indian-super-league",
+      "icon": "/assets/icons/india_indian-super-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 272,
+      "name": "I-League",
+      "slug": "i-league",
+      "icon": "/assets/icons/india_i-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 273,
+      "name": "I-League 2",
+      "slug": "i-league-2",
+      "icon": "/assets/icons/india_i-league-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 274,
+      "name": "Indian Women's League",
+      "slug": "indian-womens-league",
+      "icon": "/assets/icons/india_indian-womens-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 275,
+      "name": "Durand Cup",
+      "slug": "durand-cup",
+      "icon": "/assets/icons/india_durand-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 276,
+      "name": "Super Cup",
+      "slug": "super-cup",
+      "icon": "/assets/icons/india_super-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 277,
+      "name": "Santosh Trophy",
+      "slug": "santosh-trophy",
+      "icon": "/assets/icons/india_santosh-trophy.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "United States of America",
+  "code": "united-states",
+  "flag": "/assets/icons/united-states.svg",
+  "leagues": [
+    {
+      "id": 253,
+      "name": "Major League Soccer",
+      "slug": "major-league-soccer",
+      "icon": "/assets/icons/united-states_major-league-soccer.svg",
+      "type": "league"
+    },
+    {
+      "id": 254,
+      "name": "USL Championship",
+      "slug": "usl-championship",
+      "icon": "/assets/icons/united-states_usl-championship.svg",
+      "type": "league"
+    },
+    {
+      "id": 255,
+      "name": "USL League One",
+      "slug": "usl-league-one",
+      "icon": "/assets/icons/united-states_usl-league-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 256,
+      "name": "USL League Two",
+      "slug": "usl-league-two",
+      "icon": "/assets/icons/united-states_usl-league-two.svg",
+      "type": "league"
+    },
+    {
+      "id": 257,
+      "name": "National Independent Soccer Association",
+      "slug": "nisa",
+      "icon": "/assets/icons/united-states_nisa.svg",
+      "type": "league"
+    },
+    {
+      "id": 258,
+      "name": "MLS Next Pro",
+      "slug": "mls-next-pro",
+      "icon": "/assets/icons/united-states_mls-next-pro.svg",
+      "type": "league"
+    },
+    {
+      "id": 259,
+      "name": "U.S. Open Cup",
+      "slug": "us-open-cup",
+      "icon": "/assets/icons/united-states_us-open-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 260,
+      "name": "Leagues Cup",
+      "slug": "leagues-cup",
+      "icon": "/assets/icons/united-states_leagues-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 261,
+      "name": "Campeones Cup",
+      "slug": "campeones-cup",
+      "icon": "/assets/icons/united-states_campeones-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Mexico",
+  "code": "mexico",
+  "flag": "/assets/icons/mexico.svg",
+  "leagues": [
+    {
+      "id": 262,
+      "name": "Liga MX",
+      "slug": "liga-mx",
+      "icon": "/assets/icons/mexico_liga-mx.svg",
+      "type": "league"
+    },
+    {
+      "id": 263,
+      "name": "Liga de Expansión MX",
+      "slug": "liga-de-expansion-mx",
+      "icon": "/assets/icons/mexico_liga-de-expansion-mx.svg",
+      "type": "league"
+    },
+    {
+      "id": 264,
+      "name": "Liga Premier Serie A",
+      "slug": "liga-premier-serie-a",
+      "icon": "/assets/icons/mexico_liga-premier-serie-a.svg",
+      "type": "league"
+    },
+    {
+      "id": 265,
+      "name": "Liga Premier Serie B",
+      "slug": "liga-premier-serie-b",
+      "icon": "/assets/icons/mexico_liga-premier-serie-b.svg",
+      "type": "league"
+    },
+    {
+      "id": 266,
+      "name": "Liga TDP",
+      "slug": "liga-tdp",
+      "icon": "/assets/icons/mexico_liga-tdp.svg",
+      "type": "league"
+    },
+    {
+      "id": 267,
+      "name": "Copa MX",
+      "slug": "copa-mx",
+      "icon": "/assets/icons/mexico_copa-mx.svg",
+      "type": "cup"
+    },
+    {
+      "id": 268,
+      "name": "Campeón de Campeones",
+      "slug": "campeon-de-campeones",
+      "icon": "/assets/icons/mexico_campeon-de-campeones.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 269,
+      "name": "Supercopa MX",
+      "slug": "supercopa-mx",
+      "icon": "/assets/icons/mexico_supercopa-mx.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Canada",
+  "code": "canada",
+  "flag": "/assets/icons/canada.svg",
+  "leagues": [
+    {
+      "id": 265,
+      "name": "Canadian Premier League",
+      "slug": "canadian-premier-league",
+      "icon": "/assets/icons/canada_canadian-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 266,
+      "name": "League1 Ontario",
+      "slug": "league1-ontario",
+      "icon": "/assets/icons/canada_league1-ontario.svg",
+      "type": "league"
+    },
+    {
+      "id": 267,
+      "name": "League1 British Columbia",
+      "slug": "league1-british-columbia",
+      "icon": "/assets/icons/canada_league1-british-columbia.svg",
+      "type": "league"
+    },
+    {
+      "id": 268,
+      "name": "Ligue1 Québec",
+      "slug": "ligue1-quebec",
+      "icon": "/assets/icons/canada_ligue1-quebec.svg",
+      "type": "league"
+    },
+    {
+      "id": 269,
+      "name": "Canadian Championship",
+      "slug": "canadian-championship",
+      "icon": "/assets/icons/canada_canadian-championship.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Costa Rica",
+  "code": "costa-rica",
+  "flag": "/assets/icons/costa-rica.svg",
+  "leagues": [
+    {
+      "id": 270,
+      "name": "Liga FPD",
+      "slug": "liga-fpd",
+      "icon": "/assets/icons/costa-rica_liga-fpd.svg",
+      "type": "league"
+    },
+    {
+      "id": 271,
+      "name": "Liga de Ascenso",
+      "slug": "liga-de-ascenso",
+      "icon": "/assets/icons/costa-rica_liga-de-ascenso.svg",
+      "type": "league"
+    },
+    {
+      "id": 272,
+      "name": "LINAFA",
+      "slug": "linafa",
+      "icon": "/assets/icons/costa-rica_linafa.svg",
+      "type": "league"
+    },
+    {
+      "id": 273,
+      "name": "Costa Rican Cup",
+      "slug": "costa-rican-cup",
+      "icon": "/assets/icons/costa-rica_costa-rican-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 274,
+      "name": "Recopa de Costa Rica",
+      "slug": "recopa-de-costa-rica",
+      "icon": "/assets/icons/costa-rica_recopa-de-costa-rica.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Honduras",
+  "code": "honduras",
+  "flag": "/assets/icons/honduras.svg",
+  "leagues": [
+    {
+      "id": 275,
+      "name": "Liga Nacional",
+      "slug": "liga-nacional",
+      "icon": "/assets/icons/honduras_liga-nacional.svg",
+      "type": "league"
+    },
+    {
+      "id": 276,
+      "name": "Liga de Ascenso",
+      "slug": "liga-de-ascenso",
+      "icon": "/assets/icons/honduras_liga-de-ascenso.svg",
+      "type": "league"
+    },
+    {
+      "id": 277,
+      "name": "Liga Mayor",
+      "slug": "liga-mayor",
+      "icon": "/assets/icons/honduras_liga-mayor.svg",
+      "type": "league"
+    },
+    {
+      "id": 278,
+      "name": "Copa de Honduras",
+      "slug": "copa-de-honduras",
+      "icon": "/assets/icons/honduras_copa-de-honduras.svg",
+      "type": "cup"
+    },
+    {
+      "id": 279,
+      "name": "Supercopa de Honduras",
+      "slug": "supercopa-de-honduras",
+      "icon": "/assets/icons/honduras_supercopa-de-honduras.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Panama",
+  "code": "panama",
+  "flag": "/assets/icons/panama.svg",
+  "leagues": [
+    {
+      "id": 280,
+      "name": "Liga Panameña de Fútbol",
+      "slug": "liga-panamena-de-futbol",
+      "icon": "/assets/icons/panama_liga-panamena-de-futbol.svg",
+      "type": "league"
+    },
+    {
+      "id": 281,
+      "name": "Liga Prom",
+      "slug": "liga-prom",
+      "icon": "/assets/icons/panama_liga-prom.svg",
+      "type": "league"
+    },
+    {
+      "id": 282,
+      "name": "Liga Nacional de Ascenso",
+      "slug": "liga-nacional-de-ascenso",
+      "icon": "/assets/icons/panama_liga-nacional-de-ascenso.svg",
+      "type": "league"
+    },
+    {
+      "id": 283,
+      "name": "Copa Panamá",
+      "slug": "copa-panama",
+      "icon": "/assets/icons/panama_copa-panama.svg",
+      "type": "cup"
+    },
+    {
+      "id": 284,
+      "name": "Supercopa de Panamá",
+      "slug": "supercopa-de-panama",
+      "icon": "/assets/icons/panama_supercopa-de-panama.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Egypt",
+  "code": "egypt",
+  "flag": "/assets/icons/egypt.svg",
+  "leagues": [
+    {
+      "id": 233,
+      "name": "Egyptian Premier League",
+      "slug": "egyptian-premier-league",
+      "icon": "/assets/icons/egypt_egyptian-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 234,
+      "name": "Second Division A",
+      "slug": "second-division-a",
+      "icon": "/assets/icons/egypt_second-division-a.svg",
+      "type": "league"
+    },
+    {
+      "id": 235,
+      "name": "Second Division B",
+      "slug": "second-division-b",
+      "icon": "/assets/icons/egypt_second-division-b.svg",
+      "type": "league"
+    },
+    {
+      "id": 236,
+      "name": "Third Division",
+      "slug": "third-division",
+      "icon": "/assets/icons/egypt_third-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 237,
+      "name": "Egypt Cup",
+      "slug": "egypt-cup",
+      "icon": "/assets/icons/egypt_egypt-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 238,
+      "name": "Egyptian League Cup",
+      "slug": "egyptian-league-cup",
+      "icon": "/assets/icons/egypt_egyptian-league-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 239,
+      "name": "Egyptian Super Cup",
+      "slug": "egyptian-super-cup",
+      "icon": "/assets/icons/egypt_egyptian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Morocco",
+  "code": "morocco",
+  "flag": "/assets/icons/morocco.svg",
+  "leagues": [
+    {
+      "id": 200,
+      "name": "Botola Pro",
+      "slug": "botola-pro",
+      "icon": "/assets/icons/morocco_botola-pro.svg",
+      "type": "league"
+    },
+    {
+      "id": 201,
+      "name": "Botola 2",
+      "slug": "botola-2",
+      "icon": "/assets/icons/morocco_botola-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 202,
+      "name": "National Amateur Championship",
+      "slug": "national-amateur-championship",
+      "icon": "/assets/icons/morocco_national-amateur-championship.svg",
+      "type": "league"
+    },
+    {
+      "id": 203,
+      "name": "Moroccan Throne Cup",
+      "slug": "moroccan-throne-cup",
+      "icon": "/assets/icons/morocco_moroccan-throne-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 204,
+      "name": "Moroccan Excellence Cup",
+      "slug": "moroccan-excellence-cup",
+      "icon": "/assets/icons/morocco_moroccan-excellence-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 205,
+      "name": "Moroccan Super Cup",
+      "slug": "moroccan-super-cup",
+      "icon": "/assets/icons/morocco_moroccan-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "South Africa",
+  "code": "south-africa",
+  "flag": "/assets/icons/south-africa.svg",
+  "leagues": [
+    {
+      "id": 288,
+      "name": "Premier Soccer League",
+      "slug": "premier-soccer-league",
+      "icon": "/assets/icons/south-africa_premier-soccer-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 289,
+      "name": "National First Division",
+      "slug": "national-first-division",
+      "icon": "/assets/icons/south-africa_national-first-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 290,
+      "name": "SAFA Second Division",
+      "slug": "safa-second-division",
+      "icon": "/assets/icons/south-africa_safa-second-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 291,
+      "name": "Nedbank Cup",
+      "slug": "nedbank-cup",
+      "icon": "/assets/icons/south-africa_nedbank-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 292,
+      "name": "MTN 8",
+      "slug": "mtn-8",
+      "icon": "/assets/icons/south-africa_mtn-8.svg",
+      "type": "cup"
+    },
+    {
+      "id": 293,
+      "name": "Carling Knockout Cup",
+      "slug": "carling-knockout-cup",
+      "icon": "/assets/icons/south-africa_carling-knockout-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 294,
+      "name": "DStv Diski Challenge",
+      "slug": "dstv-diski-challenge",
+      "icon": "/assets/icons/south-africa_dstv-diski-challenge.svg",
+      "type": "youth"
+    }
+  ]
+},
+{
+  "country": "Tunisia",
+  "code": "tunisia",
+  "flag": "/assets/icons/tunisia.svg",
+  "leagues": [
+    {
+      "id": 210,
+      "name": "Ligue Professionnelle 1",
+      "slug": "ligue-professionnelle-1",
+      "icon": "/assets/icons/tunisia_ligue-professionnelle-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 211,
+      "name": "Ligue Professionnelle 2",
+      "slug": "ligue-professionnelle-2",
+      "icon": "/assets/icons/tunisia_ligue-professionnelle-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 212,
+      "name": "Ligue 3",
+      "slug": "ligue-3",
+      "icon": "/assets/icons/tunisia_ligue-3.svg",
+      "type": "league"
+    },
+    {
+      "id": 213,
+      "name": "Tunisian Cup",
+      "slug": "tunisian-cup",
+      "icon": "/assets/icons/tunisia_tunisian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 214,
+      "name": "Tunisian Super Cup",
+      "slug": "tunisian-super-cup",
+      "icon": "/assets/icons/tunisia_tunisian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Algeria",
+  "code": "algeria",
+  "flag": "/assets/icons/algeria.svg",
+  "leagues": [
+    {
+      "id": 215,
+      "name": "Ligue 1",
+      "slug": "ligue-1",
+      "icon": "/assets/icons/algeria_ligue-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 216,
+      "name": "Ligue 2",
+      "slug": "ligue-2",
+      "icon": "/assets/icons/algeria_ligue-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 217,
+      "name": "Inter-Régions",
+      "slug": "inter-regions",
+      "icon": "/assets/icons/algeria_inter-regions.svg",
+      "type": "league"
+    },
+    {
+      "id": 218,
+      "name": "National Amateur",
+      "slug": "national-amateur",
+      "icon": "/assets/icons/algeria_national-amateur.svg",
+      "type": "league"
+    },
+    {
+      "id": 219,
+      "name": "Algerian Cup",
+      "slug": "algerian-cup",
+      "icon": "/assets/icons/algeria_algerian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 220,
+      "name": "Algerian Super Cup",
+      "slug": "algerian-super-cup",
+      "icon": "/assets/icons/algeria_algerian-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Nigeria",
+  "code": "nigeria",
+  "flag": "/assets/icons/nigeria.svg",
+  "leagues": [
+    {
+      "id": 301,
+      "name": "Nigeria Premier Football League",
+      "slug": "nigeria-premier-football-league",
+      "icon": "/assets/icons/nigeria_nigeria-premier-football-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 302,
+      "name": "Nigeria National League",
+      "slug": "nigeria-national-league",
+      "icon": "/assets/icons/nigeria_nigeria-national-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 303,
+      "name": "Nationwide League One",
+      "slug": "nationwide-league-one",
+      "icon": "/assets/icons/nigeria_nationwide-league-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 304,
+      "name": "Nigeria Women Football League",
+      "slug": "nigeria-women-football-league",
+      "icon": "/assets/icons/nigeria_nigeria-women-football-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 305,
+      "name": "President Federation Cup",
+      "slug": "president-federation-cup",
+      "icon": "/assets/icons/nigeria_president-federation-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 306,
+      "name": "Super 6 Tournament",
+      "slug": "super-6-tournament",
+      "icon": "/assets/icons/nigeria_super-6-tournament.svg",
+      "type": "playoffs"
+    }
+  ]
+},
+{
+  "country": "Ghana",
+  "code": "ghana",
+  "flag": "/assets/icons/ghana.svg",
+  "leagues": [
+    {
+      "id": 307,
+      "name": "Ghana Premier League",
+      "slug": "ghana-premier-league",
+      "icon": "/assets/icons/ghana_ghana-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 308,
+      "name": "Division One League",
+      "slug": "division-one-league",
+      "icon": "/assets/icons/ghana_division-one-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 309,
+      "name": "Division Two League",
+      "slug": "division-two-league",
+      "icon": "/assets/icons/ghana_division-two-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 310,
+      "name": "Women's Premier League",
+      "slug": "womens-premier-league",
+      "icon": "/assets/icons/ghana_womens-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 311,
+      "name": "MTN FA Cup",
+      "slug": "mtn-fa-cup",
+      "icon": "/assets/icons/ghana_mtn-fa-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 312,
+      "name": "GFA Super Cup",
+      "slug": "gfa-super-cup",
+      "icon": "/assets/icons/ghana_gfa-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Ivory Coast",
+  "code": "ivory-coast",
+  "flag": "/assets/icons/ivory-coast.svg",
+  "leagues": [
+    {
+      "id": 313,
+      "name": "Ligue 1",
+      "slug": "ligue-1",
+      "icon": "/assets/icons/ivory-coast_ligue-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 314,
+      "name": "Ligue 2",
+      "slug": "ligue-2",
+      "icon": "/assets/icons/ivory-coast_ligue-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 315,
+      "name": "Division 3",
+      "slug": "division-3",
+      "icon": "/assets/icons/ivory-coast_division-3.svg",
+      "type": "league"
+    },
+    {
+      "id": 316,
+      "name": "Coupe Nationale",
+      "slug": "coupe-nationale",
+      "icon": "/assets/icons/ivory-coast_coupe-nationale.svg",
+      "type": "cup"
+    },
+    {
+      "id": 317,
+      "name": "Super Coupe Félix Houphouët-Boigny",
+      "slug": "super-coupe-felix-houphouet-boigny",
+      "icon": "/assets/icons/ivory-coast_super-coupe-felix-houphouet-boigny.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Senegal",
+  "code": "senegal",
+  "flag": "/assets/icons/senegal.svg",
+  "leagues": [
+    {
+      "id": 318,
+      "name": "Ligue 1",
+      "slug": "ligue-1",
+      "icon": "/assets/icons/senegal_ligue-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 319,
+      "name": "Ligue 2",
+      "slug": "ligue-2",
+      "icon": "/assets/icons/senegal_ligue-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 320,
+      "name": "National 1",
+      "slug": "national-1",
+      "icon": "/assets/icons/senegal_national-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 321,
+      "name": "Coupe du Sénégal",
+      "slug": "coupe-du-senegal",
+      "icon": "/assets/icons/senegal_coupe-du-senegal.svg",
+      "type": "cup"
+    },
+    {
+      "id": 322,
+      "name": "Super Coupe du Sénégal",
+      "slug": "super-coupe-du-senegal",
+      "icon": "/assets/icons/senegal_super-coupe-du-senegal.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 323,
+      "name": "Coupe de la Ligue",
+      "slug": "coupe-de-la-ligue",
+      "icon": "/assets/icons/senegal_coupe-de-la-ligue.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "DR Congo",
+  "code": "dr-congo",
+  "flag": "/assets/icons/dr-congo.svg",
+  "leagues": [
+    {
+      "id": 324,
+      "name": "Linafoot Ligue 1",
+      "slug": "linafoot-ligue-1",
+      "icon": "/assets/icons/dr-congo_linafoot-ligue-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 325,
+      "name": "Linafoot Ligue 2",
+      "slug": "linafoot-ligue-2",
+      "icon": "/assets/icons/dr-congo_linafoot-ligue-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 326,
+      "name": "Provincial Leagues",
+      "slug": "provincial-leagues",
+      "icon": "/assets/icons/dr-congo_provincial-leagues.svg",
+      "type": "league"
+    },
+    {
+      "id": 327,
+      "name": "Coupe du Congo",
+      "slug": "coupe-du-congo",
+      "icon": "/assets/icons/dr-congo_coupe-du-congo.svg",
+      "type": "cup"
+    },
+    {
+      "id": 328,
+      "name": "Super Coupe du Congo",
+      "slug": "super-coupe-du-congo",
+      "icon": "/assets/icons/dr-congo_super-coupe-du-congo.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Tanzania",
+  "code": "tanzania",
+  "flag": "/assets/icons/tanzania.svg",
+  "leagues": [
+    {
+      "id": 329,
+      "name": "Mainland Premier League",
+      "slug": "mainland-premier-league",
+      "icon": "/assets/icons/tanzania_mainland-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 330,
+      "name": "Championship League",
+      "slug": "championship-league",
+      "icon": "/assets/icons/tanzania_championship-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 331,
+      "name": "First League",
+      "slug": "first-league",
+      "icon": "/assets/icons/tanzania_first-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 332,
+      "name": "FA Cup",
+      "slug": "fa-cup",
+      "icon": "/assets/icons/tanzania_fa-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 333,
+      "name": "Community Shield",
+      "slug": "community-shield",
+      "icon": "/assets/icons/tanzania_community-shield.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 334,
+      "name": "Mapinduzi Cup",
+      "slug": "mapinduzi-cup",
+      "icon": "/assets/icons/tanzania_mapinduzi-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Sudan",
+  "code": "sudan",
+  "flag": "/assets/icons/sudan.svg",
+  "leagues": [
+    {
+      "id": 335,
+      "name": "Sudan Premier League",
+      "slug": "sudan-premier-league",
+      "icon": "/assets/icons/sudan_sudan-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 336,
+      "name": "Sudan First Division",
+      "slug": "sudan-first-division",
+      "icon": "/assets/icons/sudan_sudan-first-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 337,
+      "name": "Sudan Cup",
+      "slug": "sudan-cup",
+      "icon": "/assets/icons/sudan_sudan-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 338,
+      "name": "Sudan Super Cup",
+      "slug": "sudan-super-cup",
+      "icon": "/assets/icons/sudan_sudan-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Angola",
+  "code": "angola",
+  "flag": "/assets/icons/angola.svg",
+  "leagues": [
+    {
+      "id": 339,
+      "name": "Girabola",
+      "slug": "girabola",
+      "icon": "/assets/icons/angola_girabola.svg",
+      "type": "league"
+    },
+    {
+      "id": 340,
+      "name": "Segunda Divisão",
+      "slug": "segunda-divisao",
+      "icon": "/assets/icons/angola_segunda-divisao.svg",
+      "type": "league"
+    },
+    {
+      "id": 341,
+      "name": "Taça de Angola",
+      "slug": "taca-de-angola",
+      "icon": "/assets/icons/angola_taca-de-angola.svg",
+      "type": "cup"
+    },
+    {
+      "id": 342,
+      "name": "Supertaça de Angola",
+      "slug": "supertaca-de-angola",
+      "icon": "/assets/icons/angola_supertaca-de-angola.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Zambia",
+  "code": "zambia",
+  "flag": "/assets/icons/zambia.svg",
+  "leagues": [
+    {
+      "id": 343,
+      "name": "Zambia Super League",
+      "slug": "zambia-super-league",
+      "icon": "/assets/icons/zambia_zambia-super-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 344,
+      "name": "National Division One",
+      "slug": "national-division-one",
+      "icon": "/assets/icons/zambia_national-division-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 345,
+      "name": "Provincial League",
+      "slug": "provincial-league",
+      "icon": "/assets/icons/zambia_provincial-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 346,
+      "name": "ABSA Cup",
+      "slug": "absa-cup",
+      "icon": "/assets/icons/zambia_absa-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 347,
+      "name": "Charity Shield",
+      "slug": "charity-shield",
+      "icon": "/assets/icons/zambia_charity-shield.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Uganda",
+  "code": "uganda",
+  "flag": "/assets/icons/uganda.svg",
+  "leagues": [
+    {
+      "id": 348,
+      "name": "Uganda Premier League",
+      "slug": "uganda-premier-league",
+      "icon": "/assets/icons/uganda_uganda-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 349,
+      "name": "FUFA Big League",
+      "slug": "fufa-big-league",
+      "icon": "/assets/icons/uganda_fufa-big-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 350,
+      "name": "Regional League",
+      "slug": "regional-league",
+      "icon": "/assets/icons/uganda_regional-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 351,
+      "name": "Uganda Cup",
+      "slug": "uganda-cup",
+      "icon": "/assets/icons/uganda_uganda-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 352,
+      "name": "FUFA Super 8",
+      "slug": "fufa-super-8",
+      "icon": "/assets/icons/uganda_fufa-super-8.svg",
+      "type": "cup"
+    },
+    {
+      "id": 353,
+      "name": "Uganda Super Cup",
+      "slug": "uganda-super-cup",
+      "icon": "/assets/icons/uganda_uganda-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Kenya",
+  "code": "kenya",
+  "flag": "/assets/icons/kenya.svg",
+  "leagues": [
+    {
+      "id": 354,
+      "name": "FKF Premier League",
+      "slug": "fkf-premier-league",
+      "icon": "/assets/icons/kenya_fkf-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 355,
+      "name": "National Super League",
+      "slug": "national-super-league",
+      "icon": "/assets/icons/kenya_national-super-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 356,
+      "name": "Division One",
+      "slug": "division-one",
+      "icon": "/assets/icons/kenya_division-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 357,
+      "name": "Division Two",
+      "slug": "division-two",
+      "icon": "/assets/icons/kenya_division-two.svg",
+      "type": "league"
+    },
+    {
+      "id": 358,
+      "name": "FKF Cup",
+      "slug": "fkf-cup",
+      "icon": "/assets/icons/kenya_fkf-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 359,
+      "name": "FKF Super Cup",
+      "slug": "fkf-super-cup",
+      "icon": "/assets/icons/kenya_fkf-super-cup.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Colombia",
+  "code": "colombia",
+  "flag": "/assets/icons/colombia.svg",
+  "leagues": [
+    {
+      "id": 360,
+      "name": "Categoría Primera A",
+      "slug": "categoria-primera-a",
+      "icon": "/assets/icons/colombia_categoria-primera-a.svg",
+      "type": "league"
+    },
+    {
+      "id": 361,
+      "name": "Categoría Primera B",
+      "slug": "categoria-primera-b",
+      "icon": "/assets/icons/colombia_categoria-primera-b.svg",
+      "type": "league"
+    },
+    {
+      "id": 362,
+      "name": "Copa Colombia",
+      "slug": "copa-colombia",
+      "icon": "/assets/icons/colombia_copa-colombia.svg",
+      "type": "cup"
+    },
+    {
+      "id": 363,
+      "name": "Superliga Colombiana",
+      "slug": "superliga-colombiana",
+      "icon": "/assets/icons/colombia_superliga-colombiana.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 364,
+      "name": "Liga Femenina",
+      "slug": "liga-femenina",
+      "icon": "/assets/icons/colombia_liga-femenina.svg",
+      "type": "league"
+    },
+    {
+      "id": 365,
+      "name": "Torneo Sub-20",
+      "slug": "torneo-sub-20",
+      "icon": "/assets/icons/colombia_torneo-sub-20.svg",
+      "type": "youth"
+    }
+  ]
+},
+{
+  "country": "Chile",
+  "code": "chile",
+  "flag": "/assets/icons/chile.svg",
+  "leagues": [
+    {
+      "id": 366,
+      "name": "Primera División",
+      "slug": "primera-division",
+      "icon": "/assets/icons/chile_primera-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 367,
+      "name": "Primera B",
+      "slug": "primera-b",
+      "icon": "/assets/icons/chile_primera-b.svg",
+      "type": "league"
+    },
+    {
+      "id": 368,
+      "name": "Segunda División Profesional",
+      "slug": "segunda-division-profesional",
+      "icon": "/assets/icons/chile_segunda-division-profesional.svg",
+      "type": "league"
+    },
+    {
+      "id": 369,
+      "name": "Copa Chile",
+      "slug": "copa-chile",
+      "icon": "/assets/icons/chile_copa-chile.svg",
+      "type": "cup"
+    },
+    {
+      "id": 370,
+      "name": "Supercopa de Chile",
+      "slug": "supercopa-de-chile",
+      "icon": "/assets/icons/chile_supercopa-de-chile.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 371,
+      "name": "Primera División Femenina",
+      "slug": "primera-division-femenina",
+      "icon": "/assets/icons/chile_primera-division-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Uruguay",
+  "code": "uruguay",
+  "flag": "/assets/icons/uruguay.svg",
+  "leagues": [
+    {
+      "id": 372,
+      "name": "Primera División",
+      "slug": "primera-division",
+      "icon": "/assets/icons/uruguay_primera-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 373,
+      "name": "Segunda División",
+      "slug": "segunda-division",
+      "icon": "/assets/icons/uruguay_segunda-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 374,
+      "name": "Primera Amateur",
+      "slug": "primera-amateur",
+      "icon": "/assets/icons/uruguay_primera-amateur.svg",
+      "type": "league"
+    },
+    {
+      "id": 375,
+      "name": "Divisional D",
+      "slug": "divisional-d",
+      "icon": "/assets/icons/uruguay_divisional-d.svg",
+      "type": "league"
+    },
+    {
+      "id": 376,
+      "name": "Copa AUF Uruguay",
+      "slug": "copa-auf-uruguay",
+      "icon": "/assets/icons/uruguay_copa-auf-uruguay.svg",
+      "type": "cup"
+    },
+    {
+      "id": 377,
+      "name": "Supercopa Uruguaya",
+      "slug": "supercopa-uruguaya",
+      "icon": "/assets/icons/uruguay_supercopa-uruguaya.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 378,
+      "name": "Primera División Femenina",
+      "slug": "primera-division-femenina",
+      "icon": "/assets/icons/uruguay_primera-division-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Paraguay",
+  "code": "paraguay",
+  "flag": "/assets/icons/paraguay.svg",
+  "leagues": [
+    {
+      "id": 379,
+      "name": "Primera División",
+      "slug": "primera-division",
+      "icon": "/assets/icons/paraguay_primera-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 380,
+      "name": "División Intermedia",
+      "slug": "division-intermedia",
+      "icon": "/assets/icons/paraguay_division-intermedia.svg",
+      "type": "league"
+    },
+    {
+      "id": 381,
+      "name": "Primera B",
+      "slug": "primera-b",
+      "icon": "/assets/icons/paraguay_primera-b.svg",
+      "type": "league"
+    },
+    {
+      "id": 382,
+      "name": "Primera C",
+      "slug": "primera-c",
+      "icon": "/assets/icons/paraguay_primera-c.svg",
+      "type": "league"
+    },
+    {
+      "id": 383,
+      "name": "Copa Paraguay",
+      "slug": "copa-paraguay",
+      "icon": "/assets/icons/paraguay_copa-paraguay.svg",
+      "type": "cup"
+    },
+    {
+      "id": 384,
+      "name": "Supercopa Paraguay",
+      "slug": "supercopa-paraguay",
+      "icon": "/assets/icons/paraguay_supercopa-paraguay.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 385,
+      "name": "Primera División Femenina",
+      "slug": "primera-division-femenina",
+      "icon": "/assets/icons/paraguay_primera-division-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Peru",
+  "code": "peru",
+  "flag": "/assets/icons/peru.svg",
+  "leagues": [
+    {
+      "id": 386,
+      "name": "Liga 1",
+      "slug": "liga-1",
+      "icon": "/assets/icons/peru_liga-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 387,
+      "name": "Liga 2",
+      "slug": "liga-2",
+      "icon": "/assets/icons/peru_liga-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 388,
+      "name": "Copa Perú",
+      "slug": "copa-peru",
+      "icon": "/assets/icons/peru_copa-peru.svg",
+      "type": "league"
+    },
+    {
+      "id": 389,
+      "name": "Liga 3",
+      "slug": "liga-3",
+      "icon": "/assets/icons/peru_liga-3.svg",
+      "type": "league"
+    },
+    {
+      "id": 390,
+      "name": "Liga Femenina",
+      "slug": "liga-femenina",
+      "icon": "/assets/icons/peru_liga-femenina.svg",
+      "type": "league"
+    },
+    {
+      "id": 391,
+      "name": "Supercopa Peruana",
+      "slug": "supercopa-peruana",
+      "icon": "/assets/icons/peru_supercopa-peruana.svg",
+      "type": "super_cup"
+    }
+  ]
+},
+{
+  "country": "Ecuador",
+  "code": "ecuador",
+  "flag": "/assets/icons/ecuador.svg",
+  "leagues": [
+    {
+      "id": 392,
+      "name": "LigaPro Serie A",
+      "slug": "ligapro-serie-a",
+      "icon": "/assets/icons/ecuador_ligapro-serie-a.svg",
+      "type": "league"
+    },
+    {
+      "id": 393,
+      "name": "LigaPro Serie B",
+      "slug": "ligapro-serie-b",
+      "icon": "/assets/icons/ecuador_ligapro-serie-b.svg",
+      "type": "league"
+    },
+    {
+      "id": 394,
+      "name": "Segunda Categoría",
+      "slug": "segunda-categoria",
+      "icon": "/assets/icons/ecuador_segunda-categoria.svg",
+      "type": "league"
+    },
+    {
+      "id": 395,
+      "name": "Copa Ecuador",
+      "slug": "copa-ecuador",
+      "icon": "/assets/icons/ecuador_copa-ecuador.svg",
+      "type": "cup"
+    },
+    {
+      "id": 396,
+      "name": "Supercopa Ecuador",
+      "slug": "supercopa-ecuador",
+      "icon": "/assets/icons/ecuador_supercopa-ecuador.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 397,
+      "name": "Superliga Femenina",
+      "slug": "superliga-femenina",
+      "icon": "/assets/icons/ecuador_superliga-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Venezuela",
+  "code": "venezuela",
+  "flag": "/assets/icons/venezuela.svg",
+  "leagues": [
+    {
+      "id": 398,
+      "name": "Primera División",
+      "slug": "primera-division",
+      "icon": "/assets/icons/venezuela_primera-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 399,
+      "name": "Segunda División",
+      "slug": "segunda-division",
+      "icon": "/assets/icons/venezuela_segunda-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 400,
+      "name": "Liga FUTVE 2",
+      "slug": "liga-futve-2",
+      "icon": "/assets/icons/venezuela_liga-futve-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 401,
+      "name": "Copa Venezuela",
+      "slug": "copa-venezuela",
+      "icon": "/assets/icons/venezuela_copa-venezuela.svg",
+      "type": "cup"
+    },
+    {
+      "id": 402,
+      "name": "Supercopa de Venezuela",
+      "slug": "supercopa-de-venezuela",
+      "icon": "/assets/icons/venezuela_supercopa-de-venezuela.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 403,
+      "name": "Liga FUTVE Fem",
+      "slug": "liga-futve-fem",
+      "icon": "/assets/icons/venezuela_liga-futve-fem.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Bolivia",
+  "code": "bolivia",
+  "flag": "/assets/icons/bolivia.svg",
+  "leagues": [
+    {
+      "id": 404,
+      "name": "División Profesional",
+      "slug": "division-profesional",
+      "icon": "/assets/icons/bolivia_division-profesional.svg",
+      "type": "league"
+    },
+    {
+      "id": 405,
+      "name": "Copa Simón Bolívar",
+      "slug": "copa-simon-bolivar",
+      "icon": "/assets/icons/bolivia_copa-simon-bolivar.svg",
+      "type": "league"
+    },
+    {
+      "id": 406,
+      "name": "Copa División Profesional",
+      "slug": "copa-division-profesional",
+      "icon": "/assets/icons/bolivia_copa-division-profesional.svg",
+      "type": "cup"
+    },
+    {
+      "id": 407,
+      "name": "Supercopa de Bolivia",
+      "slug": "supercopa-de-bolivia",
+      "icon": "/assets/icons/bolivia_supercopa-de-bolivia.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 408,
+      "name": "Liga Femenina",
+      "slug": "liga-femenina",
+      "icon": "/assets/icons/bolivia_liga-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "New Zealand",
+  "code": "new-zealand",
+  "flag": "/assets/icons/new-zealand.svg",
+  "leagues": [
+    {
+      "id": 409,
+      "name": "National League",
+      "slug": "national-league",
+      "icon": "/assets/icons/new-zealand_national-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 410,
+      "name": "Northern League",
+      "slug": "northern-league",
+      "icon": "/assets/icons/new-zealand_northern-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 411,
+      "name": "Central League",
+      "slug": "central-league",
+      "icon": "/assets/icons/new-zealand_central-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 412,
+      "name": "Southern League",
+      "slug": "southern-league",
+      "icon": "/assets/icons/new-zealand_southern-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 413,
+      "name": "Chatham Cup",
+      "slug": "chatham-cup",
+      "icon": "/assets/icons/new-zealand_chatham-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 414,
+      "name": "National Women's League",
+      "slug": "national-womens-league",
+      "icon": "/assets/icons/new-zealand_national-womens-league.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Jamaica",
+  "code": "jamaica",
+  "flag": "/assets/icons/jamaica.svg",
+  "leagues": [
+    {
+      "id": 415,
+      "name": "Jamaica Premier League",
+      "slug": "jamaica-premier-league",
+      "icon": "/assets/icons/jamaica_jamaica-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 416,
+      "name": "JFF Championship",
+      "slug": "jff-championship",
+      "icon": "/assets/icons/jamaica_jff-championship.svg",
+      "type": "league"
+    },
+    {
+      "id": 417,
+      "name": "Major League",
+      "slug": "major-league",
+      "icon": "/assets/icons/jamaica_major-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 418,
+      "name": "Jackie Bell Knockout",
+      "slug": "jackie-bell-knockout",
+      "icon": "/assets/icons/jamaica_jackie-bell-knockout.svg",
+      "type": "cup"
+    },
+    {
+      "id": 419,
+      "name": "JFF Champions Cup",
+      "slug": "jff-champions-cup",
+      "icon": "/assets/icons/jamaica_jff-champions-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 420,
+      "name": "National Women's League",
+      "slug": "national-womens-league",
+      "icon": "/assets/icons/jamaica_national-womens-league.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Trinidad & Tobago",
+  "code": "trinidad-and-tobago",
+  "flag": "/assets/icons/trinidad-and-tobago.svg",
+  "leagues": [
+    {
+      "id": 421,
+      "name": "TT Premier Football League",
+      "slug": "tt-premier-football-league",
+      "icon": "/assets/icons/trinidad-and-tobago_tt-premier-football-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 422,
+      "name": "National Super League",
+      "slug": "national-super-league",
+      "icon": "/assets/icons/trinidad-and-tobago_national-super-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 423,
+      "name": "Trinidad & Tobago FA Trophy",
+      "slug": "trinidad-and-tobago-fa-trophy",
+      "icon": "/assets/icons/trinidad-and-tobago_trinidad-and-tobago-fa-trophy.svg",
+      "type": "cup"
+    },
+    {
+      "id": 424,
+      "name": "First Citizens Cup",
+      "slug": "first-citizens-cup",
+      "icon": "/assets/icons/trinidad-and-tobago_first-citizens-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 425,
+      "name": "Trinidad & Tobago Super Cup",
+      "slug": "trinidad-and-tobago-super-cup",
+      "icon": "/assets/icons/trinidad-and-tobago_trinidad-and-tobago-super-cup.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 426,
+      "name": "Women's League Football",
+      "slug": "womens-league-football",
+      "icon": "/assets/icons/trinidad-and-tobago_womens-league-football.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Guatemala",
+  "code": "guatemala",
+  "flag": "/assets/icons/guatemala.svg",
+  "leagues": [
+    {
+      "id": 427,
+      "name": "Liga Nacional",
+      "slug": "liga-nacional",
+      "icon": "/assets/icons/guatemala_liga-nacional.svg",
+      "type": "league"
+    },
+    {
+      "id": 428,
+      "name": "Primera División",
+      "slug": "primera-division",
+      "icon": "/assets/icons/guatemala_primera-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 429,
+      "name": "Segunda División",
+      "slug": "segunda-division",
+      "icon": "/assets/icons/guatemala_segunda-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 430,
+      "name": "Copa de Guatemala",
+      "slug": "copa-de-guatemala",
+      "icon": "/assets/icons/guatemala_copa-de-guatemala.svg",
+      "type": "cup"
+    },
+    {
+      "id": 431,
+      "name": "Supercopa de Guatemala",
+      "slug": "supercopa-de-guatemala",
+      "icon": "/assets/icons/guatemala_supercopa-de-guatemala.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 432,
+      "name": "Liga Nacional Femenina",
+      "slug": "liga-nacional-femenina",
+      "icon": "/assets/icons/guatemala_liga-nacional-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "El Salvador",
+  "code": "el-salvador",
+  "flag": "/assets/icons/el-salvador.svg",
+  "leagues": [
+    {
+      "id": 433,
+      "name": "Primera División",
+      "slug": "primera-division",
+      "icon": "/assets/icons/el-salvador_primera-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 434,
+      "name": "Segunda División",
+      "slug": "segunda-division",
+      "icon": "/assets/icons/el-salvador_segunda-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 435,
+      "name": "Tercera División",
+      "slug": "tercera-division",
+      "icon": "/assets/icons/el-salvador_tercera-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 436,
+      "name": "Copa El Salvador",
+      "slug": "copa-el-salvador",
+      "icon": "/assets/icons/el-salvador_copa-el-salvador.svg",
+      "type": "cup"
+    },
+    {
+      "id": 437,
+      "name": "Supercopa de El Salvador",
+      "slug": "supercopa-de-el-salvador",
+      "icon": "/assets/icons/el-salvador_supercopa-de-el-salvador.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 438,
+      "name": "Liga Femenina",
+      "slug": "liga-femenina",
+      "icon": "/assets/icons/el-salvador_liga-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Nicaragua",
+  "code": "nicaragua",
+  "flag": "/assets/icons/nicaragua.svg",
+  "leagues": [
+    {
+      "id": 439,
+      "name": "Liga Primera",
+      "slug": "liga-primera",
+      "icon": "/assets/icons/nicaragua_liga-primera.svg",
+      "type": "league"
+    },
+    {
+      "id": 440,
+      "name": "Segunda División",
+      "slug": "segunda-division",
+      "icon": "/assets/icons/nicaragua_segunda-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 441,
+      "name": "Copa Primera",
+      "slug": "copa-primera",
+      "icon": "/assets/icons/nicaragua_copa-primera.svg",
+      "type": "cup"
+    },
+    {
+      "id": 442,
+      "name": "Supercopa de Nicaragua",
+      "slug": "supercopa-de-nicaragua",
+      "icon": "/assets/icons/nicaragua_supercopa-de-nicaragua.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 443,
+      "name": "Liga Femenina",
+      "slug": "liga-femenina",
+      "icon": "/assets/icons/nicaragua_liga-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Nicaragua",
+  "code": "nicaragua",
+  "flag": "/assets/icons/nicaragua.svg",
+  "leagues": [
+    {
+      "id": 439,
+      "name": "Liga Primera",
+      "slug": "liga-primera",
+      "icon": "/assets/icons/nicaragua_liga-primera.svg",
+      "type": "league"
+    },
+    {
+      "id": 440,
+      "name": "Segunda División",
+      "slug": "segunda-division",
+      "icon": "/assets/icons/nicaragua_segunda-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 441,
+      "name": "Copa Primera",
+      "slug": "copa-primera",
+      "icon": "/assets/icons/nicaragua_copa-primera.svg",
+      "type": "cup"
+    },
+    {
+      "id": 442,
+      "name": "Supercopa de Nicaragua",
+      "slug": "supercopa-de-nicaragua",
+      "icon": "/assets/icons/nicaragua_supercopa-de-nicaragua.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 443,
+      "name": "Liga Femenina",
+      "slug": "liga-femenina",
+      "icon": "/assets/icons/nicaragua_liga-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Cuba",
+  "code": "cuba",
+  "flag": "/assets/icons/cuba.svg",
+  "leagues": [
+    {
+      "id": 444,
+      "name": "Campeonato Nacional de Fútbol",
+      "slug": "campeonato-nacional-de-futbol",
+      "icon": "/assets/icons/cuba_campeonato-nacional-de-futbol.svg",
+      "type": "league"
+    },
+    {
+      "id": 445,
+      "name": "Liga de Ascenso",
+      "slug": "liga-de-ascenso",
+      "icon": "/assets/icons/cuba_liga-de-ascenso.svg",
+      "type": "league"
+    },
+    {
+      "id": 446,
+      "name": "Copa de Cuba",
+      "slug": "copa-de-cuba",
+      "icon": "/assets/icons/cuba_copa-de-cuba.svg",
+      "type": "cup"
+    },
+    {
+      "id": 447,
+      "name": "Supercopa de Cuba",
+      "slug": "supercopa-de-cuba",
+      "icon": "/assets/icons/cuba_supercopa-de-cuba.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 448,
+      "name": "Campeonato Nacional Femenino",
+      "slug": "campeonato-nacional-femenino",
+      "icon": "/assets/icons/cuba_campeonato-nacional-femenino.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Dominican Republic",
+  "code": "dominican-republic",
+  "flag": "/assets/icons/dominican-republic.svg",
+  "leagues": [
+    {
+      "id": 449,
+      "name": "Liga Dominicana de Fútbol",
+      "slug": "liga-dominicana-de-futbol",
+      "icon": "/assets/icons/dominican-republic_liga-dominicana-de-futbol.svg",
+      "type": "league"
+    },
+    {
+      "id": 450,
+      "name": "Liga de Expansión",
+      "slug": "liga-de-expansion",
+      "icon": "/assets/icons/dominican-republic_liga-de-expansion.svg",
+      "type": "league"
+    },
+    {
+      "id": 451,
+      "name": "Copa Dominicana",
+      "slug": "copa-dominicana",
+      "icon": "/assets/icons/dominican-republic_copa-dominicana.svg",
+      "type": "cup"
+    },
+    {
+      "id": 452,
+      "name": "Supercopa Dominicana",
+      "slug": "supercopa-dominicana",
+      "icon": "/assets/icons/dominican-republic_supercopa-dominicana.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 453,
+      "name": "Liga Dominicana Femenina",
+      "slug": "liga-dominicana-femenina",
+      "icon": "/assets/icons/dominican-republic_liga-dominicana-femenina.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Haiti",
+  "code": "haiti",
+  "flag": "/assets/icons/haiti.svg",
+  "leagues": [
+    {
+      "id": 454,
+      "name": "Ligue Haïtienne",
+      "slug": "ligue-haitienne",
+      "icon": "/assets/icons/haiti_ligue-haitienne.svg",
+      "type": "league"
+    },
+    {
+      "id": 455,
+      "name": "Division 2",
+      "slug": "division-2",
+      "icon": "/assets/icons/haiti_division-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 456,
+      "name": "Coupe d'Haïti",
+      "slug": "coupe-d-haiti",
+      "icon": "/assets/icons/haiti_coupe-d-haiti.svg",
+      "type": "cup"
+    },
+    {
+      "id": 457,
+      "name": "Super Coupe d'Haïti",
+      "slug": "super-coupe-d-haiti",
+      "icon": "/assets/icons/haiti_super-coupe-d-haiti.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 458,
+      "name": "Championnat National Féminin",
+      "slug": "championnat-national-feminin",
+      "icon": "/assets/icons/haiti_championnat-national-feminin.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Cameroon",
+  "code": "cameroon",
+  "flag": "/assets/icons/cameroon.svg",
+  "leagues": [
+    {
+      "id": 459,
+      "name": "Elite One",
+      "slug": "elite-one",
+      "icon": "/assets/icons/cameroon_elite-one.svg",
+      "type": "league"
+    },
+    {
+      "id": 460,
+      "name": "Elite Two",
+      "slug": "elite-two",
+      "icon": "/assets/icons/cameroon_elite-two.svg",
+      "type": "league"
+    },
+    {
+      "id": 461,
+      "name": "Cameroon Cup",
+      "slug": "cameroon-cup",
+      "icon": "/assets/icons/cameroon_cameroon-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 462,
+      "name": "Super Cup",
+      "slug": "super-cup",
+      "icon": "/assets/icons/cameroon_super-cup.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 463,
+      "name": "Guinness Super League",
+      "slug": "guinness-super-league",
+      "icon": "/assets/icons/cameroon_guinness-super-league.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Mali",
+  "code": "mali",
+  "flag": "/assets/icons/mali.svg",
+  "leagues": [
+    {
+      "id": 464,
+      "name": "Première Division",
+      "slug": "premiere-division",
+      "icon": "/assets/icons/mali_premiere-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 465,
+      "name": "Deuxième Division",
+      "slug": "deuxieme-division",
+      "icon": "/assets/icons/mali_deuxieme-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 466,
+      "name": "Coupe du Mali",
+      "slug": "coupe-du-mali",
+      "icon": "/assets/icons/mali_coupe-du-mali.svg",
+      "type": "cup"
+    },
+    {
+      "id": 467,
+      "name": "Super Coupe du Mali",
+      "slug": "super-coupe-du-mali",
+      "icon": "/assets/icons/mali_super-coupe-du-mali.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 468,
+      "name": "Championnat National Féminin",
+      "slug": "championnat-national-feminin",
+      "icon": "/assets/icons/mali_championnat-national-feminin.svg",
+      "type": "league"
+    }
+  ]
+},
+{
+  "country": "Burkina Faso",
+  "code": "burkina-faso",
+  "flag": "/assets/icons/burkina-faso.svg",
+  "leagues": [
+    {
+      "id": 469,
+      "name": "Burkina Faso Premier League",
+      "slug": "burkina-faso-premier-league",
+      "icon": "/assets/icons/burkina-faso_burkina-faso-premier-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 470,
+      "name": "Deuxième Division",
+      "slug": "deuxieme-division",
+      "icon": "/assets/icons/burkina-faso_deuxieme-division.svg",
+      "type": "league"
+    },
+    {
+      "id": 471,
+      "name": "Coupe du Faso",
+      "slug": "coupe-du-faso",
+      "icon": "/assets/icons/burkina-faso_coupe-du-faso.svg",
+      "type": "cup"
+    },
+    {
+      "id": 472,
+      "name": "Super Coupe AJSB",
+      "slug": "super-coupe-ajsb",
+      "icon": "/assets/icons/burkina-faso_super-coupe-ajsb.svg",
+      "type": "super_cup"
+    },
+    {
+      "id": 473,
+      "name": "Championnat National Féminin",
+      "slug": "championnat-national-feminin",
+      "icon": "/assets/icons/burkina-faso_championnat-national-feminin.svg",
+      "type": "league"
+    }
+  ]
 }
   ]
 }
