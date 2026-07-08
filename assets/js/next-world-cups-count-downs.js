@@ -91,7 +91,7 @@ async function startWorldCupCountdown() {
                 ${
                     live
                     ? `
-                        <span class="wc-live">🔴 LIVE</span>
+                        <span class="wc-live">LIVE</span>
 
                         <h1>${days}d ${hours}h ${minutes}m ${seconds}s</h1>
 

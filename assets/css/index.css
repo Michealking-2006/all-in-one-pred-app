@@ -856,12 +856,165 @@ fill: #555;
   stroke: #000;
 }
 
+
   .next-world-cup-count-downs {
     cursor: help;
     color: #fff;
   }
 
 /*************************************/
+
+
+/**** world cup countdown  *****/
+
+/* ===========================
+   WORLD CUP COUNTDOWN
+=========================== */
+
+.wc-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 18px;
+  background: var(--card-bg, #fff);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .06);
+  text-align: center;
+}
+
+.wc-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right,
+      rgba(34, 197, 94, .08),
+      transparent 45%);
+  pointer-events: none;
+}
+
+/* Tournament Type */
+
+.wc-card small:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .8rem;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: .8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* Year */
+
+.wc-card h2 {
+  font-family: MontserratEB;
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #111827;
+}
+
+/* Tournament Name */
+
+.wc-card h3 {
+  font-family: MontserratEB;
+  margin: .5rem 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* Host */
+
+.wc-card p {
+  font-family: NatoSansR;
+  margin: .35rem 0;
+  color: #6b7280;
+  font-size: .95rem;
+}
+
+/* Countdown */
+
+.wc-card h1 {
+  font-family: MontserratEB;
+  margin: 1.5rem 0 .5rem;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.04em;
+}
+
+/* Status */
+
+.wc-live {
+  font-family: MontserratEB;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: 1rem;
+  padding: .45rem 1rem;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  animation: wcPulse 1.2s infinite;
+}
+
+@keyframes wcPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, .45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Footer Text */
+.wc-card small {
+  font-family: NatoSansR;
+}
+.wc-card small:last-child {
+  font-family: NatoSansR;
+  display: block;
+  margin-top: .75rem;
+  color: #9ca3af;
+  font-size: .9rem;
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .wc-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .wc-card h2 {
+    font-size: 2.4rem;
+  }
+
+  .wc-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .wc-card h1 {
+    font-size: 2.4rem;
+  }
+}
 
 
 
