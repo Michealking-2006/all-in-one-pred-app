@@ -1,103 +1,122 @@
-let countdownInterval;
+let worldCupCountdownInterval = null;
+let worldCupData = null;
 
 async function startWorldCupCountdown() {
-  clearInterval(countdownInterval);
   
-  const container = document.getElementById("world-cup-countdown");
-  if (!container) return;
+  // Stop previous countdown
+  if (worldCupCountdownInterval) {
+    clearInterval(worldCupCountdownInterval);
+    worldCupCountdownInterval = null;
+  }
   
-  try {
-    const response = await fetch("./assets/data/next-world-cups-count-downs.json");
+  // Load JSON once
+  if (!worldCupData) {
+    try {
+      const res = await fetch("/assets/data/next-world-cups-count-downs.json");
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
+      worldCupData = await res.json();
+      
+      worldCupData.sort((a, b) => (
+        new Date(a.start) - new Date(b.start)
+      ));
+      
+    } catch (err) {
+      console.error("World Cup JSON:", err);
+      return;
+    }
+  }
+  
+  function update() {
     
-    if (!response.ok) {
-      throw new Error("Unable to load World Cup data.");
+    const container = document.getElementById("world-cup-countdown");
+    
+    // Page not mounted yet
+    if (!container) return;
+    
+    const now = Date.now();
+    
+    // Find live tournament
+    let tournament = worldCupData.find(t => {
+      const start = new Date(t.start).getTime();
+      const end = new Date(t.end).getTime();
+      
+      return now >= start && now <= end;
+    });
+    
+    // Otherwise find next tournament
+    if (!tournament) {
+      tournament = worldCupData.find(t =>
+        new Date(t.start).getTime() > now
+      );
     }
     
-    const tournaments = await response.json();
-    
-    tournaments.sort((a, b) => new Date(a.start) - new Date(b.start));
-    
-    function updateCountdown() {
-      const now = new Date();
-      
-      // Live tournament
-      let tournament = tournaments.find(t => {
-        return now >= new Date(t.start) &&
-          now <= new Date(t.end);
-      });
-      
-      // Next tournament
-      if (!tournament) {
-        tournament = tournaments.find(t => {
-          return now < new Date(t.start);
-        });
-      }
-      
-      if (!tournament) {
-        container.innerHTML = `
-                    <div class="wc-card">
-                        <h3>No upcoming World Cup</h3>
-                    </div>
-                `;
-        return;
-      }
-      
-      const start = new Date(tournament.start);
-      const end = new Date(tournament.end);
-      
-      const live = now >= start && now <= end;
-      const diff = live ? end - now : start - now;
-      
-      const days = Math.floor(diff / 86400000);
-      const hours = Math.floor((diff % 86400000) / 3600000);
-      const minutes = Math.floor((diff % 3600000) / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
-      
+    if (!tournament) {
       container.innerHTML = `
                 <div class="wc-card">
-
-                    <small>${tournament.type}</small>
-
-                    <h2>${tournament.year}</h2>
-
-                    <h3>${tournament.name}</h3>
-
-                    <p>🌍 <strong>Host:</strong> ${tournament.host}</p>
-
-                    ${
-                        live
-                        ? `
-                            <span class="wc-live">🔴 LIVE</span>
-
-                            <h1>${days}d ${hours}h ${minutes}m ${seconds}s</h1>
-
-                            <small>Remaining until the tournament ends</small>
-                        `
-                        : `
-                            <h1>${days}d ${hours}h ${minutes}m ${seconds}s</h1>
-
-                            <small>Until Kick-off ⚽</small>
-                        `
-                    }
-
+                    <h3>No upcoming World Cup.</h3>
                 </div>
             `;
+      return;
     }
     
-    updateCountdown();
-    countdownInterval = setInterval(updateCountdown, 1000);
+    const start = new Date(tournament.start).getTime();
+    const end = new Date(tournament.end).getTime();
     
-  } catch (err) {
-    console.error(err);
+    const live = now >= start && now <= end;
+    
+    const diff = live ?
+      end - now :
+      start - now;
+    
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor(diff % 86400000 / 3600000);
+    const minutes = Math.floor(diff % 3600000 / 60000);
+    const seconds = Math.floor(diff % 60000 / 1000);
     
     container.innerHTML = `
             <div class="wc-card">
-                Failed to load World Cup data.
+
+                <small>${tournament.type}</small>
+
+                <h2>${tournament.year}</h2>
+
+                <h3>${tournament.name}</h3>
+
+                <p><strong>Host:</strong> ${tournament.host}</p>
+
+                ${
+                    live
+                    ? `
+                        <span class="wc-live">🔴 LIVE</span>
+
+                        <h1>${days}d ${hours}h ${minutes}m ${seconds}s</h1>
+
+                        <small>Remaining until the tournament ends</small>
+                    `
+                    : `
+                        <h1>${days}d ${hours}h ${minutes}m ${seconds}s</h1>
+
+                        <small>Until kick-off ⚽</small>
+                    `
+                }
+
             </div>
         `;
   }
+  
+  update();
+  
+  worldCupCountdownInterval = setInterval(update, 1000);
 }
 
 function stopWorldCupCountdown() {
-  clearInterval(countdownInterval);
+  clearInterval(worldCupCountdownInterval);
+  worldCupCountdownInterval = null;
 }
+
+/* Auto start */
+startWorldCupCountdown();
