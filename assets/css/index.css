@@ -896,6 +896,7 @@ fill: #555;
 /* Tournament Type */
 
 .wc-card small:first-child {
+  font-family: MontserratEB;
   display: inline-flex;
   align-items: center;
   gap: .35rem;
@@ -933,12 +934,17 @@ fill: #555;
 
 /* Host */
 
-.wc-card p {
-  font-family: NatoSansR;
-  margin: .35rem 0;
-  color: #6b7280;
-  font-size: .95rem;
+.tournament-host-countries-wc-c-p {
+  font-family: NotoSansR;
+margin: .35rem 0;
+color: #6b7280;
+font-size: .95rem;
 }
+
+.tournament-host-countries-wc-c-p strong {
+  font-family: BykerM;
+}
+
 
 /* Countdown */
 
@@ -968,6 +974,7 @@ fill: #555;
   font-size: .85rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 1.2px;
   animation: wcPulse 1.2s infinite;
 }
 
@@ -985,10 +992,10 @@ fill: #555;
 
 /* Footer Text */
 .wc-card small {
-  font-family: NatoSansR;
+  font-family: NotoSansR;
 }
 .wc-card small:last-child {
-  font-family: NatoSansR;
+  font-family: NotoSansR;
   display: block;
   margin-top: .75rem;
   color: #9ca3af;
