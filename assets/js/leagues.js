@@ -15,6 +15,26 @@ async function getLeaguesData() {
   return LEAGUES_DATA;
 }
 
+function skeletonLoader() {
+  
+  return Array.from({ length: 5 }, () => `
+        <div class="league-card skeleton-card">
+
+            <div class="league-link">
+
+                <div class="skeleton skeleton-icon"></div>
+
+                <div class="skeleton skeleton-text"></div>
+
+                <div class="skeleton skeleton-star"></div>
+
+            </div>
+
+        </div>
+    `).join("");
+  
+}
+
 function leagueCardHTML(league) {
   return `
         <div class="league-card">
@@ -37,11 +57,11 @@ async function renderLeagueList(wrap) {
   
   if (wrap.dataset.loaded === "true") return;
   
-  list.innerHTML = `
-        <div class="page-loader">
-            Loading...
-        </div>
-    `;
+  list.innerHTML = skeletonLoader();
+
+await new Promise(resolve => setTimeout(resolve, 800));
+
+const data = await getLeaguesData();
   
   try {
     const data = await getLeaguesData();
