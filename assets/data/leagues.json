@@ -627,8 +627,8 @@
   ]
 },
 {
-  "country": "Netherlands",
-  "code": "netherlands",
+  "country": "Netherland",
+  "code": "netherland",
   "flag": "/assets/icons/netherlands.svg",
   "leagues": [
     {
@@ -3799,8 +3799,8 @@
 },
 {
   "country": "Ivory Coast",
-  "code": "ivory-coast",
-  "flag": "/assets/icons/ivory-coast.svg",
+  "code": "cote-divoire",
+  "flag": "/assets/icons/cote-divoire.svg",
   "leagues": [
     {
       "id": 313,
