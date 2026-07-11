@@ -12,6 +12,42 @@ document.addEventListener("click", e => {
   navigate(url.pathname);
 });
 
+/* ==========================
+   Wait for required CSS
+========================== */
+
+const REQUIRED_CSS = [
+  "/assets/css/components.css",
+  "/assets/css/index.css"
+];
+
+function waitForStylesheets() {
+  const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
+  
+  const requiredLinks = links.filter(link => {
+    try {
+      const pathname = new URL(link.href, location.origin).pathname;
+      return REQUIRED_CSS.includes(pathname);
+    } catch {
+      return false;
+    }
+  });
+  
+  return Promise.all(
+    requiredLinks.map(link => {
+      return new Promise(resolve => {
+        if (link.sheet) {
+          resolve();
+          return;
+        }
+        
+        link.addEventListener("load", resolve, { once: true });
+        link.addEventListener("error", resolve, { once: true });
+      });
+    })
+  );
+}
+
 const routes = {
   404: "/pages/404.html",
   "/overview": "/pages/overview.html",
@@ -201,4 +237,7 @@ window.addEventListener("popstate", () => {
    Initial Page
 ========================== */
 
-navigate(window.location.pathname, false);
+(async () => {
+  await waitForStylesheets();
+  navigate(window.location.pathname, false);
+})();
