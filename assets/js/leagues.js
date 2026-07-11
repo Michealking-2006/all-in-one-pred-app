@@ -100,6 +100,10 @@ async function renderLeagueList(wrap) {
 
     list.innerHTML = skeletonLoader();
 
+await new Promise(resolve => setTimeout(resolve, 800));
+
+const data = await getLeaguesData();
+
     try {
 
         const data = await getLeaguesData();
