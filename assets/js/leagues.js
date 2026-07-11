@@ -51,11 +51,13 @@ function skeletonLoader() {
 League card
 ----------------------------------*/
 function leagueCardHTML(league) {
-
+    
     return `
         <div class="league-card">
 
-            <a class="league-link" href="#">
+            <a class="league-link"
+               href="/league-page/${league.slug}"
+               data-link>
 
                 <img src="${league.icon}" alt="${league.name}">
 
@@ -84,8 +86,9 @@ function leagueCardHTML(league) {
 
         </div>
     `;
-
+    
 }
+
 
 /*----------------------------------
 Render one country
