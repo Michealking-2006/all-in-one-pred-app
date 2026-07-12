@@ -3,12 +3,11 @@ document.addEventListener("click", e => {
   
   if (!link) return;
   
-  const url = new URL(link.href);
+  const url = new URL(link.href, location.origin);
   
   if (url.origin !== location.origin) return;
   
   e.preventDefault();
-  
   navigate(url.pathname);
 });
 
@@ -79,23 +78,52 @@ function hideLoader() {
 }
 
 /* ==========================
+   Route helpers
+========================== */
+
+function normalizePath(path) {
+  if (!path) return "/overview";
+  
+  if (path === "/") return "/overview";
+  
+  return path.replace(/\/+$/, "") || "/";
+}
+
+function resolveRoute(path) {
+  const cleanPath = normalizePath(path);
+  
+  if (cleanPath.startsWith("/league-page/")) {
+    return routes["/league-page"];
+  }
+  
+  return routes[cleanPath] || routes[404];
+}
+
+function isLeaguePage(path) {
+  const cleanPath = normalizePath(path);
+  return cleanPath === "/league-page" || cleanPath.startsWith("/league-page/");
+}
+
+/* ==========================
    Bottom Navigation
 ========================== */
 
 function updateActiveNav() {
-  const current = window.location.pathname;
+  const current = normalizePath(window.location.pathname);
   
   document.querySelectorAll(".bottom-nav .nav-item[href]").forEach(link => {
-    
     const href = link.getAttribute("href");
     
     if (!href || href.startsWith("#") || href.startsWith("http")) return;
     
-    const active = href === current;
+    const linkPath = normalizePath(new URL(href, location.origin).pathname);
+    
+    const active =
+      (linkPath === "/league-page" && isLeaguePage(current)) ||
+      linkPath === current;
     
     link.classList.toggle("active", active);
     link.querySelector("svg")?.classList.toggle("active", active);
-    
   });
 }
 
@@ -104,8 +132,7 @@ function updateActiveNav() {
 ========================== */
 
 async function loadPage(path) {
-  
-  const page = routes[path] || routes[404];
+  const page = resolveRoute(path);
   
   if (pageCache.has(page)) {
     return pageCache.get(page);
@@ -120,11 +147,9 @@ async function loadPage(path) {
   }
   
   const html = await response.text();
-  
   pageCache.set(page, html);
   
   return html;
-  
 }
 
 /* ==========================
@@ -132,12 +157,9 @@ async function loadPage(path) {
 ========================== */
 
 async function navigate(path, pushHistory = true) {
+  path = normalizePath(path);
   
-  if (path === "/") {
-    path = "/overview";
-  }
-  
-  const page = routes[path] || routes[404];
+  const page = resolveRoute(path);
   const cached = pageCache.has(page);
   
   const token = ++navigationToken;
@@ -147,12 +169,9 @@ async function navigate(path, pushHistory = true) {
   }
   
   try {
-    
     const html = await loadPage(path);
     
-    // Ignore old navigation requests
     if (token !== navigationToken) return;
-    
     if (!mainPage) return;
     
     mainPage.replaceChildren();
@@ -165,11 +184,8 @@ async function navigate(path, pushHistory = true) {
     }
     
     updateActiveNav();
-    
     document.dispatchEvent(new Event("pageLoaded"));
-    
   } catch (err) {
-    
     console.error(err);
     
     if (mainPage) {
@@ -180,15 +196,13 @@ async function navigate(path, pushHistory = true) {
         </section>
       `;
     }
-    
   } finally {
-    
     if (token === navigationToken) {
       hideLoader();
     }
-    
   }
-  
+  console.log("PATH:", path);
+console.log("PAGE:", page);
 }
 
 /* ==========================
@@ -196,33 +210,27 @@ async function navigate(path, pushHistory = true) {
 ========================== */
 
 window.route = function(event) {
-  
   event = event || window.event;
   
   if (event) {
     event.preventDefault();
   }
   
-  const link =
-    event?.currentTarget ||
-    event?.target?.closest("a");
-  
+  const link = event?.currentTarget || event?.target?.closest("a");
   if (!link) return;
   
   const url = new URL(link.href, location.origin);
   
-  // External link
   if (url.origin !== location.origin) {
     location.href = url.href;
     return;
   }
   
-  const path = url.pathname;
+  const path = normalizePath(url.pathname);
   
-  if (path === window.location.pathname) return;
+  if (path === normalizePath(window.location.pathname)) return;
   
   navigate(path);
-  
 };
 
 /* ==========================
