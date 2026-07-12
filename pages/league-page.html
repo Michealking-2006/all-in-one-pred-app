@@ -1,0 +1,236 @@
+
+
+<header class="league-header">
+
+<div class="overlay"></div>
+
+<div class="league-top">
+
+<a href="/leagues" class="back-btn">
+<span><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"></svg>
+<a>
+
+<select id="seasonSelect">
+  <option>2021/22</option>
+  <option>2022/23</option>
+  <option>2023/24</option>
+  <option>2024/25</option>
+</select>
+
+
+</div>
+
+<div class="league-info">
+
+<img id="leagueLogo" alt="" src="">
+
+<div>
+
+<h1 id="leagueName">Loading</h1>
+
+<p id="leagueCountry"></p>
+
+</div>
+
+<button class="fav-btn">
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12.495 18.587l4.092 2.15a1.044 1.044 0 0 0 1.514-1.106l-.783-4.552a1.045 1.045 0 0 1 .303-.929l3.31-3.226a1.043 1.043 0 0 0-.575-1.785l-4.572-.657A1.044 1.044 0 0 1 15 7.907l-2.088-4.175a1.044 1.044 0 0 0-1.88 0L8.947 7.907a1.044 1.044 0 0 1-.783.575l-4.51.657a1.044 1.044 0 0 0-.584 1.785l3.309 3.226a1.044 1.044 0 0 1 .303.93l-.783 4.55a1.044 1.044 0 0 0 1.513 1.107l4.093-2.15a1.043 1.043 0 0 1 .991 0" />
+</svg>
+
+</button>
+
+</div>
+
+</header>
+
+
+
+<nav class="tabs">
+
+<button class="tab active" data-tab="overview">
+Overview
+</button>
+
+<button class="tab" data-tab="standings">
+Standings
+</button>
+
+<button class="tab" data-tab="matches">
+Matches
+</button>
+
+<button class="tab" data-tab="teams">
+Teams
+</button>
+
+<button class="tab" data-tab="news">
+  News
+</button>
+
+</nav>
+
+
+
+
+<main>
+
+
+<section id="overview" class="page active">
+
+
+<div class="card">
+
+<h2>Featured Match</h2>
+
+<div id="featuredMatch"></div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>Top Scorer</h2>
+
+<div id="topScorer"></div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>League Information</h2>
+
+<div class="info-grid">
+
+<div>
+
+<span>Teams</span>
+
+<strong id="teamCount">-</strong>
+
+</div>
+
+<div>
+
+<span>Current Matchday</span>
+
+<strong id="matchday">-</strong>
+
+</div>
+
+<div>
+
+<span>Season</span>
+
+<strong id="seasonYear">-</strong>
+
+</div>
+
+<div>
+
+<span>Last Updated</span>
+
+<strong id="lastUpdated">-</strong>
+
+</div>
+
+</div>
+
+</div>
+
+
+</section>
+
+
+
+
+<section id="standings" class="page">
+
+<div class="card">
+
+<h2>League Table</h2>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+<th>Club</th>
+
+<th>MP</th>
+
+<th>W</th>
+
+<th>D</th>
+
+<th>L</th>
+
+<th>GD</th>
+
+<th>Pts</th>
+
+</tr>
+
+</thead>
+
+<tbody id="standingsTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+
+<section id="matches" class="page">
+
+<div class="card">
+
+<h2>Upcoming Matches</h2>
+
+<div id="matchesList"></div>
+
+</div>
+
+</section>
+
+
+
+
+<section id="teams" class="page">
+
+<div class="card">
+
+<h2>Teams</h2>
+
+<div class="teams-grid" id="teamsGrid"></div>
+
+</div>
+
+</section>
+
+<section id="news" class="page">
+  
+  <div class="card">
+    <h2>Loading</h2>
+  </div>
+  
+  
+  
+</section>
+
+</main>
