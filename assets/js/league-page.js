@@ -395,7 +395,7 @@ function lpShowLoading() {
 }
 
 function lpShowLeaguePrompt() {
-    document.title = "Select a league | Beelooo";
+    document.title = "Select a league | ";
 
     lpSetText("#leagueName", "Select a league");
     lpSetText("#leagueCountry", "Open a league from the menu");
@@ -421,7 +421,7 @@ function lpShowLeaguePrompt() {
 }
 
 function lpShowSeasonPrompt() {
-    document.title = "Select a season | Beelooo";
+    document.title = "Select a season | ";
     lpShowEmpty("standingsTable", "Select a season to continue", 8);
     lpShowEmpty("teamsGrid", "Select a season to continue");
     lpShowEmpty("matchesList", "Select a season to continue");
@@ -467,7 +467,7 @@ function lpApplyMeta(apiLeague, context, season) {
     const countryName = apiLeague?.country?.name || context?.country?.country || context?.country?.name || context?.country || "";
     const logo = apiLeague?.league?.logo || context?.league?.logo || context?.league?.icon || context?.icon || context?.flag || "";
 
-    document.title = `${leagueName} | Beelooo`;
+    document.title = `${leagueName} | `;
 
     lpSetText("#leagueName", leagueName);
     lpSetText("#leagueCountry", countryName);
