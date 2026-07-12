@@ -609,7 +609,7 @@ body.cookie-active {
 .remove-search-btn {
   border: none;
   background: transparent;
-  cursor: pointer;
+  
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1055,7 +1055,7 @@ font-size: .95rem;
   border:none;
   background:none;
   font:inherit;
-  cursor:pointer;
+  
 }
 
 .league-page a{
@@ -1147,7 +1147,7 @@ font-size: .95rem;
   background:#fff;
   font-weight:600;
   outline:none;
-  cursor:pointer;
+  
 }
 
 .league-page .league-info{
