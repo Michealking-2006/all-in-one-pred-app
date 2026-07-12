@@ -1422,6 +1422,8 @@ font-size: .95rem;
 }
 
 /* Featured + top scorer */
+
+
 .league-page .featured-match,
 .league-page .top-scorer{
   display:flex;
