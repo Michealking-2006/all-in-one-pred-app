@@ -1024,10 +1024,7 @@ font-size: .95rem;
 }
 
 
-/***************** league pages *******************/
-/*****************
-   LEAGUE PAGE
-******************/
+/***************** league pages ******************/
 
 .league-page{
   --primary:#3b82f6;
@@ -1043,6 +1040,8 @@ font-size: .95rem;
   font-family:Inter,sans-serif;
   color:var(--text);
   background:var(--bg);
+  width: 100%;
+  margin-bottom: 3em;
 }
 
 /* Base */
