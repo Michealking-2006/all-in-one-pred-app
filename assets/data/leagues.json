@@ -9,7 +9,7 @@
       "id": 39,
       "name": "Premier League",
       "slug": "premier-league",
-      "icon": "/assets/icons/england_premier-league.svg",
+      "icon": "/assets/icons/premier_league.svg",
       "type": "league",
       "division": 1
     },
@@ -17,7 +17,7 @@
       "id": 40,
       "name": "Championship",
       "slug": "championship",
-      "icon": "/assets/icons/england_championship.svg",
+      "icon": "/assets/icons/england_efl-championship.svg",
       "type": "league",
       "division": 2
     },
@@ -25,7 +25,7 @@
       "id": 41,
       "name": "League One",
       "slug": "league-one",
-      "icon": "/assets/icons/england_league-one.svg",
+      "icon": "/assets/icons/england_efl-league-two.svg",
       "type": "league",
       "division": 3
     },
@@ -33,7 +33,7 @@
       "id": 42,
       "name": "League Two",
       "slug": "league-two",
-      "icon": "/assets/icons/england_league-two.svg",
+      "icon": "/assets/icons/england_efl-league-two.svg",
       "type": "league",
       "division": 4
     },
@@ -97,7 +97,7 @@
       "id": 45,
       "name": "FA Cup",
       "slug": "fa-cup",
-      "icon": "/assets/icons/england_fa-cup.svg",
+      "icon": "/assets/icons/fa-cup-logo.svg",
       "type": "cup"
     },
     {
@@ -165,9 +165,9 @@
   "leagues": [
     {
       "id": 140,
-      "name": "LALIGA EA SPORTS",
-      "slug": "laliga-ea-sports",
-      "icon": "/assets/icons/spain_laliga-ea-sports.svg",
+      "name": "LALIGA",
+      "slug": "laliga",
+      "icon": "/assets/icons/spain_la-liga.svg",
       "type": "league",
       "division": 1,
       "gender": "men",
@@ -176,9 +176,9 @@
     },
     {
       "id": 141,
-      "name": "LALIGA HYPERMOTION",
+      "name": "LALIGA 2",
       "slug": "laliga-hypermotion",
-      "icon": "/assets/icons/spain_laliga-hypermotion.svg",
+      "icon": "/assets/icons/spain_la-liga-2.svg",
       "type": "league",
       "division": 2,
       "gender": "men",
@@ -339,7 +339,7 @@
       "id": 547,
       "name": "Supercoppa Italiana",
       "slug": "supercoppa-italiana",
-      "icon": "/assets/icons/italy_supercoppa-italiana.svg",
+      "icon": "/assets/icons/super-coppa-Italiana.svg",
       "type": "super_cup",
       "division": null,
       "gender": "men",
