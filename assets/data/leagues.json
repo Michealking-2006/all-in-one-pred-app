@@ -5171,6 +5171,48 @@
       "type": "league"
     }
   ]
+},
+{
+  "country": "World",
+  "code": "world",
+  "flag": "/assets/icons/world.svg",
+  "leagues": [
+    {
+      "id": 1,
+      "name": "World Cup",
+      "slug": "world-cup",
+      "icon": "/assets/icons/world_world-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 2,
+      "name": "UEFA Champions League",
+      "slug": "uefa-champions-league",
+      "icon": "/assets/icons/world_uefa-champions-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 3,
+      "name": "UEFA Europa League",
+      "slug": "uefa-europa-league",
+      "icon": "/assets/icons/world_uefa-europa-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 15,
+      "name": "FIFA Club World Cup",
+      "slug": "fifa-club-world-cup",
+      "icon": "/assets/icons/world_fifa-club-world-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 848,
+      "name": "UEFA Europa Conference League",
+      "slug": "uefa-europa-conference-league",
+      "icon": "/assets/icons/world_uefa-europa-conference-league.svg",
+      "type": "cup"
+    }
+  ]
 }
   ]
 }
