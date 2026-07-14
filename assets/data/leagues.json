@@ -5173,9 +5173,9 @@
   ]
 },
 {
-  "country": "World",
-  "code": "world",
-  "flag": "/assets/icons/world.svg",
+  "country": "International",
+  "code": "International",
+  "flag": "/assets/icons/earth-icon.svg",
   "leagues": [
     {
       "id": 1,
