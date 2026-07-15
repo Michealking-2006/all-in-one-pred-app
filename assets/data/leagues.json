@@ -5179,7 +5179,7 @@
   "leagues": [
     {
       "id": 1,
-      "name": "World Cup",
+      "name": "FIFA World Cup",
       "slug": "world-cup",
       "icon": "/assets/icons/world_world-cup.svg",
       "type": "cup"

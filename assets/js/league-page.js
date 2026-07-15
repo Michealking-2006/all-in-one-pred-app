@@ -190,38 +190,236 @@ function lpSkeletonList(count = 8) {
 }
 
 function lpFeaturedMatchHTML(match) {
-    if (!match) return `<div class="empty-state">No featured match yet.</div>`;
-
-    const home = match.teams?.home?.name || match.homeTeam?.name || match.home?.name || "Home";
-    const away = match.teams?.away?.name || match.awayTeam?.name || match.away?.name || "Away";
-    const homeLogo = match.teams?.home?.logo || match.homeTeam?.logo || match.home?.logo || "";
-    const awayLogo = match.teams?.away?.logo || match.awayTeam?.logo || match.away?.logo || "";
-    const date = match.fixture?.date || match.date || match.time || match.utcDate || "";
-    const status = match.fixture?.status?.long || match.status || match.state || "";
-
+    
+    if (!match) {
+        return `<div class="empty-state">No featured match yet.</div>`;
+    }
+    
+    const fixture = match.fixture || {};
+    const league = match.league || {};
+    const teams = match.teams || {};
+    const goals = match.goals || {};
+    
+    const home = teams.home?.name || "Home";
+    const away = teams.away?.name || "Away";
+    
+    const homeLogo = teams.home?.logo || "";
+    const awayLogo = teams.away?.logo || "";
+    
+    const leagueName = league.name || "";
+    const leagueLogo = league.logo || "";
+    
+    const venue = fixture.venue?.name || "";
+    const city = fixture.venue?.city || "";
+    const referee = fixture.referee || "";
+    const round = league.round || "";
+    
+    const statusShort = fixture.status?.short || "";
+    const statusLong = fixture.status?.long || "";
+    
+    const date = fixture.date ? new Date(fixture.date) : null;
+    
+    const matchDate = date ?
+        date.toLocaleDateString(undefined, {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+        }) :
+        "";
+    
+    const matchTime = date ?
+        date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        }) :
+        "";
+    
+    const homeGoals = goals.home;
+    const awayGoals = goals.away;
+    
+    const played =
+        homeGoals !== null &&
+        homeGoals !== undefined &&
+        awayGoals !== null &&
+        awayGoals !== undefined;
+    
+    const statusClass = (
+            statusShort === "LIVE" ||
+            statusShort === "1H" ||
+            statusShort === "2H"
+        ) ?
+        "live" :
+        (
+            statusShort === "FT" ?
+            "finished" :
+            (
+                statusShort === "HT" ?
+                "halftime" :
+                "upcoming"
+            )
+        );
+    
     return `
-        <div class="featured-match">
-            <div class="match-row">
-                <div class="team">
-                    ${homeLogo ? `<img src="${lpEscapeHtml(homeLogo)}" alt="${lpEscapeHtml(home)}">` : ""}
-                    <strong>${lpEscapeHtml(home)}</strong>
-                </div>
 
-                <span class="vs">vs</span>
+<div class="featured-match">
 
-                <div class="team">
-                    ${awayLogo ? `<img src="${lpEscapeHtml(awayLogo)}" alt="${lpEscapeHtml(away)}">` : ""}
-                    <strong>${lpEscapeHtml(away)}</strong>
-                </div>
-            </div>
+    <div class="featured-top">
 
-            ${date ? `<small>${lpEscapeHtml(lpFormatDate(date))}</small>` : ""}
-            ${status ? `<small>${lpEscapeHtml(status)}</small>` : ""}
+        <div class="featured-league">
+
+            ${
+                leagueLogo
+                ? `
+                <img
+                    src="${lpEscapeHtml(leagueLogo)}"
+                    alt="${lpEscapeHtml(leagueName)}"
+                >
+                `
+                : ""
+            }
+
+            <span>${lpEscapeHtml(leagueName)}</span>
+
         </div>
-    `;
+
+        <div class="match-status ${statusClass}">
+            ${lpEscapeHtml(statusLong || statusShort)}
+        </div>
+
+    </div>
+
+    <div class="featured-date">
+
+        ${
+            matchDate
+            ? `
+            <span>${lpEscapeHtml(matchDate)}</span>
+            `
+            : ""
+        }
+
+        ${
+            matchTime
+            ? `
+            <span>${lpEscapeHtml(matchTime)}</span>
+            `
+            : ""
+        }
+
+    </div>
+
+    <div class="featured-teams">
+
+        <div class="featured-team">
+
+            ${
+                homeLogo
+                ? `
+                <img
+                    src="${lpEscapeHtml(homeLogo)}"
+                    alt="${lpEscapeHtml(home)}"
+                >
+                `
+                : ""
+            }
+
+            <strong>${lpEscapeHtml(home)}</strong>
+
+        </div>
+
+        <div class="featured-score">
+
+            ${
+                played
+                ? `
+                <span>${homeGoals}</span>
+                <small>-</small>
+                <span>${awayGoals}</span>
+                `
+                : `
+                <span>VS</span>
+                `
+            }
+
+        </div>
+
+        <div class="featured-team">
+
+            ${
+                awayLogo
+                ? `
+                <img
+                    src="${lpEscapeHtml(awayLogo)}"
+                    alt="${lpEscapeHtml(away)}"
+                >
+                `
+                : ""
+            }
+
+            <strong>${lpEscapeHtml(away)}</strong>
+
+        </div>
+
+    </div>
+
+    <div class="featured-bottom">
+
+        ${
+            venue
+            ? `
+            <div>
+                <strong>Stadium</strong>
+                <span>${lpEscapeHtml(venue)}</span>
+            </div>
+            `
+            : ""
+        }
+
+        ${
+            city
+            ? `
+            <div>
+                <strong>City</strong>
+                <span>${lpEscapeHtml(city)}</span>
+            </div>
+            `
+            : ""
+        }
+
+        ${
+            round
+            ? `
+            <div>
+                <strong>Round</strong>
+                <span>${lpEscapeHtml(round)}</span>
+            </div>
+            `
+            : ""
+        }
+
+        ${
+            referee
+            ? `
+            <div>
+                <strong>Referee</strong>
+                <span>${lpEscapeHtml(referee)}</span>
+            </div>
+            `
+            : ""
+        }
+
+    </div>
+
+</div>
+
+`;
+    
 }
 
-function lpTopScorerHTML(scorer) {
+
+
+/**function lpTopScorerHTML(scorer) {
     if (!scorer) return `<div class="empty-state">No top scorer yet.</div>`;
 
     const player = scorer.player || scorer;
@@ -241,6 +439,560 @@ function lpTopScorerHTML(scorer) {
             </div>
         </div>
     `;
+}**/
+
+function lpTopScorerHTML(scorer) {
+    
+    if (!scorer) {
+        return `<div class="empty-state">No top scorer yet.</div>`;
+    }
+    
+    const player = scorer.player || scorer;
+    const stat = scorer.statistics?.[0] || {};
+    
+    /* -----------------------------
+       Player
+    ------------------------------ */
+    
+    const name =
+        player.name ||
+        scorer.name ||
+        "Unknown";
+    
+    const image =
+        player.photo ||
+        scorer.photo ||
+        scorer.image ||
+        scorer.avatar ||
+        "";
+    
+    /* -----------------------------
+       Club
+    ------------------------------ */
+    
+    const team =
+        stat.team?.name ||
+        scorer.team?.name ||
+        "";
+    
+    const teamLogo =
+        stat.team?.logo ||
+        scorer.team?.logo ||
+        "";
+    
+    /* -----------------------------
+       Position
+    ------------------------------ */
+    
+    const fullPosition =
+        stat.games?.position ||
+        player.position ||
+        scorer.position ||
+        "";
+    
+    const POSITION_MAP = {
+        
+        "Goalkeeper": "GK",
+        
+        "Defender": "DEF",
+        "Centre-Back": "CB",
+        "Center Back": "CB",
+        "Right-Back": "RB",
+        "Left-Back": "LB",
+        "Wing-Back": "WB",
+        
+        "Midfielder": "MID",
+        "Defensive Midfielder": "CDM",
+        "Central Midfielder": "CM",
+        "Attacking Midfielder": "CAM",
+        "Right Midfielder": "RM",
+        "Left Midfielder": "LM",
+        
+        "Forward": "FW",
+        "Centre-Forward": "CF",
+        "Center Forward": "CF",
+        "Striker": "ST",
+        "Second Striker": "SS",
+        "Right Winger": "RW",
+        "Left Winger": "LW"
+        
+    };
+    
+    const shortPosition =
+        POSITION_MAP[fullPosition] ||
+        fullPosition;
+    
+    /* -----------------------------
+       Bio
+    ------------------------------ */
+    
+    const nationality =
+        player.nationality ||
+        scorer.nationality ||
+        "";
+    
+    const age =
+        player.age ||
+        scorer.age ||
+        "";
+    
+    let height =
+        player.height ||
+        scorer.height ||
+        "";
+    
+    let weight =
+        player.weight ||
+        scorer.weight ||
+        "";
+    
+    if (height && !/cm/i.test(height)) {
+        height += " cm";
+    }
+    
+    if (weight && !/kg/i.test(weight)) {
+        weight += " kg";
+    }
+    
+    /* -----------------------------
+       Football Stats
+    ------------------------------ */
+    
+    const goals =
+        stat.goals?.total ??
+        scorer.goals ??
+        scorer.score ??
+        0;
+    
+    const assists =
+        stat.goals?.assists ??
+        scorer.assists ??
+        "-";
+    
+    const appearances =
+        stat.games?.appearences ??
+        stat.games?.appearances ??
+        scorer.appearances ??
+        "-";
+    
+    const rating =
+        stat.games?.rating ??
+        scorer.rating ??
+        "-";
+    
+    return `
+
+<div class="top-scorer">
+
+    <div class="top-scorer-image">
+
+        ${
+            teamLogo
+            ? `
+            <div class="club-badge">
+                <img
+                    src="${lpEscapeHtml(teamLogo)}"
+                    alt="${lpEscapeHtml(team)}"
+                >
+            </div>
+            `
+            : ""
+        }
+
+        ${
+            image
+            ? `
+            <img
+                class="player-photo"
+                src="${lpEscapeHtml(image)}"
+                alt="${lpEscapeHtml(name)}"
+                loading="lazy"
+            >
+            `
+            : `
+            <div class="skeleton skeleton-avatar"></div>
+            `
+        }
+
+        ${
+            shortPosition
+            ? `
+            <div class="position-badge">
+                ${lpEscapeHtml(shortPosition)}
+            </div>
+            `
+            : ""
+        }
+
+    </div>
+
+    <div class="top-scorer-text">
+
+        <strong>${lpEscapeHtml(name)}</strong>
+
+        ${
+            team
+            ? `<p>${lpEscapeHtml(team)}</p>`
+            : ""
+        }
+
+        ${
+            nationality
+            ? `
+            <small>
+                <span>Nationality</span>
+                <span>${lpEscapeHtml(nationality)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            fullPosition
+            ? `
+            <small>
+                <span>Position</span>
+                <span>${lpEscapeHtml(fullPosition)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            age
+            ? `
+            <small>
+                <span>Age</span>
+                <span>${lpEscapeHtml(age)} yrs</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            height
+            ? `
+            <small>
+                <span>Height</span>
+                <span>${lpEscapeHtml(height)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            weight
+            ? `
+            <small>
+                <span>Weight</span>
+                <span>${lpEscapeHtml(weight)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        <small>
+            <span>Appearances</span>
+            <span>${lpEscapeHtml(appearances)}</span>
+        </small>
+
+        <small>
+            <span>Assists</span>
+            <span>${lpEscapeHtml(assists)}</span>
+        </small>
+
+        <small>
+            <span>Rating</span>
+            <span>${lpEscapeHtml(rating)}</span>
+        </small>
+
+        <small class="goals-row">
+            <span>Goals</span>
+            <span>${lpEscapeHtml(goals)}</span>
+        </small>
+
+    </div>
+
+</div>
+
+`;
+    
+}function lpTopScorerHTML(scorer) {
+    
+    if (!scorer) {
+        return `<div class="empty-state">No top scorer yet.</div>`;
+    }
+    
+    const player = scorer.player || scorer;
+    const stat = scorer.statistics?.[0] || {};
+    
+    /* -----------------------------
+       Player
+    ------------------------------ */
+    
+    const name =
+        player.name ||
+        scorer.name ||
+        "Unknown";
+    
+    const image =
+        player.photo ||
+        scorer.photo ||
+        scorer.image ||
+        scorer.avatar ||
+        "";
+    
+    /* -----------------------------
+       Club
+    ------------------------------ */
+    
+    const team =
+        stat.team?.name ||
+        scorer.team?.name ||
+        "";
+    
+    const teamLogo =
+        stat.team?.logo ||
+        scorer.team?.logo ||
+        "";
+    
+    /* -----------------------------
+       Position
+    ------------------------------ */
+    
+    const fullPosition =
+        stat.games?.position ||
+        player.position ||
+        scorer.position ||
+        "";
+    
+    const POSITION_MAP = {
+        
+        "Goalkeeper": "GK",
+        
+        "Defender": "DEF",
+        "Centre-Back": "CB",
+        "Center Back": "CB",
+        "Right-Back": "RB",
+        "Left-Back": "LB",
+        "Wing-Back": "WB",
+        
+        "Midfielder": "MID",
+        "Defensive Midfielder": "CDM",
+        "Central Midfielder": "CM",
+        "Attacking Midfielder": "CAM",
+        "Right Midfielder": "RM",
+        "Left Midfielder": "LM",
+        
+        "Forward": "FW",
+        "Centre-Forward": "CF",
+        "Center Forward": "CF",
+        "Striker": "ST",
+        "Second Striker": "SS",
+        "Right Winger": "RW",
+        "Left Winger": "LW"
+        
+    };
+    
+    const shortPosition =
+        POSITION_MAP[fullPosition] ||
+        fullPosition;
+    
+    /* -----------------------------
+       Bio
+    ------------------------------ */
+    
+    const nationality =
+        player.nationality ||
+        scorer.nationality ||
+        "";
+    
+    const age =
+        player.age ||
+        scorer.age ||
+        "";
+    
+    let height =
+        player.height ||
+        scorer.height ||
+        "";
+    
+    let weight =
+        player.weight ||
+        scorer.weight ||
+        "";
+    
+    if (height && !/cm/i.test(height)) {
+        height += " cm";
+    }
+    
+    if (weight && !/kg/i.test(weight)) {
+        weight += " kg";
+    }
+    
+    /* -----------------------------
+       Football Stats
+    ------------------------------ */
+    
+    const goals =
+        stat.goals?.total ??
+        scorer.goals ??
+        scorer.score ??
+        0;
+    
+    const assists =
+        stat.goals?.assists ??
+        scorer.assists ??
+        "-";
+    
+    const appearances =
+        stat.games?.appearences ??
+        stat.games?.appearances ??
+        scorer.appearances ??
+        "-";
+    
+    const rating =
+        stat.games?.rating ??
+        scorer.rating ??
+        "-";
+    
+    return `
+
+<div class="top-scorer">
+
+    <div class="top-scorer-image">
+
+        ${
+            teamLogo
+            ? `
+            <div class="club-badge">
+                <img
+                    src="${lpEscapeHtml(teamLogo)}"
+                    alt="${lpEscapeHtml(team)}"
+                >
+            </div>
+            `
+            : ""
+        }
+
+        ${
+            image
+            ? `
+            <img
+                class="player-photo"
+                src="${lpEscapeHtml(image)}"
+                alt="${lpEscapeHtml(name)}"
+                loading="lazy"
+            >
+            `
+            : `
+            <div class="skeleton skeleton-avatar"></div>
+            `
+        }
+
+        ${
+            shortPosition
+            ? `
+            <div class="position-badge">
+                ${lpEscapeHtml(shortPosition)}
+            </div>
+            `
+            : ""
+        }
+
+    </div>
+
+    <div class="top-scorer-text">
+
+        <strong>${lpEscapeHtml(name)}</strong>
+
+        ${
+            team
+            ? `<p>${lpEscapeHtml(team)}</p>`
+            : ""
+        }
+
+        ${
+            nationality
+            ? `
+            <small>
+                <span>Nationality</span>
+                <span>${lpEscapeHtml(nationality)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            fullPosition
+            ? `
+            <small>
+                <span>Position</span>
+                <span>${lpEscapeHtml(fullPosition)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            age
+            ? `
+            <small>
+                <span>Age</span>
+                <span>${lpEscapeHtml(age)} yrs</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            height
+            ? `
+            <small>
+                <span>Height</span>
+                <span>${lpEscapeHtml(height)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        ${
+            weight
+            ? `
+            <small>
+                <span>Weight</span>
+                <span>${lpEscapeHtml(weight)}</span>
+            </small>
+            `
+            : ""
+        }
+
+        <small>
+            <span>Appearances</span>
+            <span>${lpEscapeHtml(appearances)}</span>
+        </small>
+
+        <small>
+            <span>Assists</span>
+            <span>${lpEscapeHtml(assists)}</span>
+        </small>
+
+        <small>
+            <span>Rating</span>
+            <span>${lpEscapeHtml(rating)}</span>
+        </small>
+
+        <small class="goals-row">
+            <span>Goals</span>
+            <span>${lpEscapeHtml(goals)}</span>
+        </small>
+
+    </div>
+
+</div>
+
+`;
+    
 }
 
 function lpStandingsHTML(standings) {
@@ -487,11 +1239,10 @@ function lpApplyMeta(apiLeague, context, season) {
         "-";
 
     const teamCount =
-        apiLeague?.league?.teams?.length ||
-        apiLeague?.teams?.length ||
-        context?.league?.teamCount ||
-        context?.teamCount ||
-        "-";
+    teams.length ||
+    context?.league?.teamCount ||
+    context?.teamCount ||
+    "-";
 
     lpSetText("#teamCount", teamCount);
     lpSetText("#matchday", currentRound);
@@ -594,7 +1345,7 @@ async function lpRefresh() {
         const fixtures = fixturesResult.status === "fulfilled" ? fixturesResult.value : [];
         const scorers = scorersResult.status === "fulfilled" ? scorersResult.value : [];
 
-        lpApplyMeta(apiLeague, context, season);
+        lpApplyMeta(apiLeague, context, season, teams);
         lpApplyContent({ standings, teams, fixtures, scorers });
 
         lpSaveContext({
