@@ -5177,41 +5177,99 @@
   "code": "international",
   "flag": "/assets/icons/earth-icon.svg",
   "leagues": [
-    {
-      "id": 1,
-      "name": "FIFA World Cup",
-      "slug": "world-cup",
-      "icon": "/assets/icons/world_world-cup.svg",
-      "type": "cup"
-    },
-    {
-      "id": 2,
-      "name": "UEFA Champions League",
-      "slug": "uefa-champions-league",
-      "icon": "/assets/icons/world_uefa-champions-league.svg",
-      "type": "cup"
-    },
-    {
-      "id": 3,
-      "name": "UEFA Europa League",
-      "slug": "uefa-europa-league",
-      "icon": "/assets/icons/world_uefa-europa-league.svg",
-      "type": "cup"
-    },
-    {
-      "id": 15,
-      "name": "FIFA Club World Cup",
-      "slug": "fifa-club-world-cup",
-      "icon": "/assets/icons/world_fifa-club-world-cup.svg",
-      "type": "cup"
-    },
-    {
-      "id": 848,
-      "name": "UEFA Europa Conference League",
-      "slug": "uefa-europa-conference-league",
-      "icon": "/assets/icons/world_uefa-europa-conference-league.svg",
-      "type": "cup"
-    }
+    [
+  {
+    "id": 1,
+    "name": "FIFA World Cup",
+    "slug": "fifa-world-cup",
+    "icon": "/assets/icons/world_fifa-world-cup.svg",
+    "type": "cup"
+  },
+  {
+    "id": 15,
+    "name": "FIFA Club World Cup",
+    "slug": "fifa-club-world-cup",
+    "icon": "/assets/icons/world_fifa-club-world-cup.svg",
+    "type": "cup"
+  },
+  {
+    "id": 29,
+    "name": "World Cup - Qualification Africa",
+    "slug": "world-cup-qualification-africa",
+    "icon": "/assets/icons/world_world-cup-qualification-africa.svg",
+    "type": "cup"
+  },
+  {
+    "id": 30,
+    "name": "World Cup - Qualification Asia",
+    "slug": "world-cup-qualification-asia",
+    "icon": "/assets/icons/world_world-cup-qualification-asia.svg",
+    "type": "cup"
+  },
+  {
+    "id": 31,
+    "name": "World Cup - Qualification CONCACAF",
+    "slug": "world-cup-qualification-concacaf",
+    "icon": "/assets/icons/world_world-cup-qualification-concacaf.svg",
+    "type": "cup"
+  },
+  {
+    "id": 32,
+    "name": "World Cup - Qualification Europe",
+    "slug": "world-cup-qualification-europe",
+    "icon": "/assets/icons/world_world-cup-qualification-europe.svg",
+    "type": "cup"
+  },
+  {
+    "id": 33,
+    "name": "World Cup - Qualification Oceania",
+    "slug": "world-cup-qualification-oceania",
+    "icon": "/assets/icons/world_world-cup-qualification-oceania.svg",
+    "type": "cup"
+  },
+  {
+    "id": 34,
+    "name": "World Cup - Qualification South America",
+    "slug": "world-cup-qualification-south-america",
+    "icon": "/assets/icons/world_world-cup-qualification-south-america.svg",
+    "type": "cup"
+  },
+  {
+    "id": 8,
+    "name": "World Cup - Women",
+    "slug": "fifa-womens-world-cup",
+    "icon": "/assets/icons/world_fifa-womens-world-cup.svg",
+    "type": "cup"
+  },
+  {
+    "id": 847,
+    "name": "Finalissima",
+    "slug": "finalissima",
+    "icon": "/assets/icons/world_finalissima.svg",
+    "type": "cup"
+  },
+  {
+    "id": 848,
+    "name": "UEFA - CONMEBOL Club Challenge",
+    "slug": "uefa-conmebol-club-challenge",
+    "icon": "/assets/icons/world_uefa-conmebol-club-challenge.svg",
+    "type": "cup"
+  },
+  {
+    "id": 487,
+    "name": "Olympics Men",
+    "slug": "olympics-men",
+    "icon": "/assets/icons/world_olympics-men.svg",
+    "type": "cup"
+  },
+  {
+    "id": 488,
+    "name": "Olympics Women",
+    "slug": "olympics-women",
+    "icon": "/assets/icons/world_olympics-women.svg",
+    "type": "cup"
+  }
+]
   ]
 }
   ]
