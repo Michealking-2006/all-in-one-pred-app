@@ -5586,7 +5586,7 @@
 {
   "country": "Europe",
   "code": "europe",
-  "flag": "/assets/icons/europe-icon.svg",
+  "flag": "/assets/icons/europe.svg",
   "leagues": [
     {
       "id": 2,
@@ -5677,6 +5677,181 @@
       "name": "UEFA Regions' Cup",
       "slug": "uefa-regions-cup",
       "icon": "/assets/icons/europe_uefa-regions-cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "South America",
+  "code": "south-america",
+  "flag": "/assets/icons/south-america.svg",
+  "leagues": [
+    {
+      "id": 9,
+      "name": "CONMEBOL Copa America",
+      "slug": "conmebol-copa-america",
+      "icon": "/assets/icons/south-america_conmebol-copa-america.svg",
+      "type": "cup"
+    },
+    {
+      "id": 11,
+      "name": "CONMEBOL Libertadores",
+      "slug": "conmebol-libertadores",
+      "icon": "/assets/icons/south-america_conmebol-libertadores.svg",
+      "type": "cup"
+    },
+    {
+      "id": 12,
+      "name": "CONMEBOL Sudamericana",
+      "slug": "conmebol-sudamericana",
+      "icon": "/assets/icons/south-america_conmebol-sudamericana.svg",
+      "type": "cup"
+    },
+    {
+      "id": 13,
+      "name": "CONMEBOL Recopa",
+      "slug": "conmebol-recopa",
+      "icon": "/assets/icons/south-america_conmebol-recopa.svg",
+      "type": "cup"
+    },
+    {
+      "id": 14,
+      "name": "CONMEBOL Libertadores U20",
+      "slug": "conmebol-libertadores-u20",
+      "icon": "/assets/icons/south-america_conmebol-libertadores-u20.svg",
+      "type": "cup"
+    },
+    {
+      "id": 521,
+      "name": "CONMEBOL Pre-Libertadores",
+      "slug": "conmebol-pre-libertadores",
+      "icon": "/assets/icons/south-america_conmebol-pre-libertadores.svg",
+      "type": "cup"
+    },
+    {
+      "id": 522,
+      "name": "CONMEBOL Copa America Women",
+      "slug": "conmebol-copa-america-women",
+      "icon": "/assets/icons/south-america_conmebol-copa-america-women.svg",
+      "type": "cup"
+    },
+    {
+      "id": 523,
+      "name": "CONMEBOL Libertadores Women",
+      "slug": "conmebol-libertadores-women",
+      "icon": "/assets/icons/south-america_conmebol-libertadores-women.svg",
+      "type": "cup"
+    },
+    {
+      "id": 524,
+      "name": "CONMEBOL Sudamericano U20",
+      "slug": "conmebol-sudamericano-u20",
+      "icon": "/assets/icons/south-america_conmebol-sudamericano-u20.svg",
+      "type": "cup"
+    },
+    {
+      "id": 525,
+      "name": "CONMEBOL Sudamericano U17",
+      "slug": "conmebol-sudamericano-u17",
+      "icon": "/assets/icons/south-america_conmebol-sudamericano-u17.svg",
+      "type": "cup"
+    },
+    {
+      "id": 526,
+      "name": "CONMEBOL Sudamericano U15",
+      "slug": "conmebol-sudamericano-u15",
+      "icon": "/assets/icons/south-america_conmebol-sudamericano-u15.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "North & Central America",
+  "code": "north-central-america",
+  "flag": "/assets/icons/north-central-america.svg",
+  "leagues": [
+    {
+      "id": 16,
+      "name": "CONCACAF Champions Cup",
+      "slug": "concacaf-champions-cup",
+      "icon": "/assets/icons/north-central-america_concacaf-champions-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 17,
+      "name": "CONCACAF League",
+      "slug": "concacaf-league",
+      "icon": "/assets/icons/north-central-america_concacaf-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 18,
+      "name": "CONCACAF Gold Cup",
+      "slug": "concacaf-gold-cup",
+      "icon": "/assets/icons/north-central-america_concacaf-gold-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 19,
+      "name": "CONCACAF Nations League",
+      "slug": "concacaf-nations-league",
+      "icon": "/assets/icons/north-central-america_concacaf-nations-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 529,
+      "name": "CONCACAF Caribbean Cup",
+      "slug": "concacaf-caribbean-cup",
+      "icon": "/assets/icons/north-central-america_concacaf-caribbean-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 530,
+      "name": "CONCACAF Central American Cup",
+      "slug": "concacaf-central-american-cup",
+      "icon": "/assets/icons/north-central-america_concacaf-central-american-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 575,
+      "name": "CONCACAF W Championship",
+      "slug": "concacaf-w-championship",
+      "icon": "/assets/icons/north-central-america_concacaf-w-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 576,
+      "name": "CONCACAF W Gold Cup",
+      "slug": "concacaf-w-gold-cup",
+      "icon": "/assets/icons/north-central-america_concacaf-w-gold-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 577,
+      "name": "CONCACAF U20 Championship",
+      "slug": "concacaf-u20-championship",
+      "icon": "/assets/icons/north-central-america_concacaf-u20-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 578,
+      "name": "CONCACAF U17 Championship",
+      "slug": "concacaf-u17-championship",
+      "icon": "/assets/icons/north-central-america_concacaf-u17-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 579,
+      "name": "CONCACAF Women's U20 Championship",
+      "slug": "concacaf-womens-u20-championship",
+      "icon": "/assets/icons/north-central-america_concacaf-womens-u20-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 580,
+      "name": "CONCACAF Women's U17 Championship",
+      "slug": "concacaf-womens-u17-championship",
+      "icon": "/assets/icons/north-central-america_concacaf-womens-u17-championship.svg",
       "type": "cup"
     }
   ]
