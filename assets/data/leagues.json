@@ -5530,7 +5530,7 @@
 {
   "country": "Australia & Oceania",
   "code": "oceania",
-  "flag": "/assets/icons/oceania-icon.svg",
+  "flag": "/assets/icons/oceania.svg",
   "leagues": [
     {
       "id": 40,
@@ -5856,6 +5856,5 @@
     }
   ]
 }
-
   ]
 }
