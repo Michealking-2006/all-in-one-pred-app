@@ -5267,6 +5267,98 @@
     "type": "cup"
   }
 ]
+},
+{
+  "country": "Africa",
+  "code": "africa",
+  "flag": "/assets/icons/africa-icon.svg",
+  "leagues": [
+    {
+      "id": 6,
+      "name": "Africa Cup of Nations",
+      "slug": "africa-cup-of-nations",
+      "icon": "/assets/icons/africa_africa-cup-of-nations.svg",
+      "type": "cup"
+    },
+    {
+      "id": 7,
+      "name": "Africa Cup of Nations - Qualification",
+      "slug": "africa-cup-of-nations-qualification",
+      "icon": "/assets/icons/africa_africa-cup-of-nations-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 10,
+      "name": "CAF Champions League",
+      "slug": "caf-champions-league",
+      "icon": "/assets/icons/africa_caf-champions-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 20,
+      "name": "CAF Confederation Cup",
+      "slug": "caf-confederation-cup",
+      "icon": "/assets/icons/africa_caf-confederation-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 35,
+      "name": "CAF Super Cup",
+      "slug": "caf-super-cup",
+      "icon": "/assets/icons/africa_caf-super-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 36,
+      "name": "African Nations Championship",
+      "slug": "african-nations-championship",
+      "icon": "/assets/icons/africa_african-nations-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 37,
+      "name": "African Nations Championship - Qualification",
+      "slug": "african-nations-championship-qualification",
+      "icon": "/assets/icons/africa_african-nations-championship-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 542,
+      "name": "CAF Women's Champions League",
+      "slug": "caf-womens-champions-league",
+      "icon": "/assets/icons/africa_caf-womens-champions-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 544,
+      "name": "Women's Africa Cup of Nations",
+      "slug": "womens-africa-cup-of-nations",
+      "icon": "/assets/icons/africa_womens-africa-cup-of-nations.svg",
+      "type": "cup"
+    },
+    {
+      "id": 545,
+      "name": "Women's Africa Cup of Nations - Qualification",
+      "slug": "womens-africa-cup-of-nations-qualification",
+      "icon": "/assets/icons/africa_womens-africa-cup-of-nations-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 546,
+      "name": "CECAFA Senior Challenge Cup",
+      "slug": "cecafa-senior-challenge-cup",
+      "icon": "/assets/icons/africa_cecafa-senior-challenge-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 547,
+      "name": "UFOA Cup",
+      "slug": "ufoa-cup",
+      "icon": "/assets/icons/africa_ufoa-cup.svg",
+      "type": "cup"
+    }
+  ]
 }
+
   ]
 }
