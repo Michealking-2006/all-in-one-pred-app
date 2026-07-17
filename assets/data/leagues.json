@@ -5358,6 +5358,328 @@
       "type": "cup"
     }
   ]
+},
+{
+  "country": "Asia",
+  "code": "asia",
+  "flag": "/assets/icons/asia.svg",
+  "leagues": [
+    {
+      "id": 17,
+      "name": "AFC Champions League Elite",
+      "slug": "afc-champions-league-elite",
+      "icon": "/assets/icons/asia_afc-champions-league-elite.svg",
+      "type": "cup"
+    },
+    {
+      "id": 18,
+      "name": "AFC Champions League Two",
+      "slug": "afc-champions-league-two",
+      "icon": "/assets/icons/asia_afc-champions-league-two.svg",
+      "type": "cup"
+    },
+    {
+      "id": 19,
+      "name": "AFC Cup",
+      "slug": "afc-cup",
+      "icon": "/assets/icons/asia_afc-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 292,
+      "name": "AFC Challenge League",
+      "slug": "afc-challenge-league",
+      "icon": "/assets/icons/asia_afc-challenge-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 255,
+      "name": "Asian Cup",
+      "slug": "asian-cup",
+      "icon": "/assets/icons/asia_asian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 256,
+      "name": "Asian Cup - Qualification",
+      "slug": "asian-cup-qualification",
+      "icon": "/assets/icons/asia_asian-cup-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 290,
+      "name": "Asian Cup Women",
+      "slug": "asian-cup-women",
+      "icon": "/assets/icons/asia_asian-cup-women.svg",
+      "type": "cup"
+    },
+    {
+      "id": 291,
+      "name": "Asian Cup Women - Qualification",
+      "slug": "asian-cup-women-qualification",
+      "icon": "/assets/icons/asia_asian-cup-women-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 307,
+      "name": "AFC U23 Asian Cup",
+      "slug": "afc-u23-asian-cup",
+      "icon": "/assets/icons/asia_afc-u23-asian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 308,
+      "name": "AFC U23 Asian Cup - Qualification",
+      "slug": "afc-u23-asian-cup-qualification",
+      "icon": "/assets/icons/asia_afc-u23-asian-cup-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 304,
+      "name": "AFC U20 Asian Cup",
+      "slug": "afc-u20-asian-cup",
+      "icon": "/assets/icons/asia_afc-u20-asian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 305,
+      "name": "AFC U20 Asian Cup - Qualification",
+      "slug": "afc-u20-asian-cup-qualification",
+      "icon": "/assets/icons/asia_afc-u20-asian-cup-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 300,
+      "name": "AFC U17 Asian Cup",
+      "slug": "afc-u17-asian-cup",
+      "icon": "/assets/icons/asia_afc-u17-asian-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 301,
+      "name": "AFC U17 Asian Cup - Qualification",
+      "slug": "afc-u17-asian-cup-qualification",
+      "icon": "/assets/icons/asia_afc-u17-asian-cup-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 303,
+      "name": "AFC Women's Champions League",
+      "slug": "afc-womens-champions-league",
+      "icon": "/assets/icons/asia_afc-womens-champions-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 364,
+      "name": "ASEAN Championship",
+      "slug": "asean-championship",
+      "icon": "/assets/icons/asia_asean-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 365,
+      "name": "ASEAN Club Championship",
+      "slug": "asean-club-championship",
+      "icon": "/assets/icons/asia_asean-club-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 366,
+      "name": "EAFF E-1 Football Championship",
+      "slug": "eaff-e1-football-championship",
+      "icon": "/assets/icons/asia_eaff-e1-football-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 367,
+      "name": "EAFF E-1 Football Championship - Qualification",
+      "slug": "eaff-e1-football-championship-qualification",
+      "icon": "/assets/icons/asia_eaff-e1-football-championship-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 368,
+      "name": "SAFF Championship",
+      "slug": "saff-championship",
+      "icon": "/assets/icons/asia_saff-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 369,
+      "name": "WAFF Championship U23",
+      "slug": "waff-championship-u23",
+      "icon": "/assets/icons/asia_waff-championship-u23.svg",
+      "type": "cup"
+    },
+    {
+      "id": 370,
+      "name": "CAFA Nations Cup",
+      "slug": "cafa-nations-cup",
+      "icon": "/assets/icons/asia_cafa-nations-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 371,
+      "name": "AGCFF Gulf Champions League",
+      "slug": "agcff-gulf-champions-league",
+      "icon": "/assets/icons/asia_agcff-gulf-champions-league.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Australia & Oceania",
+  "code": "oceania",
+  "flag": "/assets/icons/oceania-icon.svg",
+  "leagues": [
+    {
+      "id": 40,
+      "name": "OFC Nations Cup",
+      "slug": "ofc-nations-cup",
+      "icon": "/assets/icons/oceania_ofc-nations-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 41,
+      "name": "OFC Nations Cup - Qualification",
+      "slug": "ofc-nations-cup-qualification",
+      "icon": "/assets/icons/oceania_ofc-nations-cup-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 42,
+      "name": "OFC Champions League",
+      "slug": "ofc-champions-league",
+      "icon": "/assets/icons/oceania_ofc-champions-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 43,
+      "name": "OFC Women's Nations Cup",
+      "slug": "ofc-womens-nations-cup",
+      "icon": "/assets/icons/oceania_ofc-womens-nations-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 44,
+      "name": "OFC Women's Nations Cup - Qualification",
+      "slug": "ofc-womens-nations-cup-qualification",
+      "icon": "/assets/icons/oceania_ofc-womens-nations-cup-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 45,
+      "name": "OFC Men's Olympic Qualifiers",
+      "slug": "ofc-mens-olympic-qualifiers",
+      "icon": "/assets/icons/oceania_ofc-mens-olympic-qualifiers.svg",
+      "type": "cup"
+    },
+    {
+      "id": 46,
+      "name": "OFC Women's Olympic Qualifiers",
+      "slug": "ofc-womens-olympic-qualifiers",
+      "icon": "/assets/icons/oceania_ofc-womens-olympic-qualifiers.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
+  "country": "Europe",
+  "code": "europe",
+  "flag": "/assets/icons/europe-icon.svg",
+  "leagues": [
+    {
+      "id": 2,
+      "name": "UEFA Champions League",
+      "slug": "uefa-champions-league",
+      "icon": "/assets/icons/europe_uefa-champions-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 3,
+      "name": "UEFA Europa League",
+      "slug": "uefa-europa-league",
+      "icon": "/assets/icons/europe_uefa-europa-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 848,
+      "name": "UEFA Europa Conference League",
+      "slug": "uefa-europa-conference-league",
+      "icon": "/assets/icons/europe_uefa-europa-conference-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 4,
+      "name": "UEFA Euro Championship",
+      "slug": "uefa-euro-championship",
+      "icon": "/assets/icons/europe_uefa-euro-championship.svg",
+      "type": "cup"
+    },
+    {
+      "id": 960,
+      "name": "UEFA Euro Championship - Qualification",
+      "slug": "uefa-euro-championship-qualification",
+      "icon": "/assets/icons/europe_uefa-euro-championship-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 5,
+      "name": "UEFA Nations League",
+      "slug": "uefa-nations-league",
+      "icon": "/assets/icons/europe_uefa-nations-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 531,
+      "name": "UEFA Super Cup",
+      "slug": "uefa-super-cup",
+      "icon": "/assets/icons/europe_uefa-super-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 39,
+      "name": "UEFA Youth League",
+      "slug": "uefa-youth-league",
+      "icon": "/assets/icons/europe_uefa-youth-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 570,
+      "name": "UEFA Women's Champions League",
+      "slug": "uefa-womens-champions-league",
+      "icon": "/assets/icons/europe_uefa-womens-champions-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 571,
+      "name": "UEFA Women's Euro",
+      "slug": "uefa-womens-euro",
+      "icon": "/assets/icons/europe_uefa-womens-euro.svg",
+      "type": "cup"
+    },
+    {
+      "id": 572,
+      "name": "UEFA Women's Euro - Qualification",
+      "slug": "uefa-womens-euro-qualification",
+      "icon": "/assets/icons/europe_uefa-womens-euro-qualification.svg",
+      "type": "cup"
+    },
+    {
+      "id": 573,
+      "name": "UEFA Women's Nations League",
+      "slug": "uefa-womens-nations-league",
+      "icon": "/assets/icons/europe_uefa-womens-nations-league.svg",
+      "type": "cup"
+    },
+    {
+      "id": 574,
+      "name": "UEFA Regions' Cup",
+      "slug": "uefa-regions-cup",
+      "icon": "/assets/icons/europe_uefa-regions-cup.svg",
+      "type": "cup"
+    }
+  ]
 }
 
   ]
