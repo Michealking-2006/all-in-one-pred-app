@@ -1,8 +1,5 @@
-
 {
-  
-  
-  "countries": [
+"countries": [
     {
   "country": "England",
   "code": "england",
@@ -5177,7 +5174,7 @@
   "code": "international",
   "flag": "/assets/icons/earth-icon.svg",
   "leagues": [
-    [
+    
   {
     "id": 1,
     "name": "FIFA World Cup",
@@ -5270,7 +5267,6 @@
     "type": "cup"
   }
 ]
-  ]
 }
   ]
 }
