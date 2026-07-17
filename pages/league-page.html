@@ -10,12 +10,102 @@
 <span><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"></path></svg></span>
 all leagues</a>
 
-<select id="seasonSelect">
-  <option>2021/22</option>
-  <option>2022/23</option>
-  <option>2023/24</option>
-  <option>2024/25</option>
+<!-- date ---->
+
+<!-- Hidden native select (keep for compatibility with your existing JS) -->
+<select id="seasonSelect" hidden>
+  <option value="2021">2021/22</option>
+  <option value="2022">2022/23</option>
+  <option value="2023">2023/24</option>
+  <option value="2024" selected>2024/25</option>
 </select>
+
+<div class="season-select" id="seasonPicker">
+
+  <button type="button" class="season-trigger" id="seasonTrigger">
+
+    <div class="season-trigger-left">
+
+      <span id="seasonLabel">2024/25</span>
+    </div>
+
+    <svg class="season-chevron" width="18" height="18" viewBox="0 0 24 24">
+      <path d="M6 9L12 15L18 9"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+    </svg>
+
+  </button>
+
+  <div class="season-dropdown" id="seasonDropdown">
+
+    <div class="season-scroll">
+
+      <button class="season-option active"
+              data-value="2024"
+              data-label="2024/25">
+        <span>2024/25</span>
+        <span class="season-current">Current</span>
+        <svg class="check" width="16" height="16" viewBox="0 0 24 24">
+          <path d="M20 6L9 17L4 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <button class="season-option"
+              data-value="2023"
+              data-label="2023/24">
+        <span>2023/24</span>
+        <svg class="check" width="16" height="16" viewBox="0 0 24 24">
+          <path d="M20 6L9 17L4 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <button class="season-option"
+              data-value="2022"
+              data-label="2022/23">
+        <span>2022/23</span>
+        <svg class="check" width="16" height="16" viewBox="0 0 24 24">
+          <path d="M20 6L9 17L4 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <button class="season-option"
+              data-value="2021"
+              data-label="2021/22">
+        <span>2021/22</span>
+        <svg class="check" width="16" height="16" viewBox="0 0 24 24">
+          <path d="M20 6L9 17L4 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
 </div>
 
@@ -46,12 +136,8 @@ all leagues</a>
 <nav class="tabs">
 
 <button class="tab active" data-tab="overview">Overview</button>
-
+<button class="tab" data-tab="matches">Pred Matches</button>
 <button class="tab" data-tab="standings">Standings</button>
-
-<button class="tab" data-tab="matches">Matches</button>
-
-<button class="tab" data-tab="teams">Teams</button>
 
 <button class="tab" data-tab="news">News</button>
 

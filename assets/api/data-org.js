@@ -1,6 +1,6 @@
 const API = (() => {
   
-  const API_KEY = "16ae25cfd4ac9abb516a105cd100ed76";
+  const API_KEY = "16ae25cfd4ac9abb516a105cd100ed7";
   const BASE_URL = "https://v3.football.api-sports.io";
   
   async function request(endpoint) {

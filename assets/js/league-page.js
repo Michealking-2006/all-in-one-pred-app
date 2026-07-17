@@ -8,7 +8,7 @@
  * - Reads the league slug from the URL
  * - Finds the league in /assets/data/leagues.json
  * - Loads API-Football data
- * - Renders overview, standings, matches, teams, and top scorer
+ * - Renders overview, standings, matches, and top scorer
  * - Works again after SPA navigation via pageLoaded
  */
 
@@ -221,6 +221,15 @@ async function lpFindLeagueBySlug(slug) {
     return null;
 }
 
+/**
+ * Flatten standings into rows.
+ */
+function lpGetStandingRows(standings) {
+    if (Array.isArray(standings?.[0])) return standings[0];
+    if (Array.isArray(standings)) return standings;
+    return [];
+}
+
 /* =====================================================
    LOADING MARKUP
 ===================================================== */
@@ -319,14 +328,6 @@ function lpLoadingMarkup(type) {
                         <div class="skeleton skeleton-line line-sm"></div>
                         <div class="skeleton skeleton-line line-sm"></div>
                     </div>
-                </div>
-            `).join("");
-
-        case "teams":
-            return Array.from({ length: 8 }, () => `
-                <div class="team-card">
-                    <div class="skeleton skeleton-avatar"></div>
-                    <div class="skeleton skeleton-line line-md"></div>
                 </div>
             `).join("");
 
@@ -544,7 +545,6 @@ function lpTopScorerHTML(scorer) {
 
     const shortPosition = POSITION_MAP[fullPosition] || fullPosition;
 
-    // Badge color helper class
     let positionClass = "";
     if (["GK"].includes(shortPosition)) positionClass = "position-gk";
     else if (["DEF", "CB", "RB", "LB", "WB"].includes(shortPosition)) positionClass = "position-def";
@@ -644,9 +644,7 @@ function lpTopScorerHTML(scorer) {
  * Standings table.
  */
 function lpStandingsHTML(standings) {
-    const rows = Array.isArray(standings?.[0])
-        ? standings[0]
-        : (Array.isArray(standings) ? standings : []);
+    const rows = lpGetStandingRows(standings);
 
     if (!rows.length) {
         return `
@@ -735,30 +733,6 @@ function lpMatchesHTML(matches) {
 }
 
 /**
- * Teams grid.
- */
-function lpTeamsHTML(teams) {
-    const items = Array.isArray(teams) ? teams : [];
-
-    if (!items.length) {
-        return `<div class="empty-state">No teams available.</div>`;
-    }
-
-    return items.map(item => {
-        const team = item.team || item;
-        const name = team.name || item.name || "Unknown";
-        const logo = team.logo || item.logo || "";
-
-        return `
-            <div class="team-card">
-                ${logo ? `<img src="${lpEscapeHtml(logo)}" alt="${lpEscapeHtml(name)}">` : ""}
-                <span>${lpEscapeHtml(name)}</span>
-            </div>
-        `;
-    }).join("");
-}
-
-/**
  * News placeholder renderer.
  */
 function lpNewsHTML(news) {
@@ -801,7 +775,6 @@ function lpShowLoading() {
     lpSetHTML("#featuredMatch", lpLoadingMarkup("featured-match"));
     lpSetHTML("#topScorer", lpLoadingMarkup("top-scorer"));
     lpSetHTML("#matchesList", lpLoadingMarkup("matches"));
-    lpSetHTML("#teamsGrid", lpLoadingMarkup("teams"));
     lpSetHTML("#standingsTable", lpLoadingMarkup("standings"));
 
     const newsCard = document.querySelector("#news .card");
@@ -830,7 +803,6 @@ function lpShowLeaguePrompt() {
     lpShowEmpty("featuredMatch", "Choose a league to view featured match");
     lpShowEmpty("topScorer", "Choose a league to view top scorers");
     lpShowEmpty("matchesList", "Choose a league to view fixtures");
-    lpShowEmpty("teamsGrid", "Choose a league to view teams");
     lpShowEmpty("standingsTable", "Choose a league to view standings", 8);
 
     const newsCard = document.querySelector("#news .card");
@@ -848,7 +820,6 @@ function lpShowLeaguePrompt() {
 function lpShowSeasonPrompt() {
     document.title = "Select a season | Beelooo";
     lpShowEmpty("standingsTable", "Select a season to continue", 8);
-    lpShowEmpty("teamsGrid", "Select a season to continue");
     lpShowEmpty("matchesList", "Select a season to continue");
     lpShowEmpty("topScorer", "Select a season to continue");
 }
@@ -880,17 +851,6 @@ async function lpLoadStandings(leagueId, season) {
 }
 
 /**
- * API-Football: teams
- */
-async function lpLoadTeams(leagueId, season) {
-    const api = window.API;
-    if (!api?.getTeams) throw new Error("API.getTeams is missing");
-
-    const data = await api.getTeams(leagueId, season);
-    return data?.response || [];
-}
-
-/**
  * API-Football: fixtures
  */
 async function lpLoadFixtures(leagueId, season) {
@@ -919,10 +879,10 @@ async function lpLoadTopScorers(leagueId, season) {
 /**
  * Apply page header/meta data.
  * Fixes:
- * - teamCount now comes from teams.length / standings length
+ * - teamCount now comes from standings rows
  * - matchday now comes from fixtures.league.round (fallback to league.round)
  */
-function lpApplyMeta(apiLeague, context, season, teams = [], fixtures = [], standings = []) {
+function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) {
     const leagueName = apiLeague?.league?.name || context?.league?.name || context?.name || "Loading";
     const countryName = apiLeague?.country?.name || context?.country?.country || context?.country?.name || context?.country || "";
     const logo = apiLeague?.league?.logo || context?.league?.logo || context?.league?.icon || context?.icon || context?.flag || "";
@@ -945,12 +905,7 @@ function lpApplyMeta(apiLeague, context, season, teams = [], fixtures = [], stan
         context?.season ||
         "-";
 
-    const teamCount =
-        teams.length ||
-        standings?.[0]?.length ||
-        context?.league?.teamCount ||
-        context?.teamCount ||
-        "-";
+    const teamCount = lpGetStandingRows(standings).length || "-";
 
     lpSetText("#teamCount", teamCount);
     lpSetText("#matchday", currentRound);
@@ -965,7 +920,7 @@ function lpApplyMeta(apiLeague, context, season, teams = [], fixtures = [], stan
 /**
  * Apply the main page content sections.
  */
-function lpApplyContent({ standings, teams, fixtures, scorers }) {
+function lpApplyContent({ standings, fixtures, scorers }) {
     const featured =
         (fixtures || []).find(f => ["NS", "TBD", "PST", "SUSP", "INT", "LIVE", "HT", "1H", "2H"].includes(f?.fixture?.status?.short)) ||
         (fixtures || [])[0] ||
@@ -977,7 +932,6 @@ function lpApplyContent({ standings, teams, fixtures, scorers }) {
     lpSetHTML("#topScorer", lpTopScorerHTML(topScorer));
     lpSetHTML("#standingsTable", lpStandingsHTML(standings));
     lpSetHTML("#matchesList", lpMatchesHTML((fixtures || []).slice(0, 15)));
-    lpSetHTML("#teamsGrid", lpTeamsHTML(teams));
 
     const newsCard = document.querySelector("#news .card");
     if (newsCard) {
@@ -1055,22 +1009,20 @@ async function lpRefresh() {
             throw new Error("Invalid league id");
         }
 
-        const [apiLeagueResult, standingsResult, teamsResult, fixturesResult, scorersResult] = await Promise.allSettled([
+        const [apiLeagueResult, standingsResult, fixturesResult, scorersResult] = await Promise.allSettled([
             lpLoadLeagueMeta(leagueId, season),
             lpLoadStandings(leagueId, season),
-            lpLoadTeams(leagueId, season),
             lpLoadFixtures(leagueId, season),
             lpLoadTopScorers(leagueId, season)
         ]);
 
         const apiLeague = apiLeagueResult.status === "fulfilled" ? apiLeagueResult.value : null;
         const standings = standingsResult.status === "fulfilled" ? standingsResult.value : [];
-        const teams = teamsResult.status === "fulfilled" ? teamsResult.value : [];
         const fixtures = fixturesResult.status === "fulfilled" ? fixturesResult.value : [];
         const scorers = scorersResult.status === "fulfilled" ? scorersResult.value : [];
 
-        lpApplyMeta(apiLeague, context, season, teams, fixtures, standings);
-        lpApplyContent({ standings, teams, fixtures, scorers });
+        lpApplyMeta(apiLeague, context, season, fixtures, standings);
+        lpApplyContent({ standings, fixtures, scorers });
 
         lpSaveContext({
             ...context,
@@ -1084,7 +1036,6 @@ async function lpRefresh() {
         lpShowEmpty("featuredMatch", "Unable to load league data.");
         lpShowEmpty("topScorer", "Unable to load league data.");
         lpShowEmpty("matchesList", "Unable to load league data.");
-        lpShowEmpty("teamsGrid", "Unable to load league data.");
         lpShowEmpty("standingsTable", "Unable to load standings.", 8);
 
         const newsCard = document.querySelector("#news .card");
