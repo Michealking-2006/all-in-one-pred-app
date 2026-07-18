@@ -790,7 +790,7 @@ function lpShowLoading() {
  * Show prompt when no league is selected.
  */
 function lpShowLeaguePrompt() {
-    document.title = "Select a league | Beelooo";
+    document.title = "Select a league | Scout wave";
 
     lpSetText("#leagueName", "Select a league");
     lpSetText("#leagueCountry", "Open a league from the menu");
@@ -818,7 +818,7 @@ function lpShowLeaguePrompt() {
  * Show prompt when season is missing.
  */
 function lpShowSeasonPrompt() {
-    document.title = "Select a season | Beelooo";
+    document.title = "Select a season | Scout wave";
     lpShowEmpty("standingsTable", "Select a season to continue", 8);
     lpShowEmpty("matchesList", "Select a season to continue");
     lpShowEmpty("topScorer", "Select a season to continue");
@@ -887,7 +887,7 @@ function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) 
     const countryName = apiLeague?.country?.name || context?.country?.country || context?.country?.name || context?.country || "";
     const logo = apiLeague?.league?.logo || context?.league?.logo || context?.league?.icon || context?.icon || context?.flag || "";
 
-    document.title = `${leagueName} | Beelooo`;
+    document.title = `${leagueName} | Scout wave`;
 
     lpSetText("#leagueName", leagueName);
     lpSetText("#leagueCountry", countryName);
