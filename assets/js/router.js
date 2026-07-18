@@ -61,8 +61,6 @@ const routes = {
 const loader = document.getElementById("page-loader");
 const mainPage = document.getElementById("main-page");
 
-const pageCache = new Map();
-
 let navigationToken = 0;
 
 /* ==========================
@@ -134,22 +132,13 @@ function updateActiveNav() {
 async function loadPage(path) {
   const page = resolveRoute(path);
   
-  if (pageCache.has(page)) {
-    return pageCache.get(page);
-  }
-  
-  const response = await fetch(page, {
-    cache: "force-cache"
-  });
+  const response = await fetch(page);
   
   if (!response.ok) {
     throw new Error(`Failed to load ${page}`);
   }
   
-  const html = await response.text();
-  pageCache.set(page, html);
-  
-  return html;
+  return await response.text();
 }
 
 /* ==========================
@@ -159,14 +148,9 @@ async function loadPage(path) {
 async function navigate(path, pushHistory = true) {
   path = normalizePath(path);
   
-  const page = resolveRoute(path);
-  const cached = pageCache.has(page);
-  
   const token = ++navigationToken;
   
-  if (!cached) {
-    showLoader();
-  }
+  showLoader();
   
   try {
     const html = await loadPage(path);
@@ -201,8 +185,9 @@ async function navigate(path, pushHistory = true) {
       hideLoader();
     }
   }
+  
   console.log("PATH:", path);
-console.log("PAGE:", page);
+  console.log("PAGE:", resolveRoute(path));
 }
 
 /* ==========================
