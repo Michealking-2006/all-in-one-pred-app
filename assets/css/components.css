@@ -287,10 +287,11 @@ html {
 
 .season-select {
   position: relative;
-  width: 100%;
+  width: 55%;
   max-width: 260px;
   font-family: inherit;
-  z-index: 999;
+  background: #fff;
+  border-radius: 12px;
 }
 
 /*==========================
