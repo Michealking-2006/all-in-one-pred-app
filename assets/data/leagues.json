@@ -5425,13 +5425,6 @@
       "type": "cup"
     },
     {
-      "id": 960,
-      "name": "UEFA Euro Championship - Qualification",
-      "slug": "uefa-euro-championship-qualification",
-      "icon": "/assets/icons/europe_uefa-euro-championship-qualification.svg",
-      "type": "cup"
-    },
-    {
       "id": 5,
       "name": "UEFA Nations League",
       "slug": "uefa-nations-league",
@@ -5467,24 +5460,10 @@
       "type": "cup"
     },
     {
-      "id": 572,
-      "name": "UEFA Women's Euro - Qualification",
-      "slug": "uefa-womens-euro-qualification",
-      "icon": "/assets/icons/europe_uefa-womens-euro-qualification.svg",
-      "type": "cup"
-    },
-    {
       "id": 573,
       "name": "UEFA Women's Nations League",
       "slug": "uefa-womens-nations-league",
       "icon": "/assets/icons/europe_uefa-womens-nations-league.svg",
-      "type": "cup"
-    },
-    {
-      "id": 574,
-      "name": "UEFA Regions' Cup",
-      "slug": "uefa-regions-cup",
-      "icon": "/assets/icons/europe_uefa-regions-cup.svg",
       "type": "cup"
     }
   ]
@@ -5530,13 +5509,6 @@
       "type": "cup"
     },
     {
-      "id": 521,
-      "name": "CONMEBOL Pre-Libertadores",
-      "slug": "conmebol-pre-libertadores",
-      "icon": "/assets/icons/south-america_conmebol-pre-libertadores.svg",
-      "type": "cup"
-    },
-    {
       "id": 522,
       "name": "CONMEBOL Copa America Women",
       "slug": "conmebol-copa-america-women",
@@ -5548,27 +5520,6 @@
       "name": "CONMEBOL Libertadores Women",
       "slug": "conmebol-libertadores-women",
       "icon": "/assets/icons/south-america_conmebol-libertadores-women.svg",
-      "type": "cup"
-    },
-    {
-      "id": 524,
-      "name": "CONMEBOL Sudamericano U20",
-      "slug": "conmebol-sudamericano-u20",
-      "icon": "/assets/icons/south-america_conmebol-sudamericano-u20.svg",
-      "type": "cup"
-    },
-    {
-      "id": 525,
-      "name": "CONMEBOL Sudamericano U17",
-      "slug": "conmebol-sudamericano-u17",
-      "icon": "/assets/icons/south-america_conmebol-sudamericano-u17.svg",
-      "type": "cup"
-    },
-    {
-      "id": 526,
-      "name": "CONMEBOL Sudamericano U15",
-      "slug": "conmebol-sudamericano-u15",
-      "icon": "/assets/icons/south-america_conmebol-sudamericano-u15.svg",
       "type": "cup"
     }
   ]
