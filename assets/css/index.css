@@ -6,6 +6,9 @@
 
 body {
   overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 
@@ -1032,24 +1035,28 @@ font-size: .95rem;
 
 /***************** league pages ******************/
 
-.league-page{
-  --primary:#3b82f6;
-  --secondary:#2563eb;
-  --bg:#f3f6fb;
-  --card:#ffffff;
-  --text:#111827;
-  --text-light:#6b7280;
-  --border:#e5e7eb;
-  --radius:18px;
-  --shadow:0 8px 30px rgba(0,0,0,.02);
-  --transition:.3s ease;
-  font-family:Inter,sans-serif;
-  color:var(--text);
-  background:var(--bg);
-  width: 100%;
-  margin-bottom: 3em;
+.league-page {
+    --primary: #3b82f6;
+    --secondary: #2563eb;
+    --bg: #f3f6fb;
+    --card: #ffffff;
+    --text: #111827;
+    --text-light: #6b7280;
+    --border: #e5e7eb;
+    --radius: 18px;
+    --shadow: 0 8px 30px rgba(0, 0, 0, .02);
+    --transition: .3s ease;
+    
+    width: 100%;
+    box-sizing: border-box;
+    
+    font-family: Inter, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    
+    margin: 0;
+    padding: 0 0 3em;
 }
-
 /* Base */
 .league-page img{
   display:block;
@@ -1093,16 +1100,27 @@ font-size: .95rem;
   100%{ transform:rotate(360deg); }
 }
 
-/* Header */
+/* =========================
+   League Header
+========================= */
+
 .league-page .league-header{
-  position:relative;
-  padding:20px;
-  color:#fff;
-  background:linear-gradient(140deg,#111827,var(--app-primary-color),#D6000094);
-  overflow:hidden;
-  border-radius:18px;
-  width: 100%;
+    width:100%;
+    box-sizing:border-box;
+
+    position:relative;
+    overflow:hidden;
+
+    padding:20px;
+
+    margin:0;
+    border-radius:0;
+
+    color:#fff;
+    background:  #D6000094;
+    );
 }
+
 
 .league-page .league-header::before{
   content:"";
@@ -1170,14 +1188,13 @@ font-size: .95rem;
   height: 30px;
   object-fit:contain;
   background:#fff;
-  padding:10px;
   border-radius: 50%;
 }
 
 .league-page #leagueName{
   font-family: BykerM;
   font-size:25px;
-  font-weight:800;
+  font-weight:500;
   line-height:1.1;
 }
 
@@ -1246,7 +1263,7 @@ font-size: .95rem;
 
 /* Content */
 .league-page main{
-  padding:1em;
+  width: 100%;
 }
 
 .league-page .page{
