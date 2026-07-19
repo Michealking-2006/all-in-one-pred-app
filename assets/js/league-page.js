@@ -696,7 +696,7 @@ function lpMatchesHTML(matches) {
     const items = Array.isArray(matches) ? matches : [];
 
     if (!items.length) {
-        return `<div class="empty-state">No pred matches.</div>`;
+        return `<div class="empty-state">No predicted matches.</div>`;
     }
 
     return items.map(match => {
