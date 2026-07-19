@@ -144,9 +144,9 @@
     },
     {
       "id": 1011,
-      "name": "Professional Development League",
-      "slug": "professional-development-league",
-      "icon": "/assets/icons/england_professional-development-league.svg",
+      "name": "U23 Professional Development",
+      "slug": "U23 professional-development",
+      "icon": "/assets/icons/england_U_23professional-development-league.svg",
       "type": "youth"
     },
     {
