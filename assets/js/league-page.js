@@ -882,12 +882,13 @@ async function lpLoadTopScorers(leagueId, season) {
  * - teamCount now comes from standings rows
  * - matchday now comes from fixtures.league.round (fallback to league.round)
  */
-function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) {
+ 
+ function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) {
     const leagueName = apiLeague?.league?.name || context?.league?.name || context?.name || "Loading";
     const countryName = apiLeague?.country?.name || context?.country?.country || context?.country?.name || context?.country || "";
     const logo = apiLeague?.league?.logo || context?.league?.logo || context?.league?.icon || context?.icon || context?.flag || "";
 
-    document.title = `${leagueName} | Scout wave`;
+    document.title = `${leagueName} | Beelooo`;
 
     lpSetText("#leagueName", leagueName);
     lpSetText("#leagueCountry", countryName);
@@ -899,10 +900,11 @@ function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) 
         apiLeague?.league?.round ||
         "-";
 
+    // Use the selected season first
     const seasonYear =
-        apiLeague?.seasons?.find(s => s.current)?.year ||
         season ||
         context?.season ||
+        apiLeague?.seasons?.find(s => s.current)?.year ||
         "-";
 
     const teamCount = lpGetStandingRows(standings).length || "-";
@@ -912,10 +914,11 @@ function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) 
     lpSetText("#seasonYear", seasonYear);
     lpSetText("#lastUpdated", lpFormatDate(new Date()));
 
-    if (seasonYear && seasonYear !== "-") {
-        lpSetSeasonSelect(seasonYear);
-    }
+    // Do not force the picker back to current season
+    // lpSetSeasonSelect(seasonYear);   <-- remove this
 }
+
+
 
 /**
  * Apply the main page content sections.
