@@ -1426,26 +1426,26 @@ font-size: .95rem;
   object-fit:contain;
 }
 
+/********** FEATURED MATCH **********/
 
-/* =====================================================
-   FEATURED MATCH (Clean Football App Style)
-===================================================== */
+/********** MATCH CONTAINER **********/
 .league-page .featured-match{
-    position: relative;
+    position:relative;
     background:#fff;
     border:1px solid #ececec;
-    border-radius:18px;
-    padding:16px;
+    border-radius:14px;
+    padding:10px 12px;
     overflow:hidden;
 }
 
+/********** MATCH ACCENT BAR **********/
 .league-page .featured-match::before{
     content:"";
     position:absolute;
     top:0;
     left:0;
     width:100%;
-    height:3px;
+    height:2px;
     background:linear-gradient(
         to right,
         var(--app-primary-color) 50%,
@@ -1453,116 +1453,157 @@ font-size: .95rem;
     );
 }
 
-
-/* =========================
-   Header
-========================= */
-
-.league-page .featured-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
+/********** MATCH HEADER **********/
+.league-page .featured-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
 }
 
-.league-page .featured-league {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
+/********** MATCH LEAGUE **********/
+.league-page .featured-league{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    min-width:0;
 }
 
-.league-page .featured-league img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
+.league-page .featured-league img{
+    width:18px;
+    height:18px;
+    object-fit:contain;
 }
 
-.league-page .featured-league span {
-    font-family: MontserratEB;
-    font-size: 15px;
-    color: #222;
+.league-page .featured-league span{
+    font:11px MontserratEB;
+    color:#222;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-/* =========================
-   Status
-========================= */
-
-.league-page .match-status {
-    padding: 4px 10px;
-    border-radius: 50px;
-    font-family: MontserratEB;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: .4px;
+/********** MATCH STATUS **********/
+.league-page .match-status{
+    padding:2px 8px;
+    border-radius:30px;
+    font:9px MontserratEB;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+    flex-shrink:0;
 }
 
-.league-page .match-status.live {
-    background: #ffefef;
-    color: #d60000;
+.league-page .match-status.live{
+    background:#ffecec;
+    color:#d60000;
 }
 
-.league-page .match-status.finished {
-    background: #eef9f0;
-    color: #17853d;
+.league-page .match-status.finished{
+    background:#eef9f0;
+    color:#17853d;
 }
 
-.league-page .match-status.halftime {
-    background: #fff5df;
-    color: #b77900;
+.league-page .match-status.halftime{
+    background:#fff5df;
+    color:#b77900;
 }
 
-.league-page .match-status.upcoming {
-    background: #eef5ff;
-    color: var(--app-primary-color);
+.league-page .match-status.upcoming{
+    background:#eef5ff;
+    color:var(--app-primary-color);
 }
 
-/* =========================
-   Date
-========================= */
-
-.league-page .featured-date {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    font-family: BykerR;
-    font-size: 13px;
-    color: #777;
-    margin-bottom: 18px;
+/********** MATCH DATE **********/
+.league-page .featured-date{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-bottom:10px;
+    font:10px BykerR;
+    color:#888;
 }
 
-/* =========================
-   Teams
-========================= */
-
-.league-page .featured-teams {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 18px;
+/********** MATCH TEAMS **********/
+.league-page .featured-teams{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
 }
 
-.league-page .featured-team {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    text-align: center;
+/********** MATCH TEAM **********/
+.league-page .featured-team{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    text-align:center;
 }
 
-.league-page .featured-team img {
-    width: 56px;
-    height: 56px;
-    object-fit: contain;
+.league-page .featured-team img{
+    width:26px;
+    height:26px;
+    object-fit:contain;
 }
 
-.league-page .featured-team strong {
-    font-family: MontserratEB;
-    font-size: 14px;
-    color: #222;
-    line-height: 1.3;
+.league-page .featured-team strong{
+    font:12px MontserratEB;
+    color:#222;
+    line-height:1.2;
+}
+
+/********** MATCH SCORE **********/
+.league-page .featured-score{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    min-width:48px;
+    font:13px MontserratEB;
+    color:#222;
+}
+
+.league-page .featured-score small{
+    color:#aaa;
+    font-size:10px;
+}
+
+/********** MATCH PREDICTIONS **********/
+.league-page .featured-bottom{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+}
+
+/********** PREDICTION BUTTONS **********/
+.league-page .featured-bottom div{
+    padding:6px 4px;
+    border:1px solid #ececec;
+    border-radius:8px;
+    background:#fafafa;
+    text-align:center;
+    transition:.25s;
+}
+
+.league-page .featured-bottom strong{
+    display:block;
+    margin-bottom:2px;
+    font:9px MontserratEB;
+    color:#888;
+    text-transform:uppercase;
+}
+
+.league-page .featured-bottom span{
+    display:block;
+    font:11px MontserratEB;
+    color:#222;
+}
+
+.league-page .featured-bottom div:hover{
+    border-color:var(--app-primary-color);
+    background:#f7fbff;
 }
 
 /* =========================

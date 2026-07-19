@@ -8,7 +8,7 @@
  * - Reads the league slug from the URL
  * - Finds the league in /assets/data/leagues.json
  * - Loads API-Football data
- * - Renders overview, standings, matches, and top scorer
+ * - Renders featured match, standings, matches, and top scorer
  * - Works again after SPA navigation via pageLoaded
  */
 
@@ -20,9 +20,6 @@ let LEAGUE_PAGE_LOADING = false;
    SMALL HELPERS
 ===================================================== */
 
-/**
- * Safely parse JSON from storage.
- */
 function lpSafeJSONParse(value, fallback = null) {
     try {
         return value ? JSON.parse(value) : fallback;
@@ -31,9 +28,6 @@ function lpSafeJSONParse(value, fallback = null) {
     }
 }
 
-/**
- * Escape HTML before injecting into the page.
- */
 function lpEscapeHtml(value) {
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -43,9 +37,6 @@ function lpEscapeHtml(value) {
         .replace(/'/g, "&#039;");
 }
 
-/**
- * Format a date into a readable string.
- */
 function lpFormatDate(value) {
     if (!value) return "-";
 
@@ -59,25 +50,16 @@ function lpFormatDate(value) {
     });
 }
 
-/**
- * Set text content safely.
- */
 function lpSetText(selector, text) {
     const el = document.querySelector(selector);
     if (el) el.textContent = text ?? "";
 }
 
-/**
- * Set HTML safely.
- */
 function lpSetHTML(selector, html) {
     const el = document.querySelector(selector);
     if (el) el.innerHTML = html;
 }
 
-/**
- * Set image source and alt safely.
- */
 function lpSetImage(selector, src = "", alt = "") {
     const el = document.querySelector(selector);
     if (!el) return;
@@ -86,9 +68,6 @@ function lpSetImage(selector, src = "", alt = "") {
     el.alt = alt || "";
 }
 
-/**
- * SPA navigation helper.
- */
 function lpNavigate(path) {
     if (typeof window.navigate === "function") {
         window.navigate(path);
@@ -99,10 +78,6 @@ function lpNavigate(path) {
     window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/**
- * Read slug from /league-page/:slug.
- * Also supports a plain /slug fallback just in case.
- */
 function lpGetPathSlug() {
     const parts = location.pathname.split("/").filter(Boolean);
 
@@ -114,10 +89,6 @@ function lpGetPathSlug() {
     return decodeURIComponent(parts[parts.length - 1] || "").toLowerCase();
 }
 
-/**
- * Read selected season year from the season dropdown.
- * Example: "2024/25" -> 2024
- */
 function lpGetSeasonFromSelect() {
     const select = document.getElementById("seasonSelect");
     if (!select) return null;
@@ -132,9 +103,6 @@ function lpGetSeasonFromSelect() {
     return null;
 }
 
-/**
- * Keep the season select synced with the loaded season.
- */
 function lpSetSeasonSelect(year) {
     const select = document.getElementById("seasonSelect");
     if (!select || !year) return;
@@ -146,9 +114,6 @@ function lpSetSeasonSelect(year) {
     if (idx >= 0) select.selectedIndex = idx;
 }
 
-/**
- * Render a generic empty state.
- */
 function lpShowEmpty(targetId, message, colspan = 1) {
     const el = document.getElementById(targetId);
     if (!el) return;
@@ -167,9 +132,6 @@ function lpShowEmpty(targetId, message, colspan = 1) {
     el.innerHTML = `<div class="empty-state">${lpEscapeHtml(message)}</div>`;
 }
 
-/**
- * Read selected league context from storage.
- */
 function lpGetStoredContext() {
     return (
         lpSafeJSONParse(sessionStorage.getItem("selectedLeaguePage")) ||
@@ -179,9 +141,6 @@ function lpGetStoredContext() {
     );
 }
 
-/**
- * Save selected league context for SPA revisits.
- */
 function lpSaveContext(data) {
     if (!data) return;
 
@@ -190,9 +149,6 @@ function lpSaveContext(data) {
     window.__leaguePageData = data;
 }
 
-/**
- * Load leagues.json once and cache it.
- */
 async function lpLoadLeaguesJSON() {
     if (LEAGUE_PAGE_CACHE) return LEAGUE_PAGE_CACHE;
 
@@ -203,9 +159,6 @@ async function lpLoadLeaguesJSON() {
     return LEAGUE_PAGE_CACHE;
 }
 
-/**
- * Find a league in leagues.json by slug.
- */
 async function lpFindLeagueBySlug(slug) {
     const data = await lpLoadLeaguesJSON();
     const cleanSlug = String(slug || "").trim().toLowerCase();
@@ -221,9 +174,6 @@ async function lpFindLeagueBySlug(slug) {
     return null;
 }
 
-/**
- * Flatten standings into rows.
- */
 function lpGetStandingRows(standings) {
     if (Array.isArray(standings?.[0])) return standings[0];
     if (Array.isArray(standings)) return standings;
@@ -234,9 +184,6 @@ function lpGetStandingRows(standings) {
    LOADING MARKUP
 ===================================================== */
 
-/**
- * One small loader helper to keep the page tidy.
- */
 function lpLoadingMarkup(type) {
     switch (type) {
         case "top-scorer":
@@ -257,22 +204,9 @@ function lpLoadingMarkup(type) {
         case "featured-match":
             return `
                 <div class="featured-match">
-                    <div class="featured-top">
-                        <div class="featured-league">
-                            <div class="skeleton skeleton-avatar" style="width:28px;height:28px;border-radius:8px;"></div>
-                            <div class="skeleton skeleton-line line-md"></div>
-                        </div>
-                        <div class="skeleton skeleton-line line-sm"></div>
-                    </div>
-
-                    <div class="featured-date">
-                        <div class="skeleton skeleton-line line-md"></div>
-                        <div class="skeleton skeleton-line line-sm"></div>
-                    </div>
-
                     <div class="featured-teams">
                         <div class="featured-team">
-                            <div class="skeleton skeleton-avatar"></div>
+                            <div class="skeleton skeleton-avatar" style="width:34px;height:34px;border-radius:50%;"></div>
                             <div class="skeleton skeleton-line line-md"></div>
                         </div>
 
@@ -281,16 +215,17 @@ function lpLoadingMarkup(type) {
                         </div>
 
                         <div class="featured-team">
-                            <div class="skeleton skeleton-avatar"></div>
+                            <div class="skeleton skeleton-avatar" style="width:34px;height:34px;border-radius:50%;"></div>
                             <div class="skeleton skeleton-line line-md"></div>
                         </div>
                     </div>
 
-                    <div class="featured-bottom">
-                        <div class="skeleton skeleton-line line-lg"></div>
-                        <div class="skeleton skeleton-line line-lg"></div>
-                        <div class="skeleton skeleton-line line-lg"></div>
-                        <div class="skeleton skeleton-line line-lg"></div>
+                    <div class="featured-date">
+                        <div class="skeleton skeleton-line line-sm"></div>
+                    </div>
+
+                    <div class="featured-prediction">
+                        <div class="skeleton skeleton-line line-md"></div>
                     </div>
                 </div>
             `;
@@ -340,34 +275,18 @@ function lpLoadingMarkup(type) {
    RENDER HELPERS
 ===================================================== */
 
-/**
- * Featured match card.
- */
 function lpFeaturedMatchHTML(match) {
     if (!match) {
         return `<div class="empty-state">No featured match yet.</div>`;
     }
 
-    const fixture = match.fixture || {};
-    const league = match.league || {};
     const teams = match.teams || {};
-    const goals = match.goals || {};
+    const fixture = match.fixture || {};
 
     const home = teams.home?.name || "Home";
     const away = teams.away?.name || "Away";
     const homeLogo = teams.home?.logo || "";
     const awayLogo = teams.away?.logo || "";
-
-    const leagueName = league.name || "";
-    const leagueLogo = league.logo || "";
-
-    const venue = fixture.venue?.name || "";
-    const city = fixture.venue?.city || "";
-    const referee = fixture.referee || "";
-    const round = league.round || "";
-
-    const statusShort = fixture.status?.short || "";
-    const statusLong = fixture.status?.long || "";
 
     const date = fixture.date ? new Date(fixture.date) : null;
     const matchDate = date
@@ -386,46 +305,27 @@ function lpFeaturedMatchHTML(match) {
         })
         : "";
 
-    const homeGoals = goals.home;
-    const awayGoals = goals.away;
-
-    const played =
-        homeGoals !== null &&
-        homeGoals !== undefined &&
-        awayGoals !== null &&
-        awayGoals !== undefined;
-
-    const statusClass = (
-        statusShort === "LIVE" ||
-        statusShort === "1H" ||
-        statusShort === "2H"
-    )
-        ? "live"
-        : (
-            statusShort === "FT"
-                ? "finished"
-                : (
-                    statusShort === "HT"
-                        ? "halftime"
-                        : "upcoming"
-                )
-        );
+    const prediction = match.prediction || match.predictions || match.probabilities || {};
+    const homeChance = prediction.home ?? prediction.homeWin ?? prediction.win_home ?? prediction.one ?? null;
+    const drawChance = prediction.draw ?? prediction.x ?? prediction.xWin ?? null;
+    const awayChance = prediction.away ?? prediction.awayWin ?? prediction.win_away ?? prediction.two ?? null;
 
     return `
         <div class="featured-match">
 
-            <div class="featured-top">
-                <div class="featured-league">
-                    ${
-                        leagueLogo
-                            ? `<img src="${lpEscapeHtml(leagueLogo)}" alt="${lpEscapeHtml(leagueName)}">`
-                            : ""
-                    }
-                    <span>${lpEscapeHtml(leagueName)}</span>
+            <div class="featured-teams">
+                <div class="featured-team">
+                    ${homeLogo ? `<img src="${lpEscapeHtml(homeLogo)}" alt="${lpEscapeHtml(home)}">` : ""}
+                    <strong>${lpEscapeHtml(home)}</strong>
                 </div>
 
-                <div class="match-status ${statusClass}">
-                    ${lpEscapeHtml(statusLong || statusShort)}
+                <div class="featured-score">
+                    <span>VS</span>
+                </div>
+
+                <div class="featured-team">
+                    ${awayLogo ? `<img src="${lpEscapeHtml(awayLogo)}" alt="${lpEscapeHtml(away)}">` : ""}
+                    <strong>${lpEscapeHtml(away)}</strong>
                 </div>
             </div>
 
@@ -434,73 +334,26 @@ function lpFeaturedMatchHTML(match) {
                 ${matchTime ? `<span>${lpEscapeHtml(matchTime)}</span>` : ""}
             </div>
 
-            <div class="featured-teams">
-                <div class="featured-team">
-                    ${
-                        homeLogo
-                            ? `<img src="${lpEscapeHtml(homeLogo)}" alt="${lpEscapeHtml(home)}">`
-                            : ""
-                    }
-                    <strong>${lpEscapeHtml(home)}</strong>
-                </div>
+            <div class="featured-prediction">
+                <span class="prediction-label">Prediction</span>
 
-                <div class="featured-score">
-                    ${
-                        played
-                            ? `
-                                <span>${homeGoals}</span>
-                                <small>-</small>
-                                <span>${awayGoals}</span>
-                            `
-                            : `<span>VS</span>`
-                    }
+                <div class="prediction-row">
+                    <span class="prediction-pill">
+                        Home ${homeChance !== null && homeChance !== undefined ? `${lpEscapeHtml(homeChance)}%` : ""}
+                    </span>
+                    <span class="prediction-pill">
+                        Draw ${drawChance !== null && drawChance !== undefined ? `${lpEscapeHtml(drawChance)}%` : ""}
+                    </span>
+                    <span class="prediction-pill">
+                        Away ${awayChance !== null && awayChance !== undefined ? `${lpEscapeHtml(awayChance)}%` : ""}
+                    </span>
                 </div>
-
-                <div class="featured-team">
-                    ${
-                        awayLogo
-                            ? `<img src="${lpEscapeHtml(awayLogo)}" alt="${lpEscapeHtml(away)}">`
-                            : ""
-                    }
-                    <strong>${lpEscapeHtml(away)}</strong>
-                </div>
-            </div>
-
-            <div class="featured-bottom">
-                ${
-                    venue
-                        ? `<div><strong>Stadium</strong><span>${lpEscapeHtml(venue)}</span></div>`
-                        : ""
-                }
-                ${
-                    city
-                        ? `<div><strong>City</strong><span>${lpEscapeHtml(city)}</span></div>`
-                        : ""
-                }
-                ${
-                    round
-                        ? `<div><strong>Round</strong><span>${lpEscapeHtml(round)}</span></div>`
-                        : ""
-                }
-                ${
-                    referee
-                        ? `<div><strong>Referee</strong><span>${lpEscapeHtml(referee)}</span></div>`
-                        : ""
-                }
             </div>
 
         </div>
     `;
 }
 
-/**
- * Top scorer card.
- * Includes:
- * - club badge on top
- * - short position badge on image
- * - full position in the text details
- * - age, nationality, height, weight, assists, appearances, rating, goals
- */
 function lpTopScorerHTML(scorer) {
     if (!scorer) {
         return `<div class="empty-state">No top scorer yet.</div>`;
@@ -519,21 +372,18 @@ function lpTopScorerHTML(scorer) {
 
     const POSITION_MAP = {
         Goalkeeper: "GK",
-
         Defender: "DEF",
         "Centre-Back": "CB",
         "Center Back": "CB",
         "Right-Back": "RB",
         "Left-Back": "LB",
         "Wing-Back": "WB",
-
         Midfielder: "MID",
         "Defensive Midfielder": "CDM",
         "Central Midfielder": "CM",
         "Attacking Midfielder": "CAM",
         "Right Midfielder": "RM",
         "Left Midfielder": "LM",
-
         Forward: "FW",
         "Centre-Forward": "CF",
         "Center Forward": "CF",
@@ -640,9 +490,6 @@ function lpTopScorerHTML(scorer) {
     `;
 }
 
-/**
- * Standings table.
- */
 function lpStandingsHTML(standings) {
     const rows = lpGetStandingRows(standings);
 
@@ -689,9 +536,6 @@ function lpStandingsHTML(standings) {
     }).join("");
 }
 
-/**
- * Matches list.
- */
 function lpMatchesHTML(matches) {
     const items = Array.isArray(matches) ? matches : [];
 
@@ -732,9 +576,6 @@ function lpMatchesHTML(matches) {
     }).join("");
 }
 
-/**
- * News placeholder renderer.
- */
 function lpNewsHTML(news) {
     const items = Array.isArray(news) ? news : [];
 
@@ -758,9 +599,6 @@ function lpNewsHTML(news) {
    UI STATES
 ===================================================== */
 
-/**
- * Show skeletons while data is loading.
- */
 function lpShowLoading() {
     if (LEAGUE_PAGE_LOADING) return;
     LEAGUE_PAGE_LOADING = true;
@@ -786,19 +624,8 @@ function lpShowLoading() {
     }
 }
 
-/**
- * Show prompt when no league is selected.
- */
 function lpShowLeaguePrompt() {
     document.title = "Select a league | Scout wave";
-
-    lpSetText("#leagueName", "Select a league");
-    lpSetText("#leagueCountry", "Open a league from the menu");
-    lpSetImage("#leagueLogo", "", "League logo");
-    lpSetText("#teamCount", "-");
-    lpSetText("#matchday", "-");
-    lpSetText("#seasonYear", "");
-    lpSetText("#lastUpdated", "-");
 
     lpShowEmpty("featuredMatch", "Choose a league to view featured match");
     lpShowEmpty("topScorer", "Choose a league to view top scorers");
@@ -814,9 +641,6 @@ function lpShowLeaguePrompt() {
     }
 }
 
-/**
- * Show prompt when season is missing.
- */
 function lpShowSeasonPrompt() {
     document.title = "Select a season | Scout wave";
     lpShowEmpty("standingsTable", "Select a season to continue", 8);
@@ -828,9 +652,6 @@ function lpShowSeasonPrompt() {
    API LOADERS
 ===================================================== */
 
-/**
- * API-Football: league metadata
- */
 async function lpLoadLeagueMeta(leagueId, season) {
     const api = window.API;
     if (!api?.getLeague) throw new Error("API.getLeague is missing");
@@ -839,9 +660,6 @@ async function lpLoadLeagueMeta(leagueId, season) {
     return data?.response?.[0] || null;
 }
 
-/**
- * API-Football: standings
- */
 async function lpLoadStandings(leagueId, season) {
     const api = window.API;
     if (!api?.getStandings) throw new Error("API.getStandings is missing");
@@ -850,9 +668,6 @@ async function lpLoadStandings(leagueId, season) {
     return data?.response?.[0]?.league?.standings || [];
 }
 
-/**
- * API-Football: fixtures
- */
 async function lpLoadFixtures(leagueId, season) {
     const api = window.API;
     if (!api?.getFixtures) throw new Error("API.getFixtures is missing");
@@ -861,9 +676,6 @@ async function lpLoadFixtures(leagueId, season) {
     return data?.response || [];
 }
 
-/**
- * API-Football: top scorers
- */
 async function lpLoadTopScorers(leagueId, season) {
     const api = window.API;
     if (!api?.getTopScorers) throw new Error("API.getTopScorers is missing");
@@ -876,23 +688,9 @@ async function lpLoadTopScorers(leagueId, season) {
    APPLY DATA
 ===================================================== */
 
-/**
- * Apply page header/meta data.
- * Fixes:
- * - teamCount now comes from standings rows
- * - matchday now comes from fixtures.league.round (fallback to league.round)
- */
- 
- function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) {
+function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) {
     const leagueName = apiLeague?.league?.name || context?.league?.name || context?.name || "Loading";
-    const countryName = apiLeague?.country?.name || context?.country?.country || context?.country?.name || context?.country || "";
-    const logo = apiLeague?.league?.logo || context?.league?.logo || context?.league?.icon || context?.icon || context?.flag || "";
-
     document.title = `${leagueName} | Beelooo`;
-
-    lpSetText("#leagueName", leagueName);
-    lpSetText("#leagueCountry", countryName);
-    lpSetImage("#leagueLogo", logo, leagueName);
 
     const currentRound =
         fixtures?.find(f => f?.league?.round)?.league?.round ||
@@ -900,7 +698,6 @@ async function lpLoadTopScorers(leagueId, season) {
         apiLeague?.league?.round ||
         "-";
 
-    // Use the selected season first
     const seasonYear =
         season ||
         context?.season ||
@@ -913,16 +710,8 @@ async function lpLoadTopScorers(leagueId, season) {
     lpSetText("#matchday", currentRound);
     lpSetText("#seasonYear", seasonYear);
     lpSetText("#lastUpdated", lpFormatDate(new Date()));
-
-    // Do not force the picker back to current season
-    // lpSetSeasonSelect(seasonYear);   <-- remove this
 }
 
-
-
-/**
- * Apply the main page content sections.
- */
 function lpApplyContent({ standings, fixtures, scorers }) {
     const featured =
         (fixtures || []).find(f => ["NS", "TBD", "PST", "SUSP", "INT", "LIVE", "HT", "1H", "2H"].includes(f?.fixture?.status?.short)) ||
@@ -949,10 +738,6 @@ function lpApplyContent({ standings, fixtures, scorers }) {
    MAIN REFRESH
 ===================================================== */
 
-/**
- * Main page loader.
- * URL slug takes priority over stored context.
- */
 async function lpRefresh() {
     const slug = lpGetPathSlug();
     const stored = lpGetStoredContext();
@@ -970,7 +755,6 @@ async function lpRefresh() {
     try {
         let context = stored;
 
-        // URL slug wins over stored context
         if (!context || context.slug !== slug) {
             const found = await lpFindLeagueBySlug(slug);
             if (!found) {
@@ -1057,15 +841,10 @@ async function lpRefresh() {
    EVENTS
 ===================================================== */
 
-/**
- * Bind all page events once.
- * Important for SPA: this should not duplicate listeners.
- */
 function lpBindEventsOnce() {
     if (LEAGUE_PAGE_EVENTS_BOUND) return;
     LEAGUE_PAGE_EVENTS_BOUND = true;
 
-    // Tab switching + back button + favorites
     document.addEventListener("click", (e) => {
         const tabBtn = e.target.closest(".tab");
         if (tabBtn && tabBtn.dataset.tab) {
@@ -1083,34 +862,8 @@ function lpBindEventsOnce() {
             lpNavigate("/leagues");
             return;
         }
-
-        const favBtn = e.target.closest(".fav-btn");
-        if (favBtn) {
-            const current = lpGetStoredContext();
-            const id = String(current?.id || current?.league?.id || current?.slug || "");
-            if (!id) return;
-
-            const favorites = lpSafeJSONParse(localStorage.getItem("favoriteLeagues"), []);
-            const exists = favorites.some(item => String(item.id ?? item) === id);
-
-            const next = exists
-                ? favorites.filter(item => String(item.id ?? item) !== id)
-                : [
-                    ...favorites,
-                    {
-                        id: current?.id || current?.league?.id || id,
-                        slug: current?.slug || "",
-                        name: current?.name || current?.league?.name || "",
-                        logo: current?.icon || current?.league?.logo || ""
-                    }
-                ];
-
-            localStorage.setItem("favoriteLeagues", JSON.stringify(next));
-            favBtn.classList.toggle("active", !exists);
-        }
     });
 
-    // Season change reloads the current page
     document.addEventListener("change", async (e) => {
         if (e.target && e.target.id === "seasonSelect") {
             const current = lpGetStoredContext();
@@ -1123,15 +876,11 @@ function lpBindEventsOnce() {
     });
 }
 
-/**
- * Initialize the page when the SPA injects league-page.html.
- */
 function initLeaguePage() {
     if (!document.querySelector(".league-header")) return;
 
     lpBindEventsOnce();
 
-    // Reset to overview tab on every mount
     document.querySelector(".tab.active")?.classList.remove("active");
     document.querySelector('.tab[data-tab="overview"]')?.classList.add("active");
 
