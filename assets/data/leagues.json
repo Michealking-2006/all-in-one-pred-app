@@ -5559,58 +5559,9 @@
     },
     {
       "id": 529,
-      "name": "CONCACAF Caribbean Cup",
+      "name": "Leagues cup",
       "slug": "concacaf-caribbean-cup",
-      "icon": "/assets/icons/north-central-america_concacaf-caribbean-cup.svg",
-      "type": "cup"
-    },
-    {
-      "id": 530,
-      "name": "CONCACAF Central American Cup",
-      "slug": "concacaf-central-american-cup",
-      "icon": "/assets/icons/north-central-america_concacaf-central-american-cup.svg",
-      "type": "cup"
-    },
-    {
-      "id": 575,
-      "name": "CONCACAF W Championship",
-      "slug": "concacaf-w-championship",
-      "icon": "/assets/icons/north-central-america_concacaf-w-championship.svg",
-      "type": "cup"
-    },
-    {
-      "id": 576,
-      "name": "CONCACAF W Gold Cup",
-      "slug": "concacaf-w-gold-cup",
-      "icon": "/assets/icons/north-central-america_concacaf-w-gold-cup.svg",
-      "type": "cup"
-    },
-    {
-      "id": 577,
-      "name": "CONCACAF U20 Championship",
-      "slug": "concacaf-u20-championship",
-      "icon": "/assets/icons/north-central-america_concacaf-u20-championship.svg",
-      "type": "cup"
-    },
-    {
-      "id": 578,
-      "name": "CONCACAF U17 Championship",
-      "slug": "concacaf-u17-championship",
-      "icon": "/assets/icons/north-central-america_concacaf-u17-championship.svg",
-      "type": "cup"
-    },
-    {
-      "id": 579,
-      "name": "CONCACAF Women's U20 Championship",
-      "slug": "concacaf-womens-u20-championship",
-      "icon": "/assets/icons/north-central-america_concacaf-womens-u20-championship.svg",
-      "type": "cup"
-    },
-    {
-      "id": 580,
-      "name": "CONCACAF Women's U17 Championship",
-      "slug": "concacaf-womens-u17-championship",
-      "icon": "/assets/icons/north-central-america_concacaf-womens-u17-championship.svg",
+      "icon": "/assets/icons/Leagues_cup.svg",
       "type": "cup"
     }
   ]
