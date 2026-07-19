@@ -1101,6 +1101,7 @@ font-size: .95rem;
   background:linear-gradient(140deg,#111827,var(--app-primary-color),#D6000094);
   overflow:hidden;
   border-radius:18px;
+  width: 100%;
 }
 
 .league-page .league-header::before{
@@ -1130,6 +1131,7 @@ font-size: .95rem;
   align-items:center;
   justify-content:center;
   text-decoration:none;
+  cursor: help;
 }
 
 .league-page .back-btn span{
@@ -1164,17 +1166,17 @@ font-size: .95rem;
 }
 
 .league-page #leagueLogo{
-  width:78px;
-  height:78px;
+  width: 30px;
+  height: 30px;
   object-fit:contain;
   background:#fff;
   padding:10px;
-  border-radius:20px;
+  border-radius: 50%;
 }
 
 .league-page #leagueName{
-  font-family:MontserratEB;
-  font-size:30px;
+  font-family: BykerM;
+  font-size:25px;
   font-weight:800;
   line-height:1.1;
 }
@@ -1182,7 +1184,8 @@ font-size: .95rem;
 .league-page #leagueCountry{
   margin-top:5px;
   opacity:.9;
-  font-size:15px;
+  font-size:12px;
+  font-family: BykerR;
 }
 
 .league-page .fav-btn{
@@ -1217,7 +1220,7 @@ font-size: .95rem;
 
 .league-page .tab{
   flex:1;
-  padding:18px 12px;
+  padding:15px 11px;
   font-weight:700;
   color:#666;
   transition:.3s;
@@ -1270,7 +1273,7 @@ font-size: .95rem;
 .league-page .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:22px;
+  padding:20px;
   margin-bottom:18px;
   box-shadow:var(--shadow);
 }
