@@ -1311,8 +1311,9 @@ font-size: .95rem;
 
 .league-page .card h2{
   font-family:BykerM;
-  font-size:17px;
+  font-size: 16px;
   margin-bottom:20px;
+  font-weight: 400;
 }
 
 /* Info Grid */
