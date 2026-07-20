@@ -1140,7 +1140,7 @@ font-size: .95rem;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom: 25px;
+  margin-bottom: 5px;
   z-index:5;
 }
 
