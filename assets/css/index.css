@@ -1112,7 +1112,7 @@ font-size: .95rem;
     position:relative;
     overflow:hidden;
 
-    padding: 0px;
+    padding: 10px;
 
     margin:0;
     border-radius:0;
@@ -1140,7 +1140,7 @@ font-size: .95rem;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:35px;
+  margin-bottom: 25px;
   z-index:5;
 }
 
