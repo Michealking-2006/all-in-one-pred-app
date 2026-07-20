@@ -1216,8 +1216,8 @@ font-size: .95rem;
   display:flex;
   align-items:center;
   justify-content:center;
-  height: 30px;
-  width: 30px;
+  height: 35px;
+  width: 35px;
   border-radius: 50%;
 }
 
@@ -1512,7 +1512,7 @@ font-size: .95rem;
 .league-page .match-status{
     padding:2px 8px;
     border-radius:30px;
-    font:9px MontserratEB;
+    font:9px BykerM;
     text-transform:uppercase;
     letter-spacing:.3px;
     flex-shrink:0;
@@ -1614,14 +1614,14 @@ font-size: .95rem;
 .league-page .featured-bottom strong{
     display:block;
     margin-bottom:2px;
-    font:9px MontserratEB;
+    font:9px BykerM;
     color:#888;
     text-transform:uppercase;
 }
 
 .league-page .featured-bottom span{
     display:block;
-    font:11px MontserratEB;
+    font:11px BykerM;
     color:#222;
 }
 
@@ -1643,14 +1643,14 @@ font-size: .95rem;
 }
 
 .league-page .featured-score span {
-    font-family: MontserratEB;
+    font-family: BykerM;
     font-size: 28px;
     color: #1d1d1d;
     line-height: 1;
 }
 
 .league-page .featured-score small {
-    font-family: MontserratEB;
+    font-family: BykerM;
     font-size: 20px;
     color: #777;
 }
@@ -1662,38 +1662,7 @@ font-size: .95rem;
     color: #999;
 }
 
-/* =========================
-   Match Information Grid
-========================= */
 
-.league-page .featured-bottom {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    border-top: 1px solid #efefef;
-    padding-top: 14px;
-    gap: 12px 18px;
-}
-
-.league-page .featured-bottom div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-}
-
-.league-page .featured-bottom strong {
-    font-family: BykerM;
-    font-size: 13px;
-    color: #888;
-    font-weight: 500;
-}
-
-.league-page .featured-bottom span {
-    font-family: MontserratEB;
-    font-size: 13px;
-    color: #222;
-    text-align: right;
-}
 
 /* =========================
    Mobile
