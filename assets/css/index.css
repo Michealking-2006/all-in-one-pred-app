@@ -1216,8 +1216,8 @@ font-size: .95rem;
   display:flex;
   align-items:center;
   justify-content:center;
-  height: 25px;
-  width: 25px;
+  height: 30px;
+  width: 30px;
   border-radius: 50%;
 }
 
@@ -1304,7 +1304,7 @@ font-size: .95rem;
 .league-page .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:20px;
+  padding: 10px;
   margin-bottom:18px;
   box-shadow:var(--shadow);
 }
@@ -1475,19 +1475,7 @@ font-size: .95rem;
 }
 
 /********** MATCH ACCENT BAR **********/
-.league-page .featured-match::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:2px;
-    background:linear-gradient(
-        to right,
-        var(--app-primary-color) 50%,
-        #3b82f6 50%
-    );
-}
+
 
 /********** MATCH HEADER **********/
 .league-page .featured-top{
@@ -1579,13 +1567,13 @@ font-size: .95rem;
 }
 
 .league-page .featured-team img{
-    width:26px;
-    height:26px;
+    width:22px;
+    height:22px;
     object-fit:contain;
 }
 
 .league-page .featured-team strong{
-    font:12px MontserratEB;
+    font:11px BykerM;
     color:#222;
     line-height:1.2;
 }
@@ -1597,7 +1585,7 @@ font-size: .95rem;
     justify-content:center;
     gap:4px;
     min-width:48px;
-    font:13px MontserratEB;
+    font:13px BykerM;
     color:#222;
 }
 
