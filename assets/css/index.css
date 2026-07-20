@@ -1468,9 +1468,7 @@ font-size: .95rem;
 .league-page .featured-match{
     position:relative;
     background:#fff;
-    border:1px solid #ececec;
     border-radius:14px;
-    padding:10px 12px;
     overflow:hidden;
 }
 
@@ -1501,7 +1499,7 @@ font-size: .95rem;
 }
 
 .league-page .featured-league span{
-    font:11px MontserratEB;
+    font:11px BykerM;
     color:#222;
     white-space:nowrap;
     overflow:hidden;
@@ -1629,39 +1627,6 @@ font-size: .95rem;
     border-color:var(--app-primary-color);
     background:#f7fbff;
 }
-
-/* =========================
-   Score
-========================= */
-
-.league-page .featured-score {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    min-width: 90px;
-}
-
-.league-page .featured-score span {
-    font-family: BykerM;
-    font-size: 28px;
-    color: #1d1d1d;
-    line-height: 1;
-}
-
-.league-page .featured-score small {
-    font-family: BykerM;
-    font-size: 20px;
-    color: #777;
-}
-
-/* VS before kickoff */
-
-.league-page .featured-score span:only-child {
-    font-size: 18px;
-    color: #999;
-}
-
 
 
 /* =========================
