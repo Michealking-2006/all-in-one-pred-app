@@ -1,8 +1,7 @@
 const API = (() => {
   
- const API_KEY = "16ae25cfd4ac9abb516a105cd100ed76";
+ const API_KEY = "909156cbb6f631f098809e3c630d3ddd";
  
-//const API_KEY = "accfd80c147e2ea554ec477ba2ae880a";
  
   const BASE_URL = "https://v3.football.api-sports.io";
   
