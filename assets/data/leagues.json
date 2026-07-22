@@ -53,43 +53,28 @@
       "type": "league",
       "division": 6
     },
-    {
-      "id": 1002,
-      "name": "National League South",
-      "slug": "national-league-south",
-      "icon": "/assets/icons/england_national-league-south.svg",
-      "type": "league",
-      "division": 6
-    },
-    {
-      "id": 1003,
-      "name": "Northern Premier League",
-      "slug": "northern-premier-league",
-      "icon": "/assets/icons/england_northern-premier-league.svg",
-      "type": "league",
-      "division": 7
-    },
+  
     {
       "id": 1004,
-      "name": "Southern League Premier Central",
+      "name": "National league South",
       "slug": "southern-league-premier-central",
-      "icon": "/assets/icons/england_southern-league-premier-central.svg",
+      "icon": "/assets/icons/england_national-league-south.svg",
       "type": "league",
       "division": 7
     },
     {
       "id": 1005,
-      "name": "Southern League Premier South",
-      "slug": "southern-league-premier-south",
-      "icon": "/assets/icons/england_southern-league-premier-south.svg",
+      "name": "English FA women super league",
+      "slug": "English FA women super league",
+      "icon": "/assets/icons/English FA women super league.svg",
       "type": "league",
       "division": 7
     },
     {
       "id": 1006,
-      "name": "Isthmian League Premier Division",
-      "slug": "isthmian-league-premier-division",
-      "icon": "/assets/icons/england_isthmian-league-premier-division.svg",
+      "name": "English isthmian Premier league ",
+      "slug": "isthmian-Premier-league",
+      "icon": "/assets/icons/england_isthmian-premier-league.svg",
       "type": "league",
       "division": 7
     },
@@ -147,13 +132,6 @@
       "name": "U23 Professional Development",
       "slug": "U23 professional-development",
       "icon": "/assets/icons/england_U_23professional-development-league.svg",
-      "type": "youth"
-    },
-    {
-      "id": 1012,
-      "name": "U18 Premier League",
-      "slug": "u18-premier-league",
-      "icon": "/assets/icons/england_u18-premier-league.svg",
       "type": "youth"
     }
   ]
