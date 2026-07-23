@@ -346,25 +346,36 @@
       "active": true,
       "featured": false
     },
+     {
+   "id": 592,
+   "name": "Campionato Primavera 3",
+   "slug": "campionato-primavera-3",
+   "icon": "/assets/icons/italy_primavera-3.svg",
+   "type": "youth",
+   "division": 3,
+   "gender": "youth",
+   "active": true,
+   "featured": false
+ },
     {
-      "id": 593,
-      "name": "Coppa Italia Primavera",
-      "slug": "coppa-italia-primavera",
-      "icon": "/assets/icons/italy_coppa-italia-primavera.svg",
-      "type": "youth",
+      "id": null,
+      "name": "Serie A women",
+      "slug": "italy_serie-A-women",
+      "icon": "/assets/icons/italy_serie-A-women.svg",
+      "type": "women",
       "division": null,
-      "gender": "youth",
+      "gender": "women",
       "active": true,
       "featured": false
     },
     {
       "id": null,
-      "name": "Supercoppa Primavera",
-      "slug": "supercoppa-primavera",
-      "icon": "/assets/icons/italy_supercoppa-primavera.svg",
-      "type": "youth_super_cup",
+      "name": "coppa Italia women",
+      "slug": "coppa-italia-women",
+      "icon": "/assets/icons/italy_coppa-italia-women.svg",
+      "type": "women",
       "division": null,
-      "gender": "youth",
+      "gender": "women",
       "active": true,
       "featured": false
     }
