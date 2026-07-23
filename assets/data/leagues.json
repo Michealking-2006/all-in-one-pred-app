@@ -197,7 +197,7 @@
       "featured": false
     },
     {
-      "id": 145,
+      "id": null,
       "name": "Español women's supercopa",
       "slug": "Español- women's-supercopa",
       "icon": "/assets/icons/spain_Español-women's-supercopa.svg",
@@ -230,7 +230,7 @@
       "featured": true
     },
     {
-      "id": 148,
+      "id": null,
       "name": "Copa Federación",
       "slug": "copa-federacion",
       "icon": "/assets/icons/spain_copa-federacion.svg",
@@ -241,7 +241,7 @@
       "featured": false
     },
     {
-      "id": 149,
+      "id": null,
       "name": "Español women's liga ",
       "slug": "Español-women's-liga",
       "icon": "/assets/icons/spain_Español-women's-liga.svg",
@@ -358,7 +358,7 @@
       "featured": false
     },
     {
-      "id": 594,
+      "id": null,
       "name": "Supercoppa Primavera",
       "slug": "supercoppa-primavera",
       "icon": "/assets/icons/italy_supercoppa-primavera.svg",
