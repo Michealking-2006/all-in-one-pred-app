@@ -56,7 +56,8 @@ const routes = {
   "/vip-tips": "/pages/vip-tips.html",
   "/predictions": "/pages/predictions.html",
   "/next-world-cup-count-downs": "/pages/next-world-cup-count-downs.html",
-  "/profile": "/pages/profile.html"
+  "/profile": "/pages/profile.html",
+  "/favourites": "/pages/favourites.html"
 };
 
 const loader = document.getElementById("page-loader");

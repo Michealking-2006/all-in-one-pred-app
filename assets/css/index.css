@@ -829,6 +829,38 @@ width: 20px;
 fill: #555;
 }
 
+.fav-btn {
+    position: relative;
+}
+
+.fav-btn .fav-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .25s ease;
+}
+
+.fav-btn .fav-outline {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.fav-btn .fav-filled {
+    opacity: 0;
+    transform: scale(.7);
+}
+
+.fav-btn.active .fav-outline {
+    opacity: 0;
+    transform: scale(.7);
+}
+
+.fav-btn.active .fav-filled {
+    opacity: 1;
+    transform: scale(1);
+}
 /**** search *****/
 
 
