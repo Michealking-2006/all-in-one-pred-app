@@ -916,36 +916,6 @@ input[type="range"]::-moz-range-thumb{
   font-weight:700;
 }
 
-/* Banner */
-.banner{
-  margin:8px 0 0;
-  padding:0 10px;
-}
-
-.banner-inner{
-  height:58px;
-  border-radius:14px;
-  background:
-    radial-gradient(circle at 14% 50%, rgba(255,255,255,.16), transparent 18%),
-    radial-gradient(circle at 90% 46%, rgba(255,255,255,.16), transparent 18%),
-    linear-gradient(90deg, #111 0%, #202020 45%, #111 100%);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  color:#fff;
-  font-family:BykerM,system-ui,sans-serif;
-  font-weight:900;
-  font-size:12px;
-  letter-spacing:.02em;
-  padding:0 12px;
-  box-shadow:var(--soft-shadow);
-  overflow:hidden;
-}
-
-.banner-inner span{
-  color:#ffd93a;
-}
 
 /* Helpful open state */
 .league-item.open .market-strip,
