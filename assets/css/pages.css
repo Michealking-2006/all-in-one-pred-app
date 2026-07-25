@@ -293,7 +293,7 @@ input{
   outline:none;
   display:grid;
   place-items:center;
-  cursor:pointer;
+  
 }
 
 .icon-pill{
@@ -355,7 +355,7 @@ input{
   font-weight:700;
   position:relative;
   flex:0 0 auto;
-  cursor:pointer;
+  
 }
 
 .top-tab.active{
@@ -384,9 +384,7 @@ input{
   font-family:BykerM,system-ui,sans-serif;
   font-size:13px;
   font-weight:900;
-  box-shadow:0 6px 14px rgba(0,0,0,.08);
   flex:0 0 auto;
-  cursor:pointer;
 }
 
 .slip-btn.active{
@@ -451,14 +449,13 @@ input{
   font-weight:900;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
   flex:0 0 auto;
-  cursor:pointer;
+  
 }
 
 .number-btn.active{
   background:var(--app-primary-color);
   color:#fff;
   border-color:var(--app-primary-color);
-  box-shadow:0 8px 16px rgba(213,0,0,.18);
 }
 
 .segmented{
@@ -480,13 +477,12 @@ input{
   font-family:BykerM,system-ui,sans-serif;
   font-size:14px;
   font-weight:800;
-  cursor:pointer;
+  
 }
 
 .seg-btn.active{
   background:var(--app-primary-color);
   color:#fff;
-  box-shadow:0 8px 16px rgba(213,0,0,.16);
 }
 
 .toggle-card{
@@ -593,7 +589,7 @@ input{
   white-space:nowrap;
   box-shadow:0 8px 16px rgba(213,0,0,.16);
   flex:0 0 auto;
-  cursor:pointer;
+  
 }
 
 .chip.light{
@@ -682,7 +678,7 @@ input[type="range"]::-moz-range-thumb{
   align-items:center;
   justify-content:center;
   gap:10px;
-  cursor:pointer;
+  
 }
 
 /* VIP tips area */
@@ -716,7 +712,7 @@ input[type="range"]::-moz-range-thumb{
   white-space:nowrap;
   padding:10px 0;
   flex:0 0 auto;
-  cursor:pointer;
+  
 }
 
 .league-tab.active{
@@ -745,7 +741,7 @@ input[type="range"]::-moz-range-thumb{
   width:100%;
   border:none;
   background:#fff;
-  cursor:pointer;
+  
 }
 
 .league-logo{
@@ -833,7 +829,7 @@ input[type="range"]::-moz-range-thumb{
   font-weight:900;
   font-size:12px;
   box-shadow:0 6px 14px rgba(213,0,0,.14);
-  cursor:pointer;
+  
 }
 
 .match-card{
