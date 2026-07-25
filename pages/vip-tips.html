@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scouter VIP Tips</title>
+  <title> VIP Tips</title>
   <link rel="stylesheet" href="vip-tips.css" />
 </head>
 <body>
   <main class="app">
     <header class="topbar">
       <div class="topbar-row">
-        <div class="brand" aria-label="Scouter">
-          <div class="brand-title">SCOUTER</div>
+        <div class="brand" aria-label="Scout wave">
+          <div class="brand-title">Scout wave</div>
         </div>
 
         <div class="actions">
-          <button class="icon-pill" aria-label="Smart tool">✨</button>
-          <button class="icon-pill" aria-label="Money">$</button>
-          <button class="vip-pill" aria-label="VIP"><span>👑</span> VIP</button>
-          <button class="profile-btn" aria-label="Profile">
+          <button class="icon-pill" type="button" aria-label="Smart tool">✨</button>
+          <button class="icon-pill" type="button" aria-label="Money">$</button>
+          <button class="vip-pill" type="button" aria-label="VIP">
+            <span>👑</span>
+            <span>VIP</span>
+          </button>
+          <button class="profile-btn" type="button" aria-label="Profile">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="8" r="3.2"></circle>
               <path d="M4.5 20.2c1.8-4 5-6.2 7.5-6.2s5.7 2.2 7.5 6.2"></path>
@@ -28,10 +31,10 @@
       </div>
 
       <div class="tabs-row" role="tablist" aria-label="Tips sections">
-        <button class="top-tab">F Winner</button>
-        <button class="top-tab">BTTS</button>
-        <button class="top-tab">Smart Bet</button>
-        <button class="slip-btn active">Slip Generator</button>
+        <button class="top-tab" type="button">F Winner</button>
+        <button class="top-tab" type="button">BTTS</button>
+        <button class="top-tab" type="button">Smart Bet</button>
+        <button class="slip-btn active" type="button">Slip Generator</button>
       </div>
     </header>
 
@@ -39,21 +42,21 @@
       <div class="card">
         <h2 class="section-title">Number of Games</h2>
         <div class="number-row" id="gamesRow">
-          <button class="number-btn active">2</button>
-          <button class="number-btn">3</button>
-          <button class="number-btn">4</button>
-          <button class="number-btn">5</button>
-          <button class="number-btn">6</button>
-          <button class="number-btn">7</button>
+          <button class="number-btn active" type="button">2</button>
+          <button class="number-btn" type="button">3</button>
+          <button class="number-btn" type="button">4</button>
+          <button class="number-btn" type="button">5</button>
+          <button class="number-btn" type="button">6</button>
+          <button class="number-btn" type="button">7</button>
         </div>
 
         <div style="height:18px"></div>
 
         <h2 class="section-title" style="margin-bottom:14px;">Risk Level</h2>
         <div class="segmented" id="riskGroup">
-          <button class="seg-btn active">Safe</button>
-          <button class="seg-btn">Balanced</button>
-          <button class="seg-btn">Risky</button>
+          <button class="seg-btn active" type="button">Safe</button>
+          <button class="seg-btn" type="button">Balanced</button>
+          <button class="seg-btn" type="button">Risky</button>
         </div>
 
         <div style="height:18px"></div>
@@ -66,6 +69,7 @@
               <p class="toggle-sub">Return a slip only for matches of today's date</p>
             </div>
           </div>
+
           <label class="switch">
             <input type="checkbox" id="todayToggle" />
             <span class="slider"></span>
@@ -76,20 +80,20 @@
 
         <h2 class="section-title" style="margin-bottom:14px;">Select Leagues</h2>
         <div class="chips" id="leagueChips">
-          <button class="chip selected">All Leagues</button>
-          <button class="chip">Major League Soccer (USA)</button>
-          <button class="chip">UEFA Europa League</button>
-          <button class="chip">England Premier League</button>
+          <button class="chip selected" type="button">All Leagues</button>
+          <button class="chip" type="button">Major League Soccer (USA)</button>
+          <button class="chip" type="button">UEFA Europa League</button>
+          <button class="chip" type="button">England Premier League</button>
         </div>
 
         <div style="height:18px"></div>
 
         <h2 class="section-title" style="margin-bottom:14px;">Select Bet Types</h2>
         <div class="chips" id="betChips">
-          <button class="chip selected">Winner</button>
-          <button class="chip light">Over / Under 2.5</button>
-          <button class="chip light">Corners Over</button>
-          <button class="chip light">BTTS</button>
+          <button class="chip selected" type="button">Winner</button>
+          <button class="chip light" type="button">Over / Under 2.5</button>
+          <button class="chip light" type="button">Corners Over</button>
+          <button class="chip light" type="button">BTTS</button>
         </div>
 
         <div class="range-wrap">
@@ -100,7 +104,7 @@
           <input id="oddsRange" type="range" min="1.10" max="3.50" value="1.10" step="0.01" />
         </div>
 
-        <button class="generate-btn">
+        <button class="generate-btn" type="button">
           <span>⚡</span>
           <span>Generate Slip</span>
         </button>
@@ -112,9 +116,9 @@
         </div>
 
         <div class="league-tabs" id="leagueTabs">
-          <button class="league-tab active">Winner</button>
-          <button class="league-tab">Over / Under 2.5</button>
-          <button class="league-tab">First Half Winner</button>
+          <button class="league-tab active" type="button">Winner</button>
+          <button class="league-tab" type="button">Over / Under 2.5</button>
+          <button class="league-tab" type="button">First Half Winner</button>
         </div>
 
         <div class="league-list">
@@ -148,19 +152,19 @@
             </button>
           </article>
 
-          <article class="league-item">
+          <article class="league-item open">
             <button class="league-row" type="button">
               <img class="league-logo" src="https://upload.wikimedia.org/wikipedia/en/b/bb/UEFA_Europa_League_logo.svg" alt="Europa League">
               <div class="league-name"><strong>World:</strong> UEFA Europa League</div>
               <div class="star">☆</div>
-              <div class="count hidden"></div>
+              <div class="count"></div>
               <div class="chev">⌄</div>
             </button>
 
             <div class="market-strip">
-              <button class="market-pill">Winner Home or Draw</button>
-              <button class="market-pill">Winner Away or Draw</button>
-              <button class="market-pill">Over 1.5</button>
+              <button class="market-pill" type="button">Winner Home or Draw</button>
+              <button class="market-pill" type="button">Winner Away or Draw</button>
+              <button class="market-pill" type="button">Over 1.5</button>
             </div>
 
             <div class="match-card">
@@ -171,11 +175,13 @@
                   <div class="team-name">Qarabag</div>
                   <div class="odd">1.50</div>
                 </div>
+
                 <div class="center">
                   <div class="score">0 - 0</div>
                   <div class="time">Yesterday, 17:00</div>
                   <div class="odd" style="opacity:.6">4.20 (X)</div>
                 </div>
+
                 <div class="team">
                   <img class="team-logo" src="https://upload.wikimedia.org/wikipedia/en/8/8f/PFC_CSKA_Sofia_logo.svg" alt="CSKA Sofia">
                   <div class="team-name">CSKA Sofia</div>
@@ -192,11 +198,13 @@
                   <div class="team-name">Beşiktaş</div>
                   <div class="odd">1.62</div>
                 </div>
+
                 <div class="center">
                   <div class="score">1 - 0</div>
                   <div class="time">Yesterday, 19:00</div>
                   <div class="odd" style="opacity:.6">3.90 (X)</div>
                 </div>
+
                 <div class="team">
                   <img class="team-logo" src="https://upload.wikimedia.org/wikipedia/en/5/5f/FC_Midtjylland_logo.svg" alt="Midtjylland">
                   <div class="team-name">FC Midtjylland</div>
@@ -209,33 +217,12 @@
       </div>
 
       <div class="banner">
-        <div class="banner-inner">JOIN <span>VIP</span> NOW &nbsp; WHERE GOALS MAKE <span>MONEY</span></div>
+        <div class="banner-inner">
+          JOIN <span>VIP</span> NOW &nbsp; WHERE GOALS MAKE <span>MONEY</span>
+        </div>
       </div>
     </section>
   </main>
-
-  <nav class="bottom-nav" aria-label="Bottom navigation">
-    <button class="nav-item" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M3.7 12h16.6M12 3a15 15 0 0 1 4.7 9H7.3A15 15 0 0 1 12 3Zm0 18a15 15 0 0 0 4.7-9H7.3A15 15 0 0 0 12 21Z"></path></svg>
-      <span>Leagues</span>
-    </button>
-    <button class="nav-item active" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10l2 6-7 10L5 10l2-6Z"></path><path d="M9 9h6"></path></svg>
-      <span>VIP Tips</span>
-    </button>
-    <button class="nav-item" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4"></path><circle cx="8" cy="8" r="3"></circle><circle cx="16" cy="8" r="3"></circle></svg>
-      <span>Teams</span>
-    </button>
-    <button class="nav-item" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7h10v10H7z"></path><path d="M12 7v10M7 12h10"></path></svg>
-      <span>Live</span>
-    </button>
-    <button class="nav-item" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.8-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3.5Z"></path></svg>
-      <span>Favorites</span>
-    </button>
-  </nav>
 
   <script src="vip-tips.js"></script>
 </body>
