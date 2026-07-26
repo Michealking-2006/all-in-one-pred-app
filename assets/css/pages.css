@@ -961,3 +961,469 @@ input[type="range"]::-moz-range-thumb{
 
 
 /**********************/
+
+
+
+
+/* ===========================
+   Predictions Page
+=========================== */
+
+:root{
+  --primary:#16a34a;
+  --primary-light:#ecfdf3;
+  --text:#111827;
+  --text-light:#6b7280;
+  --border:#e5e7eb;
+  --surface:#ffffff;
+  --bg:#f8fafc;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+  --shadow:0 8px 25px rgba(0,0,0,.06);
+  --radius:18px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+.predictions-page{
+  background:var(--bg);
+  min-height:100vh;
+  padding:16px;
+  color:var(--text);
+}
+
+/* ===========================
+   Header
+=========================== */
+
+.predictions-header{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.predictions-header-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+
+.predictions-header h1{
+  margin:0;
+  font-size:1.6rem;
+  font-weight:700;
+  line-height:1.2;
+}
+
+.predictions-header p{
+  margin:5px 0 0;
+  color:var(--text-light);
+  font-size:.92rem;
+}
+
+.prediction-filter-btn{
+  width:46px;
+  height:46px;
+  border:none;
+  border-radius:14px;
+  background:#fff;
+  color:var(--text);
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.25s;
+}
+
+.prediction-filter-btn:hover{
+  transform:translateY(-2px);
+}
+
+/* ===========================
+   Horizontal Scroll
+=========================== */
+
+.prediction-day-scroll,
+.prediction-market-scroll{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+
+.prediction-day-scroll::-webkit-scrollbar,
+.prediction-market-scroll::-webkit-scrollbar{
+  display:none;
+}
+
+/* ===========================
+   Day Filter
+=========================== */
+
+.prediction-day{
+  min-width:88px;
+  border:none;
+  border-radius:16px;
+  background:#fff;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  cursor:pointer;
+  transition:.25s;
+  box-shadow:var(--shadow);
+}
+
+.prediction-day span{
+  font-size:.95rem;
+  font-weight:600;
+}
+
+.prediction-day small{
+  color:var(--text-light);
+}
+
+.prediction-day.active{
+  background:var(--primary);
+  color:#fff;
+}
+
+.prediction-day.active small{
+  color:#fff;
+}
+
+/* ===========================
+   Market Filter
+=========================== */
+
+.prediction-market{
+  white-space:nowrap;
+  border:none;
+  background:#fff;
+  padding:11px 18px;
+  border-radius:999px;
+  cursor:pointer;
+  font-weight:600;
+  box-shadow:var(--shadow);
+  transition:.25s;
+}
+
+.prediction-market.active{
+  background:var(--primary);
+  color:#fff;
+}
+
+/* ===========================
+   Summary
+=========================== */
+
+.prediction-summary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin:22px 0;
+}
+
+.prediction-summary-card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:18px;
+  text-align:center;
+  box-shadow:var(--shadow);
+}
+
+.prediction-summary-card strong{
+  display:block;
+  font-size:1.45rem;
+  color:var(--primary);
+}
+
+.prediction-summary-card span{
+  display:block;
+  margin-top:6px;
+  color:var(--text-light);
+  font-size:.85rem;
+}
+
+/* ===========================
+   Featured Card
+=========================== */
+
+.featured-prediction-card{
+  background:#fff;
+  border-radius:22px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  margin-bottom:24px;
+}
+
+.featured-prediction-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.featured-league{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.featured-league img{
+  width:28px;
+  height:28px;
+  object-fit:contain;
+}
+
+.featured-league span{
+  font-weight:700;
+}
+
+.prediction-confidence{
+  font-weight:700;
+  font-size:.82rem;
+  padding:7px 12px;
+  border-radius:999px;
+}
+
+.prediction-confidence.high{
+  background:#dcfce7;
+  color:#15803d;
+}
+
+.featured-match-row{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:16px;
+  align-items:center;
+}
+
+.featured-team{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+
+.featured-team img{
+  width:54px;
+  height:54px;
+  object-fit:contain;
+}
+
+.featured-team span{
+  font-weight:600;
+  text-align:center;
+}
+
+.featured-vs{
+  text-align:center;
+}
+
+.featured-vs strong{
+  display:block;
+  font-size:1.1rem;
+}
+
+.featured-vs small{
+  color:var(--text-light);
+}
+
+/* ===========================
+   Prediction Pills
+=========================== */
+
+.featured-picks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:20px;
+}
+
+.prediction-pill{
+  border:none;
+  background:#f3f4f6;
+  border-radius:999px;
+  padding:10px 16px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.prediction-pill.active{
+  background:var(--primary);
+  color:#fff;
+}
+
+/* ===========================
+   League Section
+=========================== */
+
+.prediction-league-section{
+  margin-top:28px;
+}
+
+.prediction-league-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.prediction-league-title img{
+  width:28px;
+  height:28px;
+}
+
+.prediction-league-title span{
+  font-size:1.05rem;
+  font-weight:700;
+}
+
+/* ===========================
+   Cards
+=========================== */
+
+.prediction-list{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.prediction-card{
+  background:#fff;
+  border-radius:20px;
+  padding:18px;
+  box-shadow:var(--shadow);
+}
+
+.prediction-card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+}
+
+.prediction-card-top span:first-child{
+  font-weight:700;
+}
+
+.confidence{
+  font-size:.8rem;
+  font-weight:700;
+  padding:6px 12px;
+  border-radius:999px;
+}
+
+.confidence.high{
+  background:#dcfce7;
+  color:#15803d;
+}
+
+.confidence.medium{
+  background:#fef3c7;
+  color:#b45309;
+}
+
+.confidence.low{
+  background:#fee2e2;
+  color:#b91c1c;
+}
+
+/* ===========================
+   Match
+=========================== */
+
+.prediction-card-match{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:12px;
+  align-items:center;
+}
+
+.team{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+
+.team img{
+  width:42px;
+  height:42px;
+  object-fit:contain;
+}
+
+.team span{
+  font-weight:600;
+  text-align:center;
+  font-size:.92rem;
+}
+
+.vs{
+  font-weight:700;
+  color:var(--text-light);
+}
+
+/* ===========================
+   Options
+=========================== */
+
+.prediction-options{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:18px;
+}
+
+.prediction-options button{
+  border:none;
+  background:var(--primary-light);
+  color:var(--primary);
+  padding:10px 15px;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.25s;
+}
+
+.prediction-options button:hover{
+  background:var(--primary);
+  color:#fff;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media (max-width:640px){
+
+  .prediction-summary{
+    gap:10px;
+  }
+
+  .prediction-summary-card{
+    padding:14px 10px;
+  }
+
+  .prediction-summary-card strong{
+    font-size:1.2rem;
+  }
+
+  .featured-team img{
+    width:48px;
+    height:48px;
+  }
+
+  .team img{
+    width:38px;
+    height:38px;
+  }
+
+}
