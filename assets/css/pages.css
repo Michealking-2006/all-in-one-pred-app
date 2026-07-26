@@ -736,8 +736,6 @@ input[type="range"]::-moz-range-thumb{
   flex-shrink: 0;
   color: #fff;
   fill: #fff;
-  background: no-repeat center/contain;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m4 8.417l6.587 6.587a2.013 2.013 0 0 0 2.826 0L20 8.417'/%3E%3C/svg%3E");
   
   color: currentColor;
   transition: .3s ease;
