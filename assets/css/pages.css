@@ -1090,7 +1090,7 @@ input[type="range"]::-moz-range-thumb{
 }
 
 .prediction-day.active{
-  background:var(--primary);
+  background:var(--app-primary-color);
   color:#fff;
 }
 
@@ -1115,7 +1115,7 @@ input[type="range"]::-moz-range-thumb{
 }
 
 .prediction-market.active{
-  background:var(--primary);
+  background:var(--app-primary-color);
   color:#fff;
 }
 
@@ -1141,7 +1141,7 @@ input[type="range"]::-moz-range-thumb{
 .prediction-summary-card strong{
   display:block;
   font-size:1.45rem;
-  color:var(--primary);
+  color:var(--app-primary-color);
 }
 
 .prediction-summary-card span{
@@ -1257,7 +1257,7 @@ input[type="range"]::-moz-range-thumb{
 }
 
 .prediction-pill.active{
-  background:var(--primary);
+  background:var(--app-primary-color);
   color:#fff;
 }
 
@@ -1385,7 +1385,7 @@ input[type="range"]::-moz-range-thumb{
 .prediction-options button{
   border:none;
   background:var(--primary-light);
-  color:var(--primary);
+  color:var(--app-primary-color);
   padding:10px 15px;
   border-radius:999px;
   font-weight:700;
@@ -1394,7 +1394,7 @@ input[type="range"]::-moz-range-thumb{
 }
 
 .prediction-options button:hover{
-  background:var(--primary);
+  background: var(--app-primary-color);
   color:#fff;
 }
 
