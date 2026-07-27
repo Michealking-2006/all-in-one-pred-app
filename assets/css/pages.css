@@ -983,46 +983,17 @@ input[type="range"]::-moz-range-thumb{
   --radius:18px;
 }
 
-*{
-  box-sizing:border-box;
-}
 
 .predictions-page{
-  background:var(--bg);
-  min-height:100vh;
-  padding:16px;
+  font-family: BykerR;
+  min-height: 100vh;
+  padding: 16px;
   color:var(--text);
+  margin-top: 8em;
+  margin-bottom: 5em;
 }
 
-/* ===========================
-   Header
-=========================== */
 
-.predictions-header{
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-
-.predictions-header-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-}
-
-.predictions-header h1{
-  margin:0;
-  font-size:1.6rem;
-  font-weight:700;
-  line-height:1.2;
-}
-
-.predictions-header p{
-  margin:5px 0 0;
-  color:var(--text-light);
-  font-size:.92rem;
-}
 
 .prediction-filter-btn{
   width:46px;
@@ -1031,7 +1002,6 @@ input[type="range"]::-moz-range-thumb{
   border-radius:14px;
   background:#fff;
   color:var(--text);
-  cursor:pointer;
   box-shadow:var(--shadow);
   display:flex;
   align-items:center;
@@ -1054,6 +1024,9 @@ input[type="range"]::-moz-range-thumb{
   overflow-x:auto;
   scrollbar-width:none;
   -ms-overflow-style:none;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  padding: 8px;
 }
 
 .prediction-day-scroll::-webkit-scrollbar,
@@ -1068,25 +1041,19 @@ input[type="range"]::-moz-range-thumb{
 .prediction-day{
   min-width:88px;
   border:none;
-  border-radius:16px;
+  border-radius: 30px;
   background:#fff;
-  padding:12px;
+  padding:10px;
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:3px;
-  cursor:pointer;
   transition:.25s;
-  box-shadow:var(--shadow);
 }
 
 .prediction-day span{
   font-size:.95rem;
   font-weight:600;
-}
-
-.prediction-day small{
-  color:var(--text-light);
 }
 
 .prediction-day.active{
@@ -1108,9 +1075,7 @@ input[type="range"]::-moz-range-thumb{
   background:#fff;
   padding:11px 18px;
   border-radius:999px;
-  cursor:pointer;
   font-weight:600;
-  box-shadow:var(--shadow);
   transition:.25s;
 }
 
@@ -1119,44 +1084,13 @@ input[type="range"]::-moz-range-thumb{
   color:#fff;
 }
 
-/* ===========================
-   Summary
-=========================== */
-
-.prediction-summary{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:14px;
-  margin:22px 0;
-}
-
-.prediction-summary-card{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:18px;
-  text-align:center;
-  box-shadow:var(--shadow);
-}
-
-.prediction-summary-card strong{
-  display:block;
-  font-size:1.45rem;
-  color:var(--app-primary-color);
-}
-
-.prediction-summary-card span{
-  display:block;
-  margin-top:6px;
-  color:var(--text-light);
-  font-size:.85rem;
-}
 
 /* ===========================
    Featured Card
 =========================== */
 
 .featured-prediction-card{
-  background:#fff;
+  background: #D6000030;
   border-radius:22px;
   padding:18px;
   box-shadow:var(--shadow);
