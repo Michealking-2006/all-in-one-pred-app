@@ -38,7 +38,7 @@
       "division": 4
     },
     {
-      "id": 44,
+      "id": 43,
       "name": "National League",
       "slug": "national-league",
       "icon": "/assets/icons/england_national-league.svg",
@@ -46,7 +46,7 @@
       "division": 5
     },
     {
-      "id": 1001,
+      "id": 50,
       "name": "National League North",
       "slug": "national-league-north",
       "icon": "/assets/icons/england_national-league-north.svg",
@@ -55,7 +55,7 @@
     },
   
     {
-      "id": 1004,
+      "id": 51,
       "name": "National league South",
       "slug": "southern-league-premier-central",
       "icon": "/assets/icons/england_national-league-south.svg",
@@ -63,7 +63,7 @@
       "division": 7
     },
     {
-      "id": 1005,
+      "id": 44,
       "name": "English FA women super league",
       "slug": "English FA women super league",
       "icon": "/assets/icons/English FA women super league.svg",
@@ -71,7 +71,7 @@
       "division": 7
     },
     {
-      "id": 1006,
+      "id": 58,
       "name": "English isthmian Premier league ",
       "slug": "isthmian-Premier-league",
       "icon": "/assets/icons/england_isthmian-premier-league.svg",
@@ -86,7 +86,7 @@
       "type": "cup"
     },
     {
-      "id": 48,
+      "id": 46,
       "name": "EFL Cup",
       "slug": "efl-cup",
       "icon": "/assets/icons/england_efl-cup.svg",
@@ -164,9 +164,9 @@
       "featured": true
     },
     {
-      "id": 142,
-      "name": "Primera Federación",
-      "slug": "primera-federacion",
+      "id": 435,
+      "name": "Primera Federación Group A",
+      "slug": "primera-federacion Group A",
       "icon": "/assets/icons/spain_primera-federacion.svg",
       "type": "league",
       "division": 3,
@@ -175,9 +175,53 @@
       "featured": false
     },
     {
-      "id": 143,
-      "name": "Segunda Federación",
-      "slug": "segunda-federacion",
+      "id": 436,
+      "name": "Primera Federación Group B",
+      "slug": "primera-federacion Group B",
+      "icon": "/assets/icons/spain_primera-federacion.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 437,
+      "name": "Primera Federación Group C",
+      "slug": "primera-federacion Group C",
+      "icon": "/assets/icons/spain_primera-federacion.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+        {
+      "id": 438,
+      "name": "Primera Federación Group D",
+      "slug": "primera-federacion Group D",
+      "icon": "/assets/icons/spain_primera-federacion.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+        {
+      "id": 692,
+      "name": "Primera Federación Group E",
+      "slug": "primera-federacion Group E",
+      "icon": "/assets/icons/spain_primera-federacion.svg",
+      "type": "league",
+      "division": 3,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 875,
+      "name": "Segunda Federación Group A",
+      "slug": "segunda-federacion Group A",
       "icon": "/assets/icons/spain_segunda-federacion.svg",
       "type": "league",
       "division": 4,
@@ -185,6 +229,51 @@
       "active": true,
       "featured": false
     },
+     {
+      "id": 876,
+      "name": "Segunda Federación Group B",
+      "slug": "segunda-federacion Group B",
+      "icon": "/assets/icons/spain_segunda-federacion.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+     {
+   "id": 877,
+   "name": "Segunda Federación Group C",
+   "slug": "segunda-federacion Group C",
+   "icon": "/assets/icons/spain_segunda-federacion.svg",
+   "type": "league",
+   "division": 4,
+   "gender": "men",
+   "active": true,
+   "featured": false
+ },
+  {
+   "id": 878,
+   "name": "Segunda Federación Group D",
+   "slug": "segunda-federacion Group D",
+   "icon": "/assets/icons/spain_segunda-federacion.svg",
+   "type": "league",
+   "division": 4,
+   "gender": "men",
+   "active": true,
+   "featured": false
+ },
+  {
+   "id": 879,
+   "name": "Segunda Federación Group E",
+   "slug": "segunda-federacion Group E",
+   "icon": "/assets/icons/spain_segunda-federacion.svg",
+   "type": "league",
+   "division": 4,
+   "gender": "men",
+   "active": true,
+   "featured": false
+ },
+ 
     {
       "id": 144,
       "name": "Tercera Federación",
@@ -358,7 +447,7 @@
    "featured": false
  },
     {
-      "id": null,
+      "id": 136,
       "name": "Serie A women",
       "slug": "italy_serie-A-women",
       "icon": "/assets/icons/italy_serie-A-women.svg",
@@ -419,10 +508,32 @@
       "active": true,
       "featured": false
     },
+     {
+      "id": 67,
+      "name": "National 2 Group A",
+      "slug": "national-2 Group A",
+      "icon": "/assets/icons/france_national-2.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
     {
-      "id": 64,
-      "name": "National 2",
-      "slug": "national-2",
+      "id": 68,
+      "name": "National 2 Group B",
+      "slug": "national-2 Group B",
+      "icon": "/assets/icons/france_national-2.svg",
+      "type": "league",
+      "division": 4,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+     {
+      "id": 69,
+      "name": "National 2 Group C",
+      "slug": "national-2 Group C",
       "icon": "/assets/icons/france_national-2.svg",
       "type": "league",
       "division": 4,
@@ -486,13 +597,13 @@
       "featured": false
     },
     {
-      "id": 70,
-      "name": "Championnat National U17",
-      "slug": "championnat-national-u17",
-      "icon": "/assets/icons/france_championnat-national-u17.svg",
-      "type": "youth",
+      "id": null,
+      "name": "French ligue cup",
+      "slug": "French ligue cup",
+      "icon": "/assets/icons/france_French-ligue-cup",
+      "type": "cup",
       "division": 1,
-      "gender": "youth",
+      "gender": "men",
       "active": true,
       "featured": false
     }
