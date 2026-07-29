@@ -1,3 +1,14 @@
+const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches ||
+    window.navigator.standalone === true;
+
+if (isStandalone) {
+    document.documentElement.classList.add("pwa-standalone");
+    initPullToRefresh(refreshData);
+}
+
+
 function initPullToRefresh(onRefresh) {
   
   if (
