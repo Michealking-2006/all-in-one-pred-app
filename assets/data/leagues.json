@@ -1361,7 +1361,7 @@
       "featured": true
     },
     {
-      "id": 130,
+      "id": 131,
       "name": "Primera B Metropolitana",
       "slug": "primera-b-metropolitana",
       "icon": "/assets/icons/argentina_primera-b-metropolitana.svg",
@@ -1372,7 +1372,7 @@
       "featured": false
     },
     {
-      "id": 131,
+      "id": 134,
       "name": "Torneo Federal A",
       "slug": "torneo-federal-a",
       "icon": "/assets/icons/argentina_torneo-federal-a.svg",
@@ -1405,10 +1405,10 @@
       "featured": false
     },
     {
-      "id": 134,
-      "name": "Copa Argentina",
-      "slug": "copa-argentina",
-      "icon": "/assets/icons/argentina_copa-argentina.svg",
+      "id": 1032,
+      "name": "Copa de la liga profesional",
+      "slug": "Copa-de-la-liga profesional",
+      "icon": "/assets/icons/argentina_Copa-de-la-liga profesional.svg",
       "type": "cup",
       "division": null,
       "gender": "men",
@@ -1416,21 +1416,32 @@
       "featured": true
     },
     {
-      "id": 135,
-      "name": "Supercopa Argentina",
-      "slug": "supercopa-argentina",
+      "id": 483,
+      "name": "copa de la super liga",
+      "slug": "copa-de-la-super liga",
       "icon": "/assets/icons/argentina_supercopa-argentina.svg",
-      "type": "super_cup",
+      "type": "super_copa",
       "division": null,
       "gender": "men",
       "active": true,
       "featured": true
     },
     {
-      "id": 136,
-      "name": "Trofeo de Campeones",
-      "slug": "trofeo-de-campeones",
-      "icon": "/assets/icons/argentina_trofeo-de-campeones.svg",
+      "id": 810,
+      "name": "Super copa",
+      "slug": "Super-copa",
+      "icon": "/assets/icons/argentina_super-copa.svg",
+      "type": "super_cup",
+      "division": null,
+      "gender": "men",
+      "active": true,
+      "featured": false
+    },
+     {
+      "id": 1178,
+      "name": "Super copa International",
+      "slug": "Super-copa-International",
+      "icon": "/assets/icons/argentina_super-copa-International.svg",
       "type": "super_cup",
       "division": null,
       "gender": "men",
@@ -1438,24 +1449,24 @@
       "featured": false
     },
     {
-      "id": 137,
-      "name": "Primera División Reserva",
-      "slug": "primera-division-reserva",
-      "icon": "/assets/icons/argentina_primera-division-reserva.svg",
-      "type": "reserve",
+      "id": 129,
+      "name": "Primera Nacional",
+      "slug": "Primera-Nacional",
+      "icon": "/assets/icons/argentina_primera-Nacional.svg",
+      "type": "Liga",
       "division": 1,
-      "gender": "reserve",
+      "gender": "Men",
       "active": true,
       "featured": false
     },
     {
-      "id": 138,
-      "name": "Liga Profesional U20",
-      "slug": "liga-profesional-u20",
-      "icon": "/assets/icons/argentina_liga-profesional-u20.svg",
-      "type": "youth",
+      "id": 906,
+      "name": "Reserve league",
+      "slug": "Reserve-league",
+      "icon": "/assets/icons/argentina_Reserve-league.svg",
+      "type": "Reserve-league",
       "division": 1,
-      "gender": "youth",
+      "gender": "Men",
       "active": true,
       "featured": false
     }
@@ -3756,47 +3767,41 @@
   "flag": "/assets/icons/algeria.svg",
   "leagues": [
     {
-      "id": 215,
-      "name": "Ligue 1",
-      "slug": "ligue-1",
+      "id": 186,
+      "name": "Algerian Ligue 1",
+      "slug": "Algerian-ligue-1",
       "icon": "/assets/icons/algeria_ligue-1.svg",
       "type": "league"
     },
     {
-      "id": 216,
-      "name": "Ligue 2",
-      "slug": "ligue-2",
+      "id": 187,
+      "name": "Algerian Ligue 2",
+      "slug": "Algerian-ligue-2",
       "icon": "/assets/icons/algeria_ligue-2.svg",
       "type": "league"
     },
     {
-      "id": 217,
-      "name": "Inter-Régions",
-      "slug": "inter-regions",
-      "icon": "/assets/icons/algeria_inter-regions.svg",
-      "type": "league"
+      "id": 832,
+      "name": "Coupe de la ligue",
+      "slug": "Coupe-de-la-ligue",
+      "icon": "/assets/icons/algeria_Coupe-de-la-ligue.svg",
+      "type": "ligue"
     },
     {
-      "id": 218,
-      "name": "National Amateur",
-      "slug": "national-amateur",
-      "icon": "/assets/icons/algeria_national-amateur.svg",
-      "type": "league"
-    },
-    {
-      "id": 219,
-      "name": "Algerian Cup",
-      "slug": "algerian-cup",
-      "icon": "/assets/icons/algeria_algerian-cup.svg",
-      "type": "cup"
-    },
-    {
-      "id": 220,
+      "id": 516,
       "name": "Algerian Super Cup",
       "slug": "algerian-super-cup",
       "icon": "/assets/icons/algeria_algerian-super-cup.svg",
       "type": "super_cup"
-    }
+    },
+     {
+      "id": 514,
+      "name": "coupe nationale",
+      "slug": "coupe nationale",
+      "icon": "/assets/icons/algeria_coupe-nationale.svg",
+      "type": "coupe-nationale"
+    } 
+    
   ]
 },
 {
@@ -4120,32 +4125,18 @@
   "flag": "/assets/icons/angola.svg",
   "leagues": [
     {
-      "id": 339,
+      "id": 397,
       "name": "Girabola",
       "slug": "girabola",
       "icon": "/assets/icons/angola_girabola.svg",
       "type": "league"
     },
     {
-      "id": 340,
-      "name": "Segunda Divisão",
-      "slug": "segunda-divisao",
-      "icon": "/assets/icons/angola_segunda-divisao.svg",
+      "id": 1192,
+      "name": "Angolan Super cup",
+      "slug": "Angolan-super-cup",
+      "icon": "/assets/icons/angola_super-cup.svg",
       "type": "league"
-    },
-    {
-      "id": 341,
-      "name": "Taça de Angola",
-      "slug": "taca-de-angola",
-      "icon": "/assets/icons/angola_taca-de-angola.svg",
-      "type": "cup"
-    },
-    {
-      "id": 342,
-      "name": "Supertaça de Angola",
-      "slug": "supertaca-de-angola",
-      "icon": "/assets/icons/angola_supertaca-de-angola.svg",
-      "type": "super_cup"
     }
   ]
 },
