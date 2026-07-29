@@ -1,0 +1,21 @@
+/* Only active in installed PWA */
+.pwa-standalone {
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+  touch-action: pan-x pan-y;
+}
+
+.pwa-standalone .ptr-wrapper {
+  position: relative;
+  min-height: 100vh;
+  will-change: transform;
+  transition: transform .28s cubic-bezier(.22, .61, .36, 1);
+}
+
+.pwa-standalone .ptr-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -80px);
+  z-index: 99999;
+}
