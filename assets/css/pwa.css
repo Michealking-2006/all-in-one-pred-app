@@ -1,139 +1,22 @@
-/* ==========================================
-   PWA STANDALONE MODE
-   ========================================== */
-
 html.pwa-standalone,
 html.pwa-standalone body {
   margin: 0;
   padding: 0;
-  width: 100%;
   min-height: 100%;
   overflow-x: hidden;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
 }
-
-/* Prevent blue highlight */
-html.pwa-standalone * {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ==========================================
-   PULL TO REFRESH WRAPPER
-   ========================================== */
 
 html.pwa-standalone .ptr-wrapper {
   position: relative;
   width: 100%;
   min-height: 100dvh;
   transform: translate3d(0, 0, 0);
-  will-change: transform;
   transition: transform .28s cubic-bezier(.22, .61, .36, 1);
-  contain: layout style paint;
+  will-change: transform;
 }
-
-/* During dragging */
 
 html.pwa-standalone .ptr-wrapper.dragging {
   transition: none;
-}
-
-/* ==========================================
-   REFRESH INDICATOR
-   ========================================== */
-
-html.pwa-standalone .ptr-indicator {
-  
-  position: fixed;
-  
-  top: 0;
-  left: 50%;
-  
-  width: 56px;
-  height: 56px;
-  
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  transform: translate(-50%, -90px);
-  
-  border-radius: 999px;
-  
-  background: #fff;
-  
-  box-shadow:
-    0 6px 24px rgba(0, 0, 0, .12),
-    0 2px 8px rgba(0, 0, 0, .08);
-  
-  z-index: 999999;
-  
-  opacity: 0;
-  
-  pointer-events: none;
-  
-  transition:
-    transform .25s ease,
-    opacity .25s ease;
-  
-}
-
-/* Visible */
-
-html.pwa-standalone .ptr-indicator.active {
-  
-  opacity: 1;
-  
-  transform: translate(-50%, 16px);
-  
-}
-
-/* ==========================================
-   SPINNER
-   ========================================== */
-
-html.pwa-standalone .ptr-spinner {
-  
-  width: 24px;
-  height: 24px;
-  
-  border-radius: 50%;
-  
-  border: 3px solid rgba(0, 0, 0, .15);
-  border-top-color: #0d6efd;
-  
-}
-
-/* Loading animation */
-
-html.pwa-standalone .ptr-indicator.loading .ptr-spinner {
-  
-  animation: ptr-spin .75s linear infinite;
-  
-}
-
-@keyframes ptr-spin {
-  
-  to {
-    transform: rotate(360deg);
-  }
-  
-}
-
-/* ==========================================
-   REDUCE MOTION
-   ========================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  
-  html.pwa-standalone .ptr-wrapper,
-  html.pwa-standalone .ptr-indicator {
-    transition: none;
-  }
-  
-  html.pwa-standalone .ptr-indicator.loading .ptr-spinner {
-    animation-duration: 1.2s;
-  }
-  
 }

@@ -85,7 +85,9 @@ function initPullToRefresh(onRefresh) {
     
     if (distance <= 0) return;
     
-    e.preventDefault();
+    if (pulling && getScrollTop() === 0 && distance > 5) {
+  e.preventDefault();
+}
     
     const pull = ease(distance);
     
