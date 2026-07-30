@@ -3,19 +3,41 @@
   --nav-color: #6b7280;
   --nav-bg: #ffffff;
   --app-primary-color: #d50000;
+
+  --top-nav-height: 112px;
+  --bottom-nav-height: 70px;
 }
 
+html,
 body {
-  overflow-x: hidden;
   width: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
+body {
+  min-height: 100%;
+  background: #f5f6fa;
+}
 
+/* App shell */
+#root {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* Reserve space so fixed bars do not cover content */
+#main-page {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  padding-top: calc(var(--top-nav-height) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
+}
 
 /********* app top nav ui ************/
-
 .app-top-nav-menu-layout {
   display: flex;
   flex-direction: column;
@@ -25,64 +47,67 @@ body {
   border-bottom-right-radius: 20px;
   border-bottom-left-radius: 20px;
   position: fixed;
-  right: 0;
-  left: 0;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 999;
+  padding-top: env(safe-area-inset-top);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
+
 .app-top-nav-menu-layout-sec-one {
-  padding: 10px;
+  width: 100%;
+  padding: 12px 16px 10px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  box-sizing: border-box;
 }
+
 .right-end-nav-btns {
   position: absolute;
-  right: 0;
+  right: 12px;
+  top: calc(env(safe-area-inset-top) + 12px);
 }
-.user-profile-img {
+
+.user-profile-img,
+.app-more-nav-hamburger-menu,
+.search-app-btn,
+.close-index-search-btn {
   background: transparent;
   outline: none;
   border: none;
+}
+
+.user-profile-img,
+.app-more-nav-hamburger-menu,
+.search-app-btn {
   color: #fff;
 }
-.user-profile-img svg {
-  height: 30px;
+
+.user-profile-img svg,
+.app-more-nav-hamburger-menu svg,
+.search-app-btn svg {
   width: 30px;
-}
-.app-more-nav-hamburger-menu {
-  background: transparent;
-  outline: none;
-  border: none;
-  color: #fff;
+  height: 30px;
 }
 
 .search-app-btn {
   position: absolute;
-  background: transparent;
-  outline: none;
-  border: none;
-  color: #fff;
-  left: 0;
+  left: 12px;
+  top: calc(env(safe-area-inset-top) + 12px);
 }
 
 .search-overlay {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom:  0;
-  left: 0;
-  inset: 0; 
+  inset: 0;
   background: rgba(0, 0, 0, 0.25);
-
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   opacity: 0;
   visibility: hidden;
   transition: 0.3s ease;
-
-  z-index: 98;
+  z-index: 998;
 }
 
 .search-overlay.active {
@@ -96,136 +121,425 @@ body {
 }
 
 .app-index-search-box {
-  display: flex;
-  flex-direction: column;
   position: fixed;
-  top: -100%;
+  top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -100%);
   width: 100%;
+  box-sizing: border-box;
   background: #fff;
-  padding: 1em 1em 1em 2em;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 16px;
   display: flex;
   gap: 10px;
-  transition: 0.4s ease;
-  z-index: 99;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  transition: transform 0.35s ease;
+  z-index: 999;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.app-index-search-box.active {
+  transform: translate(-50%, 0);
 }
 
 .app-index-search-box input {
   flex: 1;
-  padding: 10px;
+  min-width: 0;
+  padding: 10px 12px;
   border: none;
   outline: none;
   border-radius: 8px;
-  font-family: MontserratEB;
-  flex-basis: 70%;
-}
-
-.app-index-search-box.active {
-  top: 0;
+  font-family: MontserratEB, sans-serif;
 }
 
 .close-index-search-btn {
-  flex-basis: 30%;
-  outline: none;
-  border: none;
-  background: transparent;
+  flex: 0 0 auto;
 }
+
 .close-index-search-btn svg {
   fill: #000;
-  height: 30px;
   width: 30px;
+  height: 30px;
 }
 
 /*************** date opt ui *****************/
-.date-wrapper{
+.date-wrapper {
   width: 100%;
-  padding:10px 20px;
-  overflow:hidden;
-  position:relative;
+  padding: 10px 20px;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
 }
 
-.date-scroll{
-  display:flex;
-  gap:18px;
-  overflow-x:auto;
-  scroll-behavior:smooth;
-  padding-bottom:10px;
+.date-scroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 10px;
 }
 
-.date-scroll::-webkit-scrollbar{
-  display:none;
+.date-scroll::-webkit-scrollbar {
+  display: none;
 }
 
-.date-card{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  user-select:none;
-  transition:0.35s ease;
-  animation:fadeIn .5s ease;
+.date-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: 0.35s ease;
+  animation: fadeIn 0.5s ease;
 }
 
-.day-name{
-  color:rgba(255,255,255,0.75);
-  font-size:12px;
-  margin-bottom:13px;
-  font-weight:500;
-  transition:0.3s;
-  font-family: MontserratEB;
+.day-name {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  margin-bottom: 13px;
+  font-weight: 500;
+  transition: 0.3s;
+  font-family: MontserratEB, sans-serif;
 }
 
-.date-circle{
+.date-circle {
   width: 35px;
-  height:35px;
-  border-radius:50%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:rgba(255,255,255,0.12);
-  color:#fff;
-  font-size:17px;
-  font-weight:700;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
   transition:
-    transform .35s cubic-bezier(.34,1.56,.64,1),
-    background .3s,
-    color .3s,
-    box-shadow .35s;
-    font-family: MontserratEB;
+    transform 0.35s cubic-bezier(.34,1.56,.64,1),
+    background 0.3s,
+    color 0.3s,
+    box-shadow 0.35s;
+  font-family: MontserratEB, sans-serif;
 }
 
-.date-card.active .date-circle{
-  background:#fff;
-  color:var(--app-primary-color);
-  transform:scale(1.12);
+.date-card.active .date-circle {
+  background: #fff;
+  color: var(--app-primary-color);
+  transform: scale(1.12);
 }
 
-.date-card.active .day-name{
-  color:#fff;
-  font-weight:700;
+.date-card.active .day-name {
+  color: #fff;
+  font-weight: 700;
 }
 
-
-.date-card:hover .date-circle{
-  transform:translateY(-4px);
+.date-card:hover .date-circle {
+  transform: translateY(-4px);
 }
 
-.date-card.active:hover .date-circle{
-  transform:scale(1.12) translateY(-2px);
+.date-card.active:hover .date-circle {
+  transform: scale(1.12) translateY(-2px);
 }
 
-
-@keyframes fadeIn{
-  from{
-    opacity:0;
-    transform:translateY(20px);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  to{
-    opacity:1;
-    transform:translateY(0);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+/* Bottom nav should stay fixed and never affect page flow */
+.bottom-navigation-wrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.bottom-nav {
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  background: var(--nav-bg);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}:root {
+  --nav-active: var(--app-primary-color);
+  --nav-color: #6b7280;
+  --nav-bg: #ffffff;
+  --app-primary-color: #d50000;
+
+  --top-nav-height: 112px;
+  --bottom-nav-height: 70px;
+}
+
+html,
+body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  background: #f5f6fa;
+}
+
+/* App shell */
+#root {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* Reserve space so fixed bars do not cover content */
+#main-page {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  padding-top: calc(var(--top-nav-height) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
+}
+
+/********* app top nav ui ************/
+.app-top-nav-menu-layout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--app-primary-color);
+  border-bottom-right-radius: 20px;
+  border-bottom-left-radius: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  padding-top: env(safe-area-inset-top);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.app-top-nav-menu-layout-sec-one {
+  width: 100%;
+  padding: 12px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.right-end-nav-btns {
+  position: absolute;
+  right: 12px;
+  top: calc(env(safe-area-inset-top) + 12px);
+}
+
+.user-profile-img,
+.app-more-nav-hamburger-menu,
+.search-app-btn,
+.close-index-search-btn {
+  background: transparent;
+  outline: none;
+  border: none;
+}
+
+.user-profile-img,
+.app-more-nav-hamburger-menu,
+.search-app-btn {
+  color: #fff;
+}
+
+.user-profile-img svg,
+.app-more-nav-hamburger-menu svg,
+.search-app-btn svg {
+  width: 30px;
+  height: 30px;
+}
+
+.search-app-btn {
+  position: absolute;
+  left: 12px;
+  top: calc(env(safe-area-inset-top) + 12px);
+}
+
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s ease;
+  z-index: 998;
+}
+
+.search-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.search-input-box {
+  display: flex;
+  width: 100%;
+}
+
+.app-index-search-box {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 16px;
+  display: flex;
+  gap: 10px;
+  transition: transform 0.35s ease;
+  z-index: 999;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.app-index-search-box.active {
+  transform: translate(-50%, 0);
+}
+
+.app-index-search-box input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  font-family: MontserratEB, sans-serif;
+}
+
+.close-index-search-btn {
+  flex: 0 0 auto;
+}
+
+.close-index-search-btn svg {
+  fill: #000;
+  width: 30px;
+  height: 30px;
+}
+
+/*************** date opt ui *****************/
+.date-wrapper {
+  width: 100%;
+  padding: 10px 20px;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.date-scroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 10px;
+}
+
+.date-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.date-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: 0.35s ease;
+  animation: fadeIn 0.5s ease;
+}
+
+.day-name {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  margin-bottom: 13px;
+  font-weight: 500;
+  transition: 0.3s;
+  font-family: MontserratEB, sans-serif;
+}
+
+.date-circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  transition:
+    transform 0.35s cubic-bezier(.34,1.56,.64,1),
+    background 0.3s,
+    color 0.3s,
+    box-shadow 0.35s;
+  font-family: MontserratEB, sans-serif;
+}
+
+.date-card.active .date-circle {
+  background: #fff;
+  color: var(--app-primary-color);
+  transform: scale(1.12);
+}
+
+.date-card.active .day-name {
+  color: #fff;
+  font-weight: 700;
+}
+
+.date-card:hover .date-circle {
+  transform: translateY(-4px);
+}
+
+.date-card.active:hover .date-circle {
+  transform: scale(1.12) translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Bottom nav should stay fixed and never affect page flow */
+.bottom-navigation-wrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.bottom-nav {
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  background: var(--nav-bg);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 
