@@ -14,8 +14,8 @@ html.pwa-standalone #root {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  border-top-right-radius: 10px;
-  border-top-left-radius: 10px;
+  border-top-right-radius: 15px;
+  border-top-left-radius: 15px;
 }
 
 html.pwa-standalone .ptr-wrapper {
