@@ -19,10 +19,21 @@ const routes = {
 const loader = document.getElementById("page-loader");
 const mainPage = document.getElementById("main-page");
 
-const pageCache = new Map();
-
 let navigationToken = 0;
 let currentPath = normalizePath(window.location.pathname);
+
+const HOME_ROUTE = "/overview";
+
+/* routes that should fall back to HOME on first back in standalone mode */
+const HOME_FALLBACK_ROUTES = new Set([
+  "/notifications",
+  "/leagues",
+  "/vip-tips",
+  "/predictions",
+  "/next-world-cup-count-downs",
+  "/profile",
+  "/favourites"
+]);
 
 /* ==========================
    Loader
@@ -68,22 +79,67 @@ function waitForStylesheets() {
 }
 
 /* ==========================
+   PWA helpers
+========================== */
+
+function isStandalonePWA() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches ||
+    window.navigator.standalone === true ||
+    document.referrer.startsWith("android-app://")
+  );
+}
+
+function shouldSeedHomeBackStack(path) {
+  const cleanPath = normalizePath(path);
+
+  if (!isStandalonePWA()) return false;
+  if (cleanPath === HOME_ROUTE) return false;
+  if (cleanPath.startsWith("/league-page/")) return false;
+
+  return HOME_FALLBACK_ROUTES.has(cleanPath);
+}
+
+function seedHomeBackStack(path) {
+  const cleanPath = normalizePath(path);
+
+  if (!shouldSeedHomeBackStack(cleanPath)) return;
+
+  const state = history.state || {};
+
+  if (state.__homeSeeded) return;
+
+  /* Put HOME behind the current page in history */
+  history.replaceState(
+    { path: HOME_ROUTE, __homeSeeded: true },
+    "",
+    HOME_ROUTE
+  );
+
+  history.pushState(
+    { path: cleanPath, __homeSeeded: true },
+    "",
+    cleanPath
+  );
+}
+
+/* ==========================
    Path helpers
 ========================== */
 
 function normalizePath(path) {
-  if (!path) return "/overview";
+  if (!path) return HOME_ROUTE;
 
   try {
     const url = new URL(path, location.origin);
     let clean = url.pathname.replace(/\/+$/, "") || "/";
 
-    if (clean === "/") return "/overview";
-
+    if (clean === "/") return HOME_ROUTE;
     return clean;
   } catch {
     const clean = String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
-    return clean === "/" ? "/overview" : clean;
+    return clean === "/" ? HOME_ROUTE : clean;
   }
 }
 
@@ -103,28 +159,14 @@ function isLeaguePage(path) {
 }
 
 /* ==========================
-   Navigation state
-========================== */
-
-function setCurrentPath(path) {
-  currentPath = normalizePath(path);
-  window.__currentRoute = currentPath;
-}
-
-function getCurrentPath() {
-  return currentPath;
-}
-
-/* ==========================
    Bottom Navigation
 ========================== */
 
 function updateActiveNav() {
-  const current = normalizePath(currentPath || window.location.pathname);
+  const current = normalizePath(currentPath);
 
   document.querySelectorAll(".bottom-nav .nav-item[href]").forEach((link) => {
     const href = link.getAttribute("href");
-
     if (!href || href.startsWith("#") || href.startsWith("http")) return;
 
     const linkPath = normalizePath(new URL(href, location.origin).pathname);
@@ -145,10 +187,6 @@ function updateActiveNav() {
 async function loadPage(path, forceReload = false) {
   const page = resolveRoute(path);
 
-  if (!forceReload && pageCache.has(page)) {
-    return pageCache.get(page);
-  }
-
   const response = await fetch(page, {
     cache: forceReload ? "reload" : "default"
   });
@@ -157,19 +195,7 @@ async function loadPage(path, forceReload = false) {
     throw new Error(`Failed to load ${page}`);
   }
 
-  const html = await response.text();
-  pageCache.set(page, html);
-
-  return html;
-}
-
-/* ==========================
-   Render
-========================== */
-
-function renderPage(html) {
-  if (!mainPage) return;
-  mainPage.innerHTML = html;
+  return await response.text();
 }
 
 /* ==========================
@@ -179,9 +205,7 @@ function renderPage(html) {
 function dispatchPageLoaded(path) {
   document.dispatchEvent(
     new CustomEvent("pageLoaded", {
-      detail: {
-        path: normalizePath(path)
-      }
+      detail: { path: normalizePath(path) }
     })
   );
 }
@@ -189,9 +213,7 @@ function dispatchPageLoaded(path) {
 function dispatchPageRefreshed(path) {
   document.dispatchEvent(
     new CustomEvent("pageRefreshed", {
-      detail: {
-        path: normalizePath(path)
-      }
+      detail: { path: normalizePath(path) }
     })
   );
 }
@@ -212,7 +234,7 @@ async function navigate(path, pushHistory = true, forceReload = false) {
     if (token !== navigationToken) return;
     if (!mainPage) return;
 
-    renderPage(html);
+    mainPage.innerHTML = html;
 
     if (pushHistory) {
       history.pushState({ path: targetPath }, "", targetPath);
@@ -220,19 +242,19 @@ async function navigate(path, pushHistory = true, forceReload = false) {
       history.replaceState({ path: targetPath }, "", targetPath);
     }
 
-    setCurrentPath(targetPath);
+    currentPath = targetPath;
     updateActiveNav();
     dispatchPageLoaded(targetPath);
   } catch (err) {
     console.error(err);
 
     if (mainPage) {
-      renderPage(`
+      mainPage.innerHTML = `
         <section class="page-error">
           <h1>404</h1>
           <p>Page not found.</p>
         </section>
-      `);
+      `;
     }
   } finally {
     if (token === navigationToken) {
@@ -246,13 +268,13 @@ async function navigate(path, pushHistory = true, forceReload = false) {
 ========================== */
 
 async function refreshCurrentPage() {
-  const path = getCurrentPath();
+  const path = normalizePath(currentPath);
   await navigate(path, false, true);
   dispatchPageRefreshed(path);
 }
 
 /* ==========================
-   Link routing
+   Link Routing
 ========================== */
 
 document.addEventListener("click", (e) => {
@@ -263,12 +285,11 @@ document.addEventListener("click", (e) => {
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
 
   const url = new URL(link.href, location.origin);
-
   if (url.origin !== location.origin) return;
 
   const path = normalizePath(url.pathname);
 
-  if (path === getCurrentPath()) {
+  if (path === normalizePath(currentPath)) {
     e.preventDefault();
     return;
   }
@@ -278,11 +299,12 @@ document.addEventListener("click", (e) => {
 });
 
 /* ==========================
-   Back / Forward
+   Browser Back/Forward
 ========================== */
 
-window.addEventListener("popstate", () => {
-  navigate(window.location.pathname, false, false);
+window.addEventListener("popstate", (e) => {
+  const path = normalizePath(e.state?.path || window.location.pathname);
+  navigate(path, false, false);
 });
 
 /* ==========================
@@ -308,7 +330,7 @@ window.route = function (event) {
 
   const path = normalizePath(url.pathname);
 
-  if (path === getCurrentPath()) return;
+  if (path === normalizePath(currentPath)) return;
 
   navigate(path);
 };
@@ -316,14 +338,28 @@ window.route = function (event) {
 window.router = {
   navigate,
   refreshCurrentPage,
-  getCurrentPath
+  getCurrentPath: () => normalizePath(currentPath)
 };
 
 /* ==========================
-   Initial page
+   Initial Page
 ========================== */
 
 (async () => {
   await waitForStylesheets();
-  await navigate(window.location.pathname, false, false);
+
+  const initialPath = normalizePath(window.location.pathname);
+
+  seedHomeBackStack(initialPath);
+
+  currentPath = normalizePath(window.location.pathname);
+  await navigate(currentPath, false, false);
 })();
+
+The important part is "seedHomeBackStack()". That is what gives you the native-feeling PWA back behavior without breaking nested routes like league detail pages.
+
+In "pwa.js", keep calling:
+
+initPullToRefresh(async () => {
+  await window.router.refreshCurrentPage();
+});
