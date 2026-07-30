@@ -228,6 +228,11 @@ window.addEventListener("popstate", () => {
   navigate(window.location.pathname, false);
 });
 
+
+async function refreshCurrentPage() {
+  return navigate(window.location.pathname, false);
+}
+
 /* ==========================
    Initial Page
 ========================== */

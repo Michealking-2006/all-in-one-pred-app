@@ -9,10 +9,10 @@ function isStandalonePWA() {
 
 function initPullToRefresh(onRefresh, options = {}) {
   const root = options.root || document.querySelector("#root");
-  const content = options.content || document.querySelector("#main-page");
+  const wrapper = options.wrapper || document.querySelector(".ptr-wrapper");
   const indicator = options.indicator || document.querySelector(".ptr-indicator");
   
-  if (!root || !content || !indicator) return;
+  if (!root || !wrapper || !indicator) return;
   
   let startY = 0;
   let currentY = 0;
@@ -24,12 +24,7 @@ function initPullToRefresh(onRefresh, options = {}) {
   const TRIGGER = 85;
   const START_ZONE = 90;
   
-  const getScrollTop = () => {
-    return window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0;
-  };
+  const getScrollTop = () => root.scrollTop;
   
   const ease = (distance) => {
     if (distance <= 0) return 0;
@@ -37,8 +32,8 @@ function initPullToRefresh(onRefresh, options = {}) {
   };
   
   const resetVisuals = () => {
-    content.style.transform = "";
-    content.classList.remove("dragging");
+    wrapper.style.transform = "";
+    wrapper.classList.remove("dragging");
     indicator.classList.remove("active", "loading");
     indicator.style.transform = "";
   };
@@ -54,7 +49,7 @@ function initPullToRefresh(onRefresh, options = {}) {
     currentY = y;
     pulling = true;
     triggered = false;
-    content.classList.add("dragging");
+    wrapper.classList.add("dragging");
   }, { passive: true });
   
   root.addEventListener("touchmove", (e) => {
@@ -64,7 +59,6 @@ function initPullToRefresh(onRefresh, options = {}) {
     const distance = currentY - startY;
     
     if (distance <= 0) return;
-    
     if (getScrollTop() > 0) {
       pulling = false;
       resetVisuals();
@@ -76,7 +70,7 @@ function initPullToRefresh(onRefresh, options = {}) {
     
     const pull = ease(distance);
     
-    content.style.transform = `translate3d(0, ${pull}px, 0)`;
+    wrapper.style.transform = `translate3d(0, ${pull}px, 0)`;
     indicator.classList.add("active");
     indicator.style.transform = `translate(-50%, ${Math.min(pull - 70, 20)}px)`;
   }, { passive: false });
@@ -85,14 +79,14 @@ function initPullToRefresh(onRefresh, options = {}) {
     if (!pulling) return;
     
     pulling = false;
-    content.classList.remove("dragging");
+    wrapper.classList.remove("dragging");
     
     const distance = currentY - startY;
     
     if (triggered && distance >= TRIGGER && !refreshing) {
       refreshing = true;
       indicator.classList.add("loading");
-      content.style.transform = "translate3d(0, 70px, 0)";
+      wrapper.style.transform = "translate3d(0, 70px, 0)";
       
       try {
         await Promise.resolve(onRefresh && onRefresh());
@@ -112,11 +106,11 @@ function initPullToRefresh(onRefresh, options = {}) {
     currentY = 0;
     triggered = false;
   }, { passive: true });
+  initPullToRefresh(refreshCurrentPage);
 }
 
 if (isStandalonePWA()) {
   document.documentElement.classList.add("pwa-standalone");
-  
   initPullToRefresh(async () => {
     await refreshData();
   });
