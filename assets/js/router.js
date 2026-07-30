@@ -5,8 +5,6 @@ const REQUIRED_CSS = [
 
 const HOME_ROUTE = "/overview";
 
-/* Routes that should fall back to HOME in standalone mode
-   when the app is opened directly on them. */
 const HOME_BACK_ROUTES = new Set([
   "/notifications",
   "/leagues",
@@ -62,13 +60,13 @@ function isStandalonePWA() {
 }
 
 /* ==========================
-   CSS readiness
+   Wait for required CSS
 ========================== */
 
 function waitForStylesheets() {
   const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
 
-  const requiredLinks = links.filter((link) => {
+  const requiredLinks = links.filter(link => {
     try {
       const pathname = new URL(link.href, location.origin).pathname;
       return REQUIRED_CSS.includes(pathname);
@@ -78,8 +76,8 @@ function waitForStylesheets() {
   });
 
   return Promise.all(
-    requiredLinks.map((link) => {
-      return new Promise((resolve) => {
+    requiredLinks.map(link => {
+      return new Promise(resolve => {
         if (link.sheet) {
           resolve();
           return;
@@ -93,7 +91,7 @@ function waitForStylesheets() {
 }
 
 /* ==========================
-   Path helpers
+   Route helpers
 ========================== */
 
 function normalizePath(path) {
@@ -104,10 +102,7 @@ function normalizePath(path) {
     const clean = url.pathname.replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   } catch {
-    const clean = String(path)
-      .split("?")[0]
-      .split("#")[0]
-      .replace(/\/+$/, "") || "/";
+    const clean = String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   }
 }
@@ -121,11 +116,6 @@ function isLeaguePage(path) {
   );
 }
 
-function isNestedRoute(path) {
-  const cleanPath = normalizePath(path);
-  return isLeaguePage(cleanPath);
-}
-
 function resolveRoute(path) {
   const cleanPath = normalizePath(path);
 
@@ -137,35 +127,35 @@ function resolveRoute(path) {
 }
 
 /* ==========================
-   History helpers
+   PWA back stack seeding
 ========================== */
 
-function isRouteThatShouldBackToHome(path) {
+function shouldSeedHomeBackStack(path) {
   const cleanPath = normalizePath(path);
 
   if (!isStandalonePWA()) return false;
   if (cleanPath === HOME_ROUTE) return false;
-  if (isNestedRoute(cleanPath)) return false;
+  if (isLeaguePage(cleanPath)) return false;
 
   return HOME_BACK_ROUTES.has(cleanPath);
 }
 
-function seedHomeBackStack(path) {
-  const cleanPath = normalizePath(path);
+function seedHomeBackStack(initialPath) {
+  const cleanPath = normalizePath(initialPath);
 
-  if (!isRouteThatShouldBackToHome(cleanPath)) return;
+  if (!shouldSeedHomeBackStack(cleanPath)) return;
 
   const state = history.state || {};
-  if (state.__seededHomeStack) return;
+  if (state.__pwaSeeded) return;
 
   history.replaceState(
-    { path: HOME_ROUTE, __seededHomeStack: true },
+    { path: HOME_ROUTE, __pwaSeeded: true },
     "",
     HOME_ROUTE
   );
 
   history.pushState(
-    { path: cleanPath, __seededHomeStack: true },
+    { path: cleanPath, __pwaSeeded: true },
     "",
     cleanPath
   );
@@ -178,8 +168,9 @@ function seedHomeBackStack(path) {
 function updateActiveNav() {
   const current = normalizePath(currentPath);
 
-  document.querySelectorAll(".bottom-nav .nav-item[href]").forEach((link) => {
+  document.querySelectorAll(".bottom-nav .nav-item[href]").forEach(link => {
     const href = link.getAttribute("href");
+
     if (!href || href.startsWith("#") || href.startsWith("http")) return;
 
     const linkPath = normalizePath(new URL(href, location.origin).pathname);
@@ -191,24 +182,6 @@ function updateActiveNav() {
     link.classList.toggle("active", active);
     link.querySelector("svg")?.classList.toggle("active", active);
   });
-}
-
-/* ==========================
-   Load HTML
-========================== */
-
-async function loadPage(path, forceReload = false) {
-  const page = resolveRoute(path);
-
-  const response = await fetch(page, {
-    cache: forceReload ? "reload" : "default"
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to load ${page}`);
-  }
-
-  return await response.text();
 }
 
 /* ==========================
@@ -232,7 +205,25 @@ function dispatchPageRefreshed(path) {
 }
 
 /* ==========================
-   Core render
+   Load HTML
+========================== */
+
+async function loadPage(path, forceReload = false) {
+  const page = resolveRoute(path);
+
+  const response = await fetch(page, {
+    cache: forceReload ? "reload" : "default"
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load ${page}`);
+  }
+
+  return await response.text();
+}
+
+/* ==========================
+   Render
 ========================== */
 
 async function renderRoute(path, { updateHistory = true, pushHistory = true, forceReload = false } = {}) {
@@ -303,18 +294,23 @@ async function refreshCurrentPage() {
   dispatchPageRefreshed(path);
 }
 
+function goBack() {
+  history.back();
+}
+
 /* ==========================
    Link routing
 ========================== */
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", e => {
   const link = e.target.closest("a[href]");
-  if (!link) return;
 
+  if (!link) return;
   if (link.target === "_blank" || link.hasAttribute("download")) return;
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
 
   const url = new URL(link.href, location.origin);
+
   if (url.origin !== location.origin) return;
 
   const path = normalizePath(url.pathname);
@@ -329,10 +325,10 @@ document.addEventListener("click", (e) => {
 });
 
 /* ==========================
-   Back / Forward
+   Browser Back/Forward
 ========================== */
 
-window.addEventListener("popstate", (e) => {
+window.addEventListener("popstate", e => {
   const path = normalizePath(e.state?.path || window.location.pathname);
   renderRoute(path, {
     updateHistory: false,
@@ -342,10 +338,10 @@ window.addEventListener("popstate", (e) => {
 });
 
 /* ==========================
-   Global helpers
+   Global API
 ========================== */
 
-window.route = function (event) {
+window.route = function(event) {
   event = event || window.event;
 
   if (event) {
@@ -372,11 +368,12 @@ window.route = function (event) {
 window.router = {
   navigate,
   refreshCurrentPage,
+  goBack,
   getCurrentPath: () => normalizePath(currentPath)
 };
 
 /* ==========================
-   Initial load
+   Initial Page
 ========================== */
 
 (async () => {
