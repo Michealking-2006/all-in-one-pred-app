@@ -1,0 +1,89 @@
+html.pwa-standalone {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.pwa-standalone body {
+  margin: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+/* Keep the app shell normal */
+html.pwa-standalone #root {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* Pull only the page content, not the nav */
+html.pwa-standalone #root > :not(.bottom-nav) {
+  position: relative;
+  width: 100%;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  transition: transform 0.28s cubic-bezier(.22, .61, .36, 1);
+}
+
+html.pwa-standalone #root > :not(.bottom-nav).dragging {
+  transition: none;
+}
+
+/* Keep bottom nav fixed and stable */
+html.pwa-standalone .bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70px;
+  background: var(--nav-bg);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Indicator */
+html.pwa-standalone .ptr-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -90px);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .08);
+  z-index: 999999;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease;
+}
+
+html.pwa-standalone .ptr-indicator.active {
+  opacity: 1;
+  transform: translate(-50%, 16px);
+}
+
+html.pwa-standalone .ptr-spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 0, 0, .15);
+  border-top-color: #0d6efd;
+}
+
+html.pwa-standalone .ptr-indicator.loading .ptr-spinner {
+  animation: ptr-spin .75s linear infinite;
+}
+
+@keyframes ptr-spin {
+  to { transform: rotate(360deg); }
+}
