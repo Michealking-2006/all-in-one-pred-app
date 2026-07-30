@@ -5,6 +5,8 @@ const REQUIRED_CSS = [
 
 const HOME_ROUTE = "/overview";
 
+/* Only these top-level pages should go HOME first when the app
+   is opened directly in standalone mode. */
 const HOME_BACK_ROUTES = new Set([
   "/notifications",
   "/leagues",
@@ -47,7 +49,7 @@ function hideLoader() {
 }
 
 /* ==========================
-   Standalone detection
+   PWA mode
 ========================== */
 
 function isStandalonePWA() {
@@ -127,7 +129,7 @@ function resolveRoute(path) {
 }
 
 /* ==========================
-   PWA back stack seeding
+   Home-back seeding
 ========================== */
 
 function shouldSeedHomeBackStack(path) {
@@ -144,18 +146,21 @@ function seedHomeBackStack(initialPath) {
   const cleanPath = normalizePath(initialPath);
 
   if (!shouldSeedHomeBackStack(cleanPath)) return;
+  if (window.__pwaHomeBackSeeded) return;
 
-  const state = history.state || {};
-  if (state.__pwaSeeded) return;
+  window.__pwaHomeBackSeeded = true;
 
+  /* History becomes:
+     [HOME_ROUTE, initialPath]
+     so first back goes home, second back exits. */
   history.replaceState(
-    { path: HOME_ROUTE, __pwaSeeded: true },
+    { path: HOME_ROUTE, __pwaHomeSeed: true },
     "",
     HOME_ROUTE
   );
 
   history.pushState(
-    { path: cleanPath, __pwaSeeded: true },
+    { path: cleanPath, __pwaHomeSeed: true },
     "",
     cleanPath
   );
@@ -185,6 +190,24 @@ function updateActiveNav() {
 }
 
 /* ==========================
+   Load HTML
+========================== */
+
+async function loadPage(path, forceReload = false) {
+  const page = resolveRoute(path);
+
+  const response = await fetch(page, {
+    cache: forceReload ? "reload" : "default"
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load ${page}`);
+  }
+
+  return await response.text();
+}
+
+/* ==========================
    Events
 ========================== */
 
@@ -202,24 +225,6 @@ function dispatchPageRefreshed(path) {
       detail: { path: normalizePath(path) }
     })
   );
-}
-
-/* ==========================
-   Load HTML
-========================== */
-
-async function loadPage(path, forceReload = false) {
-  const page = resolveRoute(path);
-
-  const response = await fetch(page, {
-    cache: forceReload ? "reload" : "default"
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to load ${page}`);
-  }
-
-  return await response.text();
 }
 
 /* ==========================
@@ -285,6 +290,7 @@ async function navigate(path, pushHistory = true, forceReload = false) {
 
 async function refreshCurrentPage() {
   const path = normalizePath(currentPath);
+
   await renderRoute(path, {
     updateHistory: false,
     pushHistory: false,
@@ -330,6 +336,7 @@ document.addEventListener("click", e => {
 
 window.addEventListener("popstate", e => {
   const path = normalizePath(e.state?.path || window.location.pathname);
+
   renderRoute(path, {
     updateHistory: false,
     pushHistory: false,
