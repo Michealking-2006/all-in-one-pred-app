@@ -1,27 +1,22 @@
-html.pwa-standalone,
+
+html.pwa-standalone {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 html.pwa-standalone body {
   margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
 }
 
+/* Keep your normal page scrolling. Do NOT force overflow hidden here. */
 html.pwa-standalone #root {
   width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  border-top-right-radius: 15px;
-  border-top-left-radius: 15px;
 }
 
+/* Pull wrapper */
 html.pwa-standalone .ptr-wrapper {
   position: relative;
   width: 100%;
-  min-height: 100%;
   transform: translate3d(0, 0, 0);
   will-change: transform;
   transition: transform 0.28s cubic-bezier(.22, .61, .36, 1);
@@ -31,6 +26,7 @@ html.pwa-standalone .ptr-wrapper.dragging {
   transition: none;
 }
 
+/* Indicator */
 html.pwa-standalone .ptr-indicator {
   position: fixed;
   top: 0;
@@ -68,5 +64,7 @@ html.pwa-standalone .ptr-indicator.loading .ptr-spinner {
 }
 
 @keyframes ptr-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
