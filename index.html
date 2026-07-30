@@ -1,26 +1,32 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nexora bet - Football prediction platform</title> 
-  
-  <link rel="stylesheet" href="/assets/css/components.css" />
-  <link rel="stylesheet" href="/assets/css/index.css" />
+  <title>Nexora bet - Football prediction platform</title>
+
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/index.css">
   <link rel="stylesheet" href="/assets/css/pages.css">
   <link rel="stylesheet" href="/assets/css/pwa.css">
-  
-    <link rel="manifest" href="/manifest.json">
+
+  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#d60000">
 
+  <meta name="description" content="">
+  <link rel="canonical" href="">
 
-   <meta name="description" content="">
-  <link rel="canonical" href="">  <meta property="og:type" content="website">
+  <meta property="og:type" content="website">
   <meta property="og:url" content="">
   <meta property="og:title" content="">
   <meta property="og:description" content="">
-  <meta property="og:image" content="">  <link href="/favicons/favicon.png" rel="icon" sizes="48x48">
+  <meta property="og:image" content="">
+
+  <link href="/favicons/favicon.png" rel="icon" sizes="48x48">
   <link href="/favicons/favicon-128.png" rel="icon" sizes="128x128">
-  <link href="/favicons/favicon-192.png" rel="icon" sizes="192x192">  <script type="application/ld+json">
+  <link href="/favicons/favicon-192.png" rel="icon" sizes="192x192">
+
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
@@ -34,95 +40,80 @@
         "url": ""
       }
     }
-  </script></head><body>
-    
-    <div class="ptr-indicator">
-  <div class="ptr-spinner"></div>
-</div>
+  </script>
+</head>
 
+<body>
 
-  <div class="ptr-wrapper" id="root"><div id="page-loader" class="page-loader hidden">
-  <div class="loader">
-    <div class="bar1"></div>
-    <div class="bar2"></div>
-    <div class="bar3"></div>
-    <div class="bar4"></div>
-    <div class="bar5"></div>
-    <div class="bar6"></div>
-    <div class="bar7"></div>
-    <div class="bar8"></div>
-    <div class="bar9"></div>
-    <div class="bar10"></div>
-    <div class="bar11"></div>
-    <div class="bar12"></div>
+  <div class="ptr-indicator" aria-hidden="true">
+    <div class="ptr-spinner"></div>
   </div>
-</div>
 
-<!--<div class="loader-app">
-  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 1024 1024">
-  <path fill="currentColor" d="M512 1024q-104 0-199-40.5t-163.5-109T40.5 711T0 512t40.5-199t109-163.5T313 40.5T512 0t199 40.5t163.5 109t109 163.5t40.5 199t-40.5 199t-109 163.5t-163.5 109t-199 40.5zm354-785q-69-90-175-137l-179 90l-179-90q-106 47-176 137l35 17v192L66 543q8 123 79 225h175l64 160v13q63 19 128 19t128-19v-13l64-160h175q71-102 79-225l-126-95V256zM413 639l-61-177l160-110l160 110l-61 177H413z" />
-</svg>
-</div>-->
+  <div id="root">
+    <div id="page-loader" class="page-loader hidden">
+      <div class="loader">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+        <div class="bar4"></div>
+        <div class="bar5"></div>
+        <div class="bar6"></div>
+        <div class="bar7"></div>
+        <div class="bar8"></div>
+        <div class="bar9"></div>
+        <div class="bar10"></div>
+        <div class="bar11"></div>
+        <div class="bar12"></div>
+      </div>
+    </div>
 
-<section class="bottom-navigation-wrapper">
-  <nav class="bottom-nav">
-    <a onclick="route(event)" href="/overview" class="nav-item active">
-      <svg class="active" xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 12 12">
-        <path fill="currentColor" d="M5.37 1.222a1 1 0 0 1 1.26 0l3.814 3.09A1.5 1.5 0 0 1 11 5.476V10a1 1 0 0 1-1 1H8.5a1 1 0 0 1-1-1V7.5A.5.5 0 0 0 7 7H5a.5.5 0 0 0-.5.5V10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5.477a1.5 1.5 0 0 1 .556-1.166l3.815-3.089Z" />
-      </svg>
-      <span>Home</span>
-    </a>
+    <div id="main-page"></div>
+  </div>
 
-    <a onclick="route(event)" href="/predictions" class="nav-item">
-      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 1024 960">
-        <path fill="currentColor" d="M928 512q-12 0-47-16t-76-32t-69-16q-26 0-58 16.5t-64 40t-66.5 47t-77.5 40t-86 16.5q-52 0-90-25.5T256 512q0-33 21.5-57.5t52-37.5t72.5-20.5t75-9.5t67-2v-1q-13 0-22.5-9.5T512 352t9.5-22.5T544 320q-182 0-273 63q-3 2-22 15.5T225 415t-22.5 12t-30 12t-33 6t-43.5 3q-45 0-70.5-38T0 320q0-70 44-131T160 87.5t164-64T512 0q139 0 257 51.5t186.5 140T1024 384q0 45-26 86.5T928 512zM462 640l114-32q0-25 65-60.5t95-35.5q66 0 113 33t47 63q0 25-65 60.5T736 704q-22 0-27 48t-5 208h-64q0-50-59-141T472 704q-12-6-19.5-21.5t-5-29T462 640z" />
-      </svg>
-      <span>Predictions</span>
-    </a>
+  <section class="bottom-navigation-wrapper">
+    <nav class="bottom-nav">
+      <a onclick="route(event)" href="/overview" class="nav-item active">
+        <svg class="active" xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 12 12">
+          <path fill="currentColor" d="M5.37 1.222a1 1 0 0 1 1.26 0l3.814 3.09A1.5 1.5 0 0 1 11 5.476V10a1 1 0 0 1-1 1H8.5a1 1 0 0 1-1-1V7.5A.5.5 0 0 0 7 7H5a.5.5 0 0 0-.5.5V10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5.477a1.5 1.5 0 0 1 .556-1.166l3.815-3.089Z" />
+        </svg>
+        <span>Home</span>
+      </a>
 
-    <a onclick="route(event)" href="/leagues" class="nav-item">
-      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-        <path fill="currentColor" d="M321.8 54.1L298.2 6.3c-3.9-8.3-16.1-8.6-20.4 0l-23.6 47.8l-52.3 7.5c-9.3 1.4-13.3 12.9-6.4 19.8l38 37l-9 52.1c-1.4 9.3 8.2 16.5 16.8 12.2l46.9-24.8l46.6 24.4c8.6 4.3 18.3-2.9 16.8-12.2l-9-52.1l38-36.6c6.8-6.8 2.9-18.3-6.4-19.8l-52.3-7.5zM256 256c-26.5 0-48 21.5-48 48v160c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48zM48 320c-26.5 0-48 21.5-48 48v96c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48v-96c0-26.5-21.5-48-48-48zm368 112v32c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48v-32c0-26.5-21.5-48-48-48h-64c-26.5 0-48 21.5-48 48" />
-      </svg>
-      <span>Leagues</span>
-    </a>
+      <a onclick="route(event)" href="/predictions" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 1024 960">
+          <path fill="currentColor" d="M928 512q-12 0-47-16t-76-32t-69-16q-26 0-58 16.5t-64 40t-66.5 47t-77.5 40t-86 16.5q-52 0-90-25.5T256 512q0-33 21.5-57.5t52-37.5t72.5-20.5t75-9.5t67-2v-1q-13 0-22.5-9.5T512 352t9.5-22.5T544 320q-182 0-273 63q-3 2-22 15.5T225 415t-22.5 12t-30 12t-33 6t-43.5 3q-45 0-70.5-38T0 320q0-70 44-131T160 87.5t164-64T512 0q139 0 257 51.5t186.5 140T1024 384q0 45-26 86.5T928 512zM462 640l114-32q0-25 65-60.5t95-35.5q66 0 113 33t47 63q0 25-65 60.5T736 704q-22 0-27 48t-5 208h-64q0-50-59-141T472 704q-12-6-19.5-21.5t-5-29T462 640z" />
+        </svg>
+        <span>Predictions</span>
+      </a>
 
-    <a onclick="route(event)" href="/vip-tips" class="nav-item">
-      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 17 16">
-        <path fill="currentColor" fill-rule="evenodd" d="M14.849 9.245c-.417-.518-2.513-2.1-1.658-4.219c0 0-1.908.725-1.149 2.953c-.35-.496-3.318-1.616-3.04-7.85c0 0-4.912 2.954-4.912 7.059c0 0 0 3.256 1.974 4.799c0 0-2.616-.43-3.317-4.557c-.176.494-4.756 5.288 1.74 8.446l3.489.083h3.351s7.372-2.493 3.522-6.714z" />
-      </svg>
-      <span>Vip tips</span>
-    </a>
-  </nav>
-</section>
+      <a onclick="route(event)" href="/leagues" class="nav-item">
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+          <path fill="currentColor" d="M321.8 54.1L298.2 6.3c-3.9-8.3-16.1-8.6-20.4 0l-23.6 47.8l-52.3 7.5c-9.3 1.4-13.3 12.9-6.4 19.8l38 37l-9 52.1c-1.4 9.3 8.2 16.5 16.8 12.2l46.9-24.8l46.6 24.4c8.6 4.3 18.3-2.9 16.8-12.2l-9-52.1l38-36.6c6.8-6.8 2.9-18.3-6.4-19.8l-52.3-7.5zM256 256c-26.5 0-48 21.5-48 48v160c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48zM48 320c-26.5 0-48 21.5-48 48v96c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48v-96c0-26.5-21.5-48-48-48zm368 112v32c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48v-32c0-26.5-21.5-48-48-48h-64c-26.5 0-48 21.5-48 48" />
+        </svg>
+        <span>Leagues</span>
+      </a>
 
-<div id="main-page"></div>
+      <a onclick="route(event)" href="/vip-tips" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 17 16">
+          <path fill="currentColor" fill-rule="evenodd" d="M14.849 9.245c-.417-.518-2.513-2.1-1.658-4.219c0 0-1.908.725-1.149 2.953c-.35-.496-3.318-1.616-3.04-7.85c0 0-4.912 2.954-4.912 7.059c0 0 0 3.256 1.974 4.799c0 0-2.616-.43-3.317-4.557c-.176.494-4.756 5.288 1.74 8.446l3.489.083h3.351s7.372-2.493 3.522-6.714z" />
+        </svg>
+        <span>Vip tips</span>
+      </a>
+    </nav>
+  </section>
 
-  </div> 
-  
-  <script src="/assets/js/router.js"></script> 
+  <script src="/assets/js/router.js"></script>
   <script src="/assets/js/index.js" type="text/javascript"></script>
-  
   <script src="/assets/js/components.js"></script>
   <script src="/assets/js/pwa.js"></script>
-
-<script  src="./script.js"></script>
-<tag>
-  <!--Tab to edit-->
-</tag>  
-  <script src="/assets/js/leagues.js"></script> 
-
+  <script src="./script.js"></script>
+  <script src="/assets/js/leagues.js"></script>
   <script src="/assets/js/next-world-cups-count-downs.js"></script>
-  
-  <script src="/assets/api/data-org.js"></script>  
-  
+  <script src="/assets/api/data-org.js"></script>
   <script src="/assets/js/league-page.js"></script>
-  
   <script src="/assets/js/service-worker.js"></script>
-  
   <script src="/assets/js/favourites.js"></script>
-  
   <script src="/assets/js/vip-tips.js"></script>
-  
-  </body>
+
+</body>
 </html>
