@@ -1,3 +1,5 @@
+
+
 :root {
   --nav-active: var(--app-primary-color);
   --nav-color: #6b7280;
@@ -52,6 +54,7 @@ body {
   right: 0;
   z-index: 999;
   padding-top: env(safe-area-inset-top);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .app-top-nav-menu-layout-sec-one {
@@ -268,7 +271,15 @@ body {
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
   transform: translateZ(0);
   backface-visibility: hidden;
-}:root {
+}
+
+The important part is "#main-page { padding-top ... padding-bottom ... }". That gives your content room to sit between the fixed top and bottom bars instead of being hidden behind them.
+
+Use the pull-to-refresh transform only on "#main-page", not on "#root".Your layout needs reserved space for the fixed top bar and fixed bottom nav. Right now the page content is starting at the very top, so it slides under those elements and looks “not composed.”
+
+Use this cleaned version for the layout part of your CSS:
+
+:root {
   --nav-active: var(--app-primary-color);
   --nav-color: #6b7280;
   --nav-bg: #ffffff;
