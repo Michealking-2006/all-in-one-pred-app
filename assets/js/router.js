@@ -1,51 +1,7 @@
-document.addEventListener("click", e => {
-  const link = e.target.closest("a[href]");
-  
-  if (!link) return;
-  
-  const url = new URL(link.href, location.origin);
-  
-  if (url.origin !== location.origin) return;
-  
-  e.preventDefault();
-  navigate(url.pathname);
-});
-
-/* ==========================
-   Wait for required CSS
-========================== */
-
 const REQUIRED_CSS = [
   "/assets/css/components.css",
   "/assets/css/index.css"
 ];
-
-function waitForStylesheets() {
-  const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
-  
-  const requiredLinks = links.filter(link => {
-    try {
-      const pathname = new URL(link.href, location.origin).pathname;
-      return REQUIRED_CSS.includes(pathname);
-    } catch {
-      return false;
-    }
-  });
-  
-  return Promise.all(
-    requiredLinks.map(link => {
-      return new Promise(resolve => {
-        if (link.sheet) {
-          resolve();
-          return;
-        }
-        
-        link.addEventListener("load", resolve, { once: true });
-        link.addEventListener("error", resolve, { once: true });
-      });
-    })
-  );
-}
 
 const routes = {
   404: "/pages/404.html",
@@ -63,7 +19,10 @@ const routes = {
 const loader = document.getElementById("page-loader");
 const mainPage = document.getElementById("main-page");
 
+const pageCache = new Map();
+
 let navigationToken = 0;
+let currentPath = normalizePath(window.location.pathname);
 
 /* ==========================
    Loader
@@ -78,24 +37,63 @@ function hideLoader() {
 }
 
 /* ==========================
-   Route helpers
+   CSS readiness
+========================== */
+
+function waitForStylesheets() {
+  const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
+
+  const requiredLinks = links.filter((link) => {
+    try {
+      const pathname = new URL(link.href, location.origin).pathname;
+      return REQUIRED_CSS.includes(pathname);
+    } catch {
+      return false;
+    }
+  });
+
+  return Promise.all(
+    requiredLinks.map((link) => {
+      return new Promise((resolve) => {
+        if (link.sheet) {
+          resolve();
+          return;
+        }
+
+        link.addEventListener("load", resolve, { once: true });
+        link.addEventListener("error", resolve, { once: true });
+      });
+    })
+  );
+}
+
+/* ==========================
+   Path helpers
 ========================== */
 
 function normalizePath(path) {
   if (!path) return "/overview";
-  
-  if (path === "/") return "/overview";
-  
-  return path.replace(/\/+$/, "") || "/";
+
+  try {
+    const url = new URL(path, location.origin);
+    let clean = url.pathname.replace(/\/+$/, "") || "/";
+
+    if (clean === "/") return "/overview";
+
+    return clean;
+  } catch {
+    const clean = String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+    return clean === "/" ? "/overview" : clean;
+  }
 }
 
 function resolveRoute(path) {
   const cleanPath = normalizePath(path);
-  
+
   if (cleanPath.startsWith("/league-page/")) {
     return routes["/league-page"];
   }
-  
+
   return routes[cleanPath] || routes[404];
 }
 
@@ -105,23 +103,36 @@ function isLeaguePage(path) {
 }
 
 /* ==========================
+   Navigation state
+========================== */
+
+function setCurrentPath(path) {
+  currentPath = normalizePath(path);
+  window.__currentRoute = currentPath;
+}
+
+function getCurrentPath() {
+  return currentPath;
+}
+
+/* ==========================
    Bottom Navigation
 ========================== */
 
 function updateActiveNav() {
-  const current = normalizePath(window.location.pathname);
-  
-  document.querySelectorAll(".bottom-nav .nav-item[href]").forEach(link => {
+  const current = normalizePath(currentPath || window.location.pathname);
+
+  document.querySelectorAll(".bottom-nav .nav-item[href]").forEach((link) => {
     const href = link.getAttribute("href");
-    
+
     if (!href || href.startsWith("#") || href.startsWith("http")) return;
-    
+
     const linkPath = normalizePath(new URL(href, location.origin).pathname);
-    
+
     const active =
       (linkPath === "/league-page" && isLeaguePage(current)) ||
       linkPath === current;
-    
+
     link.classList.toggle("active", active);
     link.querySelector("svg")?.classList.toggle("active", active);
   });
@@ -131,108 +142,188 @@ function updateActiveNav() {
    Load HTML
 ========================== */
 
-async function loadPage(path) {
+async function loadPage(path, forceReload = false) {
   const page = resolveRoute(path);
-  
-  const response = await fetch(page);
-  
+
+  if (!forceReload && pageCache.has(page)) {
+    return pageCache.get(page);
+  }
+
+  const response = await fetch(page, {
+    cache: forceReload ? "reload" : "default"
+  });
+
   if (!response.ok) {
     throw new Error(`Failed to load ${page}`);
   }
-  
-  return await response.text();
+
+  const html = await response.text();
+  pageCache.set(page, html);
+
+  return html;
+}
+
+/* ==========================
+   Render
+========================== */
+
+function renderPage(html) {
+  if (!mainPage) return;
+  mainPage.innerHTML = html;
+}
+
+/* ==========================
+   Events
+========================== */
+
+function dispatchPageLoaded(path) {
+  document.dispatchEvent(
+    new CustomEvent("pageLoaded", {
+      detail: {
+        path: normalizePath(path)
+      }
+    })
+  );
+}
+
+function dispatchPageRefreshed(path) {
+  document.dispatchEvent(
+    new CustomEvent("pageRefreshed", {
+      detail: {
+        path: normalizePath(path)
+      }
+    })
+  );
 }
 
 /* ==========================
    Navigate
 ========================== */
 
-async function navigate(path, pushHistory = true) {
-  path = normalizePath(path);
-  
+async function navigate(path, pushHistory = true, forceReload = false) {
+  const targetPath = normalizePath(path);
   const token = ++navigationToken;
-  
+
   showLoader();
-  
+
   try {
-    const html = await loadPage(path);
-    
+    const html = await loadPage(targetPath, forceReload);
+
     if (token !== navigationToken) return;
     if (!mainPage) return;
-    
-    mainPage.replaceChildren();
-    mainPage.insertAdjacentHTML("afterbegin", html);
-    
+
+    renderPage(html);
+
     if (pushHistory) {
-      history.pushState({}, "", path);
+      history.pushState({ path: targetPath }, "", targetPath);
     } else {
-      history.replaceState({}, "", path);
+      history.replaceState({ path: targetPath }, "", targetPath);
     }
-    
+
+    setCurrentPath(targetPath);
     updateActiveNav();
-    document.dispatchEvent(new Event("pageLoaded"));
+    dispatchPageLoaded(targetPath);
   } catch (err) {
     console.error(err);
-    
+
     if (mainPage) {
-      mainPage.innerHTML = `
+      renderPage(`
         <section class="page-error">
           <h1>404</h1>
           <p>Page not found.</p>
         </section>
-      `;
+      `);
     }
   } finally {
     if (token === navigationToken) {
       hideLoader();
     }
   }
-  
-  console.log("PATH:", path);
-  console.log("PAGE:", resolveRoute(path));
 }
 
 /* ==========================
-   Link Routing
+   Refresh current page
 ========================== */
 
-window.route = function(event) {
+async function refreshCurrentPage() {
+  const path = getCurrentPath();
+  await navigate(path, false, true);
+  dispatchPageRefreshed(path);
+}
+
+/* ==========================
+   Link routing
+========================== */
+
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("a[href]");
+
+  if (!link) return;
+  if (link.target === "_blank" || link.hasAttribute("download")) return;
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+  const url = new URL(link.href, location.origin);
+
+  if (url.origin !== location.origin) return;
+
+  const path = normalizePath(url.pathname);
+
+  if (path === getCurrentPath()) {
+    e.preventDefault();
+    return;
+  }
+
+  e.preventDefault();
+  navigate(path);
+});
+
+/* ==========================
+   Back / Forward
+========================== */
+
+window.addEventListener("popstate", () => {
+  navigate(window.location.pathname, false, false);
+});
+
+/* ==========================
+   Public API
+========================== */
+
+window.route = function (event) {
   event = event || window.event;
-  
+
   if (event) {
     event.preventDefault();
   }
-  
+
   const link = event?.currentTarget || event?.target?.closest("a");
   if (!link) return;
-  
+
   const url = new URL(link.href, location.origin);
-  
+
   if (url.origin !== location.origin) {
     location.href = url.href;
     return;
   }
-  
+
   const path = normalizePath(url.pathname);
-  
-  if (path === normalizePath(window.location.pathname)) return;
-  
+
+  if (path === getCurrentPath()) return;
+
   navigate(path);
 };
 
-/* ==========================
-   Browser Back/Forward
-========================== */
-
-window.addEventListener("popstate", () => {
-  navigate(window.location.pathname, false);
-});
+window.router = {
+  navigate,
+  refreshCurrentPage,
+  getCurrentPath
+};
 
 /* ==========================
-   Initial Page
+   Initial page
 ========================== */
 
 (async () => {
   await waitForStylesheets();
-  navigate(window.location.pathname, false);
+  await navigate(window.location.pathname, false, false);
 })();
