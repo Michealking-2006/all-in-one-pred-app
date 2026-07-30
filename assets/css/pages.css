@@ -284,7 +284,6 @@
   border-radius: 14px;
   background: #fff;
   color: var(--text);
-  cursor: pointer;
   box-shadow: var(--shadow);
   display: flex;
   align-items: center;
@@ -1264,7 +1263,7 @@ input[type="range"]::-moz-range-thumb{
   background:#f3f4f6;
   border-radius:999px;
   padding:10px 16px;
-  cursor:pointer;
+  
   font-weight:600;
 }
 
@@ -1401,7 +1400,7 @@ input[type="range"]::-moz-range-thumb{
   padding:10px 15px;
   border-radius:999px;
   font-weight:700;
-  cursor:pointer;
+  
   transition:.25s;
 }
 
