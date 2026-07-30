@@ -1,7 +1,5 @@
 /****** app profile page ********/
 
-/********************* PROFILE PAGE *********************/
-
 .app-profile-page {
   width: 100%;
   min-height: 100vh;
@@ -12,7 +10,7 @@
   box-sizing: border-box;
 }
 
-/********************* HEADER *********************/
+/********************* HEADER ********************/
 
 .app-profile-header {
   position: sticky;

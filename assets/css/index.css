@@ -1,84 +1,115 @@
-
-
 :root {
-  --nav-active: var(--app-primary-color);
-  --nav-color: #6b7280;
-  --nav-bg: #ffffff;
   --app-primary-color: #d50000;
 
-  --top-nav-height: 112px;
+  --nav-bg: #fff;
+  --nav-color: #6b7280;
+  --nav-active: var(--app-primary-color);
+
+  /* Updated dynamically by JS */
+  --header-height: 0px;
+
   --bottom-nav-height: 70px;
 }
 
-html,
-body {
+/* =========================
+   Reset
+========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
   width: 100%;
-  margin: 0;
-  padding: 0;
   overflow-x: hidden;
 }
 
 body {
-  min-height: 100%;
+  margin: 0;
+  width: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
   background: #f5f6fa;
 }
 
-/* App shell */
+/* =========================
+   App Shell
+========================= */
+
 #root {
   position: relative;
   width: 100%;
   min-height: 100dvh;
 }
 
-/* Reserve space so fixed bars do not cover content */
 #main-page {
   position: relative;
   width: 100%;
-  min-height: 100dvh;
-  padding-top: calc(var(--top-nav-height) + env(safe-area-inset-top));
-  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
+  min-height: calc(100dvh - var(--bottom-nav-height));
+  padding-top: var(--header-height);
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 12px);
+  overflow-x: hidden;
 }
 
-/********* app top nav ui ************/
+/* =========================
+   Top Navigation
+========================= */
+
 .app-top-nav-menu-layout {
+  position: fixed;
+  inset: 0 0 auto 0;
+
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+
   background: var(--app-primary-color);
-  border-bottom-right-radius: 20px;
+
   border-bottom-left-radius: 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 999;
+  border-bottom-right-radius: 20px;
+
   padding-top: env(safe-area-inset-top);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  z-index: 1000;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,.12);
 }
 
 .app-top-nav-menu-layout-sec-one {
+  position: relative;
+
   width: 100%;
+
   padding: 12px 16px 10px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
 }
 
 .right-end-nav-btns {
   position: absolute;
+  top: 12px;
   right: 12px;
-  top: calc(env(safe-area-inset-top) + 12px);
+}
+
+.search-app-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
 }
 
 .user-profile-img,
 .app-more-nav-hamburger-menu,
 .search-app-btn,
 .close-index-search-btn {
+  border: 0;
   background: transparent;
+  padding: 0;
+  cursor: pointer;
   outline: none;
-  border: none;
 }
 
 .user-profile-img,
@@ -90,26 +121,29 @@ body {
 .user-profile-img svg,
 .app-more-nav-hamburger-menu svg,
 .search-app-btn svg {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
 }
 
-.search-app-btn {
-  position: absolute;
-  left: 12px;
-  top: calc(env(safe-area-inset-top) + 12px);
-}
+/* =========================
+   Search
+========================= */
 
 .search-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+
+  background: rgba(0,0,0,.25);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
   opacity: 0;
   visibility: hidden;
-  transition: 0.3s ease;
-  z-index: 998;
+
+  transition: .25s;
+
+  z-index: 1090;
 }
 
 .search-overlay.active {
@@ -117,66 +151,75 @@ body {
   visibility: visible;
 }
 
-.search-input-box {
-  display: flex;
-  width: 100%;
-}
-
 .app-index-search-box {
   position: fixed;
+
   top: 0;
-  left: 50%;
-  transform: translate(-50%, -100%);
-  width: 100%;
-  box-sizing: border-box;
-  background: #fff;
-  padding: calc(env(safe-area-inset-top) + 14px) 16px 16px;
+  left: 0;
+  right: 0;
+
   display: flex;
   gap: 10px;
-  transition: transform 0.35s ease;
-  z-index: 999;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+
+  padding:
+    calc(env(safe-area-inset-top) + 14px)
+    16px
+    16px;
+
+  background: #fff;
+
+  transform: translateY(-110%);
+  transition: .35s;
+
+  z-index: 1100;
+
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
 }
 
 .app-index-search-box.active {
-  transform: translate(-50%, 0);
+  transform: translateY(0);
 }
 
 .app-index-search-box input {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px;
-  border: none;
+
+  border: 0;
   outline: none;
-  border-radius: 8px;
+
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
   font-family: MontserratEB, sans-serif;
 }
 
-.close-index-search-btn {
-  flex: 0 0 auto;
-}
-
 .close-index-search-btn svg {
+  width: 28px;
+  height: 28px;
   fill: #000;
-  width: 30px;
-  height: 30px;
 }
 
-/*************** date opt ui *****************/
+/* =========================
+   Date Selector
+========================= */
+
 .date-wrapper {
   width: 100%;
-  padding: 10px 20px;
-  overflow: hidden;
-  position: relative;
-  box-sizing: border-box;
+  padding: 10px 16px;
 }
 
 .date-scroll {
   display: flex;
-  gap: 18px;
+  gap: 16px;
+
   overflow-x: auto;
+
   scroll-behavior: smooth;
-  padding-bottom: 10px;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 .date-scroll::-webkit-scrollbar {
@@ -184,180 +227,243 @@ body {
 }
 
 .date-card {
+  flex: 0 0 auto;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+
   user-select: none;
-  transition: 0.35s ease;
-  animation: fadeIn 0.5s ease;
+
+  transition: .3s;
 }
 
 .day-name {
-  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 12px;
+
+  color: rgba(255,255,255,.75);
+
   font-size: 12px;
-  margin-bottom: 13px;
-  font-weight: 500;
-  transition: 0.3s;
+  font-weight: 600;
+
   font-family: MontserratEB, sans-serif;
 }
 
 .date-circle {
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
+
   border-radius: 50%;
+
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.12);
+  justify-content: center;
+
+  background: rgba(255,255,255,.15);
+
   color: #fff;
-  font-size: 17px;
+
+  font-size: 16px;
   font-weight: 700;
-  transition:
-    transform 0.35s cubic-bezier(.34,1.56,.64,1),
-    background 0.3s,
-    color 0.3s,
-    box-shadow 0.35s;
+
+  transition: .3s;
+
   font-family: MontserratEB, sans-serif;
 }
 
 .date-card.active .date-circle {
   background: #fff;
   color: var(--app-primary-color);
-  transform: scale(1.12);
+
+  transform: scale(1.08);
 }
 
 .date-card.active .day-name {
   color: #fff;
-  font-weight: 700;
 }
 
 .date-card:hover .date-circle {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
 }
 
 .date-card.active:hover .date-circle {
-  transform: scale(1.12) translateY(-2px);
+  transform: scale(1.08);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* =========================
+   Bottom Navigation
+========================= */
 
-/* Bottom nav should stay fixed and never affect page flow */
 .bottom-navigation-wrapper {
   position: fixed;
+
   left: 0;
   right: 0;
   bottom: 0;
+
   z-index: 1000;
 }
 
 .bottom-nav {
-  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-  background: var(--nav-bg);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid #e5e7eb;
+
+  width: 100%;
+  max-width: 100%;
+
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
-  transform: translateZ(0);
-  backface-visibility: hidden;
+
+  background: var(--nav-bg);
+
+  border-top: 1px solid #ececec;
+
+  box-shadow: 0 -8px 24px rgba(0,0,0,.08);
 }
 
-The important part is "#main-page { padding-top ... padding-bottom ... }". That gives your content room to sit between the fixed top and bottom bars instead of being hidden behind them.
+.bottom-nav .nav-item {
+  flex: 1;
 
-Use the pull-to-refresh transform only on "#main-page", not on "#root".Your layout needs reserved space for the fixed top bar and fixed bottom nav. Right now the page content is starting at the very top, so it slides under those elements and looks “not composed.”
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
-Use this cleaned version for the layout part of your CSS:
+  gap: 4px;
 
-:root {
-  --nav-active: var(--app-primary-color);
-  --nav-color: #6b7280;
-  --nav-bg: #ffffff;
+  color: var(--nav-color);
+
+  text-decoration: none;
+
+  transition: .25s;
+}
+
+.bottom-nav .nav-item svg {
+  width: 22px;
+  height: 22px;
+}
+
+.bottom-nav .nav-item.active {
+  color: var(--nav-active);
+}
+
+.bottom-nav .nav-item span {
+  font-size: 12px;
+  font-weight: 600;
+}:root {
   --app-primary-color: #d50000;
 
-  --top-nav-height: 112px;
+  --nav-bg: #fff;
+  --nav-color: #6b7280;
+  --nav-active: var(--app-primary-color);
+
+  /* Updated dynamically by JS */
+  --header-height: 0px;
+
   --bottom-nav-height: 70px;
 }
 
-html,
-body {
+/* =========================
+   Reset
+========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
   width: 100%;
-  margin: 0;
-  padding: 0;
   overflow-x: hidden;
 }
 
 body {
-  min-height: 100%;
+  margin: 0;
+  width: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
   background: #f5f6fa;
 }
 
-/* App shell */
+/* =========================
+   App Shell
+========================= */
+
 #root {
   position: relative;
   width: 100%;
   min-height: 100dvh;
 }
 
-/* Reserve space so fixed bars do not cover content */
 #main-page {
   position: relative;
   width: 100%;
-  min-height: 100dvh;
-  padding-top: calc(var(--top-nav-height) + env(safe-area-inset-top));
-  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
+  min-height: calc(100dvh - var(--bottom-nav-height));
+  padding-top: var(--header-height);
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 12px);
+  overflow-x: hidden;
 }
 
-/********* app top nav ui ************/
+/* =========================
+   Top Navigation
+========================= */
+
 .app-top-nav-menu-layout {
+  position: fixed;
+  inset: 0 0 auto 0;
+
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+
   background: var(--app-primary-color);
-  border-bottom-right-radius: 20px;
+
   border-bottom-left-radius: 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 999;
+  border-bottom-right-radius: 20px;
+
   padding-top: env(safe-area-inset-top);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  z-index: 1000;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,.12);
 }
 
 .app-top-nav-menu-layout-sec-one {
+  position: relative;
+
   width: 100%;
+
   padding: 12px 16px 10px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
 }
 
 .right-end-nav-btns {
   position: absolute;
+  top: 12px;
   right: 12px;
-  top: calc(env(safe-area-inset-top) + 12px);
+}
+
+.search-app-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
 }
 
 .user-profile-img,
 .app-more-nav-hamburger-menu,
 .search-app-btn,
 .close-index-search-btn {
+  border: 0;
   background: transparent;
+  padding: 0;
+  cursor: pointer;
   outline: none;
-  border: none;
 }
 
 .user-profile-img,
@@ -369,26 +475,29 @@ body {
 .user-profile-img svg,
 .app-more-nav-hamburger-menu svg,
 .search-app-btn svg {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
 }
 
-.search-app-btn {
-  position: absolute;
-  left: 12px;
-  top: calc(env(safe-area-inset-top) + 12px);
-}
+/* =========================
+   Search
+========================= */
 
 .search-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+
+  background: rgba(0,0,0,.25);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
   opacity: 0;
   visibility: hidden;
-  transition: 0.3s ease;
-  z-index: 998;
+
+  transition: .25s;
+
+  z-index: 1090;
 }
 
 .search-overlay.active {
@@ -396,66 +505,75 @@ body {
   visibility: visible;
 }
 
-.search-input-box {
-  display: flex;
-  width: 100%;
-}
-
 .app-index-search-box {
   position: fixed;
+
   top: 0;
-  left: 50%;
-  transform: translate(-50%, -100%);
-  width: 100%;
-  box-sizing: border-box;
-  background: #fff;
-  padding: calc(env(safe-area-inset-top) + 14px) 16px 16px;
+  left: 0;
+  right: 0;
+
   display: flex;
   gap: 10px;
-  transition: transform 0.35s ease;
-  z-index: 999;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+
+  padding:
+    calc(env(safe-area-inset-top) + 14px)
+    16px
+    16px;
+
+  background: #fff;
+
+  transform: translateY(-110%);
+  transition: .35s;
+
+  z-index: 1100;
+
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
 }
 
 .app-index-search-box.active {
-  transform: translate(-50%, 0);
+  transform: translateY(0);
 }
 
 .app-index-search-box input {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px;
-  border: none;
+
+  border: 0;
   outline: none;
-  border-radius: 8px;
+
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
   font-family: MontserratEB, sans-serif;
 }
 
-.close-index-search-btn {
-  flex: 0 0 auto;
-}
-
 .close-index-search-btn svg {
+  width: 28px;
+  height: 28px;
   fill: #000;
-  width: 30px;
-  height: 30px;
 }
 
-/*************** date opt ui *****************/
+/* =========================
+   Date Selector
+========================= */
+
 .date-wrapper {
   width: 100%;
-  padding: 10px 20px;
-  overflow: hidden;
-  position: relative;
-  box-sizing: border-box;
+  padding: 10px 16px;
 }
 
 .date-scroll {
   display: flex;
-  gap: 18px;
+  gap: 16px;
+
   overflow-x: auto;
+
   scroll-behavior: smooth;
-  padding-bottom: 10px;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 .date-scroll::-webkit-scrollbar {
@@ -463,96 +581,132 @@ body {
 }
 
 .date-card {
+  flex: 0 0 auto;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+
   user-select: none;
-  transition: 0.35s ease;
-  animation: fadeIn 0.5s ease;
+
+  transition: .3s;
 }
 
 .day-name {
-  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 12px;
+
+  color: rgba(255,255,255,.75);
+
   font-size: 12px;
-  margin-bottom: 13px;
-  font-weight: 500;
-  transition: 0.3s;
+  font-weight: 600;
+
   font-family: MontserratEB, sans-serif;
 }
 
 .date-circle {
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
+
   border-radius: 50%;
+
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.12);
+  justify-content: center;
+
+  background: rgba(255,255,255,.15);
+
   color: #fff;
-  font-size: 17px;
+
+  font-size: 16px;
   font-weight: 700;
-  transition:
-    transform 0.35s cubic-bezier(.34,1.56,.64,1),
-    background 0.3s,
-    color 0.3s,
-    box-shadow 0.35s;
+
+  transition: .3s;
+
   font-family: MontserratEB, sans-serif;
 }
 
 .date-card.active .date-circle {
   background: #fff;
   color: var(--app-primary-color);
-  transform: scale(1.12);
+
+  transform: scale(1.08);
 }
 
 .date-card.active .day-name {
   color: #fff;
-  font-weight: 700;
 }
 
 .date-card:hover .date-circle {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
 }
 
 .date-card.active:hover .date-circle {
-  transform: scale(1.12) translateY(-2px);
+  transform: scale(1.08);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* =========================
+   Bottom Navigation
+========================= */
 
-/* Bottom nav should stay fixed and never affect page flow */
 .bottom-navigation-wrapper {
   position: fixed;
+
   left: 0;
   right: 0;
   bottom: 0;
+
   z-index: 1000;
 }
 
 .bottom-nav {
-  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-  background: var(--nav-bg);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid #e5e7eb;
+
+  width: 100%;
+  max-width: 100%;
+
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
-  transform: translateZ(0);
-  backface-visibility: hidden;
+
+  background: var(--nav-bg);
+
+  border-top: 1px solid #ececec;
+
+  box-shadow: 0 -8px 24px rgba(0,0,0,.08);
 }
 
+.bottom-nav .nav-item {
+  flex: 1;
 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  color: var(--nav-color);
+
+  text-decoration: none;
+
+  transition: .25s;
+}
+
+.bottom-nav .nav-item svg {
+  width: 22px;
+  height: 22px;
+}
+
+.bottom-nav .nav-item.active {
+  color: var(--nav-active);
+}
+
+.bottom-nav .nav-item span {
+  font-size: 12px;
+  font-weight: 600;
+}
 
 /********** cookie *************/
 
