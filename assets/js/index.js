@@ -228,129 +228,60 @@ function initAppUI() {
   });
 }
 
-/**********************
- * SEARCH UI
- **********************/
+/* ==========================
+   SEARCH DRAWER
+========================== */
 
-function initSearchUI() {
+function initSearchUI() {  
   
-  /* ==========================
-     SEARCH DRAWER
-  ========================== */
   
-  const openBtn = document.querySelector(".search-app-btn");
-  const closeBtn = document.querySelector(".close-index-search-btn");
-  const searchBox = document.querySelector(".app-index-search-box");
-  const overlay = document.querySelector(".search-overlay");
   
-  if (
-    openBtn &&
-    closeBtn &&
-    searchBox &&
-    overlay &&
-    !searchBox.dataset.initialized
-  ) {
-    searchBox.dataset.initialized = "true";
-    
-    const openSearch = () => {
-      searchBox.classList.add("active");
-      overlay.classList.add("active");
-      searchBox.querySelector("input")?.focus();
-    };
-    
-    const closeSearch = () => {
-      searchBox.classList.remove("active");
-      overlay.classList.remove("active");
-    };
-    
-    openBtn.addEventListener("click", openSearch);
-    closeBtn.addEventListener("click", closeSearch);
-    overlay.addEventListener("click", closeSearch);
-  }
   
-  /* ==========================
-     RECENT SEARCHES
-  ========================== */
   
-  const searchInput = document.getElementById("app-main-search-input");
-  const recentBox = document.querySelector(".recent-searches-box");
-  
-  if (!searchInput || !recentBox || searchInput.dataset.initialized) return;
-  
-  searchInput.dataset.initialized = "true";
-  
-  const STORAGE_KEY = "recentSearches";
-  const MAX_SEARCHES = 15;
-  
-  let searches = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  
-  function saveSearches() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(searches));
-  }
-  
-  function renderSearches() {
-    recentBox.innerHTML = "";
-    
-    searches.forEach((search, index) => {
-      const item = document.createElement("div");
-      item.className = "recent-search-item";
-      
-      item.innerHTML = `
-        <svg class="recent-searches-icon" xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 24 24" fill="none">
-          <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-            <path d="M12 8v4l2 2"/>
-            <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/>
-          </g>
-        </svg>
+const openBtn = document.querySelector(".search-app-btn");
+const closeBtn = document.querySelector(".close-index-search-btn");
+const drawer = document.querySelector(".search-drawer");
+const backdrop = document.querySelector(".search-backdrop");
+const input = document.getElementById("app-main-search-input");
 
-        <span class="search-text">${search}</span>
+if (
+  openBtn &&
+  closeBtn &&
+  drawer &&
+  backdrop &&
+  !drawer.dataset.initialized
+) {
+  drawer.dataset.initialized = "true";
+  
+  function openSearch() {
+    drawer.classList.add("active");
+    backdrop.classList.add("active");
+    document.body.style.overflow = "hidden";
+    
 
-        <button class="remove-search-btn" data-index="${index}" aria-label="Remove search">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-            <path fill="currentColor" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-          </svg>
-        </button>
-      `;
-      
-      recentBox.appendChild(item);
-    });
   }
   
-  function addSearch(value) {
-    value = value.trim();
-    if (!value) return;
-    
-    searches = searches.filter(item => item.toLowerCase() !== value.toLowerCase());
-    searches.unshift(value);
-    searches = searches.slice(0, MAX_SEARCHES);
-    
-    saveSearches();
-    renderSearches();
+  function closeSearch() {
+    drawer.classList.remove("active");
+    backdrop.classList.remove("active");
+    document.body.style.overflow = "";
   }
   
-  searchInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      addSearch(searchInput.value);
+  openBtn.addEventListener("click", openSearch);
+  
+  closeBtn.addEventListener("click", closeSearch);
+  
+  backdrop.addEventListener("click", closeSearch);
+  
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+      closeSearch();
     }
   });
   
-  recentBox.addEventListener("click", e => {
-    const btn = e.target.closest(".remove-search-btn");
-    if (!btn) return;
-    
-    const index = Number(btn.dataset.index);
-    const item = btn.closest(".recent-search-item");
-    
-    item?.classList.add("removing");
-    
-    setTimeout(() => {
-      searches.splice(index, 1);
-      saveSearches();
-      renderSearches();
-    }, 300);
-  });
-  
-  renderSearches();
+}
+
+
 }
 
 /**********************
@@ -387,6 +318,7 @@ function initThemeAndPredictions() {
     });
   }
   
+
   /* ==========================
      PREDICTION MARKET TABS
   ========================== */

@@ -290,19 +290,7 @@ body {
   transform: scale(1.08);
 }
 
-/* =========================
-   Bottom Navigation
-========================= */
 
-.bottom-navigation-wrapper {
-  position: fixed;
-
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  z-index: 1000;
-}
 
 .bottom-nav {
   display: flex;
@@ -1054,68 +1042,96 @@ body.cookie-active {
   }
   
   
-  /************ recent searches  *************/
+/*** search overview page ***/
+
+.search-drawer{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+
+    height:90vh;
+
+    background:#fff;
+
+    border-radius:28px 28px 0 0;
+
+    transform:translateY(100%);
+
+    transition:.35s cubic-bezier(.2,.8,.2,1);
+
+    z-index: 9999;
+
+    display:flex;
+    flex-direction:column;
+}
+
+.search-drawer.active {
+  transform: translateY(0);
+}
+
+.search-backdrop {
   
-  .recent-searches-box {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.recent-search-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  opacity: 1;
-  transform: translateX(0);
-  transition: all .3s ease;
-  gap: .3em;
-}
-
-.recent-search-item:active {
-  opacity: .6;
-}
-.recent-search-item.removing {
+  position: fixed;
+  inset: 0;
+  
+  background: rgba(0, 0, 0, .18);
+  
+  backdrop-filter: blur(6px);
+  
   opacity: 0;
-  transform: translateX(50px);
-}
-
-.search-text {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: MontserratM;
-}
-
-.remove-search-btn {
-  border: none;
-  background: transparent;
   
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
+  visibility: hidden;
+  
+  transition: .3s;
+  
+  z-index: 1000;
 }
 
-.remove-search-btn svg {
-  transition: transform .2s ease;
-  height: 25px;
-width: 25px;
+.search-backdrop.active {
+  
+  opacity: 1;
+  
+  visibility: visible;
+  
 }
 
-.remove-search-btn:hover svg {
-  transform: rotate(90deg);
+.search-drawer-handle {
+  
+  width: 46px;
+  
+  height: 5px;
+  
+  background: #d8d8d8;
+  
+  border-radius: 999px;
+  
+  margin: 12px auto;
+  
 }
 
-.recent-searches-icon {
-  height: 20px;
-  width: 20px;
+.search-header {
+  
+  position: sticky;
+  
+  top: 0;
+  
+  background: #fff;
+  
+  padding: 0 16px 14px;
+  
+  z-index: 5;
+  
 }
 
-.medium-header {
-  font-family: MontserratEB;
-  font-size: .9em;
+.search-body {
+  
+  flex: 1;
+  
+  overflow: auto;
+  
+  padding: 0 16px 24px;
+  
 }
 
 /****** prediction type  *******/
