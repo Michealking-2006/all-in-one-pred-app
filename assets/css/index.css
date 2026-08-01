@@ -51,7 +51,6 @@ body {
   padding-top: var(--header-height);
   padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 5px);
   overflow-x: hidden;
-  padding: 5px;
 }
 
 /* =========================
