@@ -8,7 +8,7 @@
   /* Updated dynamically by JS */
   --header-height: 0px;
 
-  --bottom-nav-height: 70px;
+  --bottom-nav-height: 20px;
 }
 
 /* =========================
@@ -49,8 +49,9 @@ body {
   width: 100%;
   min-height: calc(100dvh - var(--bottom-nav-height));
   padding-top: var(--header-height);
-  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 12px);
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 5px);
   overflow-x: hidden;
+  padding: 5px;
 }
 
 /* =========================
@@ -815,30 +816,22 @@ body.cookie-active {
 
 .app-main-profile-sec {
   position: fixed;
-  top:0; right:0; bottom:0; left:0;
+  top: 0; right: 0; bottom:0;
   background: #fff;
   transform: translateX(100%);
   transition: transform 0.3s ease;
   z-index: 9999;
+  overflow: scroll;
+  border: 1px solid #e5e5e5;
+  
 }
 
 .app-main-profile-sec.active {
+border-top-right-radius: 15px;
+border-top-left-radius: 15px;
+width: 300px;
   transform: translateX(0);
-}
-
-.app-main-profile-sec {
-  position: fixed;
-  inset: 0;
-  background: #f5f5f5;
-  overflow-y: auto;
-  z-index: 9999;
-
-  transform: translateX(100%);
-  transition: transform .3s ease;
-}
-
-.app-main-profile-sec.active {
-  transform: translateX(0);
+  
 }
 
 .profile-header {
@@ -850,11 +843,11 @@ body.cookie-active {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 500;
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
   z-index: 10;
-  font-family: MontserratEB;
+  font-family: BykerM;
 }
 
 .close-nav-btn {
@@ -864,10 +857,10 @@ body.cookie-active {
 }
 
 .profile-title {
-  font-family: MontserratEB;
+  font-family: BykerM;
   padding: 25px 20px 10px;
   color: #999;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
 }
 
@@ -881,19 +874,22 @@ body.cookie-active {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.35s ease;
+  
 }
 
 .menu-card.active .menu-content {
   max-height: 300px;
+  
 }
 
 .menu-header {
+  font-family : BykerM;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px;
   color: #e53935;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .menu-header .header-plus-icon {
@@ -909,7 +905,7 @@ body.cookie-active {
 
 
 .menu-item {
-  font-family: MontserratEB;
+  font-family: BykerR;
   padding: 22px 20px;
   border-top: 1px solid #efefef;
   font-size: 18px;
@@ -917,15 +913,14 @@ body.cookie-active {
 }
 
 .settings-title {
-  font-family: MontserratEB;
+  font-family: BykerM;
   padding: 25px 20px 10px;
   color: #bbb;
-  font-size: 30px;
-  font-weight: bold;
+  font-size: 20px;
 }
 
 .setting-row {
-  font-family: MontserratEB;
+  font-family: BykerM;
   background: #fff;
   display: flex;
   justify-content: space-between;
@@ -935,7 +930,7 @@ body.cookie-active {
 }
 
 .menu-header {
-  font-family: MontserratEB;
+  font-family: BykerM;
   user-select: none;
   display: flex;
   justify-content: space-between;
