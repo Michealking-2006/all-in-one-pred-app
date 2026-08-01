@@ -1111,7 +1111,8 @@ body.cookie-active {
 }
 
 .search-header {
-  
+  display: flex;
+  gap: 3px;
   position: sticky;
   
   top: 0;
@@ -2647,7 +2648,11 @@ body.dark-theme .recent-searches-icon {
   stroke: #fff;
   fill: #fff;
 }
-
+.close-index-search-btnn{
+  outline: none;
+  border: none;
+  background: transparent;
+}
 /*********/
 
 body.dark-theme .checkbox-wrapper-7 .tgl-ios:checked + .tgl-btn {
