@@ -5,6 +5,18 @@ const REQUIRED_CSS = [
 
 const HOME_ROUTE = "/overview";
 
+/* Only these top-level pages should go HOME first when the app
+   is opened directly in standalone mode. */
+const HOME_BACK_ROUTES = new Set([
+  "/notifications",
+  "/leagues",
+  "/vip-tips",
+  "/predictions",
+  "/next-world-cup-count-downs",
+  "/profile",
+  "/favourites"
+]);
+
 const routes = {
   404: "/pages/404.html",
   "/overview": "/pages/overview.html",
@@ -92,17 +104,33 @@ function normalizePath(path) {
     const clean = url.pathname.replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   } catch {
-    const clean = String(path)
-      .split("?")[0]
-      .split("#")[0]
-      .replace(/\/+$/, "") || "/";
-
+    const clean = String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   }
 }
 
-function getPathDepth(path) {
-  return normalizePath(path).split("/").filter(Boolean).length;
+/* Returns the top-level segment of a path, e.g. "/leagues/food" -> "/leagues" */
+function topLevelSegment(path) {
+  const cleanPath = normalizePath(path);
+  const firstSegment = cleanPath.split("/")[1];
+  return firstSegment ? `/${firstSegment}` : cleanPath;
+}
+
+/* Is this path exactly a registered top-level route (no nested segments)? */
+function isTopLevelRoute(path) {
+  const cleanPath = normalizePath(path);
+  return Object.prototype.hasOwnProperty.call(routes, cleanPath);
+}
+
+/* Is this path a nested child of a registered top-level route?
+   e.g. "/leagues/food" is nested under "/leagues".
+   "/leagues" itself is NOT nested. */
+function isNestedRoute(path) {
+  const cleanPath = normalizePath(path);
+  if (isTopLevelRoute(cleanPath)) return false;
+
+  const top = topLevelSegment(cleanPath);
+  return top !== cleanPath && Object.prototype.hasOwnProperty.call(routes, top);
 }
 
 function isLeaguePage(path) {
@@ -121,12 +149,15 @@ function resolveRoute(path) {
     return routes["/league-page"];
   }
 
-  return routes[cleanPath] || routes[404];
-}
+  if (routes[cleanPath]) return routes[cleanPath];
 
-function isKnownTopLevelRoute(path) {
-  const cleanPath = normalizePath(path);
-  return getPathDepth(cleanPath) === 1 && Boolean(routes[cleanPath]);
+  /* Generic nested-route fallback: "/leagues/food" -> routes["/leagues"].
+     Lets any top-level route own its own sub-paths (client-side sub-routing
+     inside that page), the same way league pages already work. */
+  const top = topLevelSegment(cleanPath);
+  if (routes[top]) return routes[top];
+
+  return routes[404];
 }
 
 /* ==========================
@@ -139,9 +170,9 @@ function shouldSeedHomeBackStack(path) {
   if (!isStandalonePWA()) return false;
   if (cleanPath === HOME_ROUTE) return false;
   if (isLeaguePage(cleanPath)) return false;
+  if (isNestedRoute(cleanPath)) return false; // never seed on nested paths, e.g. /leagues/food
 
-  // Only direct top-level routes get the fake HOME -> current stack.
-  return isKnownTopLevelRoute(cleanPath);
+  return HOME_BACK_ROUTES.has(cleanPath);
 }
 
 function seedHomeBackStack(initialPath) {
@@ -152,6 +183,9 @@ function seedHomeBackStack(initialPath) {
 
   window.__pwaHomeBackSeeded = true;
 
+  /* History becomes:
+     [HOME_ROUTE, initialPath]
+     so first back goes home, second back exits. */
   history.replaceState(
     { path: HOME_ROUTE, __pwaHomeSeed: true },
     "",
@@ -181,7 +215,8 @@ function updateActiveNav() {
 
     const active =
       (linkPath === "/league-page" && isLeaguePage(current)) ||
-      linkPath === current;
+      linkPath === current ||
+      linkPath === topLevelSegment(current);
 
     link.classList.toggle("active", active);
     link.querySelector("svg")?.classList.toggle("active", active);
