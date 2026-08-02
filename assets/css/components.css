@@ -344,7 +344,7 @@ html {
 }
 
 .app-search-input:focus {
-  border-color: var(--app-theme-primary-color);
+  border-color: var(--app-primary-color);
 }
 
 .app-search::before {

@@ -1184,115 +1184,115 @@ width: 300px;
 
 /************* leagues list page *******************/
 
-  
-  .top-nav-search {
-    display: flex;
-justify-content: flex-start;
-align-items: center;
-background: #d60000;
-position: fixed;
-right: 0;
-left: 0;
-top: 0;
-width: 100%;
-padding: 1em;
-z-index: 999;
+/* Top bar */
+.top-nav-search {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 999;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  padding: 1em;
+  background: #d60000;
+}
 
-  }
-  
+/* Page layout */
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 0.5em;
+}
 
-  
-  .container {
-    max-width: 600px;
-    margin: auto;
-    
-  }
-  
-  h1 {
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 20px;
-  }
-  
-  .leagues-wrapper {
-    padding-bottom: 5em;
-    margin-top: 6em;
-  }
-  
-  .header-txt-leagues-page {
-    font-size: 1rem;
-    font-family: BykerM;
-  }
-  
- .league-wrap {
-  border-radius: 30px;
-  background: #ffffff;
-  color: #222;
-  overflow: hidden;
+h1 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.leagues-wrapper {
+  margin-top: 5em;
+  padding: 0.5em;
+  padding-bottom: 1em;
+}
+
+.header-txt-leagues-page {
+  font-family: BykerM;
+  font-size: 1rem;
+}
+
+/* League groups */
+.league-wrap {
   margin-bottom: 6px;
+  overflow: hidden;
   border: 1px solid #e6e6e6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  transition: .3s;
+  border-radius: 30px;
+  background: #fff;
+  color: #222;
+  transition: transform 0.3s ease, background 0.3s ease;
 }
 
 .league-wrap:active {
-  transform: scale(.98);
+  transform: scale(0.98);
 }
 
-/* Header */
 .league-header-leagues-page {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 8px;
-  
-  transition: background 0.2s ease;
+  padding: 6.5px 8.5px;
+  transition: background-color 0.2s ease;
 }
 
 .league-header-leagues-page:hover {
-  background: #38393A12;
+  background: #38393a12;
 }
 
 .league-title {
-  font-family: BykerM;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 600;
+  font-family: BykerM;
+  font-size: 0.98em;
 }
 
 .league-img-head {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
 }
 
-/* Arrow */
 .arrow {
-  transition: transform 0.3s ease;
+  position: absolute;
+  right: 12px;
+  width: 15px;
+  height: 15px;
   color: #555;
+  transform-style: preserve-3d;
+  transition: transform .35s ease;
 }
 
 .league-wrap.active .arrow {
-  transform: rotate(180deg);
+  transform: rotateX(180deg);
 }
 
-/* Collapsible list */
+
 .league-list {
   max-height: 0;
-  overflow: scroll;
+  overflow-y: auto;
+  background: #fff;
   transition: max-height 0.35s ease;
-  background: #ffffff;
 }
 
-/* Open state */
 .league-wrap.active .league-list {
   max-height: 600px;
 }
 
-/* League item */
 .league-card {
-  font-family: MontserratEB;
+  margin: 0;
   padding: 8px 12px;
   border-top: 1px solid #f0f0f0;
 }
@@ -1302,118 +1302,120 @@ z-index: 999;
 }
 
 .league-link {
-  font-family: BykerR;
   position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  text-decoration: none;
+  width: 100%;
   color: #222;
+  text-decoration: none;
+  font-family: BykerR;
+  font-size: 0.9em;
   font-weight: 500;
-  cursor: help;
+  line-height: 1;
+  cursor: none;
 }
 
 .league-link img {
+  display: block;
   width: 22px;
   height: 22px;
+  flex: 0 0 auto;
 }
 
 .league-link .add-league-to-favs {
   position: absolute;
-  right: .1em;
-  outline: none;
-  border: none;
+  right: 0.1em;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  outline: 0;
   background: transparent;
-}
-.league-link .add-league-to-favs svg {
-  height: 20px;
-width: 20px;
-fill: #555;
+  padding: 0;
+  line-height: 0;
 }
 
+.league-link .add-league-to-favs svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: #555;
+}
+
+/* Favorite button */
 .fav-btn {
-    position: relative;
+  position: relative;
 }
 
 .fav-btn .fav-icon {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: .25s ease;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.25s ease;
 }
 
 .fav-btn .fav-outline {
-    opacity: 1;
-    transform: scale(1);
+  opacity: 1;
+  transform: scale(1);
 }
 
 .fav-btn .fav-filled {
-    opacity: 0;
-    transform: scale(.7);
+  opacity: 0;
+  transform: scale(0.7);
 }
 
 .fav-btn.active .fav-outline {
-    opacity: 0;
-    transform: scale(.7);
+  opacity: 0;
+  transform: scale(0.7);
 }
 
 .fav-btn.active .fav-filled {
-    opacity: 1;
-    transform: scale(1);
+  opacity: 1;
+  transform: scale(1);
 }
-/**** search *****/
 
-
-
+/* Search */
 .search-container {
-  /*width: 100%;
-  height: 100%;*/
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.search-container input[type=text] {
-  font-family: BykerR;
-  position: relative;
-  padding: 15px 40px 15px 20px;
+.search-container input[type="text"] {
   width: 250px;
-  color: #000;
-  font-size: 16px;
-  border: none;
-  border-radius: 30px;
-  background: #fff;
-  transition: width 0.4s ease;
-  outline: none;
+  padding: 15px 40px 15px 20px;
   border: 1px solid #00000003;
+  border-radius: 30px;
+  outline: none;
+  background: #fff;
+  color: #000;
+  font-family: BykerR;
+  font-size: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  transition: width 0.4s ease, box-shadow 0.3s ease;
 }
 
+.search-container input[type="text"]:focus {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
+}
 
 .search-container svg {
   position: relative;
   left: -37px;
-  height: 20px;
   width: 20px;
+  height: 20px;
   stroke: #000;
 }
 
-
-  .next-world-cup-count-downs {
-    cursor: help;
-    color: #fff;
-  }
-
-/*************************************/
-
+.next-world-cup-count-downs {
+  cursor: help;
+  color: #fff;
+  
+}
 
 /**** world cup countdown  *****/
-
-/* ===========================
-   WORLD CUP COUNTDOWN
-=========================== */
 
 .wc-card {
   position: relative;
