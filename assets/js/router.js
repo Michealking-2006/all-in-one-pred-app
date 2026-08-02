@@ -5,18 +5,6 @@ const REQUIRED_CSS = [
 
 const HOME_ROUTE = "/overview";
 
-/* Only these top-level pages should go HOME first when the app
-   is opened directly in standalone mode. */
-const HOME_BACK_ROUTES = new Set([
-  "/notifications",
-  "/leagues",
-  "/vip-tips",
-  "/predictions",
-  "/next-world-cup-count-downs",
-  "/profile",
-  "/favourites"
-]);
-
 const routes = {
   404: "/pages/404.html",
   "/overview": "/pages/overview.html",
@@ -104,9 +92,17 @@ function normalizePath(path) {
     const clean = url.pathname.replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   } catch {
-    const clean = String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+    const clean = String(path)
+      .split("?")[0]
+      .split("#")[0]
+      .replace(/\/+$/, "") || "/";
+
     return clean === "/" ? HOME_ROUTE : clean;
   }
+}
+
+function getPathDepth(path) {
+  return normalizePath(path).split("/").filter(Boolean).length;
 }
 
 function isLeaguePage(path) {
@@ -128,6 +124,11 @@ function resolveRoute(path) {
   return routes[cleanPath] || routes[404];
 }
 
+function isKnownTopLevelRoute(path) {
+  const cleanPath = normalizePath(path);
+  return getPathDepth(cleanPath) === 1 && Boolean(routes[cleanPath]);
+}
+
 /* ==========================
    Home-back seeding
 ========================== */
@@ -139,7 +140,8 @@ function shouldSeedHomeBackStack(path) {
   if (cleanPath === HOME_ROUTE) return false;
   if (isLeaguePage(cleanPath)) return false;
 
-  return HOME_BACK_ROUTES.has(cleanPath);
+  // Only direct top-level routes get the fake HOME -> current stack.
+  return isKnownTopLevelRoute(cleanPath);
 }
 
 function seedHomeBackStack(initialPath) {
@@ -150,9 +152,6 @@ function seedHomeBackStack(initialPath) {
 
   window.__pwaHomeBackSeeded = true;
 
-  /* History becomes:
-     [HOME_ROUTE, initialPath]
-     so first back goes home, second back exits. */
   history.replaceState(
     { path: HOME_ROUTE, __pwaHomeSeed: true },
     "",
