@@ -234,10 +234,6 @@ function initAppUI() {
 
 function initSearchUI() {  
   
-  
-  
-  
-  
 const openBtn = document.querySelector(".search-app-btn");
 const closeBtn = document.querySelector(".close-index-search-btn");
 const drawer = document.querySelector(".search-drawer");

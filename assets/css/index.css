@@ -108,7 +108,6 @@ body {
   border: 0;
   background: transparent;
   padding: 0;
-  cursor: pointer;
   outline: none;
 }
 
@@ -450,7 +449,6 @@ body {
   border: 0;
   background: transparent;
   padding: 0;
-  cursor: pointer;
   outline: none;
 }
 
@@ -467,9 +465,7 @@ body {
   height: 28px;
 }
 
-/* =========================
-   Search
-========================= */
+/********  Search drawer component *********/
 
 .search-overlay {
   position: fixed;
@@ -536,10 +532,27 @@ body {
   font-family: MontserratEB, sans-serif;
 }
 
+.close-index-search-btn {
+  height: 50px;
+  width: 55px;
+  background: #A4A4AF14;
+  border-radius: 12px;
+  transition: .3s;
+  border: 1px solid #ececec;
+}
+
+.close-index-search-btn:active {
+  transform: scale(0.97);
+}
+
 .close-index-search-btn svg {
-  width: 28px;
-  height: 28px;
-  fill: #000;
+  width: 20px;
+  height: 20px;
+  fill: #9b9b9b;;
+}
+
+.medium-header {
+  font-family: BykerM;
 }
 
 /* =========================
