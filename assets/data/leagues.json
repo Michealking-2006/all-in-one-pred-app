@@ -2446,6 +2446,20 @@
   ]
 },
 {
+  "country": "Albania",
+  "code": "Albania",
+  "flag": "/assets/icons/Albania.svg",
+  "leagues": [
+    {
+      "id": 311,
+      "name": "Albania 1st Division",
+      "slug": "Albania_1st_division",
+      "icon": "/assets/icons/Albania_1st_divsion.svg",
+      "type": "league"
+    }
+  ]
+},
+{
   "country": "Iceland",
   "code": "iceland",
   "flag": "/assets/icons/iceland.svg",
