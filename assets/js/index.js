@@ -711,37 +711,37 @@ if (
     const typeAttr = escapeHtml(String(item.type ?? ""));
 
     return `
-      <button
-        type="button"
-        class="search-result-item"
-        data-id="${idAttr}"
-        data-slug="${slugAttr}"
-        data-type="${typeAttr}"
-        data-name="${title}"
-        data-country="${country}"
-      >
-        <div class="search-result-icon-wrap">
-          ${
-            iconSrc
-              ? `<img class="search-result-icon" src="${escapeHtml(iconSrc)}" alt="" loading="lazy">`
-              : `<span class="search-result-icon-fallback">⚽</span>`
-          }
-        </div>
+  <a
+    href="/league-page/${encodeURIComponent(item.slug || "")}"
+    class="search-result-item"
+    data-id="${idAttr}"
+    data-slug="${slugAttr}"
+    data-type="${typeAttr}"
+    data-name="${title}"
+    data-country="${country}"
+  >
+    <div class="search-result-icon-wrap">
+      ${
+        iconSrc
+          ? `<img class="search-result-icon" src="${escapeHtml(iconSrc)}" alt="" loading="lazy">`
+          : `<span class="search-result-icon-fallback">⚽</span>`
+      }
+    </div>
 
-        <div class="search-result-content">
-          <div class="search-result-title-row">
-            <strong class="search-result-name">${title}</strong>
-            <span class="search-result-type">${typeLabel}</span>
-          </div>
+    <div class="search-result-content">
+      <div class="search-result-title-row">
+        <strong class="search-result-name">${title}</strong>
+        <span class="search-result-type">${typeLabel}</span>
+      </div>
 
-          <div class="search-result-meta">
-            ${country ? `<span>${country}</span>` : ""}
-            ${divisionLabel ? `<span>${divisionLabel}</span>` : ""}
-            ${statusTags.length ? `<span>${statusTags.join(" • ")}</span>` : ""}
-          </div>
-        </div>
-      </button>
-    `;
+      <div class="search-result-meta">
+        ${country ? `<span>${country}</span>` : ""}
+        ${divisionLabel ? `<span>${divisionLabel}</span>` : ""}
+        ${statusTags.length ? `<span>${statusTags.join(" • ")}</span>` : ""}
+      </div>
+    </div>
+  </a>
+`;
   }
 
   function formatTypeLabel(type) {

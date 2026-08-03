@@ -7,32 +7,32 @@
   "leagues": [
     {
       "id": 39,
-      "name": "Premier League",
-      "slug": "premier-league",
+      "name": "English Premier League",
+      "slug": "English premier-league",
       "icon": "/assets/icons/premier_league.svg",
       "type": "league",
       "division": 1
     },
     {
       "id": 40,
-      "name": "Championship",
-      "slug": "championship",
+      "name": "English Championship",
+      "slug": "English championship",
       "icon": "/assets/icons/england_efl-championship.svg",
       "type": "league",
       "division": 2
     },
     {
       "id": 41,
-      "name": "League One",
-      "slug": "league-one",
+      "name": "English League One",
+      "slug": "English league-one",
       "icon": "/assets/icons/england_efl-league-two.svg",
       "type": "league",
       "division": 3
     },
     {
       "id": 42,
-      "name": "League Two",
-      "slug": "league-two",
+      "name": "English league two",
+      "slug": "English league-two",
       "icon": "/assets/icons/england_efl-league-two.svg",
       "type": "league",
       "division": 4
@@ -133,13 +133,6 @@
       "slug": "U23 professional-development",
       "icon": "/assets/icons/england_U_23professional-development-league.svg",
       "type": "youth"
-    },
-    {
-      "id": 44,
-      "name": "FA WSL",
-      "slug": "FA WSL",
-      "icon": "/assets/icons/england_FA_WSL.svg",
-      "type": "WOMEN"
     }
   ]
 },
