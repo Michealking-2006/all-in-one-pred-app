@@ -280,23 +280,29 @@ if (
 }
 
 (() => {
-  const SEARCH_FILES = {
-    leagues: "/assets/data/leagues.json",
-    clubs: "/assets/data/football-clubs.json",
-    players: "/assets/data/football-players.json",
-    matches: "/assets/data/football-matches.json",
-    teams: "/assets/data/national-teams.json",
-    venues: "/assets/data/football-venues.json",
-  };
-
-  const STORAGE_KEYS = {
-    recent: "app_recent_searches",
+  const CONFIG = {
+    resultBasePath: "/league-page/",
+    debounceMs: 220,
+    maxResults: 40,
+    recentLimit: 8,
+    searchFiles: {
+      leagues: "/assets/data/leagues.json",
+      clubs: "/assets/data/football-clubs.json",
+      players: "/assets/data/football-players.json",
+      matches: "/assets/data/football-matches.json",
+      teams: "/assets/data/national-teams.json",
+      venues: "/assets/data/football-venues.json",
+    },
+    storageKeys: {
+      recent: "app_recent_searches",
+    },
   };
 
   const state = {
     initialized: false,
     activeType: "all",
-    query: "",
+    rawQuery: "",
+    normalizedQuery: "",
     datasets: {
       leagues: [],
       clubs: [],
@@ -320,33 +326,36 @@ if (
     const output = document.querySelector(".app-search-output");
 
     if (!drawer || !closeBtn || !backdrop || !input || !carousel || !body) return;
-    if (drawer.dataset.initialized === "true") return;
+    if (drawer.dataset.initialized === "true" || state.initialized) return;
 
     drawer.dataset.initialized = "true";
+    state.initialized = true;
 
     const ui = ensureSearchPanels(body);
-    const prevBodyOverflow = document.body.style.overflow;
 
-    function openSearch() {
+    const previousBodyOverflow = document.body.style.overflow;
+
+    const openSearch = () => {
       drawer.classList.add("active");
       backdrop.classList.add("active");
       document.body.style.overflow = "hidden";
+
       window.setTimeout(() => input.focus(), 0);
 
-      if (state.query.trim()) {
+      if (state.normalizedQuery) {
         scheduleSearch();
       } else {
         renderIdleState();
       }
-    }
+    };
 
-    function closeSearch() {
+    const closeSearch = () => {
       drawer.classList.remove("active");
       backdrop.classList.remove("active");
-      document.body.style.overflow = prevBodyOverflow || "";
-    }
+      document.body.style.overflow = previousBodyOverflow || "";
+    };
 
-    function setActiveType(type) {
+    const setActiveType = (type) => {
       state.activeType = type || "all";
 
       carousel.querySelectorAll(".search-filter-chip").forEach((chip) => {
@@ -354,39 +363,48 @@ if (
       });
 
       scheduleSearch();
-    }
+    };
 
-    function renderIdleState() {
+    const updateOutput = (text) => {
+      if (!output) return;
+      output.textContent = text || "";
+    };
+
+    const renderIdleState = () => {
       ui.resultsPanel.hidden = true;
       ui.emptyState.hidden = true;
       ui.resultsBox.innerHTML = "";
       ui.resultsTitle.textContent = "";
 
-      showSection(ui.trendingSection, true);
-      showSection(ui.recentSection, true);
+      setSectionVisible(ui.trendingSection, true);
+      setSectionVisible(ui.recentSection, true);
 
       updateOutput("");
       renderRecentSearches(ui.recentBox);
-    }
+    };
 
-    function scheduleSearch() {
+    const scheduleSearch = () => {
       window.clearTimeout(state.debounceTimer);
       state.debounceTimer = window.setTimeout(() => {
         void runSearch();
-      }, 220);
-    }
+      }, CONFIG.debounceMs);
+    };
 
     async function runSearch() {
-      const query = normalizeText(input.value);
-      state.query = query;
+      const rawQuery = input.value.trim();
+      const normalizedQuery = normalizeText(rawQuery);
 
-      if (!query) {
+      state.rawQuery = rawQuery;
+      state.normalizedQuery = normalizedQuery;
+
+      if (!normalizedQuery) {
         renderIdleState();
         return;
       }
 
-      showSection(ui.trendingSection, false);
-      showSection(ui.recentSection, false);
+      setSectionVisible(ui.trendingSection, false);
+      setSectionVisible(ui.recentSection, false);
+
       ui.resultsPanel.hidden = false;
       ui.emptyState.hidden = true;
       ui.resultsTitle.textContent = "Results";
@@ -396,29 +414,24 @@ if (
       await ensureAllDataLoaded();
 
       const items = getItemsForActiveType(state.activeType);
-      const matches = searchItems(items, query, state.activeType);
+      const matches = searchItems(items, normalizedQuery, state.activeType);
 
       if (!matches.length) {
         ui.resultsBox.innerHTML = "";
         ui.emptyState.hidden = false;
-        ui.emptyState.textContent = getEmptyMessage(state.activeType, query);
+        ui.emptyState.textContent = getEmptyMessage(state.activeType, rawQuery);
         updateOutput("No results");
         return;
       }
 
       ui.emptyState.hidden = true;
       ui.resultsBox.innerHTML = matches
-        .slice(0, 40)
+        .slice(0, CONFIG.maxResults)
         .map((item) => renderResultItem(item))
         .join("");
 
       updateOutput(`${matches.length} result${matches.length === 1 ? "" : "s"}`);
       bindResultClicks(ui.resultsBox);
-    }
-
-    function updateOutput(text) {
-      if (!output) return;
-      output.textContent = text || "";
     }
 
     openBtn?.addEventListener("click", openSearch);
@@ -439,15 +452,15 @@ if (
       setActiveType(chip.dataset.type || "all");
     });
 
-    ui.recentBox.addEventListener("click", (e) => {
+    ui.recentBox?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-recent-query]");
       if (!btn) return;
+
       input.value = btn.dataset.recentQuery || "";
       scheduleSearch();
       input.focus();
     });
 
-    // Start with the active chip if one already exists
     const activeChip =
       carousel.querySelector(".search-filter-chip.active") ||
       carousel.querySelector('.search-filter-chip[data-type="all"]');
@@ -504,33 +517,33 @@ if (
     };
   }
 
-  function showSection(section, show) {
+  function setSectionVisible(section, visible) {
     if (!section) return;
-    section.hidden = !show;
+    section.hidden = !visible;
   }
 
   function getEmptyMessage(type, query) {
-    const label = type === "all" ? "results" : `${pluralizeType(type)} data`;
-    if (type === "all") return `No results found for “${query}”.`;
-    return `No ${label} available for “${query}”.`;
-  }
+    if (type === "all") {
+      return `No results found for “${query}”.`;
+    }
 
-  function pluralizeType(type) {
-    const map = {
-      leagues: "leagues",
-      clubs: "clubs",
-      players: "players",
-      matches: "matches",
-      teams: "national teams",
-      venues: "venues",
-    };
-    return map[type] || type;
+    const label = {
+      leagues: "league",
+      clubs: "club",
+      players: "player",
+      matches: "match",
+      teams: "national team",
+      venues: "venue",
+    }[type] || type;
+
+    return `No ${label} data available for “${query}”.`;
   }
 
   async function ensureAllDataLoaded() {
     if (!state.loadingPromise) {
       state.loadingPromise = (async () => {
-        const entries = Object.entries(SEARCH_FILES);
+        const entries = Object.entries(CONFIG.searchFiles);
+
         const loaded = await Promise.all(
           entries.map(async ([type, url]) => {
             const raw = await fetchJsonSafe(url);
@@ -585,6 +598,7 @@ if (
 
     for (const country of countries) {
       const leagues = Array.isArray(country.leagues) ? country.leagues : [];
+
       for (const league of leagues) {
         flat.push({
           id: league.id ?? "",
@@ -641,42 +655,49 @@ if (
   }
 
   function searchItems(items, query, activeType) {
-    const q = normalizeText(query);
-    if (!q) return [];
-
     const ranked = [];
 
     for (const item of items) {
       if (!item) continue;
 
-      const haystack = {
-        name: normalizeText(item.name),
-        slug: normalizeText(item.slug),
-        country: normalizeText(item.country),
-        code: normalizeText(item.code),
-        type: normalizeText(item.type),
-        division: normalizeText(String(item.division ?? "")),
-        gender: normalizeText(item.gender),
-      };
+      const normalizedName = normalizeText(item.name);
+      const normalizedSlug = normalizeText(item.slug);
+      const normalizedCountry = normalizeText(item.country);
+      const normalizedCode = normalizeText(item.code);
+      const normalizedType = normalizeText(item.type);
+      const normalizedDivision = normalizeText(String(item.division ?? ""));
+      const normalizedGender = normalizeText(item.gender);
 
-      const combined =
-        `${haystack.name} ${haystack.slug} ${haystack.country} ${haystack.code} ${haystack.type} ${haystack.division} ${haystack.gender}`.trim();
+      const combined = [
+        normalizedName,
+        normalizedSlug,
+        normalizedCountry,
+        normalizedCode,
+        normalizedType,
+        normalizedDivision,
+        normalizedGender,
+      ]
+        .filter(Boolean)
+        .join(" ");
 
-      if (!combined.includes(q)) continue;
+      if (!combined.includes(query)) continue;
 
       let score = 0;
 
-      if (haystack.name === q) score += 1000;
-      if (haystack.name.startsWith(q)) score += 900;
-      if (haystack.country === q) score += 850;
-      if (haystack.country.startsWith(q)) score += 800;
-      if (haystack.slug === q) score += 750;
-      if (haystack.slug.startsWith(q)) score += 700;
-      if (haystack.name.includes(q)) score += 500;
-      if (haystack.country.includes(q)) score += 450;
-      if (haystack.slug.includes(q)) score += 400;
-      if (haystack.code.includes(q)) score += 250;
-      if (haystack.type.includes(q)) score += 150;
+      if (normalizedName === query) score += 1000;
+      if (normalizedName.startsWith(query)) score += 900;
+
+      if (normalizedCountry === query) score += 850;
+      if (normalizedCountry.startsWith(query)) score += 800;
+
+      if (normalizedSlug === query) score += 750;
+      if (normalizedSlug.startsWith(query)) score += 700;
+
+      if (normalizedName.includes(query)) score += 500;
+      if (normalizedCountry.includes(query)) score += 450;
+      if (normalizedSlug.includes(query)) score += 400;
+      if (normalizedCode.includes(query)) score += 250;
+      if (normalizedType.includes(query)) score += 150;
 
       if (activeType !== "all") score += 50;
 
@@ -692,13 +713,19 @@ if (
   }
 
   function renderResultItem(item) {
-    const title = escapeHtml(item.name || "");
-    const country = escapeHtml(item.country || "");
+    const rawQuery = state.rawQuery || "";
+    const idAttr = escapeHtml(String(item.id ?? ""));
+    const slugAttr = escapeHtml(String(item.slug ?? ""));
+    const typeAttr = escapeHtml(String(item.type ?? ""));
     const typeLabel = escapeHtml(formatTypeLabel(item.type || "league"));
-    const divisionLabel =
+
+    const titleHtml = highlightText(item.name || "", rawQuery);
+    const countryHtml = item.country ? highlightText(item.country, rawQuery) : "";
+    const divisionText =
       item.division !== "" && item.division !== null && item.division !== undefined
-        ? `Division ${escapeHtml(String(item.division))}`
+        ? `Division ${String(item.division)}`
         : "";
+    const divisionHtml = divisionText ? highlightText(divisionText, rawQuery) : "";
 
     const statusTags = [];
     if (item.gender) statusTags.push(escapeHtml(String(item.gender)));
@@ -706,42 +733,39 @@ if (
     if (item.featured === true) statusTags.push("Featured");
 
     const iconSrc = item.icon || item.flag || "";
-    const idAttr = escapeHtml(String(item.id ?? ""));
-    const slugAttr = escapeHtml(String(item.slug ?? ""));
-    const typeAttr = escapeHtml(String(item.type ?? ""));
 
     return `
-  <a
-    href="/league-page/${encodeURIComponent(item.slug || "")}"
-    class="search-result-item"
-    data-id="${idAttr}"
-    data-slug="${slugAttr}"
-    data-type="${typeAttr}"
-    data-name="${title}"
-    data-country="${country}"
-  >
-    <div class="search-result-icon-wrap">
-      ${
-        iconSrc
-          ? `<img class="search-result-icon" src="${escapeHtml(iconSrc)}" alt="" loading="lazy">`
-          : `<span class="search-result-icon-fallback">⚽</span>`
-      }
-    </div>
+      <a
+        href="${CONFIG.resultBasePath}${encodeURIComponent(item.slug || "")}"
+        class="search-result-item"
+        data-id="${idAttr}"
+        data-slug="${slugAttr}"
+        data-type="${typeAttr}"
+        data-name="${escapeHtml(item.name || "")}"
+        data-country="${escapeHtml(item.country || "")}"
+      >
+        <div class="search-result-icon-wrap">
+          ${
+            iconSrc
+              ? `<img class="search-result-icon" src="${escapeHtml(iconSrc)}" alt="" loading="lazy">`
+              : `<span class="search-result-icon-fallback">⚽</span>`
+          }
+        </div>
 
-    <div class="search-result-content">
-      <div class="search-result-title-row">
-        <strong class="search-result-name">${title}</strong>
-        <span class="search-result-type">${typeLabel}</span>
-      </div>
+        <div class="search-result-content">
+          <div class="search-result-title-row">
+            <strong class="search-result-name">${titleHtml}</strong>
+            <span class="search-result-type">${typeLabel}</span>
+          </div>
 
-      <div class="search-result-meta">
-        ${country ? `<span>${country}</span>` : ""}
-        ${divisionLabel ? `<span>${divisionLabel}</span>` : ""}
-        ${statusTags.length ? `<span>${statusTags.join(" • ")}</span>` : ""}
-      </div>
-    </div>
-  </a>
-`;
+          <div class="search-result-meta">
+            ${countryHtml ? `<span>${countryHtml}</span>` : ""}
+            ${divisionHtml ? `<span>${divisionHtml}</span>` : ""}
+            ${statusTags.length ? `<span>${statusTags.join(" • ")}</span>` : ""}
+          </div>
+        </div>
+      </a>
+    `;
   }
 
   function formatTypeLabel(type) {
@@ -759,9 +783,61 @@ if (
       venues: "Venue",
     };
 
-    return map[type] || String(type)
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (m) => m.toUpperCase());
+    return (
+      map[type] ||
+      String(type)
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (m) => m.toUpperCase())
+    );
+  }
+
+  function highlightText(text, query) {
+    const source = String(text ?? "");
+    const q = normalizeText(query);
+
+    if (!source || !q) return escapeHtml(source);
+
+    const { normalized, map } = buildNormalizedMap(source);
+    let result = "";
+    let lastSourceIndex = 0;
+    let searchFrom = 0;
+
+    while (true) {
+      const matchIndex = normalized.indexOf(q, searchFrom);
+      if (matchIndex === -1) break;
+
+      const start = map[matchIndex];
+      const end =
+        matchIndex + q.length < map.length ? map[matchIndex + q.length] : source.length;
+
+      result += escapeHtml(source.slice(lastSourceIndex, start));
+      result += `<span class="search-highlight" style="color: var(--app-primary-color); font-weight: 700;">${escapeHtml(source.slice(start, end))}</span>`;
+
+      lastSourceIndex = end;
+      searchFrom = matchIndex + q.length;
+    }
+
+    result += escapeHtml(source.slice(lastSourceIndex));
+    return result;
+  }
+
+  function buildNormalizedMap(str) {
+    const source = String(str ?? "");
+    let normalized = "";
+    const map = [];
+
+    for (let i = 0; i < source.length; i++) {
+      const ch = source[i];
+      const base = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (!base) continue;
+
+      for (let j = 0; j < base.length; j++) {
+        normalized += base[j].toLowerCase();
+        map.push(i);
+      }
+    }
+
+    return { source, normalized, map };
   }
 
   function escapeHtml(value) {
@@ -782,19 +858,17 @@ if (
   }
 
   function bindResultClicks(container) {
-    const buttons = container.querySelectorAll(".search-result-item");
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const item = {
-          id: btn.dataset.id || "",
-          slug: btn.dataset.slug || "",
-          type: btn.dataset.type || "",
-          name: btn.dataset.name || "",
-          country: btn.dataset.country || "",
-        };
+    const links = container.querySelectorAll(".search-result-item");
 
-        saveRecentSearch(item);
-        window.dispatchEvent(new CustomEvent("search:select", { detail: item }));
+    links.forEach((link) => {
+      link.addEventListener("click", () => {
+        saveRecentSearch({
+          id: link.dataset.id || "",
+          slug: link.dataset.slug || "",
+          type: link.dataset.type || "",
+          name: link.dataset.name || "",
+          country: link.dataset.country || "",
+        });
       });
     });
   }
@@ -808,9 +882,13 @@ if (
     const next = [
       { ...item, key, ts: Date.now() },
       ...current.filter((x) => x.key !== key),
-    ].slice(0, 8);
+    ].slice(0, CONFIG.recentLimit);
 
-    localStorage.setItem(STORAGE_KEYS.recent, JSON.stringify(next));
+    try {
+      localStorage.setItem(CONFIG.storageKeys.recent, JSON.stringify(next));
+    } catch {
+      return;
+    }
 
     const recentBox = document.querySelector(".recent-searches-box");
     if (recentBox) renderRecentSearches(recentBox);
@@ -818,7 +896,7 @@ if (
 
   function readRecentSearches() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEYS.recent);
+      const raw = localStorage.getItem(CONFIG.storageKeys.recent);
       const parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch {
@@ -830,6 +908,7 @@ if (
     if (!container) return;
 
     const recent = readRecentSearches();
+
     if (!recent.length) {
       container.innerHTML = `
         <div class="recent-search-empty">
@@ -855,10 +934,8 @@ if (
       .join("");
   }
 
-  // Expose for SPA mounting
   window.initSearchUI = initSearchUI;
 
-  // Safe auto-init on first page load if the drawer exists
   if (document.querySelector(".search-drawer")) {
     initSearchUI();
   }
