@@ -1,66 +1,92 @@
-/********************* APP DATE UI ********************/
+const APP_UI = {
+  controller: null,
+  cleanups: []
+};
+
+function addCleanup(fn) {
+  if (typeof fn === "function") {
+    APP_UI.cleanups.push(fn);
+  }
+}
+
+function destroyAppUI() {
+  APP_UI.controller?.abort();
+  APP_UI.controller = null;
+
+  for (const cleanup of APP_UI.cleanups) {
+    try {
+      cleanup();
+    } catch (err) {
+      console.error("App UI cleanup failed:", err);
+    }
+  }
+
+  APP_UI.cleanups = [];
+
+  window.__tabsUIBound = false;
+
+  if (window.__searchUIState) {
+    window.__searchUIState.initialized = false;
+    window.clearTimeout(window.__searchUIState.debounceTimer);
+    window.__searchUIState.debounceTimer = null;
+  }
+}
+
+/*********************
+ * APP DATE UI
+ *********************/
 
 function initDateUI() {
   const dateScroll = document.getElementById("dateScroll");
-  
-  // Exit if this page doesn't contain the date scroller
   if (!dateScroll) return;
-  
-  // Prevent duplicate initialization
+
   if (dateScroll.dataset.initialized) return;
   dateScroll.dataset.initialized = "true";
-  
+
   const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const today = new Date();
-  
   const dates = [];
-  
+
   for (let i = -7; i <= 7; i++) {
-    const d = new Date();
+    const d = new Date(today);
     d.setDate(today.getDate() + i);
     dates.push(d);
   }
-  
+
   dateScroll.innerHTML = "";
-  
+
   dates.forEach((date, index) => {
     const card = document.createElement("div");
     card.className = "date-card";
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
-    
-    if (index === 7) {
-      card.classList.add("active");
-    }
-    
+
+    if (index === 7) card.classList.add("active");
+
     const dayName = document.createElement("div");
     dayName.className = "day-name";
     dayName.textContent = index === 7 ? "Today" : DAYS[date.getDay()];
-    
+
     const circle = document.createElement("div");
     circle.className = "date-circle";
     circle.textContent = date.getDate();
-    
+
     card.append(dayName, circle);
-    
+
     const emitSelection = () => {
-      dateScroll.querySelectorAll(".date-card")
-        .forEach(c => c.classList.remove("active"));
-      
+      dateScroll.querySelectorAll(".date-card").forEach(c => c.classList.remove("active"));
       card.classList.add("active");
-      
+
       const selectedDate = {
         day: date.getDate(),
         month: date.getMonth() + 1,
         year: date.getFullYear(),
         iso: new Date(date).toISOString().slice(0, 10)
       };
-      
-      window.dispatchEvent(new CustomEvent("dateSelected", {
-        detail: selectedDate
-      }));
+
+      window.dispatchEvent(new CustomEvent("dateSelected", { detail: selectedDate }));
     };
-    
+
     card.addEventListener("click", emitSelection);
     card.addEventListener("keydown", e => {
       if (e.key === "Enter" || e.key === " ") {
@@ -68,14 +94,12 @@ function initDateUI() {
         emitSelection();
       }
     });
-    
+
     dateScroll.appendChild(card);
   });
-  
-  // Center today's card
+
   requestAnimationFrame(() => {
     const active = dateScroll.querySelector(".date-card.active");
-    
     if (active) {
       active.scrollIntoView({
         behavior: "smooth",
@@ -88,36 +112,40 @@ function initDateUI() {
 
 /********************* APP TABS UI ********************/
 
-function initTabsUI() {
+function initTabsUI(signal) {
   if (window.__tabsUIBound) return;
   window.__tabsUIBound = true;
-  
-  document.addEventListener("click", e => {
+
+  const onClick = e => {
     const tabBtn = e.target.closest(".tab[data-tab]");
     if (!tabBtn) return;
-    
+
     const tabsRoot = tabBtn.closest(".tabs");
     if (!tabsRoot) return;
-    
+
     const pageRoot =
       tabBtn.closest(".league-page") ||
       tabBtn.closest("main") ||
       document;
-    
+
     const targetId = tabBtn.dataset.tab;
     const targetPage = document.getElementById(targetId);
-    
-    // Remove active state inside the current page group
+
     pageRoot.querySelector(".tab.active")?.classList.remove("active");
     pageRoot.querySelector(".page.active")?.classList.remove("active");
-    
+
     tabBtn.classList.add("active");
     targetPage?.classList.add("active");
-    
-    // Small hook for any page-specific tab behavior
+
     window.dispatchEvent(new CustomEvent("tabChanged", {
       detail: { tab: targetId }
     }));
+  };
+
+  document.addEventListener("click", onClick, { signal });
+
+  addCleanup(() => {
+    window.__tabsUIBound = false;
   });
 }
 
@@ -125,161 +153,95 @@ function initTabsUI() {
  * COOKIE CONSENT
  **********************/
 
-function initAppUI() {
-  
-  /* ==========================
-     COOKIE CONSENT
-  ========================== */
-  
+function initAppUI(signal) {
   const cookieBox = document.getElementById("cookieBox");
   const cookieOverlay = document.getElementById("cookieOverlay");
   const acceptCookies = document.getElementById("acceptCookies");
   const declineCookies = document.getElementById("declineCookies");
-  
-  if (
-    cookieBox &&
-    cookieOverlay &&
-    acceptCookies &&
-    declineCookies &&
-    !cookieBox.dataset.initialized
-  ) {
+
+  let cookieTimeout = null;
+
+  if (cookieBox && cookieOverlay && acceptCookies && declineCookies && !cookieBox.dataset.initialized) {
     cookieBox.dataset.initialized = "true";
-    
+
     const lockPage = () => {
       document.body.classList.add("cookie-active");
       document.body.style.overflow = "hidden";
     };
-    
+
     const unlockPage = () => {
       document.body.classList.remove("cookie-active");
       document.body.style.overflow = "";
     };
-    
+
     const showCookie = () => {
       cookieBox.classList.add("show");
       cookieOverlay.classList.add("show");
       lockPage();
     };
-    
+
     const hideCookie = () => {
       cookieBox.classList.remove("show");
       cookieOverlay.classList.remove("show");
       unlockPage();
     };
-    
+
     const status = localStorage.getItem("cookiesAccepted");
-    
+
     if (status !== "true") {
-      setTimeout(() => {
+      cookieTimeout = setTimeout(() => {
         if (document.body.contains(cookieBox)) {
           showCookie();
         }
       }, 5000);
     }
-    
+
     acceptCookies.addEventListener("click", () => {
       localStorage.setItem("cookiesAccepted", "true");
       hideCookie();
-    });
-    
+    }, { signal });
+
     declineCookies.addEventListener("click", () => {
       localStorage.setItem("cookiesAccepted", "false");
       hideCookie();
+    }, { signal });
+
+    addCleanup(() => {
+      if (cookieTimeout) clearTimeout(cookieTimeout);
     });
   }
-  
-  /* ==========================
-     MORE MENU
-  ========================== */
-  
+
   const closeNavBtn = document.querySelector(".close-nav-btn");
   const appMainProfileSec = document.querySelector(".app-main-profile-sec");
   const hamburger = document.querySelector(".app-more-nav-hamburger-menu");
-  
-  if (
-    closeNavBtn &&
-    appMainProfileSec &&
-    hamburger &&
-    !hamburger.dataset.initialized
-  ) {
+
+  if (closeNavBtn && appMainProfileSec && hamburger && !hamburger.dataset.initialized) {
     hamburger.dataset.initialized = "true";
-    
+
     hamburger.addEventListener("click", () => {
       appMainProfileSec.classList.add("active");
-    });
-    
+    }, { signal });
+
     closeNavBtn.addEventListener("click", () => {
       appMainProfileSec.classList.remove("active");
-    });
+    }, { signal });
   }
-  
-  /* ==========================
-     COLLAPSIBLE MENUS
-  ========================== */
-  
+
   document.querySelectorAll(".menu-header").forEach(header => {
     if (header.dataset.initialized) return;
-    
     header.dataset.initialized = "true";
-    
+
     header.addEventListener("click", () => {
       header.parentElement?.classList.toggle("active");
-    });
+    }, { signal });
   });
 }
 
 /*******
-   SEARCH DRAWER ******/
+   SEARCH DRAWER
+******/
 
-function initSearchUI() {  
-  
-const openBtn = document.querySelector(".search-app-btn");
-const closeBtn = document.querySelector(".close-index-search-btn");
-const drawer = document.querySelector(".search-drawer");
-const backdrop = document.querySelector(".search-backdrop");
-const input = document.getElementById("app-main-search-input");
-
-if (
-  openBtn &&
-  closeBtn &&
-  drawer &&
-  backdrop &&
-  !drawer.dataset.initialized
-) {
-  drawer.dataset.initialized = "true";
-  
-  function openSearch() {
-    drawer.classList.add("active");
-    backdrop.classList.add("active");
-    document.body.style.overflow = "hidden";
-    
-
-  }
-  
-  function closeSearch() {
-    drawer.classList.remove("active");
-    backdrop.classList.remove("active");
-    document.body.style.overflow = "";
-  }
-  
-  openBtn.addEventListener("click", openSearch);
-  
-  closeBtn.addEventListener("click", closeSearch);
-  
-  backdrop.addEventListener("click", closeSearch);
-  
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") {
-      closeSearch();
-    }
-  });
-  
-}
-
-
-}
-
-(() => {
+function initSearchUI(signal) {
   const CONFIG = {
     resultBasePath: "/league-page/",
     debounceMs: 220,
@@ -291,14 +253,14 @@ if (
       players: "/assets/data/football-players.json",
       matches: "/assets/data/football-matches.json",
       teams: "/assets/data/national-teams.json",
-      venues: "/assets/data/football-venues.json",
+      venues: "/assets/data/football-venues.json"
     },
     storageKeys: {
-      recent: "app_recent_searches",
-    },
+      recent: "app_recent_searches"
+    }
   };
 
-  const state = {
+  const state = window.__searchUIState || {
     initialized: false,
     activeType: "all",
     rawQuery: "",
@@ -309,176 +271,181 @@ if (
       players: [],
       matches: [],
       teams: [],
-      venues: [],
+      venues: []
     },
     loadingPromise: null,
-    debounceTimer: null,
+    debounceTimer: null
   };
 
-  function initSearchUI() {
-    const drawer = document.querySelector(".search-drawer");
-    const openBtn = document.querySelector(".search-app-btn");
-    const closeBtn = document.querySelector(".close-index-search-btn");
-    const backdrop = document.querySelector(".search-backdrop");
-    const input = document.getElementById("app-main-search-input");
-    const carousel = document.querySelector(".search-filter-carousel");
-    const body = document.querySelector(".search-body");
-    const output = document.querySelector(".app-search-output");
+  window.__searchUIState = state;
 
-    if (!drawer || !closeBtn || !backdrop || !input || !carousel || !body) return;
-    if (drawer.dataset.initialized === "true" || state.initialized) return;
+  const drawer = document.querySelector(".search-drawer");
+  const openBtn = document.querySelector(".search-app-btn");
+  const closeBtn = document.querySelector(".close-index-search-btn");
+  const backdrop = document.querySelector(".search-backdrop");
+  const input = document.getElementById("app-main-search-input");
+  const carousel = document.querySelector(".search-filter-carousel");
+  const body = document.querySelector(".search-body");
 
-    drawer.dataset.initialized = "true";
-    state.initialized = true;
+  if (!drawer || !closeBtn || !backdrop || !input || !carousel || !body) return;
+  if (drawer.dataset.initialized === "true" || state.initialized) return;
 
-    const ui = ensureSearchPanels(body);
+  drawer.dataset.initialized = "true";
+  state.initialized = true;
 
-    const previousBodyOverflow = document.body.style.overflow;
+  const ui = ensureSearchPanels(body);
 
-    const openSearch = () => {
-      drawer.classList.add("active");
-      backdrop.classList.add("active");
-      document.body.style.overflow = "hidden";
+  const previousBodyOverflow = document.body.style.overflow;
 
-      window.setTimeout(() => input.focus(), 0);
+  const openSearch = () => {
+    drawer.classList.add("active");
+    backdrop.classList.add("active");
+    document.body.style.overflow = "hidden";
 
-      if (state.normalizedQuery) {
-        scheduleSearch();
-      } else {
-        renderIdleState();
-      }
-    };
+    window.setTimeout(() => input.focus(), 0);
 
-    const closeSearch = () => {
-      drawer.classList.remove("active");
-      backdrop.classList.remove("active");
-      document.body.style.overflow = previousBodyOverflow || "";
-    };
-
-    const setActiveType = (type) => {
-      state.activeType = type || "all";
-
-      carousel.querySelectorAll(".search-filter-chip").forEach((chip) => {
-        chip.classList.toggle("active", chip.dataset.type === state.activeType);
-      });
-
+    if (state.normalizedQuery) {
       scheduleSearch();
-    };
-
-    const updateOutput = (text) => {
-      if (!output) return;
-      output.textContent = text || "";
-    };
-
-    const renderIdleState = () => {
-      ui.resultsPanel.hidden = true;
-      ui.emptyState.hidden = true;
-      ui.resultsBox.innerHTML = "";
-      ui.resultsTitle.textContent = "";
-
-      setSectionVisible(ui.trendingSection, true);
-      setSectionVisible(ui.recentSection, true);
-
-      updateOutput("");
-      renderRecentSearches(ui.recentBox);
-    };
-
-    const scheduleSearch = () => {
-      window.clearTimeout(state.debounceTimer);
-      state.debounceTimer = window.setTimeout(() => {
-        void runSearch();
-      }, CONFIG.debounceMs);
-    };
-
-    async function runSearch() {
-      const rawQuery = input.value.trim();
-      const normalizedQuery = normalizeText(rawQuery);
-
-      state.rawQuery = rawQuery;
-      state.normalizedQuery = normalizedQuery;
-
-      if (!normalizedQuery) {
-        renderIdleState();
-        return;
-      }
-
-      setSectionVisible(ui.trendingSection, false);
-      setSectionVisible(ui.recentSection, false);
-
-      ui.resultsPanel.hidden = false;
-      ui.emptyState.hidden = true;
-      ui.resultsTitle.textContent = "Results";
-
-      updateOutput("Searching...");
-
-      await ensureAllDataLoaded();
-
-      const items = getItemsForActiveType(state.activeType);
-      const matches = searchItems(items, normalizedQuery, state.activeType);
-
-      if (!matches.length) {
-        ui.resultsBox.innerHTML = "";
-        ui.emptyState.hidden = false;
-        ui.emptyState.textContent = getEmptyMessage(state.activeType, rawQuery);
-        updateOutput("No results");
-        return;
-      }
-
-      ui.emptyState.hidden = true;
-      ui.resultsBox.innerHTML = matches
-        .slice(0, CONFIG.maxResults)
-        .map((item) => renderResultItem(item))
-        .join("");
-
-      updateOutput(`${matches.length} result${matches.length === 1 ? "" : "s"}`);
-      bindResultClicks(ui.resultsBox);
+    } else {
+      renderIdleState();
     }
+  };
 
-    openBtn?.addEventListener("click", openSearch);
-    closeBtn.addEventListener("click", closeSearch);
-    backdrop.addEventListener("click", closeSearch);
+  const closeSearch = () => {
+    drawer.classList.remove("active");
+    backdrop.classList.remove("active");
+    document.body.style.overflow = previousBodyOverflow || "";
+  };
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && drawer.classList.contains("active")) {
-        closeSearch();
-      }
+  const setActiveType = type => {
+    state.activeType = type || "all";
+
+    carousel.querySelectorAll(".search-filter-chip").forEach(chip => {
+      chip.classList.toggle("active", chip.dataset.type === state.activeType);
     });
 
-    input.addEventListener("input", scheduleSearch);
+    scheduleSearch();
+  };
 
-    carousel.addEventListener("click", (e) => {
-      const chip = e.target.closest(".search-filter-chip");
-      if (!chip) return;
-      setActiveType(chip.dataset.type || "all");
-    });
+  const updateOutput = text => {
+    if (!ui.output) return;
+    ui.output.textContent = text || "";
+  };
 
-    ui.recentBox?.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-recent-query]");
-      if (!btn) return;
+  const renderIdleState = () => {
+    ui.resultsPanel.hidden = true;
+    ui.emptyState.hidden = true;
+    ui.resultsBox.innerHTML = "";
+    ui.resultsTitle.textContent = "";
 
-      input.value = btn.dataset.recentQuery || "";
-      scheduleSearch();
-      input.focus();
-    });
+    setSectionVisible(ui.trendingSection, true);
+    setSectionVisible(ui.recentSection, true);
 
-    const activeChip =
-      carousel.querySelector(".search-filter-chip.active") ||
-      carousel.querySelector('.search-filter-chip[data-type="all"]');
-
-    if (activeChip) {
-      state.activeType = activeChip.dataset.type || "all";
-      carousel.querySelectorAll(".search-filter-chip").forEach((chip) => {
-        chip.classList.toggle("active", chip === activeChip);
-      });
-    }
-
+    updateOutput("");
     renderRecentSearches(ui.recentBox);
-    renderIdleState();
-    void ensureAllDataLoaded();
+  };
+
+  const scheduleSearch = () => {
+    window.clearTimeout(state.debounceTimer);
+    state.debounceTimer = window.setTimeout(() => {
+      void runSearch();
+    }, CONFIG.debounceMs);
+  };
+
+  async function runSearch() {
+    const rawQuery = input.value.trim();
+    const normalizedQuery = normalizeText(rawQuery);
+
+    state.rawQuery = rawQuery;
+    state.normalizedQuery = normalizedQuery;
+
+    if (!normalizedQuery) {
+      renderIdleState();
+      return;
+    }
+
+    setSectionVisible(ui.trendingSection, false);
+    setSectionVisible(ui.recentSection, false);
+
+    ui.resultsPanel.hidden = false;
+    ui.emptyState.hidden = true;
+    ui.resultsTitle.textContent = "Results";
+
+    updateOutput("Searching...");
+
+    await ensureAllDataLoaded();
+
+    const items = getItemsForActiveType(state.activeType);
+    const matches = searchItems(items, normalizedQuery, state.activeType);
+
+    if (!matches.length) {
+      ui.resultsBox.innerHTML = "";
+      ui.emptyState.hidden = false;
+      ui.emptyState.textContent = getEmptyMessage(state.activeType, rawQuery);
+      updateOutput("No results");
+      return;
+    }
+
+    ui.emptyState.hidden = true;
+    ui.resultsBox.innerHTML = matches
+      .slice(0, CONFIG.maxResults)
+      .map(item => renderResultItem(item))
+      .join("");
+
+    updateOutput(`${matches.length} result${matches.length === 1 ? "" : "s"}`);
+    bindResultClicks(ui.resultsBox);
   }
 
-  function ensureSearchPanels(body) {
-    let resultsPanel = body.querySelector(".search-results-panel");
+  if (openBtn) openBtn.addEventListener("click", openSearch, { signal });
+  closeBtn.addEventListener("click", closeSearch, { signal });
+  backdrop.addEventListener("click", closeSearch, { signal });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && drawer.classList.contains("active")) {
+      closeSearch();
+    }
+  }, { signal });
+
+  input.addEventListener("input", scheduleSearch, { signal });
+
+  carousel.addEventListener("click", e => {
+    const chip = e.target.closest(".search-filter-chip");
+    if (!chip) return;
+    setActiveType(chip.dataset.type || "all");
+  }, { signal });
+
+  ui.recentBox?.addEventListener("click", e => {
+    const btn = e.target.closest("[data-recent-query]");
+    if (!btn) return;
+
+    input.value = btn.dataset.recentQuery || "";
+    scheduleSearch();
+    input.focus();
+  }, { signal });
+
+  const activeChip =
+    carousel.querySelector(".search-filter-chip.active") ||
+    carousel.querySelector('.search-filter-chip[data-type="all"]');
+
+  if (activeChip) {
+    state.activeType = activeChip.dataset.type || "all";
+    carousel.querySelectorAll(".search-filter-chip").forEach(chip => {
+      chip.classList.toggle("active", chip === activeChip);
+    });
+  }
+
+  renderRecentSearches(ui.recentBox);
+  renderIdleState();
+  void ensureAllDataLoaded();
+
+  addCleanup(() => {
+    state.initialized = false;
+    window.clearTimeout(state.debounceTimer);
+    state.debounceTimer = null;
+  });
+
+  function ensureSearchPanels(bodyEl) {
+    let resultsPanel = bodyEl.querySelector(".search-results-panel");
 
     if (!resultsPanel) {
       resultsPanel = document.createElement("section");
@@ -489,7 +456,7 @@ if (
         <div class="search-results-box"></div>
         <div class="search-empty-state" hidden></div>
       `;
-      body.prepend(resultsPanel);
+      bodyEl.prepend(resultsPanel);
     }
 
     const resultsBox = resultsPanel.querySelector(".search-results-box");
@@ -497,10 +464,10 @@ if (
     const resultsTitle = resultsPanel.querySelector(".search-results-title");
 
     const trendingSection =
-      body.querySelector(".trending-search-wrapper")?.closest("section") ||
-      body.querySelector(".trending-search-wrapper");
+      bodyEl.querySelector(".trending-search-wrapper")?.closest("section") ||
+      bodyEl.querySelector(".trending-search-wrapper");
 
-    const recentBox = body.querySelector(".recent-searches-box");
+    const recentBox = bodyEl.querySelector(".recent-searches-box");
     const recentSection = recentBox?.closest("section");
 
     if (recentSection) recentSection.classList.add("search-recent-section");
@@ -514,6 +481,7 @@ if (
       trendingSection,
       recentSection,
       recentBox,
+      output: bodyEl.querySelector(".app-search-output")
     };
   }
 
@@ -533,7 +501,7 @@ if (
       players: "player",
       matches: "match",
       teams: "national team",
-      venues: "venue",
+      venues: "venue"
     }[type] || type;
 
     return `No ${label} data available for “${query}”.`;
@@ -578,15 +546,15 @@ if (
     }
 
     if (Array.isArray(raw)) {
-      return raw.map((item) => normalizeGenericItem(item, type)).filter(Boolean);
+      return raw.map(item => normalizeGenericItem(item, type)).filter(Boolean);
     }
 
     if (Array.isArray(raw.items)) {
-      return raw.items.map((item) => normalizeGenericItem(item, type)).filter(Boolean);
+      return raw.items.map(item => normalizeGenericItem(item, type)).filter(Boolean);
     }
 
     if (Array.isArray(raw.data)) {
-      return raw.data.map((item) => normalizeGenericItem(item, type)).filter(Boolean);
+      return raw.data.map(item => normalizeGenericItem(item, type)).filter(Boolean);
     }
 
     return [];
@@ -612,7 +580,7 @@ if (
           featured: typeof league.featured === "boolean" ? league.featured : null,
           country: country.country ?? "",
           code: country.code ?? "",
-          flag: country.flag ?? "",
+          flag: country.flag ?? ""
         });
       }
     }
@@ -635,7 +603,7 @@ if (
       featured: typeof item.featured === "boolean" ? item.featured : null,
       country: item.country ?? item.nation ?? "",
       code: item.code ?? "",
-      flag: item.flag ?? "",
+      flag: item.flag ?? ""
     };
   }
 
@@ -647,7 +615,7 @@ if (
         ...state.datasets.players,
         ...state.datasets.matches,
         ...state.datasets.teams,
-        ...state.datasets.venues,
+        ...state.datasets.venues
       ];
     }
 
@@ -675,10 +643,8 @@ if (
         normalizedCode,
         normalizedType,
         normalizedDivision,
-        normalizedGender,
-      ]
-        .filter(Boolean)
-        .join(" ");
+        normalizedGender
+      ].filter(Boolean).join(" ");
 
       if (!combined.includes(query)) continue;
 
@@ -686,19 +652,15 @@ if (
 
       if (normalizedName === query) score += 1000;
       if (normalizedName.startsWith(query)) score += 900;
-
       if (normalizedCountry === query) score += 850;
       if (normalizedCountry.startsWith(query)) score += 800;
-
       if (normalizedSlug === query) score += 750;
       if (normalizedSlug.startsWith(query)) score += 700;
-
       if (normalizedName.includes(query)) score += 500;
       if (normalizedCountry.includes(query)) score += 450;
       if (normalizedSlug.includes(query)) score += 400;
       if (normalizedCode.includes(query)) score += 250;
       if (normalizedType.includes(query)) score += 150;
-
       if (activeType !== "all") score += 50;
 
       ranked.push({ item, score });
@@ -709,7 +671,7 @@ if (
       return String(a.item.name).localeCompare(String(b.item.name));
     });
 
-    return ranked.map((entry) => entry.item);
+    return ranked.map(entry => entry.item);
   }
 
   function renderResultItem(item) {
@@ -780,15 +742,10 @@ if (
       clubs: "Club",
       players: "Player",
       matches: "Match",
-      venues: "Venue",
+      venues: "Venue"
     };
 
-    return (
-      map[type] ||
-      String(type)
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (m) => m.toUpperCase())
-    );
+    return map[type] || String(type).replace(/_/g, " ").replace(/\b\w/g, m => m.toUpperCase());
   }
 
   function highlightText(text, query) {
@@ -860,16 +817,16 @@ if (
   function bindResultClicks(container) {
     const links = container.querySelectorAll(".search-result-item");
 
-    links.forEach((link) => {
+    links.forEach(link => {
       link.addEventListener("click", () => {
         saveRecentSearch({
           id: link.dataset.id || "",
           slug: link.dataset.slug || "",
           type: link.dataset.type || "",
           name: link.dataset.name || "",
-          country: link.dataset.country || "",
+          country: link.dataset.country || ""
         });
-      });
+      }, { signal });
     });
   }
 
@@ -881,7 +838,7 @@ if (
 
     const next = [
       { ...item, key, ts: Date.now() },
-      ...current.filter((x) => x.key !== key),
+      ...current.filter(x => x.key !== key)
     ].slice(0, CONFIG.recentLimit);
 
     try {
@@ -919,37 +876,35 @@ if (
     }
 
     container.innerHTML = recent
-      .map(
-        (item) => `
-          <button
-            type="button"
-            class="recent-search-chip"
-            data-recent-query="${escapeHtml(item.name || "")}"
-          >
-            <span>${escapeHtml(item.name || "")}</span>
-            ${item.country ? `<small>${escapeHtml(item.country)}</small>` : ""}
-          </button>
-        `
-      )
+      .map(item => `
+        <button
+          type="button"
+          class="recent-search-chip"
+          data-recent-query="${escapeHtml(item.name || "")}"
+        >
+          <span>${escapeHtml(item.name || "")}</span>
+          ${item.country ? `<small>${escapeHtml(item.country)}</small>` : ""}
+        </button>
+      `)
       .join("");
   }
 
+  renderRecentSearches(ui.recentBox);
   window.initSearchUI = initSearchUI;
-
-  if (document.querySelector(".search-drawer")) {
-    initSearchUI();
-  }
-})();
+  window.destroySearchUI = () => {
+    state.initialized = false;
+    window.clearTimeout(state.debounceTimer);
+    state.debounceTimer = null;
+  };
+}
 
 /**********************
-  **********************/
+ * THEME + PREDICTIONS
+ **********************/
 
-function initThemeAndPredictions() {
-  
-  /***** app dark theme mode ********/
-  
+function initThemeAndPredictions(signal) {
   const themeToggle = document.getElementById("app-theme-toggle");
-  
+
   if (localStorage.getItem("theme") === "dark") {
     document.body.classList.add("dark-theme");
     if (themeToggle) themeToggle.checked = true;
@@ -957,11 +912,11 @@ function initThemeAndPredictions() {
     document.body.classList.remove("dark-theme");
     if (themeToggle) themeToggle.checked = false;
   }
-  
+
   if (themeToggle && !themeToggle.dataset.initialized) {
     themeToggle.dataset.initialized = "true";
-    
-    themeToggle.addEventListener("change", function() {
+
+    themeToggle.addEventListener("change", function () {
       if (this.checked) {
         document.body.classList.add("dark-theme");
         localStorage.setItem("theme", "dark");
@@ -969,40 +924,45 @@ function initThemeAndPredictions() {
         document.body.classList.remove("dark-theme");
         localStorage.setItem("theme", "light");
       }
-    });
+    }, { signal });
   }
-  
-  /***** prediction type select  ******/
 
-  
   document.querySelectorAll(".prediction-link").forEach(link => {
     if (link.dataset.initialized) return;
-    
+
     link.dataset.initialized = "true";
-    
+
     link.addEventListener("click", e => {
       e.preventDefault();
-      
+
       document.querySelector(".prediction-link.active")?.classList.remove("active");
       link.classList.add("active");
-      
+
       const market = link.dataset.market;
       console.log(market);
-    });
+    }, { signal });
   });
 }
 
 /**********************
- * app boot function **********************/
+ * app boot function
+ **********************/
 
 function bootAppUI() {
-  initTabsUI();
+  destroyAppUI();
+
+  const controller = new AbortController();
+  APP_UI.controller = controller;
+
   initDateUI();
-  initAppUI();
-  initSearchUI();
-  initThemeAndPredictions();
+  initTabsUI(controller.signal);
+  initAppUI(controller.signal);
+  initSearchUI(controller.signal);
+  initThemeAndPredictions(controller.signal);
 }
 
 bootAppUI();
 
 document.addEventListener("pageLoaded", bootAppUI);
+document.addEventListener("pageRefreshed", bootAppUI);
+window.addEventListener("beforeunload", destroyAppUI);

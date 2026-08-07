@@ -19,6 +19,7 @@ const HOME_BACK_ROUTES = new Set([
 
 const routes = {
   404: "/pages/404.html",
+  "/overview:": "/pages/overview.html",
   "/overview": "/pages/overview.html",
   "/notifications": "/pages/notifications.html",
   "/league-page": "/pages/league-page.html",
@@ -35,6 +36,11 @@ const mainPage = document.getElementById("main-page");
 
 let navigationToken = 0;
 let currentPath = normalizePath(window.location.pathname);
+
+/* Page lifecycle registry */
+const pageRegistry = new Map();
+let activePageName = null;
+let activePageRoot = null;
 
 /* ==========================
    Loader
@@ -122,9 +128,7 @@ function isTopLevelRoute(path) {
   return Object.prototype.hasOwnProperty.call(routes, cleanPath);
 }
 
-/* Is this path a nested child of a registered top-level route?
-   e.g. "/leagues/food" is nested under "/leagues".
-   "/leagues" itself is NOT nested. */
+/* Is this path a nested child of a registered top-level route? */
 function isNestedRoute(path) {
   const cleanPath = normalizePath(path);
   if (isTopLevelRoute(cleanPath)) return false;
@@ -151,13 +155,55 @@ function resolveRoute(path) {
 
   if (routes[cleanPath]) return routes[cleanPath];
 
-  /* Generic nested-route fallback: "/leagues/food" -> routes["/leagues"].
-     Lets any top-level route own its own sub-paths (client-side sub-routing
-     inside that page), the same way league pages already work. */
   const top = topLevelSegment(cleanPath);
   if (routes[top]) return routes[top];
 
   return routes[404];
+}
+
+/* ==========================
+   Page lifecycle
+========================== */
+
+function registerPage(name, hooks = {}) {
+  if (!name) return;
+
+  pageRegistry.set(name, {
+    init: typeof hooks.init === "function" ? hooks.init : null,
+    destroy: typeof hooks.destroy === "function" ? hooks.destroy : null
+  });
+}
+
+function destroyActivePage() {
+  if (!activePageName) return;
+
+  const hooks = pageRegistry.get(activePageName);
+  try {
+    hooks?.destroy?.(activePageRoot || mainPage);
+  } catch (err) {
+    console.error(`Error while destroying page "${activePageName}"`, err);
+  }
+
+  activePageName = null;
+  activePageRoot = null;
+}
+
+function mountPage(name, root = mainPage) {
+  if (!name) return;
+
+  if (activePageName && activePageName !== name) {
+    destroyActivePage();
+  }
+
+  activePageName = name;
+  activePageRoot = root || mainPage;
+
+  const hooks = pageRegistry.get(name);
+  try {
+    hooks?.init?.(activePageRoot);
+  } catch (err) {
+    console.error(`Error while initializing page "${name}"`, err);
+  }
 }
 
 /* ==========================
@@ -170,7 +216,7 @@ function shouldSeedHomeBackStack(path) {
   if (!isStandalonePWA()) return false;
   if (cleanPath === HOME_ROUTE) return false;
   if (isLeaguePage(cleanPath)) return false;
-  if (isNestedRoute(cleanPath)) return false; // never seed on nested paths, e.g. /leagues/food
+  if (isNestedRoute(cleanPath)) return false;
 
   return HOME_BACK_ROUTES.has(cleanPath);
 }
@@ -183,9 +229,6 @@ function seedHomeBackStack(initialPath) {
 
   window.__pwaHomeBackSeeded = true;
 
-  /* History becomes:
-     [HOME_ROUTE, initialPath]
-     so first back goes home, second back exits. */
   history.replaceState(
     { path: HOME_ROUTE, __pwaHomeSeed: true },
     "",
@@ -272,6 +315,8 @@ async function renderRoute(path, { updateHistory = true, pushHistory = true, for
   showLoader();
 
   try {
+    destroyActivePage();
+
     const html = await loadPage(targetPath, forceReload);
 
     if (token !== navigationToken) return;
@@ -410,7 +455,10 @@ window.router = {
   navigate,
   refreshCurrentPage,
   goBack,
-  getCurrentPath: () => normalizePath(currentPath)
+  getCurrentPath: () => normalizePath(currentPath),
+  registerPage,
+  mountPage,
+  destroyActivePage
 };
 
 /* ==========================

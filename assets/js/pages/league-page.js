@@ -1,25 +1,26 @@
 /**
  * =====================
  * LEAGUE PAGE
- * SPA SAFE
+ * SPA SAFE + CLEANUP
  * =====================
- *
- * What this file does:
- * - Reads the league slug from the URL
- * - Finds the league in /assets/data/leagues.json
- * - Loads API-Football data
- * - Renders header, featured match, standings, matches, and top scorer
- * - Works again after SPA navigation via pageLoaded
- *
- * Notes:
- * - Header keeps league name + logo + country
- * - No league information card
- * - Featured match is minimal: teams + date/time + prediction
  */
 
 let LEAGUE_PAGE_CACHE = null;
-let LEAGUE_PAGE_EVENTS_BOUND = false;
-let LEAGUE_PAGE_LOADING = false;
+
+const LEAGUE_PAGE_STATE = {
+    active: false,
+    slug: null,
+    controller: null,
+    requestToken: 0,
+    loading: false
+};
+
+const FAVOURITES_PAGE_STATE = {
+    active: false,
+    controller: null
+};
+
+const LEAGUE_FAVOURITES_KEY = "league-favourites";
 
 /* =====================================================
    SMALL HELPERS
@@ -83,12 +84,49 @@ function lpNavigate(path) {
     window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
+function lpCurrentPath() {
+    try {
+        return window.router?.getCurrentPath?.() || location.pathname;
+    } catch {
+        return location.pathname;
+    }
+}
+
+function lpNormalizePath(path) {
+    if (!path) return "/";
+
+    try {
+        const url = new URL(path, location.origin);
+        return url.pathname.replace(/\/+$/, "") || "/";
+    } catch {
+        return String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+    }
+}
+
+function lpIsLeagueRoute(path) {
+    const clean = lpNormalizePath(path);
+    return (
+        clean === "/league-page" ||
+        clean.startsWith("/league-page/") ||
+        clean.startsWith("/league/")
+    );
+}
+
+function lpIsFavouritesRoute(path) {
+    return lpNormalizePath(path) === "/favourites";
+}
+
 function lpGetPathSlug() {
-    const parts = location.pathname.split("/").filter(Boolean);
+    const parts = lpNormalizePath(lpCurrentPath()).split("/").filter(Boolean);
 
     const idx = parts.indexOf("league-page");
     if (idx >= 0 && parts[idx + 1]) {
         return decodeURIComponent(parts[idx + 1]).toLowerCase();
+    }
+
+    const leagueIdx = parts.indexOf("league");
+    if (leagueIdx >= 0 && parts[leagueIdx + 1]) {
+        return decodeURIComponent(parts[leagueIdx + 1]).toLowerCase();
     }
 
     return decodeURIComponent(parts[parts.length - 1] || "").toLowerCase();
@@ -599,8 +637,7 @@ function lpNewsHTML(news) {
 ===================================================== */
 
 function lpShowLoading() {
-    if (LEAGUE_PAGE_LOADING) return;
-    LEAGUE_PAGE_LOADING = true;
+    LEAGUE_PAGE_STATE.loading = true;
 
     lpSetText("#leagueName", "Loading");
     lpSetText("#leagueCountry", "");
@@ -714,6 +751,8 @@ function lpApplyMeta(apiLeague, context, season, fixtures = [], standings = []) 
     lpSetText("#matchday", currentRound);
     lpSetText("#seasonYear", seasonYear);
     lpSetText("#lastUpdated", lpFormatDate(new Date()));
+
+    initLeagueFavouriteButton();
 }
 
 function lpApplyContent({ standings, fixtures, scorers }) {
@@ -739,17 +778,191 @@ function lpApplyContent({ standings, fixtures, scorers }) {
 }
 
 /* =====================================================
+   LEAGUE FAVOURITES
+===================================================== */
+
+function getLeagueFavourites() {
+    try {
+        return JSON.parse(localStorage.getItem(LEAGUE_FAVOURITES_KEY)) || [];
+    } catch {
+        return [];
+    }
+}
+
+function saveLeagueFavourites(data) {
+    localStorage.setItem(LEAGUE_FAVOURITES_KEY, JSON.stringify(data));
+}
+
+function isLeagueFavourite(id) {
+    return getLeagueFavourites().some(item => String(item.id) === String(id));
+}
+
+function getCurrentLeague() {
+    const context = lpGetStoredContext();
+    if (!context) return null;
+
+    return {
+        id: context.id,
+        slug: context.slug,
+        name: context.name || context.league?.name || "",
+        country: context.country?.name || context.country || "",
+        logo: context.icon || context.league?.logo || ""
+    };
+}
+
+function toggleLeagueFavourite(league) {
+    if (!league) return false;
+
+    const favourites = getLeagueFavourites();
+    const index = favourites.findIndex(item => String(item.id) === String(league.id));
+
+    let active;
+
+    if (index > -1) {
+        favourites.splice(index, 1);
+        active = false;
+    } else {
+        favourites.unshift({
+            id: league.id,
+            slug: league.slug,
+            name: league.name,
+            country: league.country,
+            logo: league.logo
+        });
+        active = true;
+    }
+
+    saveLeagueFavourites(favourites);
+
+    window.dispatchEvent(new CustomEvent("leagueFavouriteChanged"));
+
+    return active;
+}
+
+function initLeagueFavouriteButton() {
+    const btn = document.querySelector(".fav-btn");
+    if (!btn) return;
+
+    const currentLeague = getCurrentLeague();
+    if (!currentLeague) return;
+
+    btn.classList.toggle("active", isLeagueFavourite(currentLeague.id));
+
+    if (btn.dataset.initialized) return;
+    btn.dataset.initialized = "true";
+
+    btn.addEventListener("click", () => {
+        const league = getCurrentLeague();
+        if (!league) return;
+
+        const active = toggleLeagueFavourite(league);
+        btn.classList.toggle("active", active);
+    }, { signal: LEAGUE_PAGE_STATE.controller?.signal });
+}
+
+function loadFavouriteLeagues() {
+    const wrapper = document.getElementById("favouritesContainer");
+    if (!wrapper) return;
+
+    const favourites = getLeagueFavourites();
+
+    if (!favourites.length) {
+        wrapper.innerHTML = `
+            <div class="empty-state">
+                No favourite leagues yet.
+            </div>
+        `;
+        return;
+    }
+
+    wrapper.innerHTML = favourites.map(item => `
+        <button
+            class="favourite-league-card"
+            data-slug="${lpEscapeHtml(item.slug)}">
+            <img
+                src="${lpEscapeHtml(item.logo)}"
+                alt="${lpEscapeHtml(item.name)}"
+                loading="lazy">
+            <div class="favourite-league-info">
+                <strong>${lpEscapeHtml(item.name)}</strong>
+                <small>${lpEscapeHtml(item.country)}</small>
+            </div>
+        </button>
+    `).join("");
+}
+
+function destroyFavouritesPage() {
+    if (!FAVOURITES_PAGE_STATE.active) return;
+
+    FAVOURITES_PAGE_STATE.controller?.abort();
+    FAVOURITES_PAGE_STATE.controller = null;
+    FAVOURITES_PAGE_STATE.active = false;
+}
+
+function initFavouritesPage() {
+    const wrapper = document.getElementById("favouritesContainer");
+    if (!wrapper) {
+        destroyFavouritesPage();
+        return;
+    }
+
+    if (FAVOURITES_PAGE_STATE.active) {
+        loadFavouriteLeagues();
+        return;
+    }
+
+    destroyFavouritesPage();
+
+    FAVOURITES_PAGE_STATE.active = true;
+    FAVOURITES_PAGE_STATE.controller = new AbortController();
+
+    const { signal } = FAVOURITES_PAGE_STATE.controller;
+
+    document.addEventListener("click", e => {
+        const card = e.target.closest(".favourite-league-card");
+        if (!card) return;
+
+        const slug = card.dataset.slug;
+        if (!slug) return;
+
+        if (typeof window.navigate === "function") {
+            window.navigate(`/league-page/${slug}`);
+        } else {
+            location.href = `/league-page/${slug}`;
+        }
+    }, { signal });
+
+    loadFavouriteLeagues();
+}
+
+function handleLeagueFavouriteChanged() {
+    if (lpIsLeagueRoute(lpCurrentPath())) {
+        initLeagueFavouriteButton();
+    }
+
+    if (lpIsFavouritesRoute(lpCurrentPath())) {
+        loadFavouriteLeagues();
+    }
+}
+
+if (!window.__leagueFavouriteChangedBound) {
+    window.__leagueFavouriteChangedBound = true;
+    window.addEventListener("leagueFavouriteChanged", handleLeagueFavouriteChanged);
+}
+
+/* =====================================================
    MAIN REFRESH
 ===================================================== */
 
 async function lpRefresh() {
+    const currentToken = ++LEAGUE_PAGE_STATE.requestToken;
     const slug = lpGetPathSlug();
     const stored = lpGetStoredContext();
     const season = lpGetSeasonFromSelect();
 
     if (!slug && !stored) {
         lpShowLeaguePrompt();
-        LEAGUE_PAGE_LOADING = false;
+        LEAGUE_PAGE_STATE.loading = false;
         return;
     }
 
@@ -759,11 +972,11 @@ async function lpRefresh() {
     try {
         let context = stored;
 
-        if (!context || context.slug !== slug) {
+        if (!context || String(context.slug || "").toLowerCase() !== slug) {
             const found = await lpFindLeagueBySlug(slug);
             if (!found) {
                 lpShowLeaguePrompt();
-                LEAGUE_PAGE_LOADING = false;
+                LEAGUE_PAGE_STATE.loading = false;
                 return;
             }
 
@@ -791,7 +1004,7 @@ async function lpRefresh() {
 
         if (!season) {
             lpShowSeasonPrompt();
-            LEAGUE_PAGE_LOADING = false;
+            LEAGUE_PAGE_STATE.loading = false;
             return;
         }
 
@@ -807,6 +1020,8 @@ async function lpRefresh() {
             lpLoadTopScorers(leagueId, season)
         ]);
 
+        if (currentToken !== LEAGUE_PAGE_STATE.requestToken) return;
+
         const apiLeague = apiLeagueResult.status === "fulfilled" ? apiLeagueResult.value : null;
         const standings = standingsResult.status === "fulfilled" ? standingsResult.value : [];
         const fixtures = fixturesResult.status === "fulfilled" ? fixturesResult.value : [];
@@ -819,8 +1034,9 @@ async function lpRefresh() {
             ...context,
             season
         });
-
     } catch (err) {
+        if (currentToken !== LEAGUE_PAGE_STATE.requestToken) return;
+
         console.error("League page load error:", err);
 
         lpSetText("#leagueName", "Failed to load");
@@ -839,7 +1055,9 @@ async function lpRefresh() {
             `;
         }
     } finally {
-        LEAGUE_PAGE_LOADING = false;
+        if (currentToken === LEAGUE_PAGE_STATE.requestToken) {
+            LEAGUE_PAGE_STATE.loading = false;
+        }
     }
 }
 
@@ -847,10 +1065,7 @@ async function lpRefresh() {
    EVENTS
 ===================================================== */
 
-function lpBindEventsOnce() {
-    if (LEAGUE_PAGE_EVENTS_BOUND) return;
-    LEAGUE_PAGE_EVENTS_BOUND = true;
-
+function lpBindEvents(signal) {
     document.addEventListener("click", (e) => {
         const tabBtn = e.target.closest(".tab");
         if (tabBtn && tabBtn.dataset.tab) {
@@ -871,29 +1086,13 @@ function lpBindEventsOnce() {
 
         const favBtn = e.target.closest(".fav-btn");
         if (favBtn) {
-            const current = lpGetStoredContext();
-            const id = String(current?.id || current?.league?.id || current?.slug || "");
-            if (!id) return;
+            const league = getCurrentLeague();
+            if (!league) return;
 
-            const favorites = lpSafeJSONParse(localStorage.getItem("favoriteLeagues"), []);
-            const exists = favorites.some(item => String(item.id ?? item) === id);
-
-            const next = exists
-                ? favorites.filter(item => String(item.id ?? item) !== id)
-                : [
-                    ...favorites,
-                    {
-                        id: current?.id || current?.league?.id || id,
-                        slug: current?.slug || "",
-                        name: current?.name || current?.league?.name || "",
-                        logo: current?.icon || current?.league?.logo || ""
-                    }
-                ];
-
-            localStorage.setItem("favoriteLeagues", JSON.stringify(next));
-            favBtn.classList.toggle("active", !exists);
+            const active = toggleLeagueFavourite(league);
+            favBtn.classList.toggle("active", active);
         }
-    });
+    }, { signal });
 
     document.addEventListener("change", async (e) => {
         if (e.target && e.target.id === "seasonSelect") {
@@ -904,298 +1103,42 @@ function lpBindEventsOnce() {
             }
             await lpRefresh();
         }
-    });
+    }, { signal });
 }
 
+function destroyLeaguePage() {
+    LEAGUE_PAGE_STATE.requestToken++;
+    LEAGUE_PAGE_STATE.loading = false;
+    LEAGUE_PAGE_STATE.active = false;
+    LEAGUE_PAGE_STATE.slug = null;
 
-
-
-
-
-
-
-
-
-/************** FAVOURITES MANAGER **************/
-
-const LEAGUE_FAVOURITES_KEY = "league-favourites";
-
-function getLeagueFavourites() {
-
-    try {
-        return JSON.parse(
-            localStorage.getItem(LEAGUE_FAVOURITES_KEY)
-        ) || [];
-    } catch {
-        return [];
-    }
-
+    LEAGUE_PAGE_STATE.controller?.abort();
+    LEAGUE_PAGE_STATE.controller = null;
 }
-
-function saveLeagueFavourites(data) {
-
-    localStorage.setItem(
-        LEAGUE_FAVOURITES_KEY,
-        JSON.stringify(data)
-    );
-
-}
-
-function isLeagueFavourite(id) {
-
-    return getLeagueFavourites().some(
-        item => String(item.id) === String(id)
-    );
-
-}
-
-function getCurrentLeague() {
-
-    if (typeof lpGetStoredContext !== "function") {
-        return null;
-    }
-
-    const context = lpGetStoredContext();
-
-    if (!context) return null;
-
-    return {
-
-        id: context.id,
-
-        slug: context.slug,
-
-        name:
-            context.name ||
-            context.league?.name ||
-            "",
-
-        country:
-            context.country?.name ||
-            context.country ||
-            "",
-
-        logo:
-            context.icon ||
-            context.league?.logo ||
-            ""
-
-    };
-
-}
-
-function toggleLeagueFavourite(league) {
-
-    if (!league) return false;
-
-    const favourites = getLeagueFavourites();
-
-    const index = favourites.findIndex(
-        item => String(item.id) === String(league.id)
-    );
-
-    let active;
-
-    if (index > -1) {
-
-        favourites.splice(index, 1);
-
-        active = false;
-
-    } else {
-
-        favourites.unshift({
-            id: league.id,
-            slug: league.slug,
-            name: league.name,
-            country: league.country,
-            logo: league.logo
-        });
-
-        active = true;
-
-    }
-
-    saveLeagueFavourites(favourites);
-
-    window.dispatchEvent(
-        new CustomEvent("leagueFavouriteChanged")
-    );
-
-    return active;
-
-}
-
-
-/************** FAVOURITE BUTTON **************/
-
-function initLeagueFavouriteButton() {
-
-    const btn = document.querySelector(".fav-btn");
-
-    if (!btn) return;
-
-    const currentLeague = getCurrentLeague();
-
-    if (!currentLeague) return;
-
-    /* Always refresh icon */
-
-    btn.classList.toggle(
-        "active",
-        isLeagueFavourite(currentLeague.id)
-    );
-
-    /* Bind only once */
-
-    if (btn.dataset.initialized) return;
-
-    btn.dataset.initialized = "true";
-
-    btn.addEventListener("click", () => {
-
-        const league = getCurrentLeague();
-
-        if (!league) return;
-
-        const active =
-            toggleLeagueFavourite(league);
-
-        btn.classList.toggle(
-            "active",
-            active
-        );
-
-    });
-
-}
-
-
-/************** FAVOURITES LIST **************/
-
-function loadFavouriteLeagues() {
-
-    const wrapper =
-        document.getElementById("favouritesContainer");
-
-    if (!wrapper) return;
-
-    const favourites =
-        getLeagueFavourites();
-
-    if (!favourites.length) {
-
-        wrapper.innerHTML = `
-            <div class="empty-state">
-                No favourite leagues yet.
-            </div>
-        `;
-
-        return;
-
-    }
-
-    wrapper.innerHTML = favourites.map(item => `
-        <button
-            class="favourite-league-card"
-            data-slug="${item.slug}">
-
-            <img
-                src="${item.logo}"
-                alt="${item.name}"
-                loading="lazy">
-
-            <div class="favourite-league-info">
-
-                <strong>${item.name}</strong>
-
-                <small>${item.country}</small>
-
-            </div>
-
-        </button>
-    `).join("");
-
-}
-
-
-/************** EVENTS **************/
-
-if (!document.body.dataset.favouritesBound) {
-
-    document.body.dataset.favouritesBound = "true";
-
-    document.addEventListener("click", e => {
-
-        const card =
-            e.target.closest(".favourite-league-card");
-
-        if (!card) return;
-
-        if (typeof navigate === "function") {
-
-            navigate(
-                `/league-page/${card.dataset.slug}`
-            );
-
-        } else {
-
-            location.href =
-                `/league-page/${card.dataset.slug}`;
-
-        }
-
-    });
-
-}
-
-
-/************** AUTO REFRESH **************/
-
-window.addEventListener(
-    "leagueFavouriteChanged",
-    () => {
-
-        initLeagueFavouriteButton();
-        loadFavouriteLeagues();
-
-    }
-);
-
-
-/************** SPA BOOT **************/
-
-function initLeagueFavourites() {
-
-    initLeagueFavouriteButton();
-    loadFavouriteLeagues();
-
-}
-
-document.addEventListener(
-    "pageLoaded",
-    initLeagueFavourites
-);
-
-initLeagueFavourites();
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function initLeaguePage() {
-    if (!document.querySelector(".league-header")) return;
+    const path = lpCurrentPath();
 
-    lpBindEventsOnce();
+    if (!lpIsLeagueRoute(path)) {
+        destroyLeaguePage();
+        return;
+    }
+
+    const slug = lpGetPathSlug();
+
+    if (LEAGUE_PAGE_STATE.active && LEAGUE_PAGE_STATE.slug === slug) {
+        initLeagueFavouriteButton();
+        void lpRefresh();
+        return;
+    }
+
+    destroyLeaguePage();
+
+    LEAGUE_PAGE_STATE.active = true;
+    LEAGUE_PAGE_STATE.slug = slug;
+    LEAGUE_PAGE_STATE.controller = new AbortController();
+
+    lpBindEvents(LEAGUE_PAGE_STATE.controller.signal);
 
     document.querySelector(".tab.active")?.classList.remove("active");
     document.querySelector('.tab[data-tab="overview"]')?.classList.add("active");
@@ -1203,12 +1146,51 @@ function initLeaguePage() {
     document.querySelector(".page.active")?.classList.remove("active");
     document.getElementById("overview")?.classList.add("active");
 
-    lpRefresh();
+    void lpRefresh();
 }
 
 /* =====================================================
-   BOOT
+   FAVOURITES PAGE BOOT
 ===================================================== */
 
-initLeaguePage();
-document.addEventListener("pageLoaded", initLeaguePage);
+function bootLeagueModule() {
+    const path = lpCurrentPath();
+
+    if (lpIsLeagueRoute(path)) {
+        initLeaguePage();
+        destroyFavouritesPage();
+        return;
+    }
+
+    if (lpIsFavouritesRoute(path)) {
+        destroyLeaguePage();
+        initFavouritesPage();
+        return;
+    }
+
+    destroyLeaguePage();
+    destroyFavouritesPage();
+}
+
+/* =====================================================
+   REGISTRATION + BOOT
+===================================================== */
+
+window.router?.registerPage?.("LeaguePage", {
+    init: initLeaguePage,
+    destroy: destroyLeaguePage
+});
+
+window.router?.registerPage?.("FavouritesPage", {
+    init: initFavouritesPage,
+    destroy: destroyFavouritesPage
+});
+
+document.addEventListener("pageLoaded", bootLeagueModule);
+document.addEventListener("pageRefreshed", bootLeagueModule);
+window.addEventListener("beforeunload", () => {
+    destroyLeaguePage();
+    destroyFavouritesPage();
+});
+
+bootLeagueModule();
