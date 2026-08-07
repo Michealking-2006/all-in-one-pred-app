@@ -52,6 +52,10 @@ body {
   padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 5px);
   overflow-x: hidden;
 }
+.app-logo {
+  height: auto;
+  width: 180px;
+}
 
 /* =========================
    Top Navigation
