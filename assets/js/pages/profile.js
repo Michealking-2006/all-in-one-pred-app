@@ -150,7 +150,7 @@ async function handleAuthButtonClick(e) {
     return;
   }
   
-  const loginPath = "/login.html";
+  const loginPath = "auth.myscoutwave.com/login";
   if (window.router?.navigate) {
     window.router.navigate(loginPath);
   } else {
