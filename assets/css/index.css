@@ -1351,10 +1351,10 @@ width: 300px;
     display:flex;
     gap:12px;
     overflow-x:auto;
-    padding:12px 15px;
+    padding:1px 15px;
     scroll-behavior:smooth;
     -webkit-overflow-scrolling:touch;
-    margin-top: 9em;
+    margin-top: 12em;
 }
 
 .which-prediction-wrapper::-webkit-scrollbar{
@@ -1383,7 +1383,6 @@ width: 300px;
     background: var(--app-primary-color);
     color:#fff;
 }
-
 
 /************* leagues list page *******************/
 
