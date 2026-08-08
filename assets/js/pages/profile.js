@@ -6,6 +6,7 @@ let PROFILE_PAGE = {
   active: false,
   controller: null,
   authSubscription: null,
+  renderToken: 0,
 };
 
 const PROFILE_SELECTORS = {
@@ -48,10 +49,10 @@ function getEl(selector, root = document) {
 
 function formatMemberSince(dateValue) {
   if (!dateValue) return PROFILE_DEFAULTS.memberSince;
-
+  
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return PROFILE_DEFAULTS.memberSince;
-
+  
   return `Member since ${date.toLocaleDateString("en-US", {
     month: "short",
     year: "numeric",
@@ -64,7 +65,7 @@ function formatMemberSince(dateValue) {
 async function getSession() {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
-
+  
   try {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
@@ -75,31 +76,17 @@ async function getSession() {
   }
 }
 
-async function getCurrentUser() {
-  const supabase = getSupabaseClient();
-  if (!supabase) return null;
-
-  try {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return data?.user || null;
-  } catch (err) {
-    console.error("[Profile] Failed to get user:", err);
-    return null;
-  }
-}
-
 async function getUserProfile(userId) {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
-
+  
   try {
     const { data, error } = await supabase
       .from("profiles")
       .select("username, avatar_url, created_at")
       .eq("id", userId)
       .maybeSingle();
-
+    
     if (error) throw error;
     return data || null;
   } catch (err) {
@@ -132,11 +119,11 @@ function setProfileAvatar(src) {
 function setAuthButton(isLoggedIn) {
   const btn = getEl(PROFILE_SELECTORS.authBtn);
   if (!btn) return;
-
+  
   btn.dataset.state = isLoggedIn ? "logged-in" : "logged-out";
-  btn.textContent = isLoggedIn
-    ? PROFILE_DEFAULTS.authTextLoggedIn
-    : PROFILE_DEFAULTS.authTextLoggedOut;
+  btn.textContent = isLoggedIn ?
+    PROFILE_DEFAULTS.authTextLoggedIn :
+    PROFILE_DEFAULTS.authTextLoggedOut;
 }
 
 /* ---------------------------------
@@ -150,22 +137,26 @@ function clearProfileToGuest() {
   bindAuthButton();
 }
 
-async function renderAuthenticatedProfile(user) {
+async function renderAuthenticatedProfile(user, requestId) {
+  if (!PROFILE_PAGE.active || requestId !== PROFILE_PAGE.renderToken) return;
+  
   if (!user) {
     clearProfileToGuest();
     return;
   }
-
+  
   const profile = await getUserProfile(user.id);
-
+  
+  if (!PROFILE_PAGE.active || requestId !== PROFILE_PAGE.renderToken) return;
+  
   const username =
     profile?.username ||
     user.email?.split("@")?.[0] ||
     PROFILE_DEFAULTS.username;
-
+  
   const memberSince = formatMemberSince(profile?.created_at || user.created_at);
   const avatar = profile?.avatar_url || PROFILE_DEFAULTS.avatar;
-
+  
   setProfileUsername(username);
   setProfileMemberSince(memberSince);
   setProfileAvatar(avatar);
@@ -174,14 +165,17 @@ async function renderAuthenticatedProfile(user) {
 }
 
 async function renderProfileState() {
+  const requestId = ++PROFILE_PAGE.renderToken;
   const session = await getSession();
-
+  
+  if (!PROFILE_PAGE.active || requestId !== PROFILE_PAGE.renderToken) return;
+  
   if (!session?.user) {
     clearProfileToGuest();
     return;
   }
-
-  await renderAuthenticatedProfile(session.user);
+  
+  await renderAuthenticatedProfile(session.user, requestId);
 }
 
 /* ---------------------------------
@@ -190,26 +184,25 @@ async function renderProfileState() {
 function bindAuthButton() {
   const btn = getEl(PROFILE_SELECTORS.authBtn);
   if (!btn || btn.dataset.bound === "true") return;
-
+  
   btn.dataset.bound = "true";
-
+  
   btn.addEventListener("click", async () => {
     const state = btn.dataset.state || "logged-out";
     const supabase = getSupabaseClient();
     if (!supabase) return;
-
+    
     if (state === "logged-in") {
       try {
         await supabase.auth.signOut();
         clearProfileToGuest();
-        await renderProfileState();
       } catch (err) {
         console.error("[Profile] Sign out failed:", err);
       }
       return;
     }
-
-    window.location.href = PROFILE_AUTH_LOGIN_URL;
+    
+    window.location.replace(PROFILE_AUTH_LOGIN_URL);
   });
 }
 
@@ -218,10 +211,13 @@ function bindAuthButton() {
  * --------------------------------- */
 function destroyProfilePage() {
   if (!PROFILE_PAGE.active) return;
-
+  
+  PROFILE_PAGE.active = false;
+  PROFILE_PAGE.renderToken++;
+  
   PROFILE_PAGE.controller?.abort();
   PROFILE_PAGE.controller = null;
-
+  
   if (PROFILE_PAGE.authSubscription) {
     try {
       PROFILE_PAGE.authSubscription.unsubscribe?.();
@@ -230,52 +226,44 @@ function destroyProfilePage() {
     }
     PROFILE_PAGE.authSubscription = null;
   }
-
-  PROFILE_PAGE.active = false;
 }
 
 function initProfilePage() {
   if (PROFILE_PAGE.active) return;
-
+  
   const root = getEl(PROFILE_SELECTORS.root);
   if (!root) return;
-
+  
   destroyProfilePage();
-
+  
   PROFILE_PAGE.active = true;
   PROFILE_PAGE.controller = new AbortController();
-
-  const { signal } = PROFILE_PAGE.controller;
-
-  renderProfileState();
-
+  
+  bindAuthButton();
+  
+  renderProfileState().catch((err) => {
+    console.error("[Profile] render failed:", err);
+  });
+  
   const supabase = getSupabaseClient();
   if (supabase?.auth?.onAuthStateChange) {
     const { data } = supabase.auth.onAuthStateChange(async () => {
       if (!PROFILE_PAGE.active) return;
       await renderProfileState();
     });
-
+    
     PROFILE_PAGE.authSubscription = data?.subscription || null;
   }
-
-  signal.addEventListener(
-    "abort",
-    () => {
-      destroyProfilePage();
-    },
-    { once: true }
-  );
 }
 
 function handleProfilePageLifecycle(e) {
   const path = (e?.detail?.path || getCurrentPath() || "").trim();
-
+  
   if (path === "/profile") {
     initProfilePage();
     return;
   }
-
+  
   destroyProfilePage();
 }
 
