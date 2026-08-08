@@ -19,6 +19,10 @@ html {
   scroll-behavior: smooth;
   user-select: none;
 }
+
+* {
+  cursor: none;
+}
 @font-face {
   font-family: 'MontserratEB';
   src: url("/assets/fonts/Montserrat-ExtraBold.woff2");

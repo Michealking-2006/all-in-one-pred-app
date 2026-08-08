@@ -1,9 +1,15 @@
 const REQUIRED_CSS = [
   "/assets/css/components.css",
-  "/assets/css/index.css"
+  "/assets/css/index.css",
 ];
 
 const HOME_ROUTE = "/overview";
+
+/* Optional aliases so old links still work */
+const ROUTE_ALIASES = {
+  "/": "/overview",
+  "/home": "/overview",
+};
 
 /* Only these top-level pages should go HOME first when the app
    is opened directly in standalone mode. */
@@ -14,12 +20,11 @@ const HOME_BACK_ROUTES = new Set([
   "/predictions",
   "/next-world-cup-count-downs",
   "/profile",
-  "/favourites"
+  "/favourites",
 ]);
 
 const routes = {
   404: "/pages/404.html",
-  "/overview:": "/pages/overview.html",
   "/overview": "/pages/overview.html",
   "/notifications": "/pages/notifications.html",
   "/league-page": "/pages/league-page.html",
@@ -28,7 +33,7 @@ const routes = {
   "/predictions": "/pages/predictions.html",
   "/next-world-cup-count-downs": "/pages/next-world-cup-count-downs.html",
   "/profile": "/pages/profile.html",
-  "/favourites": "/pages/favourites.html"
+  "/favourites": "/pages/favourites.html",
 };
 
 const loader = document.getElementById("page-loader");
@@ -74,7 +79,7 @@ function isStandalonePWA() {
 function waitForStylesheets() {
   const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
 
-  const requiredLinks = links.filter(link => {
+  const requiredLinks = links.filter((link) => {
     try {
       const pathname = new URL(link.href, location.origin).pathname;
       return REQUIRED_CSS.includes(pathname);
@@ -83,9 +88,11 @@ function waitForStylesheets() {
     }
   });
 
-  return Promise.all(
-    requiredLinks.map(link => {
-      return new Promise(resolve => {
+  if (!requiredLinks.length) return Promise.resolve();
+
+  return Promise.allSettled(
+    requiredLinks.map((link) => {
+      return new Promise((resolve) => {
         if (link.sheet) {
           resolve();
           return;
@@ -110,25 +117,23 @@ function normalizePath(path) {
     const clean = url.pathname.replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   } catch {
-    const clean = String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+    const clean =
+      String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   }
 }
 
-/* Returns the top-level segment of a path, e.g. "/leagues/food" -> "/leagues" */
 function topLevelSegment(path) {
   const cleanPath = normalizePath(path);
   const firstSegment = cleanPath.split("/")[1];
   return firstSegment ? `/${firstSegment}` : cleanPath;
 }
 
-/* Is this path exactly a registered top-level route (no nested segments)? */
 function isTopLevelRoute(path) {
   const cleanPath = normalizePath(path);
   return Object.prototype.hasOwnProperty.call(routes, cleanPath);
 }
 
-/* Is this path a nested child of a registered top-level route? */
 function isNestedRoute(path) {
   const cleanPath = normalizePath(path);
   if (isTopLevelRoute(cleanPath)) return false;
@@ -148,14 +153,15 @@ function isLeaguePage(path) {
 
 function resolveRoute(path) {
   const cleanPath = normalizePath(path);
+  const aliasedPath = ROUTE_ALIASES[cleanPath] || cleanPath;
 
-  if (cleanPath.startsWith("/league-page/") || cleanPath.startsWith("/league/")) {
+  if (aliasedPath.startsWith("/league-page/") || aliasedPath.startsWith("/league/")) {
     return routes["/league-page"];
   }
 
-  if (routes[cleanPath]) return routes[cleanPath];
+  if (routes[aliasedPath]) return routes[aliasedPath];
 
-  const top = topLevelSegment(cleanPath);
+  const top = topLevelSegment(aliasedPath);
   if (routes[top]) return routes[top];
 
   return routes[404];
@@ -170,7 +176,7 @@ function registerPage(name, hooks = {}) {
 
   pageRegistry.set(name, {
     init: typeof hooks.init === "function" ? hooks.init : null,
-    destroy: typeof hooks.destroy === "function" ? hooks.destroy : null
+    destroy: typeof hooks.destroy === "function" ? hooks.destroy : null,
   });
 }
 
@@ -178,6 +184,7 @@ function destroyActivePage() {
   if (!activePageName) return;
 
   const hooks = pageRegistry.get(activePageName);
+
   try {
     hooks?.destroy?.(activePageRoot || mainPage);
   } catch (err) {
@@ -199,6 +206,7 @@ function mountPage(name, root = mainPage) {
   activePageRoot = root || mainPage;
 
   const hooks = pageRegistry.get(name);
+
   try {
     hooks?.init?.(activePageRoot);
   } catch (err) {
@@ -235,11 +243,7 @@ function seedHomeBackStack(initialPath) {
     HOME_ROUTE
   );
 
-  history.pushState(
-    { path: cleanPath, __pwaHomeSeed: true },
-    "",
-    cleanPath
-  );
+  history.pushState({ path: cleanPath, __pwaHomeSeed: true }, "", cleanPath);
 }
 
 /* ==========================
@@ -249,17 +253,17 @@ function seedHomeBackStack(initialPath) {
 function updateActiveNav() {
   const current = normalizePath(currentPath);
 
-  document.querySelectorAll(".bottom-nav .nav-item[href]").forEach(link => {
+  document.querySelectorAll(".bottom-nav .nav-item[href]").forEach((link) => {
     const href = link.getAttribute("href");
-
     if (!href || href.startsWith("#") || href.startsWith("http")) return;
 
     const linkPath = normalizePath(new URL(href, location.origin).pathname);
+    const aliasedLinkPath = ROUTE_ALIASES[linkPath] || linkPath;
 
     const active =
-      (linkPath === "/league-page" && isLeaguePage(current)) ||
-      linkPath === current ||
-      linkPath === topLevelSegment(current);
+      (aliasedLinkPath === "/league-page" && isLeaguePage(current)) ||
+      aliasedLinkPath === current ||
+      aliasedLinkPath === topLevelSegment(current);
 
     link.classList.toggle("active", active);
     link.querySelector("svg")?.classList.toggle("active", active);
@@ -274,7 +278,7 @@ async function loadPage(path, forceReload = false) {
   const page = resolveRoute(path);
 
   const response = await fetch(page, {
-    cache: forceReload ? "reload" : "default"
+    cache: forceReload ? "reload" : "default",
   });
 
   if (!response.ok) {
@@ -285,13 +289,38 @@ async function loadPage(path, forceReload = false) {
 }
 
 /* ==========================
+   Page scripts
+========================== */
+
+async function waitForPageScripts(root = mainPage) {
+  if (!root || typeof window.loadPageScript !== "function") return;
+
+  const scripts = [...root.querySelectorAll("app-script[src]")];
+  if (!scripts.length) return;
+
+  const results = await Promise.allSettled(
+    scripts.map((el) => {
+      const src = el.getAttribute("src");
+      if (!src) return Promise.resolve();
+      return window.loadPageScript(src);
+    })
+  );
+
+  results.forEach((result) => {
+    if (result.status === "rejected") {
+      console.error(result.reason);
+    }
+  });
+}
+
+/* ==========================
    Events
 ========================== */
 
 function dispatchPageLoaded(path) {
   document.dispatchEvent(
     new CustomEvent("pageLoaded", {
-      detail: { path: normalizePath(path) }
+      detail: { path: normalizePath(path) },
     })
   );
 }
@@ -299,7 +328,7 @@ function dispatchPageLoaded(path) {
 function dispatchPageRefreshed(path) {
   document.dispatchEvent(
     new CustomEvent("pageRefreshed", {
-      detail: { path: normalizePath(path) }
+      detail: { path: normalizePath(path) },
     })
   );
 }
@@ -308,7 +337,10 @@ function dispatchPageRefreshed(path) {
    Render
 ========================== */
 
-async function renderRoute(path, { updateHistory = true, pushHistory = true, forceReload = false } = {}) {
+async function renderRoute(
+  path,
+  { updateHistory = true, pushHistory = true, forceReload = false } = {}
+) {
   const targetPath = normalizePath(path);
   const token = ++navigationToken;
 
@@ -323,6 +355,11 @@ async function renderRoute(path, { updateHistory = true, pushHistory = true, for
     if (!mainPage) return;
 
     mainPage.innerHTML = html;
+
+    await waitForPageScripts(mainPage);
+
+    if (token !== navigationToken) return;
+
     currentPath = targetPath;
 
     if (updateHistory) {
@@ -363,7 +400,7 @@ async function navigate(path, pushHistory = true, forceReload = false) {
   return renderRoute(path, {
     updateHistory: true,
     pushHistory,
-    forceReload
+    forceReload,
   });
 }
 
@@ -373,7 +410,7 @@ async function refreshCurrentPage() {
   await renderRoute(path, {
     updateHistory: false,
     pushHistory: false,
-    forceReload: true
+    forceReload: true,
   });
 
   dispatchPageRefreshed(path);
@@ -387,7 +424,7 @@ function goBack() {
    Link routing
 ========================== */
 
-document.addEventListener("click", e => {
+document.addEventListener("click", (e) => {
   const link = e.target.closest("a[href]");
 
   if (!link) return;
@@ -395,7 +432,6 @@ document.addEventListener("click", e => {
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
 
   const url = new URL(link.href, location.origin);
-
   if (url.origin !== location.origin) return;
 
   const path = normalizePath(url.pathname);
@@ -413,13 +449,13 @@ document.addEventListener("click", e => {
    Browser Back/Forward
 ========================== */
 
-window.addEventListener("popstate", e => {
+window.addEventListener("popstate", (e) => {
   const path = normalizePath(e.state?.path || window.location.pathname);
 
   renderRoute(path, {
     updateHistory: false,
     pushHistory: false,
-    forceReload: false
+    forceReload: false,
   });
 });
 
@@ -427,7 +463,7 @@ window.addEventListener("popstate", e => {
    Global API
 ========================== */
 
-window.route = function(event) {
+window.route = function (event) {
   event = event || window.event;
 
   if (event) {
@@ -458,7 +494,7 @@ window.router = {
   getCurrentPath: () => normalizePath(currentPath),
   registerPage,
   mountPage,
-  destroyActivePage
+  destroyActivePage,
 };
 
 /* ==========================
@@ -477,6 +513,6 @@ window.router = {
   await renderRoute(currentPath, {
     updateHistory: false,
     pushHistory: false,
-    forceReload: false
+    forceReload: false,
   });
 })();
