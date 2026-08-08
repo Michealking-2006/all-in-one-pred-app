@@ -278,3 +278,12 @@ window.router?.registerPage?.("ProfilePage", {
   init: initProfilePage,
   destroy: destroyProfilePage,
 });
+
+
+(async () => {
+  const { data, error } =
+  await window.supabaseClient.auth.getUser();
+  
+  console.log("User:", data?.user);
+  console.log("Error:", error);
+})();
