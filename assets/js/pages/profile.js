@@ -124,8 +124,8 @@ if (!btn) return;
 
 btn.dataset.state = isLoggedIn ? "logged-in" : "logged-out";
 btn.innerHTML = isLoggedIn
-? "<span>${PROFILE_DEFAULTS.authTextLoggedIn}</span>"
-: "<span>${PROFILE_DEFAULTS.authTextLoggedOut}</span>";
+? `<span>${PROFILE_DEFAULTS.authTextLoggedIn}</span>`
+: `<span>${PROFILE_DEFAULTS.authTextLoggedOut}</span>`;
 }
 
 function bindAuthButton() {
