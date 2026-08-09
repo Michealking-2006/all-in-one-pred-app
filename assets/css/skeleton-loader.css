@@ -1,111 +1,112 @@
 /*********************
- * global skeleton
+ * global skeleton loader
  *********************/
 
 .app-skeleton {
   display: block;
   background: #e9e9e9;
   animation: app-skeleton-blink 1.2s ease-in-out infinite;
+  overflow: hidden;
 }
 
 /*********************
- * width
+ * width utilities
  *********************/
 
-.w-full {
-  width: 100%;
-}
-
-.w-25 {
+.app-skeleton-w-25 {
   width: 25px;
 }
 
-.w-50 {
+.app-skeleton-w-50 {
   width: 50px;
 }
 
-.w-75 {
+.app-skeleton-w-75 {
   width: 75px;
 }
 
-.w-100 {
+.app-skeleton-w-100 {
   width: 100px;
 }
 
-.w-120 {
+.app-skeleton-w-120 {
   width: 120px;
 }
 
-.w-150 {
+.app-skeleton-w-150 {
   width: 150px;
 }
 
-.w-200 {
+.app-skeleton-w-200 {
   width: 200px;
 }
 
+.app-skeleton-w-full {
+  width: 100%;
+}
+
 /*********************
- * height
+ * height utilities
  *********************/
 
-.h-10 {
+.app-skeleton-h-10 {
   height: 10px;
 }
 
-.h-12 {
+.app-skeleton-h-12 {
   height: 12px;
 }
 
-.h-16 {
+.app-skeleton-h-16 {
   height: 16px;
 }
 
-.h-20 {
+.app-skeleton-h-20 {
   height: 20px;
 }
 
-.h-24 {
+.app-skeleton-h-24 {
   height: 24px;
 }
 
-.h-32 {
+.app-skeleton-h-32 {
   height: 32px;
 }
 
-.h-40 {
+.app-skeleton-h-40 {
   height: 40px;
 }
 
-.h-50 {
+.app-skeleton-h-50 {
   height: 50px;
 }
 
 /*********************
- * radius
+ * radius utilities
  *********************/
 
-.rounded-none {
+.app-skeleton-rounded-none {
   border-radius: 0;
 }
 
-.rounded-sm {
+.app-skeleton-rounded-sm {
   border-radius: 4px;
 }
 
-.rounded {
+.app-skeleton-rounded {
   border-radius: 6px;
 }
 
-.rounded-md {
+.app-skeleton-rounded-md {
   border-radius: 8px;
 }
 
-.rounded-lg {
+.app-skeleton-rounded-lg {
   border-radius: 12px;
 }
 
-.rounded-full {
-  border-radius: 50%;
+.app-skeleton-rounded-full {
+  border-radius: 9999px;
 }
 
 /*********************

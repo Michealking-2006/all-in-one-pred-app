@@ -60,26 +60,25 @@ const APP_SKELETON = {
   },
   
   /*********************
-   * check element content
+   * check if element has real content
    *********************/
   hasContent(element) {
-    if (element.dataset.skeletonReady === "true") {
+    const text = element.textContent.replace(/\s+/g, "").trim();
+    
+    if (text.length > 0) {
       return true;
     }
     
-    if (element instanceof HTMLImageElement) {
-      return element.complete && element.naturalWidth > 0;
+    const img = element.querySelector("img");
+    if (img && img.complete && img.naturalWidth > 0) {
+      return true;
     }
     
-    if (
-      element instanceof HTMLInputElement ||
-      element instanceof HTMLTextAreaElement ||
-      element instanceof HTMLSelectElement
-    ) {
-      return element.value.trim().length > 0;
-    }
+    const hasMeaningfulChild = Array.from(element.children).some((child) => {
+      return child.textContent.replace(/\s+/g, "").trim().length > 0;
+    });
     
-    return element.textContent.trim().length > 0;
+    return hasMeaningfulChild;
   },
   
   /*********************
@@ -98,20 +97,6 @@ const APP_SKELETON = {
     });
     
     element.classList.remove(...classesToRemove);
-    element.removeAttribute("data-skeleton-ready");
-  },
-  
-  /*********************
-   * mark element ready manually
-   *********************/
-  ready(target) {
-    const element =
-      typeof target === "string" ? document.querySelector(target) : target;
-    
-    if (!element) return;
-    
-    element.dataset.skeletonReady = "true";
-    this.scheduleCheck();
   },
   
   /*********************
