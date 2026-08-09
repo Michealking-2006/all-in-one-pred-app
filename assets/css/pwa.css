@@ -1,9 +1,9 @@
 html.pwa-standalone {
   width: 100%;
-  min-height: 100%;
-  overscroll-behavior: none;
+  height: 100%;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
   background: var(--app-bg, #fff);
 }
 
@@ -16,25 +16,33 @@ html.pwa-standalone body {
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  touch-action: pan-y;
 }
 
 html.pwa-standalone #root {
   position: relative;
   width: 100%;
   min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 html.pwa-standalone #main-page {
   position: relative;
   width: 100%;
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
-  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+  min-height: 100%;
+  transform: none;
+  will-change: auto;
 }
 
 html.pwa-standalone #main-page.dragging {
   transition: none;
 }
+
+/*********************
+ * bottom navigation
+ *********************/
 
 html.pwa-standalone .bottom-navigation-wrapper {
   position: fixed;
@@ -58,6 +66,10 @@ html.pwa-standalone .bottom-nav {
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
+
+/*********************
+ * pull to refresh
+ *********************/
 
 html.pwa-standalone .ptr-indicator {
   position: fixed;
@@ -96,12 +108,16 @@ html.pwa-standalone .ptr-indicator.loading .ptr-spinner {
   animation: ptr-spin 0.75s linear infinite;
 }
 
+/*********************
+ * touch behavior
+ *********************/
+
 html.pwa-standalone button,
 html.pwa-standalone a,
 html.pwa-standalone label {
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
   touch-action: manipulation;
+  user-select: none;
 }
 
 html.pwa-standalone input,
