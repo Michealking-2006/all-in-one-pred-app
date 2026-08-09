@@ -8,44 +8,15 @@ const APP_SKELETON = {
   checkTimer: null,
   
   /*********************
-   * skeleton classes
+   * initialize loader
    *********************/
-  
-  classes: [
-    "app-skeleton",
-    "app-skeleton-w-25",
-    "app-skeleton-w-40",
-    "app-skeleton-w-50",
-    "app-skeleton-w-75",
-    "app-skeleton-w-100",
-    "app-skeleton-w-120",
-    "app-skeleton-w-150",
-    "app-skeleton-w-200",
-    "app-skeleton-w-full",
-    "app-skeleton-h-10",
-    "app-skeleton-h-12",
-    "app-skeleton-h-16",
-    "app-skeleton-h-20",
-    "app-skeleton-h-24",
-    "app-skeleton-h-32",
-    "app-skeleton-h-40",
-    "app-skeleton-h-50",
-    "app-skeleton-h-64",
-    "app-skeleton-rounded-none",
-    "app-skeleton-rounded-sm",
-    "app-skeleton-rounded",
-    "app-skeleton-rounded-md",
-    "app-skeleton-rounded-lg",
-    "app-skeleton-rounded-xl",
-    "app-skeleton-rounded-full",
-  ],
-  
-  /*********************
-   * initialize skeleton
-   *********************/
-  
   init() {
-    if (this.initialized) {
+    if (this.initialized) return;
+    
+    if (!document.body) {
+      document.addEventListener("DOMContentLoaded", () => this.init(), {
+        once: true,
+      });
       return;
     }
     
@@ -65,9 +36,8 @@ const APP_SKELETON = {
   },
   
   /*********************
-   * schedule skeleton check
+   * schedule check
    *********************/
-  
   scheduleCheck() {
     clearTimeout(this.checkTimer);
     
@@ -79,66 +49,74 @@ const APP_SKELETON = {
   /*********************
    * check all skeletons
    *********************/
-  
   check() {
     const skeletons = document.querySelectorAll(".app-skeleton");
     
-    skeletons.forEach((skeleton) => {
-      if (!this.hasContent(skeleton)) {
-        return;
+    skeletons.forEach((element) => {
+      if (this.hasContent(element)) {
+        this.remove(element);
       }
-      
-      this.remove(skeleton);
     });
   },
   
   /*********************
-   * check skeleton content
+   * check element content
    *********************/
-  
   hasContent(element) {
-    if (!element) {
-      return false;
+    if (element.dataset.skeletonReady === "true") {
+      return true;
+    }
+    
+    if (element instanceof HTMLImageElement) {
+      return element.complete && element.naturalWidth > 0;
+    }
+    
+    if (
+      element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement
+    ) {
+      return element.value.trim().length > 0;
     }
     
     return element.textContent.trim().length > 0;
   },
   
   /*********************
-   * remove skeleton state
+   * remove skeleton classes
    *********************/
-  
   remove(element) {
-    if (!element || !element.isConnected) {
-      return;
-    }
+    const classesToRemove = [];
     
-    this.classes.forEach((className) => {
-      element.classList.remove(className);
+    element.classList.forEach((className) => {
+      if (
+        className === "app-skeleton" ||
+        className.startsWith("app-skeleton-")
+      ) {
+        classesToRemove.push(className);
+      }
     });
+    
+    element.classList.remove(...classesToRemove);
+    element.removeAttribute("data-skeleton-ready");
   },
   
   /*********************
-   * mark element ready
+   * mark element ready manually
    *********************/
-  
   ready(target) {
     const element =
-      typeof target === "string" ?
-      document.querySelector(target) :
-      target;
+      typeof target === "string" ? document.querySelector(target) : target;
     
-    if (!element) {
-      return;
-    }
+    if (!element) return;
     
-    this.remove(element);
+    element.dataset.skeletonReady = "true";
+    this.scheduleCheck();
   },
   
   /*********************
-   * destroy skeleton
+   * destroy loader
    *********************/
-  
   destroy() {
     if (this.observer) {
       this.observer.disconnect();
@@ -147,13 +125,12 @@ const APP_SKELETON = {
     
     clearTimeout(this.checkTimer);
     this.checkTimer = null;
-    
     this.initialized = false;
   },
 };
 
 /*********************
- * initialize skeleton
+ * initialize loader
  *********************/
 
 APP_SKELETON.init();
