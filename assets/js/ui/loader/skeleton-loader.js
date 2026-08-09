@@ -5,20 +5,15 @@
 const APP_SKELETON = {
   observer: null,
   initialized: false,
-  
-  /*********************
-   * initialize skeleton
-   *********************/
+  checkTimer: null,
   
   init() {
-    if (this.initialized) {
-      return;
-    }
+    if (this.initialized) return;
     
     this.initialized = true;
     
     this.observer = new MutationObserver(() => {
-      this.check();
+      this.scheduleCheck();
     });
     
     this.observer.observe(document.body, {
@@ -26,18 +21,19 @@ const APP_SKELETON = {
       subtree: true,
       characterData: true,
       attributes: true,
-      attributeFilter: [
-        "src",
-        "data-skeleton-ready",
-      ],
+      attributeFilter: ["src", "value", "data-skeleton-ready"],
     });
     
-    this.check();
+    this.scheduleCheck();
   },
   
-  /*********************
-   * check all skeletons
-   *********************/
+  scheduleCheck() {
+    clearTimeout(this.checkTimer);
+    
+    this.checkTimer = setTimeout(() => {
+      this.check();
+    }, 50);
+  },
   
   check() {
     const skeletons = document.querySelectorAll(
@@ -45,35 +41,16 @@ const APP_SKELETON = {
     );
     
     skeletons.forEach((skeleton) => {
-      this.checkSkeleton(skeleton);
+      const selector = skeleton.dataset.skeletonFor;
+      const target = this.getTarget(selector);
+      
+      if (!target) return;
+      
+      if (this.hasRealContent(target)) {
+        skeleton.remove();
+      }
     });
   },
-  
-  /*********************
-   * check skeleton
-   *********************/
-  
-  checkSkeleton(skeleton) {
-    const selector = skeleton.dataset.skeletonFor;
-    
-    if (!selector) {
-      return;
-    }
-    
-    const target = this.getTarget(selector);
-    
-    if (!target) {
-      return;
-    }
-    
-    if (this.hasContent(target)) {
-      this.remove(skeleton);
-    }
-  },
-  
-  /*********************
-   * get skeleton target
-   *********************/
   
   getTarget(selector) {
     try {
@@ -83,11 +60,7 @@ const APP_SKELETON = {
     }
   },
   
-  /*********************
-   * check target content
-   *********************/
-  
-  hasContent(target) {
+  hasRealContent(target) {
     if (target.dataset.skeletonReady === "true") {
       return true;
     }
@@ -96,63 +69,54 @@ const APP_SKELETON = {
       return target.complete && target.naturalWidth > 0;
     }
     
-    if (target instanceof HTMLInputElement) {
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement
+    ) {
       return target.value.trim().length > 0;
     }
     
-    if (target instanceof HTMLTextAreaElement) {
-      return target.value.trim().length > 0;
-    }
+    const clone = target.cloneNode(true);
     
-    if (target instanceof HTMLSelectElement) {
-      return target.value.trim().length > 0;
-    }
+    clone.querySelectorAll(".app-skeleton").forEach((node) => node.remove());
     
-    if (target.textContent.trim().length > 0) {
-      return true;
-    }
-    
-    if (target.children.length > 0) {
-      return true;
+    return this.nodeHasMeaningfulContent(clone);
+  },
+  
+  nodeHasMeaningfulContent(node) {
+    for (const child of node.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        if (child.textContent.trim().length > 0) {
+          return true;
+        }
+      }
+      
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const el = child;
+        
+        if (el.matches("img")) {
+          if (el.complete && el.naturalWidth > 0) {
+            return true;
+          }
+        } else if (el.children.length > 0 || el.textContent.trim().length > 0) {
+          return true;
+        }
+      }
     }
     
     return false;
   },
   
-  /*********************
-   * remove skeleton
-   *********************/
-  
-  remove(skeleton) {
-    if (!skeleton || !skeleton.isConnected) {
-      return;
-    }
-    
-    skeleton.remove();
-  },
-  
-  /*********************
-   * mark target ready
-   *********************/
-  
   ready(target) {
     const element =
-      typeof target === "string" ?
-      this.getTarget(target) :
-      target;
+      typeof target === "string" ? this.getTarget(target) : target;
     
-    if (!element) {
-      return;
-    }
+    if (!element) return;
     
     element.dataset.skeletonReady = "true";
-    
-    this.check();
+    this.scheduleCheck();
   },
-  
-  /*********************
-   * destroy skeleton
-   *********************/
   
   destroy() {
     if (this.observer) {
@@ -160,12 +124,10 @@ const APP_SKELETON = {
       this.observer = null;
     }
     
+    clearTimeout(this.checkTimer);
+    this.checkTimer = null;
     this.initialized = false;
   },
 };
-
-/*********************
- * initialize skeleton
- *********************/
 
 APP_SKELETON.init();
