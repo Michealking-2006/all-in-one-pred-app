@@ -7,12 +7,13 @@
   color: #111;
   font-family: BykerR;
   box-sizing: border-box;
+  padding-top: 20%;
 }
 
-/********************* HEADER ********************/
+/********************* header ********************/
 
 .app-profile-header {
-  position: sticky;
+  position: fixed;
   top: 0;
   z-index: 10;
   width: 100%;
@@ -22,6 +23,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  
 }
 
 .app-profile-back-btn {
@@ -171,6 +173,11 @@
 .app-profile-item>svg {
   color: #9b9b9b;
   flex-shrink: 0;
+}
+
+.selected-language-profile-pg {
+  font-family: BykerR;
+  color: #4B4B4B54;
 }
 
 /********************* LOGOUT *********************/
