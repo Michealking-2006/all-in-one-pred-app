@@ -889,3 +889,68 @@ html {
 .app-theme-switch label:active::after {
   width: 55%;
 }
+
+
+
+
+/*********************
+ * global skeleton loader
+ *********************/
+
+.app-skeleton {
+  display: block;
+  background: #e9e9e9;
+  border-radius: 6px;
+
+  animation: app-skeleton-blink 1.2s ease-in-out infinite;
+}
+
+/*********************
+ * skeleton sizes
+ *********************/
+
+.app-skeleton-sm {
+  width: 80px;
+  height: 12px;
+}
+
+.app-skeleton-md {
+  width: 140px;
+  height: 16px;
+}
+
+.app-skeleton-lg {
+  width: 220px;
+  height: 20px;
+}
+
+.app-skeleton-full {
+  width: 100%;
+  height: 16px;
+}
+
+.app-skeleton-box {
+  width: 100%;
+  height: 48px;
+}
+
+.app-skeleton-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/*********************
+ * skeleton animation
+ *********************/
+
+@keyframes app-skeleton-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
