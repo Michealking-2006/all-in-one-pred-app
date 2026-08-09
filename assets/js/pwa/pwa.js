@@ -2,6 +2,8 @@
   if (window.__pwaModuleInitialized) return;
   window.__pwaModuleInitialized = true;
   
+  let destroyPullToRefresh = null;
+  
   function isStandalonePWA() {
     return (
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -17,130 +19,215 @@
     return standalone;
   }
   
+  function waitForNextFrame() {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }
+  
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  
+  function callFirstAvailable(targets, methodNames, args = []) {
+    for (const target of targets) {
+      if (!target) continue;
+      
+      for (const methodName of methodNames) {
+        const method = target[methodName];
+        if (typeof method === "function") {
+          return method.apply(target, args);
+        }
+      }
+    }
+    
+    return undefined;
+  }
+  
+  function getScrollTop() {
+    return (
+      window.pageYOffset ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0
+    );
+  }
+  
   function initPullToRefresh(onRefresh, options = {}) {
     const root = options.root || document.querySelector("#root");
-    const content = options.content || document.querySelector("#main-page");
     const indicator = options.indicator || document.querySelector(".ptr-indicator");
     
-    if (!root || !content || !indicator) return;
+    if (!root || !indicator) return null;
     
     let startY = 0;
     let currentY = 0;
     let pulling = false;
     let refreshing = false;
-    let triggered = false;
     
-    const MAX_PULL = 130;
-    const TRIGGER = 85;
     const START_ZONE = 90;
+    const TRIGGER = 85;
+    const MAX_PULL = 130;
     
-    const getScrollTop = () => {
-      return window.pageYOffset ||
-        document.documentElement.scrollTop ||
-        document.body.scrollTop ||
-        0;
-    };
-    
-    const ease = (distance) => {
+    const easePull = (distance) => {
       if (distance <= 0) return 0;
       return Math.min(MAX_PULL, distance * 0.45 + Math.sqrt(distance) * 2);
     };
     
+    const setIndicatorY = (y) => {
+      indicator.style.transform = `translate3d(-50%, ${y}px, 0)`;
+    };
+    
+    const showIdleIndicator = (pull) => {
+      indicator.classList.add("active");
+      indicator.classList.remove("loading");
+      setIndicatorY(Math.max(-80, pull - 80));
+    };
+    
+    const showLoadingIndicator = () => {
+      indicator.classList.add("active", "loading");
+      setIndicatorY(16);
+    };
+    
     const resetVisuals = () => {
-      content.style.transform = "";
-      content.classList.remove("dragging");
+      pulling = false;
+      startY = 0;
+      currentY = 0;
+      
       indicator.classList.remove("active", "loading");
       indicator.style.transform = "";
     };
     
-    const onTouchStart = (e) => {
+    const handleTouchStart = (event) => {
       if (refreshing) return;
       if (getScrollTop() > 0) return;
       
-      const y = e.touches[0].clientY;
+      const y = event.touches[0].clientY;
       if (y > START_ZONE) return;
       
       startY = y;
       currentY = y;
       pulling = true;
-      triggered = false;
-      content.classList.add("dragging");
     };
     
-    const onTouchMove = (e) => {
+    const handleTouchMove = (event) => {
       if (!pulling || refreshing) return;
       
-      currentY = e.touches[0].clientY;
+      currentY = event.touches[0].clientY;
       const distance = currentY - startY;
       
       if (distance <= 0) return;
       
       if (getScrollTop() > 0) {
-        pulling = false;
         resetVisuals();
         return;
       }
       
-      e.preventDefault();
-      triggered = true;
+      event.preventDefault();
       
-      const pull = ease(distance);
-      
-      content.style.transform = `translate3d(0, ${pull}px, 0)`;
-      indicator.classList.add("active");
-      indicator.style.transform = `translate(-50%, ${Math.min(pull - 70, 20)}px)`;
+      const pull = easePull(distance);
+      showIdleIndicator(pull);
     };
     
-    const onTouchEnd = async () => {
+    const handleTouchEnd = async () => {
       if (!pulling) return;
       
-      pulling = false;
-      content.classList.remove("dragging");
-      
       const distance = currentY - startY;
+      pulling = false;
       
-      if (triggered && distance >= TRIGGER && !refreshing) {
+      if (distance >= TRIGGER && !refreshing) {
         refreshing = true;
-        indicator.classList.add("loading");
-        content.style.transform = "translate3d(0, 70px, 0)";
+        
+        showLoadingIndicator();
         
         try {
           await Promise.resolve(onRefresh && onRefresh());
-        } catch (err) {
-          console.error(err);
+        } catch (error) {
+          console.error(error);
         }
         
-        setTimeout(() => {
-          refreshing = false;
-          resetVisuals();
-        }, 300);
-      } else {
+        await waitForNextFrame();
+        await wait(150);
+        
+        refreshing = false;
         resetVisuals();
+        return;
       }
       
-      startY = 0;
-      currentY = 0;
-      triggered = false;
+      resetVisuals();
     };
     
-    root.addEventListener("touchstart", onTouchStart, { passive: true });
-    root.addEventListener("touchmove", onTouchMove, { passive: false });
-    root.addEventListener("touchend", onTouchEnd, { passive: true });
-    root.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    root.addEventListener("touchstart", handleTouchStart, { passive: true });
+    root.addEventListener("touchmove", handleTouchMove, { passive: false });
+    root.addEventListener("touchend", handleTouchEnd, { passive: true });
+    root.addEventListener("touchcancel", handleTouchEnd, { passive: true });
     
-    return function destroyPullToRefresh() {
-      root.removeEventListener("touchstart", onTouchStart);
-      root.removeEventListener("touchmove", onTouchMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchEnd);
+    return function destroyPullToRefreshInstance() {
+      root.removeEventListener("touchstart", handleTouchStart);
+      root.removeEventListener("touchmove", handleTouchMove);
+      root.removeEventListener("touchend", handleTouchEnd);
+      root.removeEventListener("touchcancel", handleTouchEnd);
+      resetVisuals();
     };
   }
   
   async function refreshApp() {
-    if (window.router && typeof window.router.refreshCurrentPage === "function") {
-      await window.router.refreshCurrentPage();
-      return;
+    const router = window.router || window.appRouter || window.APP_ROUTER;
+    const scriptHelper =
+      window.scriptHelper ||
+      window.appScriptHelper ||
+      window.scriptHelpers ||
+      window.APP_SCRIPT_HELPER;
+    
+    const currentUrl =
+      window.location.pathname + window.location.search + window.location.hash;
+    
+    let refreshedByRouter = false;
+    
+    const routerResult = callFirstAvailable(
+      [router],
+      [
+        "refreshCurrentPage",
+        "refreshCurrentRoute",
+        "refresh",
+        "reloadCurrentRoute",
+      ]
+    );
+    
+    if (routerResult instanceof Promise) {
+      await routerResult;
+      refreshedByRouter = true;
+    } else if (routerResult !== undefined) {
+      refreshedByRouter = true;
+    } else {
+      const handleResult = callFirstAvailable([window], ["handleLocation"]);
+      if (handleResult instanceof Promise) {
+        await handleResult;
+        refreshedByRouter = true;
+      } else if (typeof window.route === "function") {
+        const routeResult = window.route({ type: "refresh", url: currentUrl });
+        if (routeResult instanceof Promise) {
+          await routeResult;
+        }
+        refreshedByRouter = true;
+      }
     }
+    
+    callFirstAvailable(
+      [scriptHelper, window],
+      [
+        "refreshCurrentPageScripts",
+        "runCurrentPageScripts",
+        "reinitCurrentPage",
+        "reinitializePage",
+        "bootCurrentPage",
+        "initCurrentPage",
+        "runPageScripts",
+      ]
+    );
+    
+    if (window.APP_SKELETON && typeof window.APP_SKELETON.check === "function") {
+      window.APP_SKELETON.check();
+    }
+    
+    if (refreshedByRouter) return;
     
     window.location.reload();
   }
@@ -148,12 +235,16 @@
   function bootPWA() {
     const standalone = syncStandaloneClass();
     
+    if (destroyPullToRefresh) {
+      destroyPullToRefresh();
+      destroyPullToRefresh = null;
+    }
+    
     if (!standalone) return;
     
-    initPullToRefresh(refreshApp, {
+    destroyPullToRefresh = initPullToRefresh(refreshApp, {
       root: document.querySelector("#root"),
-      content: document.querySelector("#main-page"),
-      indicator: document.querySelector(".ptr-indicator")
+      indicator: document.querySelector(".ptr-indicator"),
     });
   }
   
@@ -166,17 +257,19 @@
   window.addEventListener("pageshow", syncStandaloneClass);
   
   const standaloneQuery = window.matchMedia("(display-mode: standalone)");
+  const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
+  
   if (standaloneQuery && typeof standaloneQuery.addEventListener === "function") {
     standaloneQuery.addEventListener("change", bootPWA);
   }
   
-  const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
   if (fullscreenQuery && typeof fullscreenQuery.addEventListener === "function") {
     fullscreenQuery.addEventListener("change", bootPWA);
   }
   
   window.pwaApp = {
     isStandalonePWA,
-    refreshApp
+    refreshApp,
+    syncStandaloneClass,
   };
 })();
