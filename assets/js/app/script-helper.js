@@ -2,8 +2,8 @@
   if (window.__appScriptLoaderInstalled) return;
   window.__appScriptLoaderInstalled = true;
 
-  const scriptPromises = new Map(); // url -> Promise<HTMLScriptElement>
-  const scriptElements = new Map(); // url -> HTMLScriptElement
+  const scriptPromises = new Map();
+  const scriptElements = new Map();
 
   function resolveSrc(src) {
     return new URL(src, document.baseURI).href;
@@ -15,6 +15,13 @@
     scriptElements.set(url, script);
   }
 
+  function getManagedScripts() {
+    return [
+      ...document.querySelectorAll("app-script[src]"),
+      ...document.querySelectorAll("script[data-app-script-src]"),
+    ];
+  }
+
   function loadPageScript(src, options = {}) {
     const url = resolveSrc(src);
     const { async = true } = options;
@@ -22,8 +29,9 @@
     const cached = scriptPromises.get(url);
     if (cached) return cached;
 
-    const existing = scriptElements.get(url)
-      || [...document.querySelectorAll("script[data-app-script-src]")].find(
+    const existing =
+      scriptElements.get(url) ||
+      [...document.querySelectorAll("script[data-app-script-src]")].find(
         (el) => el.getAttribute("data-app-script-src") === url
       );
 
@@ -95,6 +103,45 @@
     return promise;
   }
 
+  async function refreshCurrentPageScripts() {
+    const managedScripts = getManagedScripts();
+    const loadTasks = [];
+
+    for (const script of managedScripts) {
+      const src =
+        script.getAttribute("src") ||
+        script.getAttribute("data-app-script-src");
+
+      if (!src) continue;
+
+      loadTasks.push(
+        loadPageScript(src).catch((error) => {
+          console.error(error);
+        })
+      );
+    }
+
+    await Promise.all(loadTasks);
+
+    window.dispatchEvent(
+      new CustomEvent("app:page:refresh", {
+        detail: {
+          url: window.location.href,
+          pathname: window.location.pathname,
+        },
+      })
+    );
+
+    document.dispatchEvent(
+      new CustomEvent("app:page:refresh", {
+        detail: {
+          url: window.location.href,
+          pathname: window.location.pathname,
+        },
+      })
+    );
+  }
+
   class AppScript extends HTMLElement {
     connectedCallback() {
       const src = this.getAttribute("src");
@@ -111,4 +158,10 @@
   }
 
   window.loadPageScript = loadPageScript;
+  window.refreshCurrentPageScripts = refreshCurrentPageScripts;
+
+  window.appScriptLoader = {
+    loadPageScript,
+    refreshCurrentPageScripts,
+  };
 })();
