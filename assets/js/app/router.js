@@ -56,7 +56,10 @@ function showLoader() {
 }
 
 function hideLoader() {
-  loader?.classList.add("hidden");
+  setTimeout(() => {
+    loader?.classList.add("hidden");
+    
+  },1000)
 }
 
 /* ==========================
