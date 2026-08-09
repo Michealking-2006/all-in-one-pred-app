@@ -1,169 +1,43 @@
 /************************************************************
  * SCOUTWAVE — SUPABASE CLIENT
- *
- * Responsible for:
- * - Creating the single Supabase client
- * - Persisting authentication
- * - Sharing auth storage across Scoutwave subdomains
- * - Automatic token refresh
- * - PKCE authentication flow
  ************************************************************/
 
-/* ==========================================================
-   CONFIGURATION
-========================================================== */
+const SUPABASE_URL = "https://fhsteyglvxuanyvgkkxp.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_l-EwBB_dCGpxDot_87GC1HA_1COYjj3W";
+const COOKIE_DOMAIN = ".myscoutwave.com";
 
-const SUPABASE_CONFIG = Object.freeze({
-  url: "https://fhsteyglvxuanyvgkkxp.supabase.co",
+function getCookie(name) {
+  const escaped = name.replace(/[$()*+./?[\\\]^{|}-]/g, "\\$&");
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${escaped}=([^;]*)`)
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
-  anonKey:
-    "sb_publishable_l-EwBB_dCGpxDo_87GC1HA_1COYjj3W",
+function setCookie(name, value, maxAgeSeconds = 60 * 60 * 24 * 7) {
+  document.cookie =
+    `${encodeURIComponent(name)}=${encodeURIComponent(value)}; ` +
+    `path=/; domain=${COOKIE_DOMAIN}; samesite=lax; secure; max-age=${maxAgeSeconds}`;
+}
 
-  cookieDomain: ".myscoutwave.com",
-});
+function removeCookie(name) {
+  document.cookie =
+    `${encodeURIComponent(name)}=; ` +
+    `path=/; domain=${COOKIE_DOMAIN}; samesite=lax; secure; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+}
 
-
-/* ==========================================================
-   STORAGE
-========================================================== */
-
-/*
- * Supabase stores the complete auth session.
- *
- * The storage adapter below allows the session to be available
- * across:
- *
- *   auth.myscoutwave.com
- *   app.myscoutwave.com
- *   myscoutwave.com
- *
- * It deliberately does not contain localhost handling.
- */
-
-const supabaseStorage = {
-  getItem(key) {
-    try {
-      const value = localStorage.getItem(key);
-      return value;
-    } catch (error) {
-      console.error("[Supabase] Storage read failed:", error);
-      return null;
-    }
-  },
-
-  setItem(key, value) {
-    try {
-      localStorage.setItem(key, value);
-    } catch (error) {
-      console.error("[Supabase] Storage write failed:", error);
-    }
-  },
-
-  removeItem(key) {
-    try {
-      localStorage.removeItem(key);
-    } catch (error) {
-      console.error("[Supabase] Storage removal failed:", error);
-    }
-  },
+const sharedStorage = {
+  getItem: (key) => getCookie(key),
+  setItem: (key, value) => setCookie(key, value),
+  removeItem: (key) => removeCookie(key),
 };
 
-
-/* ==========================================================
-   CLIENT
-========================================================== */
-
-function createSupabaseClient() {
-  if (!window.supabase?.createClient) {
-    console.error(
-      "[Supabase] Supabase library is not loaded."
-    );
-
-    return null;
-  }
-
-  try {
-    return window.supabase.createClient(
-      SUPABASE_CONFIG.url,
-      SUPABASE_CONFIG.anonKey,
-      {
-        auth: {
-          storage: supabaseStorage,
-
-          persistSession: true,
-
-          autoRefreshToken: true,
-
-          detectSessionInUrl: true,
-
-          flowType: "pkce",
-        },
-      }
-    );
-  } catch (error) {
-    console.error(
-      "[Supabase] Failed to create client:",
-      error
-    );
-
-    return null;
-  }
-}
-
-
-/* ==========================================================
-   GLOBAL CLIENT
-========================================================== */
-
-if (!window.supabaseClient) {
-  window.supabaseClient = createSupabaseClient();
-}
-
-
-/* ==========================================================
-   AUTH STATE
-========================================================== */
-
-if (
-  window.supabaseClient &&
-  !window.__scoutwaveSupabaseAuthBound
-) {
-  window.__scoutwaveSupabaseAuthBound = true;
-
-  window.supabaseClient.auth.onAuthStateChange(
-    (event, session) => {
-      window.__scoutwaveAuthState = {
-        event,
-        session,
-        user: session?.user || null,
-      };
-
-      document.dispatchEvent(
-        new CustomEvent("scoutwaveAuthStateChange", {
-          detail: {
-            event,
-            session,
-            user: session?.user || null,
-          },
-        })
-      );
-    }
-  );
-}
-
-
-/* ==========================================================
-   READY STATE
-========================================================== */
-
-window.__scoutwaveSupabaseReady =
-  !!window.supabaseClient;
-
-document.dispatchEvent(
-  new CustomEvent("scoutwaveSupabaseReady", {
-    detail: {
-      client: window.supabaseClient,
-      ready: window.__scoutwaveSupabaseReady,
-    },
-  })
-);
+window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storage: sharedStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: "pkce",
+  },
+});
