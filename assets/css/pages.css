@@ -6,7 +6,6 @@
   background: #f5f6f8;
   color: #111;
   font-family: BykerR;
-  padding-bottom: 5rem;
   box-sizing: border-box;
 }
 
@@ -180,7 +179,7 @@
   padding: 28px 18px;
 }
 
-.app-profile-logout-btn {
+.app-profile-auth-btn {
   width: 100%;
   height: 52px;
   border: none;
@@ -197,22 +196,9 @@
   transition: .2s;
 }
 
-.app-profile-logout-btn:active {
+.app-profile-auth-btn:active {
   transform: scale(.98);
 }
-
-/********************* RESPONSIVE *********************/
-
-@media (min-width:768px) {
-  
-  .app-profile-page {
-    max-width: 560px;
-    margin: 0 auto;
-    background: #f5f6f8;
-  }
-  
-}
-
 
 /*******************************/
 

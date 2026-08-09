@@ -1,6 +1,4 @@
-/*********************
- * PROFILE PAGE
- *********************/
+/********* profile page *********/
 
 let PROFILE_PAGE = {
   active: false,
@@ -18,7 +16,7 @@ const PROFILE_SELECTORS = {
 };
 
 const PROFILE_DEFAULTS = {
-  username: "Guest037",
+  username: "Guest",
   memberSince: "Member",
   avatar: "/assets/icons/normal-pfp.jpeg",
   authTextLoggedOut: "Login",
@@ -27,9 +25,7 @@ const PROFILE_DEFAULTS = {
 
 const PROFILE_AUTH_LOGIN_URL = "https://auth.myscoutwave.com/login";
 
-/* ---------------------------------
- * Helpers
- * --------------------------------- */
+/********* helpers *********/
 function getCurrentPath() {
   try {
     const path = window.router?.getCurrentPath?.() || location.pathname;
@@ -47,25 +43,40 @@ function getEl(selector, root = document) {
   return root.querySelector(selector);
 }
 
+function notify(type, message, options = {}) {
+  const toast = window.Toast || window.toast;
+
+  if (toast && typeof toast[type] === "function") {
+    return toast[type](message, options);
+  }
+
+  const fallback = type === "error"
+    ? console.error
+    : type === "warning"
+      ? console.warn
+      : console.log;
+
+  fallback(message);
+  return null;
+}
+
 function formatMemberSince(dateValue) {
   if (!dateValue) return PROFILE_DEFAULTS.memberSince;
-  
+
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return PROFILE_DEFAULTS.memberSince;
-  
+
   return `Member since ${date.toLocaleDateString("en-US", {
     month: "short",
     year: "numeric",
   })}`;
 }
 
-/* ---------------------------------
- * Supabase
- * --------------------------------- */
+/********* supabase *********/
 async function getSession() {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
-  
+
   try {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
@@ -78,26 +89,25 @@ async function getSession() {
 
 async function getUserProfile(userId) {
   const supabase = getSupabaseClient();
-  if (!supabase) return null;
-  
+  if (!supabase) return { data: null, error: new Error("Supabase client missing") };
+
   try {
     const { data, error } = await supabase
       .from("profiles")
       .select("username, avatar_url, created_at")
       .eq("id", userId)
       .maybeSingle();
-    
+
     if (error) throw error;
-    return data || null;
+
+    return { data: data || null, error: null };
   } catch (err) {
     console.error("[Profile] Failed to load profile:", err);
-    return null;
+    return { data: null, error: err };
   }
 }
 
-/* ---------------------------------
- * DOM setters
- * --------------------------------- */
+/********* dom setters *********/
 function setProfileUsername(value) {
   const el = getEl(PROFILE_SELECTORS.username);
   if (!el) return;
@@ -119,16 +129,14 @@ function setProfileAvatar(src) {
 function setAuthButton(isLoggedIn) {
   const btn = getEl(PROFILE_SELECTORS.authBtn);
   if (!btn) return;
-  
+
   btn.dataset.state = isLoggedIn ? "logged-in" : "logged-out";
-  btn.textContent = isLoggedIn ?
-    PROFILE_DEFAULTS.authTextLoggedIn :
-    PROFILE_DEFAULTS.authTextLoggedOut;
+  btn.textContent = isLoggedIn
+    ? PROFILE_DEFAULTS.authTextLoggedIn
+    : PROFILE_DEFAULTS.authTextLoggedOut;
 }
 
-/* ---------------------------------
- * Render states
- * --------------------------------- */
+/********* render states *********/
 function clearProfileToGuest() {
   setProfileUsername(PROFILE_DEFAULTS.username);
   setProfileMemberSince(PROFILE_DEFAULTS.memberSince);
@@ -139,24 +147,34 @@ function clearProfileToGuest() {
 
 async function renderAuthenticatedProfile(user, requestId) {
   if (!PROFILE_PAGE.active || requestId !== PROFILE_PAGE.renderToken) return;
-  
+
   if (!user) {
     clearProfileToGuest();
     return;
   }
-  
-  const profile = await getUserProfile(user.id);
-  
+
+  const { data: profile, error } = await getUserProfile(user.id);
+
   if (!PROFILE_PAGE.active || requestId !== PROFILE_PAGE.renderToken) return;
-  
+
+  if (error) {
+    notify("error", "Unable to load your profile right now.");
+    clearProfileToGuest();
+    return;
+  }
+
   const username =
     profile?.username ||
     user.email?.split("@")?.[0] ||
     PROFILE_DEFAULTS.username;
-  
+
   const memberSince = formatMemberSince(profile?.created_at || user.created_at);
   const avatar = profile?.avatar_url || PROFILE_DEFAULTS.avatar;
-  
+
+  if (!profile) {
+    notify("warning", "Profile not found. Showing guest mode for now.");
+  }
+
   setProfileUsername(username);
   setProfileMemberSince(memberSince);
   setProfileAvatar(avatar);
@@ -167,57 +185,55 @@ async function renderAuthenticatedProfile(user, requestId) {
 async function renderProfileState() {
   const requestId = ++PROFILE_PAGE.renderToken;
   const session = await getSession();
-  
+
   if (!PROFILE_PAGE.active || requestId !== PROFILE_PAGE.renderToken) return;
-  
+
   if (!session?.user) {
     clearProfileToGuest();
     return;
   }
-  
+
   await renderAuthenticatedProfile(session.user, requestId);
 }
 
-/* ---------------------------------
- * Button binding
- * --------------------------------- */
+/********* button binding *********/
 function bindAuthButton() {
   const btn = getEl(PROFILE_SELECTORS.authBtn);
   if (!btn || btn.dataset.bound === "true") return;
-  
+
   btn.dataset.bound = "true";
-  
+
   btn.addEventListener("click", async () => {
     const state = btn.dataset.state || "logged-out";
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    
+
     if (state === "logged-in") {
       try {
         await supabase.auth.signOut();
         clearProfileToGuest();
+        notify("success", "You have been logged out.");
       } catch (err) {
         console.error("[Profile] Sign out failed:", err);
+        notify("error", "Unable to sign out. Please try again.");
       }
       return;
     }
-    
+
     window.location.replace(PROFILE_AUTH_LOGIN_URL);
   });
 }
 
-/* ---------------------------------
- * Lifecycle
- * --------------------------------- */
+/********* lifecycle *********/
 function destroyProfilePage() {
   if (!PROFILE_PAGE.active) return;
-  
+
   PROFILE_PAGE.active = false;
   PROFILE_PAGE.renderToken++;
-  
+
   PROFILE_PAGE.controller?.abort();
   PROFILE_PAGE.controller = null;
-  
+
   if (PROFILE_PAGE.authSubscription) {
     try {
       PROFILE_PAGE.authSubscription.unsubscribe?.();
@@ -230,40 +246,41 @@ function destroyProfilePage() {
 
 function initProfilePage() {
   if (PROFILE_PAGE.active) return;
-  
+
   const root = getEl(PROFILE_SELECTORS.root);
   if (!root) return;
-  
+
   destroyProfilePage();
-  
+
   PROFILE_PAGE.active = true;
   PROFILE_PAGE.controller = new AbortController();
-  
+
   bindAuthButton();
-  
+
   renderProfileState().catch((err) => {
     console.error("[Profile] render failed:", err);
+    notify("error", "Profile page failed to load.");
   });
-  
+
   const supabase = getSupabaseClient();
   if (supabase?.auth?.onAuthStateChange) {
     const { data } = supabase.auth.onAuthStateChange(async () => {
       if (!PROFILE_PAGE.active) return;
       await renderProfileState();
     });
-    
+
     PROFILE_PAGE.authSubscription = data?.subscription || null;
   }
 }
 
 function handleProfilePageLifecycle(e) {
   const path = (e?.detail?.path || getCurrentPath() || "").trim();
-  
+
   if (path === "/profile") {
     initProfilePage();
     return;
   }
-  
+
   destroyProfilePage();
 }
 
@@ -278,12 +295,3 @@ window.router?.registerPage?.("ProfilePage", {
   init: initProfilePage,
   destroy: destroyProfilePage,
 });
-
-
-(async () => {
-  const { data, error } =
-  await window.supabaseClient.auth.getUser();
-  
-  console.log("User:", data?.user);
-  console.log("Error:", error);
-})();

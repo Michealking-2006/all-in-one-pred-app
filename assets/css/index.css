@@ -209,13 +209,13 @@ body {
 
 .date-wrapper {
   width: 100%;
-  padding: 10px 16px;
+ padding: 10px 16px;
 }
 
 .date-scroll {
   display: flex;
   gap: 16px;
-
+  padding: .5em;
   overflow-x: auto;
 
   scroll-behavior: smooth;
@@ -237,7 +237,7 @@ body {
   align-items: center;
 
   user-select: none;
-
+  padding: 0;
   transition: .3s;
 }
 
