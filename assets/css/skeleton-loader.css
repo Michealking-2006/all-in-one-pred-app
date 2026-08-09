@@ -1,0 +1,124 @@
+/*********************
+ * global skeleton
+ *********************/
+
+.app-skeleton {
+  display: block;
+  background: #e9e9e9;
+  animation: app-skeleton-blink 1.2s ease-in-out infinite;
+}
+
+/*********************
+ * width
+ *********************/
+
+.w-full {
+  width: 100%;
+}
+
+.w-25 {
+  width: 25px;
+}
+
+.w-50 {
+  width: 50px;
+}
+
+.w-75 {
+  width: 75px;
+}
+
+.w-100 {
+  width: 100px;
+}
+
+.w-120 {
+  width: 120px;
+}
+
+.w-150 {
+  width: 150px;
+}
+
+.w-200 {
+  width: 200px;
+}
+
+/*********************
+ * height
+ *********************/
+
+.h-10 {
+  height: 10px;
+}
+
+.h-12 {
+  height: 12px;
+}
+
+.h-16 {
+  height: 16px;
+}
+
+.h-20 {
+  height: 20px;
+}
+
+.h-24 {
+  height: 24px;
+}
+
+.h-32 {
+  height: 32px;
+}
+
+.h-40 {
+  height: 40px;
+}
+
+.h-50 {
+  height: 50px;
+}
+
+/*********************
+ * radius
+ *********************/
+
+.rounded-none {
+  border-radius: 0;
+}
+
+.rounded-sm {
+  border-radius: 4px;
+}
+
+.rounded {
+  border-radius: 6px;
+}
+
+.rounded-md {
+  border-radius: 8px;
+}
+
+.rounded-lg {
+  border-radius: 12px;
+}
+
+.rounded-full {
+  border-radius: 50%;
+}
+
+/*********************
+ * animation
+ *********************/
+
+@keyframes app-skeleton-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}

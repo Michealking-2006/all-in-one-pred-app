@@ -8,11 +8,46 @@ const APP_SKELETON = {
   checkTimer: null,
   
   /*********************
+   * skeleton classes
+   *********************/
+  
+  classes: [
+    "app-skeleton",
+    "app-skeleton-w-25",
+    "app-skeleton-w-40",
+    "app-skeleton-w-50",
+    "app-skeleton-w-75",
+    "app-skeleton-w-100",
+    "app-skeleton-w-120",
+    "app-skeleton-w-150",
+    "app-skeleton-w-200",
+    "app-skeleton-w-full",
+    "app-skeleton-h-10",
+    "app-skeleton-h-12",
+    "app-skeleton-h-16",
+    "app-skeleton-h-20",
+    "app-skeleton-h-24",
+    "app-skeleton-h-32",
+    "app-skeleton-h-40",
+    "app-skeleton-h-50",
+    "app-skeleton-h-64",
+    "app-skeleton-rounded-none",
+    "app-skeleton-rounded-sm",
+    "app-skeleton-rounded",
+    "app-skeleton-rounded-md",
+    "app-skeleton-rounded-lg",
+    "app-skeleton-rounded-xl",
+    "app-skeleton-rounded-full",
+  ],
+  
+  /*********************
    * initialize skeleton
    *********************/
   
   init() {
-    if (this.initialized) return;
+    if (this.initialized) {
+      return;
+    }
     
     this.initialized = true;
     
@@ -30,7 +65,7 @@ const APP_SKELETON = {
   },
   
   /*********************
-   * schedule check
+   * schedule skeleton check
    *********************/
   
   scheduleCheck() {
@@ -42,26 +77,30 @@ const APP_SKELETON = {
   },
   
   /*********************
-   * check skeletons
+   * check all skeletons
    *********************/
   
   check() {
-    const skeletons = document.querySelectorAll(
-      ".app-skeleton[data-skeleton-for]"
-    );
+    const skeletons = document.querySelectorAll(".app-skeleton");
     
     skeletons.forEach((skeleton) => {
-      if (this.hasContent(skeleton)) {
-        this.remove(skeleton);
+      if (!this.hasContent(skeleton)) {
+        return;
       }
+      
+      this.remove(skeleton);
     });
   },
   
   /*********************
-   * check element content
+   * check skeleton content
    *********************/
   
   hasContent(element) {
+    if (!element) {
+      return false;
+    }
+    
     return element.textContent.trim().length > 0;
   },
   
@@ -69,11 +108,14 @@ const APP_SKELETON = {
    * remove skeleton state
    *********************/
   
-  remove(skeleton) {
-    skeleton.classList.remove("app-skeleton");
-    skeleton.removeAttribute("data-skeleton-for");
-    skeleton.style.removeProperty("width");
-    skeleton.style.removeProperty("height");
+  remove(element) {
+    if (!element || !element.isConnected) {
+      return;
+    }
+    
+    this.classes.forEach((className) => {
+      element.classList.remove(className);
+    });
   },
   
   /*********************
@@ -86,13 +128,15 @@ const APP_SKELETON = {
       document.querySelector(target) :
       target;
     
-    if (!element) return;
+    if (!element) {
+      return;
+    }
     
     this.remove(element);
   },
   
   /*********************
-   * destroy
+   * destroy skeleton
    *********************/
   
   destroy() {
