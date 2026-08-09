@@ -835,84 +835,57 @@ html {
 
 /****** app radio switch ******/
 
-  @supports (-webkit-appearance: none) or (-moz-appearance: none) {
-    .app-radio-box-global input.app-switch {
-      --active: var(--app-primary-color);
-      --active-inner: #fff;
-      --focus: 2px color-mix(in srgb, var(--app-primary-color) 30%, transparent);
-      --border: #BBC1E1;
-      --border-hover: var(--app-primary-color);
-      --background: #fff;
-      --disabled: #F6F8FF;
+.app-theme-switch {
+  
+  
+  display: flex;
+  align-items: center;
+}
+.app-theme-switch input[type="checkbox"] {
+  height: 0;
+  width: 0;
+  visibility: hidden;
+}
 
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
+.app-theme-switch label {
+  --size: 50px;
+  
+  width: var(--size);
+  height: calc(var(--size) / 2);
+  
+  display: block;
+  position: relative;
+  
+  
+  background: grey;
+  border-radius: 100px;
+}
 
-      width: 38px;
-      height: 21px;
-      margin: 0;
-      display: inline-block;
-      position: relative;
-      vertical-align: top;
-      outline: none;
-      cursor: pointer;
+.app-theme-switch label::after {
+  content: "";
+  
+  position: absolute;
+  top: 6%;
+  left: 2.5%;
+  
+  width: calc(50% - 5%);
+  height: calc(100% - 11%);
+  
+  background: #fff;
+  border-radius: 90px;
+  
+  transition: 0.3s;
+}
 
-      border: 1px solid var(--bc, var(--border));
-      border-radius: 11px;
-      background: var(--b, var(--background));
+.app-theme-switch input:checked+label {
+  background: var(--app-primary-color);
+}
 
-      transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
-    }
+.app-theme-switch input:checked+label::after {
+  left: calc(100% - 2.5%);
+  transform: translateX(-100%);
+}
 
-    .app-radio-box-global input.app-switch::after {
-      content: "";
-      position: absolute;
-      left: 2px;
-      top: 50%;
-      width: 17px;
-      height: 17px;
-      border-radius: 50%;
-      background: var(--ab, var(--border));
-      transform: translate(var(--x, 0), -50%);
-      transition: transform var(--d-t, 0.3s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
-    }
-
-    .app-radio-box-global input.app-switch:checked {
-      --b: var(--active);
-      --bc: var(--active);
-      --ab: var(--active-inner);
-      --x: 17px;
-      --d-o: 0.3s;
-      --d-t: 0.6s;
-      --d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
-    }
-
-    .app-radio-box-global input.app-switch:hover:not(:checked):not(:disabled) {
-      --bc: var(--border-hover);
-    }
-
-    .app-radio-box-global input.app-switch:focus {
-      box-shadow: 0 0 0 var(--focus);
-    }
-
-    .app-radio-box-global input.app-switch:disabled {
-      --b: var(--disabled);
-      cursor: not-allowed;
-      opacity: 0.9;
-    }
-
-    .app-radio-box-global input.app-switch:disabled:not(:checked)::after {
-      opacity: 0.6;
-    }
-  }
-
-  .app-radio-box-global {
-    box-sizing: border-box;
-  }
-
-  .app-radio-box-global *,
-  .app-radio-box-global *::before,
-  .app-radio-box-global *::after {
-    box-sizing: inherit;
-  }
+.app-theme-switch label:active::after {
+  width: 55%;
+}
