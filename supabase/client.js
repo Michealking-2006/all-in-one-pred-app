@@ -3,7 +3,7 @@
  ************************************************************/
 
 const SUPABASE_URL = "https://fhsteyglvxuanyvgkkxp.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_l-EwBB_dCGpxDot_87GC1HA_1COYjj3W";
+const SUPABASE_ANON_KEY = "sb_publishable_l-EwBR_dCGpxDo_87GC1HA_1COYjj3W";
 const COOKIE_DOMAIN = ".myscoutwave.com";
 
 function getCookie(name) {
