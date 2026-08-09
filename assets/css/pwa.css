@@ -1,25 +1,43 @@
 html.pwa-standalone {
-  overscroll-behavior-y: none;
+  width: 100%;
+  height: 100%;
+  
+  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  -webkit-user-select: none;
+  user-select: none;
+  
+  touch-action: manipulation;
+  background: var(--app-bg, #fff);
 }
 
 html.pwa-standalone body {
-  margin: 0;
+  width: 100%;
   min-height: 100%;
+  margin: 0;
+  
   overflow-x: hidden;
+  overscroll-behavior: none;
+  
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 html.pwa-standalone #root {
   position: relative;
   width: 100%;
+  min-height: 100dvh;
 }
 
 html.pwa-standalone #main-page {
   position: relative;
   width: 100%;
+  
   transform: translate3d(0, 0, 0);
   will-change: transform;
-  transition: transform 0.28s cubic-bezier(.22, .61, .36, 1);
+  
+  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 html.pwa-standalone #main-page.dragging {
@@ -32,18 +50,24 @@ html.pwa-standalone .bottom-navigation-wrapper {
   right: 0;
   bottom: 0;
   z-index: 1000;
+  
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateZ(0);
 }
 
 html.pwa-standalone .bottom-nav {
-  height: 70px;
+  height: calc(70px + env(safe-area-inset-bottom));
   background: var(--nav-bg);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid #e5e7eb;
-  padding-bottom: env(safe-area-inset-bottom);
+  
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  
   transform: translateZ(0);
   backface-visibility: hidden;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 
 html.pwa-standalone .ptr-indicator {
@@ -52,17 +76,23 @@ html.pwa-standalone .ptr-indicator {
   left: 50%;
   width: 56px;
   height: 56px;
+  
   display: flex;
   align-items: center;
   justify-content: center;
+  
   transform: translate(-50%, -90px);
   border-radius: 999px;
   background: #fff;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .08);
+  
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  
   z-index: 999999;
   opacity: 0;
   pointer-events: none;
-  transition: transform .25s ease, opacity .25s ease;
+  
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
 html.pwa-standalone .ptr-indicator.active {
@@ -74,12 +104,34 @@ html.pwa-standalone .ptr-spinner {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 3px solid rgba(0, 0, 0, .15);
-  border-top-color: #0d6efd;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  border-top-color: var(--app-primary-color, #0d6efd);
 }
 
 html.pwa-standalone .ptr-indicator.loading .ptr-spinner {
-  animation: ptr-spin .75s linear infinite;
+  animation: ptr-spin 0.75s linear infinite;
+}
+
+html.pwa-standalone button,
+html.pwa-standalone a,
+html.pwa-standalone input,
+html.pwa-standalone textarea,
+html.pwa-standalone select,
+html.pwa-standalone label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.pwa-standalone input,
+html.pwa-standalone textarea,
+html.pwa-standalone select {
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: auto;
+}
+
+html.pwa-standalone button,
+html.pwa-standalone a {
+  touch-action: manipulation;
 }
 
 @keyframes ptr-spin {
