@@ -1,3 +1,16 @@
+/***** navigator loader *****/
+
+function showLoader() {
+  loader?.classList.remove("hidden");
+}
+
+function hideLoader() {
+  setTimeout(() => {
+    loader?.classList.add("hidden");
+    
+  }, 1000)
+}
+
 const REQUIRED_CSS = [
   "/assets/css/components.css",
   "/assets/css/index.css",
@@ -47,20 +60,6 @@ const pageRegistry = new Map();
 let activePageName = null;
 let activePageRoot = null;
 
-/* ==========================
-   Loader
-========================== */
-
-function showLoader() {
-  loader?.classList.remove("hidden");
-}
-
-function hideLoader() {
-  setTimeout(() => {
-    loader?.classList.add("hidden");
-    
-  },1000)
-}
 
 /* ==========================
    PWA mode
