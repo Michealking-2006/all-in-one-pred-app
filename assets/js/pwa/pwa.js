@@ -3,6 +3,8 @@
   window.__pwaModuleInitialized = true;
 
   let destroyPullToRefresh = null;
+  let ptrIndicatorEl = null;
+  let ptrIndicatorInserted = false;
 
   function isStandalonePWA() {
     return (
@@ -16,6 +18,7 @@
   function syncStandaloneClass() {
     const standalone = isStandalonePWA();
     document.documentElement.classList.toggle("pwa-standalone", standalone);
+    document.documentElement.classList.toggle("pwa-not-standalone", !standalone);
     return standalone;
   }
 
@@ -32,9 +35,65 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  function createPullToRefreshIndicator() {
+    if (ptrIndicatorEl && document.body.contains(ptrIndicatorEl)) {
+      return ptrIndicatorEl;
+    }
+
+    const existing = document.querySelector(".ptr-indicator");
+    if (existing) {
+      ptrIndicatorEl = existing;
+      return ptrIndicatorEl;
+    }
+
+    const indicator = document.createElement("div");
+    indicator.className = "ptr-indicator";
+    indicator.setAttribute("aria-hidden", "true");
+
+    indicator.innerHTML = `
+      <svg
+        class="ptr-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 48 48"
+        aria-hidden="true"
+      >
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="4"
+        >
+          <path d="M42 8V24" />
+          <path d="M6 24L6 40" />
+          <path d="M42 24C42 14.0589 33.9411 6 24 6C18.9145 6 14.3216 8.10896 11.0481 11.5" />
+          <path d="M6 24C6 33.9411 14.0589 42 24 42C28.8556 42 33.2622 40.0774 36.5 36.9519" />
+        </g>
+      </svg>
+    `;
+
+    document.body.appendChild(indicator);
+    ptrIndicatorEl = indicator;
+    return ptrIndicatorEl;
+  }
+
+  function ensurePullToRefreshIndicator() {
+    if (!isStandalonePWA()) return null;
+
+    const indicator = createPullToRefreshIndicator();
+    if (!indicator) return null;
+
+    if (!ptrIndicatorInserted) {
+      ptrIndicatorInserted = true;
+      indicator.classList.add("ptr-indicator-ready");
+    }
+
+    return indicator;
+  }
+
   function initPullToRefresh(onRefresh, options = {}) {
-    const root = options.root || document.querySelector("#root");
-    const indicator = options.indicator || document.querySelector(".ptr-indicator");
+    const root = options.root || document.querySelector("#root") || document;
+    const indicator = options.indicator || ensurePullToRefreshIndicator();
 
     if (!root || !indicator) return null;
 
@@ -150,36 +209,54 @@
   async function refreshApp() {
     const router = window.router || window.appRouter || window.APP_ROUTER;
 
-    if (router && typeof router.refreshCurrentPage === "function") {
-      await router.refreshCurrentPage();
-    } else if (typeof window.handleLocation === "function") {
-      await window.handleLocation();
-    } else if (typeof window.route === "function") {
-      await window.route({
-        type: "refresh",
-        url:
-          window.location.pathname +
-          window.location.search +
-          window.location.hash,
-      });
-    } else {
-      window.location.reload();
-      return;
-    }
+    try {
+      if (router && typeof router.refreshCurrentPage === "function") {
+        await router.refreshCurrentPage();
+      } else if (typeof window.handleLocation === "function") {
+        await window.handleLocation();
+      } else if (typeof window.route === "function") {
+        await window.route({
+          type: "refresh",
+          url:
+            window.location.pathname +
+            window.location.search +
+            window.location.hash,
+        });
+      } else {
+        window.location.reload();
+        return;
+      }
 
-    if (window.refreshCurrentPageScripts) {
-      await window.refreshCurrentPageScripts();
-    }
+      if (typeof window.loadPageScript === "function" && window.router?.getCurrentPath) {
+        const path = window.router.getCurrentPath();
+        const scriptHost = document.querySelector("main, #main-page, #root");
+        const appScripts = [...(scriptHost || document).querySelectorAll("app-script[src]")];
 
-    if (window.APP_SKELETON && typeof window.APP_SKELETON.check === "function") {
-      window.APP_SKELETON.check();
-    }
+        await Promise.allSettled(
+          appScripts.map((el) => {
+            const src = el.getAttribute("src");
+            if (!src) return Promise.resolve();
+            return window.loadPageScript(src);
+          })
+        );
+      }
 
-    window.dispatchEvent(
-      new CustomEvent("app:page:refreshed", {
-        detail: { url: window.location.href },
-      })
-    );
+      if (window.refreshCurrentPageScripts) {
+        await window.refreshCurrentPageScripts();
+      }
+
+      if (window.APP_SKELETON && typeof window.APP_SKELETON.check === "function") {
+        window.APP_SKELETON.check();
+      }
+
+      window.dispatchEvent(
+        new CustomEvent("app:page:refreshed", {
+          detail: { url: window.location.href },
+        })
+      );
+    } catch (error) {
+      console.error("[PWA] refresh failed:", error);
+    }
   }
 
   function bootPWA() {
@@ -190,11 +267,20 @@
       destroyPullToRefresh = null;
     }
 
-    if (!standalone) return;
+    if (!standalone) {
+      if (ptrIndicatorEl) {
+        ptrIndicatorEl.remove();
+        ptrIndicatorEl = null;
+        ptrIndicatorInserted = false;
+      }
+      return;
+    }
+
+    const indicator = ensurePullToRefreshIndicator();
 
     destroyPullToRefresh = initPullToRefresh(refreshApp, {
-      root: document.querySelector("#root"),
-      indicator: document.querySelector(".ptr-indicator"),
+      root: document.querySelector("#root") || document.querySelector("#main-page") || document,
+      indicator,
     });
   }
 
@@ -204,7 +290,7 @@
     bootPWA();
   }
 
-  window.addEventListener("pageshow", syncStandaloneClass);
+  window.addEventListener("pageshow", bootPWA);
 
   const standaloneQuery = window.matchMedia("(display-mode: standalone)");
   const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
@@ -221,5 +307,6 @@
     isStandalonePWA,
     refreshApp,
     syncStandaloneClass,
+    ensurePullToRefreshIndicator,
   };
 })();
