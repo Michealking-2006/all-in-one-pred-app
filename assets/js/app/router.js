@@ -57,7 +57,9 @@ function showLoader() {
 }
 
 function hideLoader() {
-  getLoader()?.classList.add("hidden");
+  setTimeout(() => {
+    getLoader()?.classList.add("hidden");
+  },1000)
 }
 
 /********* pwa helpers *********/
