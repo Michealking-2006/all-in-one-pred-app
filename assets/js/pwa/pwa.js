@@ -108,60 +108,6 @@
     ptrIndicator.style.removeProperty("--ptr-y");
     ptrIndicator.style.removeProperty("--ptr-progress");
   }
-  
-  /********* pwa native interaction *********/
-
-function disablePwaBrowserInteractions() {
-  if (!isStandalonePWA()) return;
-
-  document.addEventListener(
-    "contextmenu",
-    (event) => {
-      event.preventDefault();
-    },
-    { passive: false }
-  );
-
-  document.addEventListener(
-    "dragstart",
-    (event) => {
-      event.preventDefault();
-    },
-    { passive: false }
-  );
-
-  document.addEventListener(
-    "selectstart",
-    (event) => {
-      event.preventDefault();
-    },
-    { passive: false }
-  );
-
-  document.addEventListener(
-    "gesturestart",
-    (event) => {
-      event.preventDefault();
-    },
-    { passive: false }
-  );
-
-  document.addEventListener(
-    "gesturechange",
-    (event) => {
-      event.preventDefault();
-    },
-    { passive: false }
-  );
-
-  document.addEventListener(
-    "gestureend",
-    (event) => {
-      event.preventDefault();
-    },
-    { passive: false }
-  );
-}
 
   /********* pull to refresh *********/
 
@@ -342,25 +288,29 @@ function disablePwaBrowserInteractions() {
     }
   }
 
-  /********* pwa boot *********/
+  /********* boot pwa *********/
 
-function bootPWA() {
-  const standalone = syncStandaloneClass();
-  
-  if (destroyPullToRefresh) {
-    destroyPullToRefresh();
-    destroyPullToRefresh = null;
+  function bootPWA() {
+    const standalone = syncStandaloneClass();
+
+    if (destroyPullToRefresh) {
+      destroyPullToRefresh();
+      destroyPullToRefresh = null;
+    }
+
+    if (!standalone) {
+      removePTRIndicator();
+      return;
+    }
+
+    const indicator = ensurePTRIndicator();
+    if (!indicator) return;
+
+    destroyPullToRefresh = initPullToRefresh(refreshApp, {
+      root: document,
+      indicator,
+    });
   }
-  
-  if (!standalone) return;
-  
-  disablePwaBrowserInteractions();
-  
-  destroyPullToRefresh = initPullToRefresh(refreshApp, {
-    root: document.querySelector("#root"),
-    indicator: document.querySelector(".ptr-indicator"),
-  });
-}
 
   /********* delayed boot *********/
 
