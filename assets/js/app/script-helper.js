@@ -103,44 +103,26 @@
     return promise;
   }
 
-  async function refreshCurrentPageScripts() {
-    const managedScripts = getManagedScripts();
-    const loadTasks = [];
-
-    for (const script of managedScripts) {
-      const src =
-        script.getAttribute("src") ||
-        script.getAttribute("data-app-script-src");
-
-      if (!src) continue;
-
-      loadTasks.push(
-        loadPageScript(src).catch((error) => {
-          console.error(error);
-        })
-      );
-    }
-
-    await Promise.all(loadTasks);
-
-    window.dispatchEvent(
-      new CustomEvent("app:page:refresh", {
-        detail: {
-          url: window.location.href,
-          pathname: window.location.pathname,
-        },
-      })
-    );
-
-    document.dispatchEvent(
-      new CustomEvent("app:page:refresh", {
-        detail: {
-          url: window.location.href,
-          pathname: window.location.pathname,
-        },
+async function refreshCurrentPageScripts() {
+  const managedScripts = getManagedScripts();
+  const loadTasks = [];
+  
+  for (const script of managedScripts) {
+    const src =
+      script.getAttribute("src") ||
+      script.getAttribute("data-app-script-src");
+    
+    if (!src) continue;
+    
+    loadTasks.push(
+      loadPageScript(src).catch((error) => {
+        console.error(error);
       })
     );
   }
+  
+  await Promise.all(loadTasks);
+}
 
   class AppScript extends HTMLElement {
     connectedCallback() {
