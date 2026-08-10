@@ -52,10 +52,6 @@ html.pwa-standalone .bottom-nav {
 
 /***** pull to refresh ****/
 
-/*********************
- * pull-to-refresh indicator
- *********************/
-
 html.pwa-standalone .ptr-indicator {
   position: fixed;
   top: 0;
