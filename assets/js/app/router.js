@@ -1,15 +1,4 @@
-/***** navigator loader *****/
-
-function showLoader() {
-  loader?.classList.remove("hidden");
-}
-
-function hideLoader() {
-  setTimeout(() => {
-    loader?.classList.add("hidden");
-    
-  }, 1000)
-}
+/********* router *********/
 
 const REQUIRED_CSS = [
   "/assets/css/components.css",
@@ -18,14 +7,11 @@ const REQUIRED_CSS = [
 
 const HOME_ROUTE = "/overview";
 
-/* Optional aliases so old links still work */
 const ROUTE_ALIASES = {
   "/": "/overview",
   "/home": "/overview",
 };
 
-/* Only these top-level pages should go HOME first when the app
-   is opened directly in standalone mode. */
 const HOME_BACK_ROUTES = new Set([
   "/notifications",
   "/leagues",
@@ -49,21 +35,32 @@ const routes = {
   "/favourites": "/pages/favourites.html",
 };
 
-const loader = document.getElementById("page-loader");
-const mainPage = document.getElementById("main-page");
-
 let navigationToken = 0;
 let currentPath = normalizePath(window.location.pathname);
 
-/* Page lifecycle registry */
 const pageRegistry = new Map();
 let activePageName = null;
 let activePageRoot = null;
 
+/********* dom helpers *********/
 
-/* ==========================
-   PWA mode
-========================== */
+function getLoader() {
+  return document.getElementById("page-loader");
+}
+
+function getMainPage() {
+  return document.getElementById("main-page");
+}
+
+function showLoader() {
+  getLoader()?.classList.remove("hidden");
+}
+
+function hideLoader() {
+  getLoader()?.classList.add("hidden");
+}
+
+/********* pwa helpers *********/
 
 function isStandalonePWA() {
   return (
@@ -74,42 +71,30 @@ function isStandalonePWA() {
   );
 }
 
-/* ==========================
-   Wait for required CSS
-========================== */
+function shouldSeedHomeBackStack(path) {
+  const cleanPath = normalizePath(path);
 
-function waitForStylesheets() {
-  const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
+  if (!isStandalonePWA()) return false;
+  if (cleanPath === HOME_ROUTE) return false;
+  if (isLeaguePage(cleanPath)) return false;
+  if (isNestedRoute(cleanPath)) return false;
 
-  const requiredLinks = links.filter((link) => {
-    try {
-      const pathname = new URL(link.href, location.origin).pathname;
-      return REQUIRED_CSS.includes(pathname);
-    } catch {
-      return false;
-    }
-  });
-
-  if (!requiredLinks.length) return Promise.resolve();
-
-  return Promise.allSettled(
-    requiredLinks.map((link) => {
-      return new Promise((resolve) => {
-        if (link.sheet) {
-          resolve();
-          return;
-        }
-
-        link.addEventListener("load", resolve, { once: true });
-        link.addEventListener("error", resolve, { once: true });
-      });
-    })
-  );
+  return HOME_BACK_ROUTES.has(cleanPath);
 }
 
-/* ==========================
-   Route helpers
-========================== */
+function seedHomeBackStack(initialPath) {
+  const cleanPath = normalizePath(initialPath);
+
+  if (!shouldSeedHomeBackStack(cleanPath)) return;
+  if (window.__pwaHomeBackSeeded) return;
+
+  window.__pwaHomeBackSeeded = true;
+
+  history.replaceState({ path: HOME_ROUTE, __pwaHomeSeed: true }, "", HOME_ROUTE);
+  history.pushState({ path: cleanPath, __pwaHomeSeed: true }, "", cleanPath);
+}
+
+/********* path helpers *********/
 
 function normalizePath(path) {
   if (!path) return HOME_ROUTE;
@@ -119,8 +104,7 @@ function normalizePath(path) {
     const clean = url.pathname.replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   } catch {
-    const clean =
-      String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+    const clean = String(path).split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
     return clean === "/" ? HOME_ROUTE : clean;
   }
 }
@@ -169,9 +153,38 @@ function resolveRoute(path) {
   return routes[404];
 }
 
-/* ==========================
-   Page lifecycle
-========================== */
+/********* css loading *********/
+
+function waitForStylesheets() {
+  const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
+
+  const requiredLinks = links.filter((link) => {
+    try {
+      const pathname = new URL(link.href, location.origin).pathname;
+      return REQUIRED_CSS.includes(pathname);
+    } catch {
+      return false;
+    }
+  });
+
+  if (!requiredLinks.length) return Promise.resolve();
+
+  return Promise.allSettled(
+    requiredLinks.map((link) => {
+      return new Promise((resolve) => {
+        if (link.sheet) {
+          resolve();
+          return;
+        }
+
+        link.addEventListener("load", resolve, { once: true });
+        link.addEventListener("error", resolve, { once: true });
+      });
+    })
+  );
+}
+
+/********* page lifecycle *********/
 
 function registerPage(name, hooks = {}) {
   if (!name) return;
@@ -188,7 +201,7 @@ function destroyActivePage() {
   const hooks = pageRegistry.get(activePageName);
 
   try {
-    hooks?.destroy?.(activePageRoot || mainPage);
+    hooks?.destroy?.(activePageRoot || getMainPage());
   } catch (err) {
     console.error(`Error while destroying page "${activePageName}"`, err);
   }
@@ -197,7 +210,7 @@ function destroyActivePage() {
   activePageRoot = null;
 }
 
-function mountPage(name, root = mainPage) {
+function mountPage(name, root = getMainPage()) {
   if (!name) return;
 
   if (activePageName && activePageName !== name) {
@@ -205,7 +218,7 @@ function mountPage(name, root = mainPage) {
   }
 
   activePageName = name;
-  activePageRoot = root || mainPage;
+  activePageRoot = root || getMainPage();
 
   const hooks = pageRegistry.get(name);
 
@@ -216,41 +229,7 @@ function mountPage(name, root = mainPage) {
   }
 }
 
-/* ==========================
-   Home-back seeding
-========================== */
-
-function shouldSeedHomeBackStack(path) {
-  const cleanPath = normalizePath(path);
-
-  if (!isStandalonePWA()) return false;
-  if (cleanPath === HOME_ROUTE) return false;
-  if (isLeaguePage(cleanPath)) return false;
-  if (isNestedRoute(cleanPath)) return false;
-
-  return HOME_BACK_ROUTES.has(cleanPath);
-}
-
-function seedHomeBackStack(initialPath) {
-  const cleanPath = normalizePath(initialPath);
-
-  if (!shouldSeedHomeBackStack(cleanPath)) return;
-  if (window.__pwaHomeBackSeeded) return;
-
-  window.__pwaHomeBackSeeded = true;
-
-  history.replaceState(
-    { path: HOME_ROUTE, __pwaHomeSeed: true },
-    "",
-    HOME_ROUTE
-  );
-
-  history.pushState({ path: cleanPath, __pwaHomeSeed: true }, "", cleanPath);
-}
-
-/* ==========================
-   Bottom Navigation
-========================== */
+/********* nav *********/
 
 function updateActiveNav() {
   const current = normalizePath(currentPath);
@@ -272,9 +251,7 @@ function updateActiveNav() {
   });
 }
 
-/* ==========================
-   Load HTML
-========================== */
+/********* page loading *********/
 
 async function loadPage(path, forceReload = false) {
   const page = resolveRoute(path);
@@ -287,14 +264,12 @@ async function loadPage(path, forceReload = false) {
     throw new Error(`Failed to load ${page}`);
   }
 
-  return await response.text();
+  return response.text();
 }
 
-/* ==========================
-   Page scripts
-========================== */
+/********* app-script loading *********/
 
-async function waitForPageScripts(root = mainPage) {
+async function waitForPageScripts(root = getMainPage()) {
   if (!root || typeof window.loadPageScript !== "function") return;
 
   const scripts = [...root.querySelectorAll("app-script[src]")];
@@ -315,9 +290,7 @@ async function waitForPageScripts(root = mainPage) {
   });
 }
 
-/* ==========================
-   Events
-========================== */
+/********* events *********/
 
 function dispatchPageLoaded(path) {
   document.dispatchEvent(
@@ -335,9 +308,7 @@ function dispatchPageRefreshed(path) {
   );
 }
 
-/* ==========================
-   Render
-========================== */
+/********* render *********/
 
 async function renderRoute(
   path,
@@ -354,7 +325,11 @@ async function renderRoute(
     const html = await loadPage(targetPath, forceReload);
 
     if (token !== navigationToken) return;
-    if (!mainPage) return;
+
+    const mainPage = getMainPage();
+    if (!mainPage) {
+      throw new Error("main page container not found");
+    }
 
     mainPage.innerHTML = html;
 
@@ -379,6 +354,7 @@ async function renderRoute(
   } catch (err) {
     console.error(err);
 
+    const mainPage = getMainPage();
     if (mainPage) {
       mainPage.innerHTML = `
         <section class="page-error">
@@ -394,9 +370,7 @@ async function renderRoute(
   }
 }
 
-/* ==========================
-   Public navigation API
-========================== */
+/********* public api *********/
 
 async function navigate(path, pushHistory = true, forceReload = false) {
   return renderRoute(path, {
@@ -422,9 +396,7 @@ function goBack() {
   history.back();
 }
 
-/* ==========================
-   Link routing
-========================== */
+/********* link routing *********/
 
 document.addEventListener("click", (e) => {
   const link = e.target.closest("a[href]");
@@ -447,9 +419,7 @@ document.addEventListener("click", (e) => {
   navigate(path);
 });
 
-/* ==========================
-   Browser Back/Forward
-========================== */
+/********* browser navigation *********/
 
 window.addEventListener("popstate", (e) => {
   const path = normalizePath(e.state?.path || window.location.pathname);
@@ -461,9 +431,7 @@ window.addEventListener("popstate", (e) => {
   });
 });
 
-/* ==========================
-   Global API
-========================== */
+/********* global api *********/
 
 window.route = function (event) {
   event = event || window.event;
@@ -499,9 +467,7 @@ window.router = {
   destroyActivePage,
 };
 
-/* ==========================
-   Initial Page
-========================== */
+/********* boot *********/
 
 (async () => {
   await waitForStylesheets();
