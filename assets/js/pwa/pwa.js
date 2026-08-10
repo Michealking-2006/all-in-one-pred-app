@@ -74,7 +74,7 @@
         aria-hidden="true"
       >
         <g
-          fill="none"
+          fill="blue"
           stroke="currentColor"
           stroke-linecap="round"
           stroke-linejoin="round"
