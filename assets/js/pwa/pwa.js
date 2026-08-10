@@ -3,8 +3,9 @@
   window.__pwaModuleInitialized = true;
 
   let destroyPullToRefresh = null;
-  let ptrIndicatorEl = null;
-  let ptrIndicatorInserted = false;
+  let ptrIndicator = null;
+
+  /********* standalone detection *********/
 
   function isStandalonePWA() {
     return (
@@ -15,38 +16,53 @@
     );
   }
 
+  /********* standalone class *********/
+
   function syncStandaloneClass() {
     const standalone = isStandalonePWA();
-    document.documentElement.classList.toggle("pwa-standalone", standalone);
-    document.documentElement.classList.toggle("pwa-not-standalone", !standalone);
+
+    document.documentElement.classList.toggle(
+      "pwa-standalone",
+      standalone
+    );
+
     return standalone;
   }
 
+  /********* scroll position *********/
+
   function getScrollTop() {
-    return (
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0
+    return Math.max(
+      window.pageYOffset || 0,
+      document.documentElement.scrollTop || 0,
+      document.body?.scrollTop || 0
     );
   }
 
+  /********* delay helper *********/
+
   function wait(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 
+  /********* create pull to refresh svg *********/
+
   function createPullToRefreshIndicator() {
-    if (ptrIndicatorEl && document.body.contains(ptrIndicatorEl)) {
-      return ptrIndicatorEl;
+    if (ptrIndicator && document.body.contains(ptrIndicator)) {
+      return ptrIndicator;
     }
 
     const existing = document.querySelector(".ptr-indicator");
+
     if (existing) {
-      ptrIndicatorEl = existing;
-      return ptrIndicatorEl;
+      ptrIndicator = existing;
+      return ptrIndicator;
     }
 
     const indicator = document.createElement("div");
+
     indicator.className = "ptr-indicator";
     indicator.setAttribute("aria-hidden", "true");
 
@@ -73,84 +89,128 @@
     `;
 
     document.body.appendChild(indicator);
-    ptrIndicatorEl = indicator;
-    return ptrIndicatorEl;
-  }
 
-  function ensurePullToRefreshIndicator() {
-    if (!isStandalonePWA()) return null;
-
-    const indicator = createPullToRefreshIndicator();
-    if (!indicator) return null;
-
-    if (!ptrIndicatorInserted) {
-      ptrIndicatorInserted = true;
-      indicator.classList.add("ptr-indicator-ready");
-    }
+    ptrIndicator = indicator;
 
     return indicator;
   }
 
+  /********* remove pull to refresh indicator *********/
+
+  function removePullToRefreshIndicator() {
+    if (!ptrIndicator) return;
+
+    ptrIndicator.remove();
+    ptrIndicator = null;
+  }
+
+  /********* pull to refresh *********/
+
   function initPullToRefresh(onRefresh, options = {}) {
-    const root = options.root || document.querySelector("#root") || document;
-    const indicator = options.indicator || ensurePullToRefreshIndicator();
+    const root =
+      options.root ||
+      document.querySelector("#root") ||
+      document.querySelector("#main-page") ||
+      document;
+
+    const indicator =
+      options.indicator ||
+      createPullToRefreshIndicator();
 
     if (!root || !indicator) return null;
 
     let startY = 0;
     let currentY = 0;
+
     let pulling = false;
     let refreshing = false;
 
-    const START_ZONE = 90;
+    const START_ZONE = 100;
     const TRIGGER = 85;
     const MAX_PULL = 130;
 
-    const easePull = (distance) => {
+    /********* pull easing *********/
+
+    function easePull(distance) {
       if (distance <= 0) return 0;
-      return Math.min(MAX_PULL, distance * 0.45 + Math.sqrt(distance) * 2);
-    };
 
-    const setIndicatorY = (y) => {
-      indicator.style.transform = `translate3d(-50%, ${y}px, 0)`;
-    };
+      return Math.min(
+        MAX_PULL,
+        distance * 0.45 + Math.sqrt(distance) * 2
+      );
+    }
 
-    const showPulling = (pull) => {
+    /********* indicator position *********/
+
+    function setIndicatorY(y) {
+      indicator.style.transform =
+        `translate3d(-50%, ${y}px, 0)`;
+    }
+
+    /********* show pulling state *********/
+
+    function showPulling(pull) {
       indicator.classList.add("active");
       indicator.classList.remove("loading");
-      setIndicatorY(Math.max(-80, pull - 80));
-    };
 
-    const showLoading = () => {
-      indicator.classList.add("active", "loading");
+      setIndicatorY(
+        Math.max(-80, pull - 80)
+      );
+    }
+
+    /********* show loading state *********/
+
+    function showLoading() {
+      indicator.classList.add(
+        "active",
+        "loading"
+      );
+
       setIndicatorY(16);
-    };
+    }
 
-    const reset = () => {
+    /********* reset indicator *********/
+
+    function reset() {
       pulling = false;
       startY = 0;
       currentY = 0;
 
-      indicator.classList.remove("active", "loading");
-      indicator.style.transform = "";
-    };
+      indicator.classList.remove(
+        "active",
+        "loading"
+      );
 
-    const onTouchStart = (event) => {
+      indicator.style.transform = "";
+    }
+
+    /********* touch start *********/
+
+    function onTouchStart(event) {
       if (refreshing) return;
+
       if (getScrollTop() > 0) return;
 
+      if (!event.touches?.length) return;
+
       const y = event.touches[0].clientY;
+
       if (y > START_ZONE) return;
 
       startY = y;
       currentY = y;
       pulling = true;
-    };
+    }
 
-    const onTouchMove = (event) => {
+    /********* touch move *********/
+
+    function onTouchMove(event) {
       if (!pulling || refreshing) return;
 
+      if (!event.touches?.length) return;
+
       currentY = event.touches[0].clientY;
+
       const distance = currentY - startY;
 
       if (distance <= 0) return;
@@ -163,150 +223,257 @@
       event.preventDefault();
 
       const pull = easePull(distance);
-      showPulling(pull);
-    };
 
-    const onTouchEnd = async () => {
+      showPulling(pull);
+    }
+
+    /********* touch end *********/
+
+    async function onTouchEnd() {
       if (!pulling) return;
 
       const distance = currentY - startY;
+
       pulling = false;
 
-      if (distance >= TRIGGER && !refreshing) {
-        refreshing = true;
-        showLoading();
-
-        try {
-          await Promise.resolve(onRefresh && onRefresh());
-        } catch (error) {
-          console.error(error);
-        }
-
-        await wait(150);
-
-        refreshing = false;
+      if (distance < TRIGGER || refreshing) {
         reset();
         return;
       }
 
+      refreshing = true;
+
+      showLoading();
+
+      try {
+        await Promise.resolve(
+          onRefresh && onRefresh()
+        );
+      } catch (error) {
+        console.error(
+          "[PWA] Refresh failed:",
+          error
+        );
+      }
+
+      await wait(200);
+
+      refreshing = false;
+
       reset();
-    };
+    }
 
-    root.addEventListener("touchstart", onTouchStart, { passive: true });
-    root.addEventListener("touchmove", onTouchMove, { passive: false });
-    root.addEventListener("touchend", onTouchEnd, { passive: true });
-    root.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    root.addEventListener(
+      "touchstart",
+      onTouchStart,
+      { passive: true }
+    );
 
-    return function destroyPullToRefreshInstance() {
-      root.removeEventListener("touchstart", onTouchStart);
-      root.removeEventListener("touchmove", onTouchMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchEnd);
+    root.addEventListener(
+      "touchmove",
+      onTouchMove,
+      { passive: false }
+    );
+
+    root.addEventListener(
+      "touchend",
+      onTouchEnd,
+      { passive: true }
+    );
+
+    root.addEventListener(
+      "touchcancel",
+      onTouchEnd,
+      { passive: true }
+    );
+
+    return function destroy() {
+      root.removeEventListener(
+        "touchstart",
+        onTouchStart
+      );
+
+      root.removeEventListener(
+        "touchmove",
+        onTouchMove
+      );
+
+      root.removeEventListener(
+        "touchend",
+        onTouchEnd
+      );
+
+      root.removeEventListener(
+        "touchcancel",
+        onTouchEnd
+      );
+
       reset();
     };
   }
 
+  /********* refresh application *********/
+
   async function refreshApp() {
-    const router = window.router || window.appRouter || window.APP_ROUTER;
+    const router =
+      window.router ||
+      window.appRouter ||
+      window.APP_ROUTER;
 
     try {
-      if (router && typeof router.refreshCurrentPage === "function") {
+      if (
+        router &&
+        typeof router.refreshCurrentPage === "function"
+      ) {
         await router.refreshCurrentPage();
-      } else if (typeof window.handleLocation === "function") {
-        await window.handleLocation();
-      } else if (typeof window.route === "function") {
-        await window.route({
-          type: "refresh",
-          url:
-            window.location.pathname +
-            window.location.search +
-            window.location.hash,
-        });
       } else {
         window.location.reload();
         return;
       }
 
-      if (typeof window.loadPageScript === "function" && window.router?.getCurrentPath) {
-        const path = window.router.getCurrentPath();
-        const scriptHost = document.querySelector("main, #main-page, #root");
-        const appScripts = [...(scriptHost || document).querySelectorAll("app-script[src]")];
+      /********* refresh page scripts *********/
 
-        await Promise.allSettled(
-          appScripts.map((el) => {
-            const src = el.getAttribute("src");
-            if (!src) return Promise.resolve();
-            return window.loadPageScript(src);
-          })
-        );
-      }
-
-      if (window.refreshCurrentPageScripts) {
+      if (
+        typeof window.refreshCurrentPageScripts ===
+        "function"
+      ) {
         await window.refreshCurrentPageScripts();
       }
 
-      if (window.APP_SKELETON && typeof window.APP_SKELETON.check === "function") {
+      /********* refresh skeleton *********/
+
+      if (
+        window.APP_SKELETON &&
+        typeof window.APP_SKELETON.check ===
+          "function"
+      ) {
         window.APP_SKELETON.check();
       }
 
+      /********* refresh event *********/
+
       window.dispatchEvent(
-        new CustomEvent("app:page:refreshed", {
-          detail: { url: window.location.href },
-        })
+        new CustomEvent(
+          "app:page:refreshed",
+          {
+            detail: {
+              url: window.location.href,
+            },
+          }
+        )
       );
     } catch (error) {
-      console.error("[PWA] refresh failed:", error);
+      console.error(
+        "[PWA] Application refresh failed:",
+        error
+      );
     }
   }
 
+  /********* boot pwa *********/
+
   function bootPWA() {
-    const standalone = syncStandaloneClass();
+    const standalone =
+      syncStandaloneClass();
+
+    /********* destroy previous refresh *********/
 
     if (destroyPullToRefresh) {
       destroyPullToRefresh();
       destroyPullToRefresh = null;
     }
 
+    /********* remove indicator outside pwa *********/
+
     if (!standalone) {
-      if (ptrIndicatorEl) {
-        ptrIndicatorEl.remove();
-        ptrIndicatorEl = null;
-        ptrIndicatorInserted = false;
-      }
+      removePullToRefreshIndicator();
       return;
     }
 
-    const indicator = ensurePullToRefreshIndicator();
+    /********* create indicator *********/
 
-    destroyPullToRefresh = initPullToRefresh(refreshApp, {
-      root: document.querySelector("#root") || document.querySelector("#main-page") || document,
-      indicator,
-    });
+    const indicator =
+      createPullToRefreshIndicator();
+
+    if (!indicator) return;
+
+    /********* initialize refresh *********/
+
+    destroyPullToRefresh =
+      initPullToRefresh(
+        refreshApp,
+        {
+          root:
+            document.querySelector("#root") ||
+            document.querySelector("#main-page") ||
+            document,
+          indicator,
+        }
+      );
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootPWA, { once: true });
+  /********* initialize *********/
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      bootPWA,
+      { once: true }
+    );
   } else {
     bootPWA();
   }
 
-  window.addEventListener("pageshow", bootPWA);
+  /********* handle pageshow *********/
 
-  const standaloneQuery = window.matchMedia("(display-mode: standalone)");
-  const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
+  window.addEventListener(
+    "pageshow",
+    bootPWA
+  );
 
-  if (standaloneQuery && typeof standaloneQuery.addEventListener === "function") {
-    standaloneQuery.addEventListener("change", bootPWA);
+  /********* standalone display change *********/
+
+  const standaloneQuery =
+    window.matchMedia(
+      "(display-mode: standalone)"
+    );
+
+  const fullscreenQuery =
+    window.matchMedia(
+      "(display-mode: fullscreen)"
+    );
+
+  if (
+    standaloneQuery &&
+    typeof standaloneQuery.addEventListener ===
+      "function"
+  ) {
+    standaloneQuery.addEventListener(
+      "change",
+      bootPWA
+    );
   }
 
-  if (fullscreenQuery && typeof fullscreenQuery.addEventListener === "function") {
-    fullscreenQuery.addEventListener("change", bootPWA);
+  if (
+    fullscreenQuery &&
+    typeof fullscreenQuery.addEventListener ===
+      "function"
+  ) {
+    fullscreenQuery.addEventListener(
+      "change",
+      bootPWA
+    );
   }
+
+  /********* public pwa api *********/
 
   window.pwaApp = {
     isStandalonePWA,
     refreshApp,
     syncStandaloneClass,
-    ensurePullToRefreshIndicator,
+    createPullToRefreshIndicator,
+    removePullToRefreshIndicator,
   };
 })();
