@@ -2,7 +2,6 @@
 
 let PROFILE_PAGE = {
   active: false,
-  controller: null,
   authSubscription: null,
   renderToken: 0,
 };
@@ -28,25 +27,6 @@ const PROFILE_AUTH_LOGIN_URL =
 
 /********* helpers *********/
 
-function getCurrentPath() {
-  try {
-    const path =
-      window.router?.getCurrentPath?.() ||
-      location.pathname;
-
-    return (
-      String(path)
-        .split("?")[0]
-        .split("#")[0]
-        .replace(/\/+$/, "") || "/"
-    );
-  } catch {
-    return (
-      location.pathname.replace(/\/+$/, "") || "/"
-    );
-  }
-}
-
 function getSupabaseClient() {
   return window.supabaseClient || null;
 }
@@ -55,21 +35,43 @@ function getEl(selector, root = document) {
   return root.querySelector(selector);
 }
 
+function getCurrentPath() {
+  try {
+    return (
+      window.router?.getCurrentPath?.() ||
+      location.pathname
+    )
+      .split("?")[0]
+      .split("#")[0]
+      .replace(/\/+$/, "") || "/";
+  } catch {
+    return (
+      location.pathname
+        .split("?")[0]
+        .split("#")[0]
+        .replace(/\/+$/, "") || "/"
+    );
+  }
+}
+
 function notify(type, message, options = {}) {
   const toast = window.Toast || window.toast;
 
-  if (toast && typeof toast[type] === "function") {
+  if (
+    toast &&
+    typeof toast[type] === "function"
+  ) {
     return toast[type](message, options);
   }
 
-  const fallback =
+  const logger =
     type === "error"
       ? console.error
       : type === "warning"
         ? console.warn
         : console.log;
 
-  fallback("[Profile]", message);
+  logger("[Profile]", message);
 
   return null;
 }
@@ -94,9 +96,9 @@ function formatMemberSince(dateValue) {
   )}`;
 }
 
-/********* supabase *********/
+/********* auth *********/
 
-async function getSession() {
+async function getCurrentSession() {
   const supabase = getSupabaseClient();
 
   if (!supabase) {
@@ -104,17 +106,24 @@ async function getSession() {
   }
 
   try {
-    const { data, error } =
-      await supabase.auth.getSession();
+    const {
+      data,
+      error,
+    } = await supabase.auth.getSession();
 
     if (error) {
-      throw error;
+      console.error(
+        "[Profile] Session error:",
+        error
+      );
+
+      return null;
     }
 
     return data?.session || null;
   } catch (error) {
     console.error(
-      "[Profile] Failed to get session:",
+      "[Profile] Session request failed:",
       error
     );
 
@@ -122,51 +131,64 @@ async function getSession() {
   }
 }
 
+/********* profile data *********/
+
 async function getUserProfile(userId) {
   const supabase = getSupabaseClient();
 
   if (!supabase || !userId) {
     return {
-      data: null,
+      profile: null,
       error: new Error(
-        "Authentication service unavailable"
+        "Authentication service unavailable."
       ),
     };
   }
 
   try {
-    const { data, error } = await supabase
+    const {
+      data,
+      error,
+    } = await supabase
       .from("profiles")
       .select(
-        "username, avatar_url, created_at, updated_at"
+        "username, avatar_url, created_at"
       )
       .eq("id", userId)
       .maybeSingle();
 
     if (error) {
-      throw error;
+      console.error(
+        "[Profile] Profile query failed:",
+        error
+      );
+
+      return {
+        profile: null,
+        error,
+      };
     }
 
     return {
-      data: data || null,
+      profile: data || null,
       error: null,
     };
   } catch (error) {
     console.error(
-      "[Profile] Failed to load profile:",
+      "[Profile] Profile request failed:",
       error
     );
 
     return {
-      data: null,
+      profile: null,
       error,
     };
   }
 }
 
-/********* dom setters *********/
+/********* dom *********/
 
-function setProfileUsername(value) {
+function setProfileUsername(username) {
   const el = getEl(
     PROFILE_SELECTORS.username
   );
@@ -174,10 +196,10 @@ function setProfileUsername(value) {
   if (!el) return;
 
   el.textContent =
-    value || PROFILE_DEFAULTS.username;
+    username || PROFILE_DEFAULTS.username;
 }
 
-function setProfileMemberSince(value) {
+function setProfileMemberSince(dateValue) {
   const el = getEl(
     PROFILE_SELECTORS.memberSince
   );
@@ -185,7 +207,7 @@ function setProfileMemberSince(value) {
   if (!el) return;
 
   el.textContent =
-    value || PROFILE_DEFAULTS.memberSince;
+    formatMemberSince(dateValue);
 }
 
 function setProfileAvatar(src) {
@@ -195,7 +217,10 @@ function setProfileAvatar(src) {
 
   if (!el) return;
 
-  el.src = src || PROFILE_DEFAULTS.avatar;
+  el.onerror = null;
+
+  el.src =
+    src || PROFILE_DEFAULTS.avatar;
 
   el.onerror = () => {
     el.onerror = null;
@@ -203,32 +228,32 @@ function setProfileAvatar(src) {
   };
 }
 
-function setAuthButton(isLoggedIn) {
+function setAuthButton(loggedIn) {
   const btn = getEl(
     PROFILE_SELECTORS.authBtn
   );
 
   if (!btn) return;
 
-  btn.dataset.state = isLoggedIn
+  btn.dataset.state = loggedIn
     ? "logged-in"
     : "logged-out";
 
-  btn.textContent = isLoggedIn
+  btn.textContent = loggedIn
     ? PROFILE_DEFAULTS.authTextLoggedIn
     : PROFILE_DEFAULTS.authTextLoggedOut;
+
+  btn.disabled = false;
 }
 
-/********* guest state *********/
+/********* guest *********/
 
-function clearProfileToGuest() {
+function renderGuestProfile() {
   setProfileUsername(
     PROFILE_DEFAULTS.username
   );
 
-  setProfileMemberSince(
-    PROFILE_DEFAULTS.memberSince
-  );
+  setProfileMemberSince(null);
 
   setProfileAvatar(
     PROFILE_DEFAULTS.avatar
@@ -253,12 +278,12 @@ async function renderAuthenticatedProfile(
   }
 
   if (!user) {
-    clearProfileToGuest();
+    renderGuestProfile();
     return;
   }
 
   const {
-    data: profile,
+    profile,
     error,
   } = await getUserProfile(user.id);
 
@@ -270,22 +295,49 @@ async function renderAuthenticatedProfile(
   }
 
   if (error) {
+    /*
+     * Authentication succeeded, so do not
+     * turn an authenticated user into Guest.
+     */
+
+    const metadata =
+      user.user_metadata || {};
+
+    const fallbackUsername =
+      metadata.user_name ||
+      metadata.preferred_username ||
+      metadata.name ||
+      user.email?.split("@")[0] ||
+      PROFILE_DEFAULTS.username;
+
+    const fallbackAvatar =
+      metadata.avatar_url ||
+      metadata.picture ||
+      PROFILE_DEFAULTS.avatar;
+
+    setProfileUsername(
+      fallbackUsername
+    );
+
+    setProfileMemberSince(
+      user.created_at
+    );
+
+    setProfileAvatar(
+      fallbackAvatar
+    );
+
+    setAuthButton(true);
+
+    bindAuthButton();
+
     notify(
       "error",
-      "Unable to load your profile right now."
+      "Your account is signed in, but your profile could not be loaded."
     );
 
     return;
   }
-
-  /*
-   * The database trigger should normally
-   * create this row immediately when the
-   * Supabase auth user is created.
-   *
-   * Keep the fallback so the UI still
-   * works during a short database delay.
-   */
 
   const metadata =
     user.user_metadata || {};
@@ -294,14 +346,9 @@ async function renderAuthenticatedProfile(
     profile?.username ||
     metadata.user_name ||
     metadata.preferred_username ||
-    user.email?.split("@")?.[0] ||
+    metadata.name ||
+    user.email?.split("@")[0] ||
     PROFILE_DEFAULTS.username;
-
-  const memberSince =
-    formatMemberSince(
-      profile?.created_at ||
-      user.created_at
-    );
 
   const avatar =
     profile?.avatar_url ||
@@ -310,31 +357,33 @@ async function renderAuthenticatedProfile(
     PROFILE_DEFAULTS.avatar;
 
   setProfileUsername(username);
-  setProfileMemberSince(memberSince);
+
+  setProfileMemberSince(
+    profile?.created_at ||
+    user.created_at
+  );
+
   setProfileAvatar(avatar);
+
   setAuthButton(true);
 
   bindAuthButton();
-
-  /*
-   * A missing profile should no longer
-   * force the user into guest mode.
-   */
-
-  if (!profile) {
-    notify(
-      "info",
-      "Your profile is being prepared."
-    );
-  }
 }
 
-/********* render session *********/
+/********* render auth state *********/
 
-async function renderSession(
-  session,
-  requestId
-) {
+async function renderProfileState(session = null) {
+  const requestId =
+    ++PROFILE_PAGE.renderToken;
+
+  if (!PROFILE_PAGE.active) {
+    return;
+  }
+
+  const currentSession =
+    session ||
+    await getCurrentSession();
+
   if (
     !PROFILE_PAGE.active ||
     requestId !== PROFILE_PAGE.renderToken
@@ -342,34 +391,13 @@ async function renderSession(
     return;
   }
 
-  if (!session?.user) {
-    clearProfileToGuest();
+  if (!currentSession?.user) {
+    renderGuestProfile();
     return;
   }
 
   await renderAuthenticatedProfile(
-    session.user,
-    requestId
-  );
-}
-
-/********* initial auth state *********/
-
-async function renderInitialSession() {
-  const requestId =
-    ++PROFILE_PAGE.renderToken;
-
-  const session = await getSession();
-
-  if (
-    !PROFILE_PAGE.active ||
-    requestId !== PROFILE_PAGE.renderToken
-  ) {
-    return;
-  }
-
-  await renderSession(
-    session,
+    currentSession.user,
     requestId
   );
 }
@@ -393,10 +421,6 @@ function bindAuthButton() {
   btn.addEventListener(
     "click",
     async () => {
-      const state =
-        btn.dataset.state ||
-        "logged-out";
-
       const supabase =
         getSupabaseClient();
 
@@ -409,48 +433,54 @@ function bindAuthButton() {
         return;
       }
 
-      if (state === "logged-in") {
-        btn.disabled = true;
+      const loggedIn =
+        btn.dataset.state ===
+        "logged-in";
 
-        try {
-          const { error } =
-            await supabase.auth.signOut();
-
-          if (error) {
-            throw error;
-          }
-
-          clearProfileToGuest();
-
-          notify(
-            "success",
-            "You have been logged out."
-          );
-        } catch (error) {
-          console.error(
-            "[Profile] Sign out failed:",
-            error
-          );
-
-          btn.disabled = false;
-
-          notify(
-            "error",
-            "Unable to sign out. Please try again."
-          );
-        }
+      if (!loggedIn) {
+        window.location.replace(
+          PROFILE_AUTH_LOGIN_URL
+        );
 
         return;
       }
 
-      window.location.replace(
-        PROFILE_AUTH_LOGIN_URL
-      );
+      btn.disabled = true;
+
+      try {
+        const {
+          error,
+        } =
+          await supabase.auth.signOut();
+
+        if (error) {
+          throw error;
+        }
+
+        renderGuestProfile();
+
+        notify(
+          "success",
+          "You have been logged out."
+        );
+      } catch (error) {
+        console.error(
+          "[Profile] Sign out failed:",
+          error
+        );
+
+        btn.disabled = false;
+
+        notify(
+          "error",
+          "Unable to sign out. Please try again."
+        );
+      }
     }
   );
 }
 
-/********* auth subscription *********/
+/********* auth listener *********/
 
 function subscribeToAuth() {
   const supabase =
@@ -460,6 +490,11 @@ function subscribeToAuth() {
     !supabase?.auth?.onAuthStateChange
   ) {
     return;
+  }
+
+  if (PROFILE_PAGE.authSubscription) {
+    PROFILE_PAGE.authSubscription.unsubscribe?.();
+    PROFILE_PAGE.authSubscription = null;
   }
 
   const {
@@ -472,33 +507,18 @@ function subscribeToAuth() {
         }
 
         /*
-         * Don't call getSession() from inside
-         * this callback. Supabase already gives
-         * us the current session here.
+         * Use the session Supabase gives us.
+         * Do not call getSession() again here.
          */
 
-        const requestId =
-          ++PROFILE_PAGE.renderToken;
-
-        queueMicrotask(() => {
-          if (
-            !PROFILE_PAGE.active ||
-            requestId !==
-              PROFILE_PAGE.renderToken
-          ) {
-            return;
-          }
-
-          renderSession(
-            session,
-            requestId
-          ).catch((error) => {
+        renderProfileState(session).catch(
+          (error) => {
             console.error(
-              "[Profile] Auth render failed:",
+              "[Profile] Auth state render failed:",
               error
             );
-          });
-        });
+          }
+        );
       }
     );
 
@@ -509,24 +529,16 @@ function subscribeToAuth() {
 /********* lifecycle *********/
 
 function destroyProfilePage() {
-  if (!PROFILE_PAGE.active) {
-    return;
-  }
-
-  PROFILE_PAGE.active = false;
-
   PROFILE_PAGE.renderToken++;
 
-  PROFILE_PAGE.controller?.abort();
-
-  PROFILE_PAGE.controller = null;
+  PROFILE_PAGE.active = false;
 
   if (PROFILE_PAGE.authSubscription) {
     try {
       PROFILE_PAGE.authSubscription.unsubscribe?.();
     } catch (error) {
       console.warn(
-        "[Profile] Auth unsubscribe failed:",
+        "[Profile] Failed to unsubscribe:",
         error
       );
     }
@@ -536,10 +548,6 @@ function destroyProfilePage() {
 }
 
 function initProfilePage() {
-  if (PROFILE_PAGE.active) {
-    return;
-  }
-
   const root = getEl(
     PROFILE_SELECTORS.root
   );
@@ -548,30 +556,17 @@ function initProfilePage() {
     return;
   }
 
-  destroyProfilePage();
+  if (PROFILE_PAGE.active) {
+    return;
+  }
 
   PROFILE_PAGE.active = true;
 
-  PROFILE_PAGE.controller =
-    new AbortController();
-
   bindAuthButton();
-
-  /*
-   * Subscribe first so Google OAuth,
-   * email login, logout and token refresh
-   * all update the page automatically.
-   */
 
   subscribeToAuth();
 
-  /*
-   * Then load the current session.
-   * This covers direct navigation and
-   * initial page rendering.
-   */
-
-  renderInitialSession().catch(
+  renderProfileState().catch(
     (error) => {
       console.error(
         "[Profile] Initial render failed:",
@@ -584,7 +579,7 @@ function initProfilePage() {
 
       notify(
         "error",
-        "Profile page failed to load."
+        "Unable to load your profile."
       );
     }
   );
@@ -592,17 +587,18 @@ function initProfilePage() {
 
 /********* page lifecycle *********/
 
-function handleProfilePageLifecycle(e) {
-  const path = String(
-    e?.detail?.path ||
-    getCurrentPath() ||
-    ""
-  )
-    .split("?")[0]
-    .split("#")[0]
-    .replace(/\/+$/, "");
+function handleProfilePageLifecycle(event) {
+  const path =
+    event?.detail?.path ||
+    getCurrentPath();
 
-  if (path === "/profile") {
+  const cleanPath =
+    String(path)
+      .split("?")[0]
+      .split("#")[0]
+      .replace(/\/+$/, "") || "/";
+
+  if (cleanPath === "/profile") {
     initProfilePage();
     return;
   }
@@ -610,7 +606,7 @@ function handleProfilePageLifecycle(e) {
   destroyProfilePage();
 }
 
-/********* router events *********/
+/********* router lifecycle *********/
 
 document.addEventListener(
   "pageLoaded",
@@ -627,9 +623,9 @@ document.addEventListener(
 if (
   getCurrentPath() === "/profile"
 ) {
-  queueMicrotask(
-    initProfilePage
-  );
+  queueMicrotask(() => {
+    initProfilePage();
+  });
 }
 
 /********* router registry *********/
