@@ -4,10 +4,13 @@
 
   /********* state *********/
 
-  let ptrIndicator = null;
   let destroyPullToRefresh = null;
-  let interactionHandlersInstalled = false;
-  let refreshInProgress = false;
+  let ptrIndicator = null;
+
+  let touchRefreshing = false;
+  let appRefreshing = false;
+
+  let nativeInteractionsInstalled = false;
 
   /********* pwa detection *********/
 
@@ -42,7 +45,7 @@
     return (
       document.querySelector("#root") ||
       document.querySelector("#main-page") ||
-      document.body
+      document
     );
   }
 
@@ -74,9 +77,11 @@
     });
   }
 
-  /********* indicator *********/
+  /********* indicator setup *********/
 
   function ensureIndicator() {
+    if (!isStandalonePWA()) return null;
+
     const indicator = getIndicator();
 
     if (!indicator) {
@@ -113,6 +118,8 @@
     return indicator;
   }
 
+  /********* indicator controls *********/
+
   function setIndicatorPosition(y) {
     if (!ptrIndicator) return;
 
@@ -125,33 +132,49 @@
 
     ptrIndicator.style.setProperty(
       "--ptr-progress",
-      Math.max(0, Math.min(1, progress))
+      String(Math.max(0, Math.min(1, progress)))
     );
   }
 
-  function showPullState(distance, trigger) {
+  function showPulling(distance, trigger) {
     if (!ptrIndicator) return;
 
-    const resistance = 0.58;
-    const pull = Math.min(120, distance * resistance);
+    const resistance = 0.55;
+    const pull = Math.min(
+      135,
+      distance * resistance
+    );
 
-    const y = -54 + pull;
+    const y = -72 + pull;
+    const progress = distance / trigger;
 
-    ptrIndicator.classList.add("active", "pulling");
-    ptrIndicator.classList.remove("loading");
+    ptrIndicator.classList.add(
+      "active",
+      "pulling"
+    );
+
+    ptrIndicator.classList.remove(
+      "loading"
+    );
 
     setIndicatorPosition(y);
-    setIndicatorProgress(distance / trigger);
+    setIndicatorProgress(progress);
   }
 
-  function showLoadingState() {
+  function showLoading() {
     if (!ptrIndicator) return;
 
-    ptrIndicator.classList.add("active", "loading");
-    ptrIndicator.classList.remove("pulling");
+    ptrIndicator.classList.add(
+      "active",
+      "loading"
+    );
 
-    setIndicatorProgress(1);
+    ptrIndicator.classList.remove(
+      "pulling"
+    );
+
     setIndicatorPosition(16);
+    setIndicatorProgress(1);
   }
 
   function resetIndicator() {
@@ -159,11 +182,13 @@
 
     ptrIndicator.classList.remove(
       "active",
-      "loading",
-      "pulling"
+      "pulling",
+      "loading"
     );
 
-    ptrIndicator.style.removeProperty("--ptr-progress");
+    ptrIndicator.style.removeProperty(
+      "--ptr-progress"
+    );
 
     setIndicatorPosition(-80);
   }
@@ -171,9 +196,9 @@
   /********* native interactions *********/
 
   function installNativeInteractions() {
-    if (interactionHandlersInstalled) return;
+    if (nativeInteractionsInstalled) return;
 
-    interactionHandlersInstalled = true;
+    nativeInteractionsInstalled = true;
 
     document.addEventListener(
       "contextmenu",
@@ -199,6 +224,7 @@
       "dragstart",
       (event) => {
         if (!isStandalonePWA()) return;
+
         event.preventDefault();
       },
       true
@@ -231,7 +257,9 @@
     const root = getRoot();
     const indicator = ensureIndicator();
 
-    if (!root || !indicator) return null;
+    if (!root || !indicator) {
+      return null;
+    }
 
     let startY = 0;
     let currentY = 0;
@@ -241,8 +269,10 @@
     const START_ZONE = 120;
     const TRIGGER = 90;
 
-    function touchStart(event) {
-      if (refreshInProgress) return;
+    /********* touch start *********/
+
+    function onTouchStart(event) {
+      if (touchRefreshing || appRefreshing) return;
       if (getScrollTop() > 0) return;
       if (event.touches.length !== 1) return;
 
@@ -257,9 +287,23 @@
       pulling = false;
     }
 
-    function touchMove(event) {
-      if (!tracking || refreshInProgress) return;
-      if (event.touches.length !== 1) return;
+    /********* touch move *********/
+
+    function onTouchMove(event) {
+      if (
+        !tracking ||
+        touchRefreshing ||
+        appRefreshing
+      ) {
+        return;
+      }
+
+      if (event.touches.length !== 1) {
+        tracking = false;
+        pulling = false;
+        resetIndicator();
+        return;
+      }
 
       if (getScrollTop() > 0) {
         tracking = false;
@@ -272,7 +316,8 @@
 
       currentY = touch.clientY;
 
-      const distance = currentY - startY;
+      const distance =
+        currentY - startY;
 
       if (distance <= 0) return;
 
@@ -280,50 +325,72 @@
 
       event.preventDefault();
 
-      showPullState(distance, TRIGGER);
+      showPulling(
+        distance,
+        TRIGGER
+      );
     }
 
-    async function touchEnd() {
+    /********* touch end *********/
+
+    async function onTouchEnd() {
       if (!tracking) return;
 
-      const distance = currentY - startY;
+      const distance =
+        currentY - startY;
 
       tracking = false;
 
-      if (!pulling || distance < TRIGGER) {
+      if (
+        !pulling ||
+        distance < TRIGGER
+      ) {
         pulling = false;
 
         if (ptrIndicator) {
-          ptrIndicator.classList.remove("pulling");
-          setIndicatorPosition(-80);
+          ptrIndicator.classList.remove(
+            "pulling"
+          );
         }
 
-        await wait(180);
+        await wait(150);
 
         resetIndicator();
         return;
       }
 
       pulling = false;
-      refreshInProgress = true;
+      touchRefreshing = true;
 
-      showLoadingState();
+      showLoading();
 
       try {
-        await Promise.resolve(onRefresh?.());
+        await Promise.resolve(
+          onRefresh?.()
+        );
       } catch (error) {
-        console.error("[PWA] Refresh failed:", error);
+        console.error(
+          "[PWA] Refresh failed:",
+          error
+        );
       }
 
-      await wait(180);
+      touchRefreshing = false;
 
-      refreshInProgress = false;
+      await wait(200);
 
       resetIndicator();
     }
 
-    function touchCancel() {
-      if (refreshInProgress) return;
+    /********* touch cancel *********/
+
+    function onTouchCancel() {
+      if (
+        touchRefreshing ||
+        appRefreshing
+      ) {
+        return;
+      }
 
       tracking = false;
       pulling = false;
@@ -331,49 +398,61 @@
       resetIndicator();
     }
 
+    /********* listeners *********/
+
     root.addEventListener(
       "touchstart",
-      touchStart,
-      { passive: true }
+      onTouchStart,
+      {
+        passive: true,
+      }
     );
 
     root.addEventListener(
       "touchmove",
-      touchMove,
-      { passive: false }
+      onTouchMove,
+      {
+        passive: false,
+      }
     );
 
     root.addEventListener(
       "touchend",
-      touchEnd,
-      { passive: true }
+      onTouchEnd,
+      {
+        passive: true,
+      }
     );
 
     root.addEventListener(
       "touchcancel",
-      touchCancel,
-      { passive: true }
+      onTouchCancel,
+      {
+        passive: true,
+      }
     );
 
-    return () => {
+    /********* destroy *********/
+
+    return function destroyPullToRefresh() {
       root.removeEventListener(
         "touchstart",
-        touchStart
+        onTouchStart
       );
 
       root.removeEventListener(
         "touchmove",
-        touchMove
+        onTouchMove
       );
 
       root.removeEventListener(
         "touchend",
-        touchEnd
+        onTouchEnd
       );
 
       root.removeEventListener(
         "touchcancel",
-        touchCancel
+        onTouchCancel
       );
 
       tracking = false;
@@ -383,25 +462,46 @@
     };
   }
 
-  /********* refresh *********/
+  /********* refresh app *********/
 
   async function refreshApp() {
-    if (refreshInProgress) return;
+    if (appRefreshing) return;
 
-    refreshInProgress = true;
-    showLoadingState();
+    appRefreshing = true;
+
+    showLoading();
 
     try {
-      const router = window.router;
+      const router =
+        window.router ||
+        window.appRouter ||
+        window.APP_ROUTER;
 
       if (
         router &&
-        typeof router.refreshCurrentPage === "function"
+        typeof router.refreshCurrentPage ===
+          "function"
       ) {
         await router.refreshCurrentPage();
       } else {
         window.location.reload();
+        return;
       }
+
+      await nextFrame();
+
+      ensureIndicator();
+
+      /*
+       * The router has already:
+       * 1. fetched the page HTML
+       * 2. replaced #main-page
+       * 3. loaded the page's app-script
+       * 4. dispatched pageLoaded
+       *
+       * Do not load the scripts again here.
+       */
+
     } catch (error) {
       console.error(
         "[PWA] Application refresh failed:",
@@ -409,25 +509,55 @@
       );
 
       window.location.reload();
-    } finally {
-      await nextFrame();
-      await nextFrame();
 
-      refreshInProgress = false;
+      return;
+    } finally {
+      appRefreshing = false;
+
+      await wait(200);
+
+      if (!touchRefreshing) {
+        resetIndicator();
+      }
     }
   }
 
-  /********* boot *********/
+  /********* rebuild pull to refresh *********/
 
-  function bootPWA() {
-    const standalone = syncStandaloneClass();
-
+  function rebuildPullToRefresh() {
     if (destroyPullToRefresh) {
       destroyPullToRefresh();
       destroyPullToRefresh = null;
     }
 
-    if (!standalone) {
+    if (!isStandalonePWA()) {
+      resetIndicator();
+      return;
+    }
+
+    const indicator = ensureIndicator();
+
+    if (!indicator) return;
+
+    destroyPullToRefresh =
+      initPullToRefresh(
+        refreshApp
+      );
+  }
+
+  /********* boot *********/
+
+  function bootPWA() {
+    syncStandaloneClass();
+
+    if (!isStandalonePWA()) {
+      if (destroyPullToRefresh) {
+        destroyPullToRefresh();
+        destroyPullToRefresh = null;
+      }
+
+      resetIndicator();
+
       return;
     }
 
@@ -435,11 +565,10 @@
 
     ensureIndicator();
 
-    destroyPullToRefresh =
-      initPullToRefresh(refreshApp);
+    rebuildPullToRefresh();
   }
 
-  /********* page lifecycle *********/
+  /********* schedule boot *********/
 
   function scheduleBoot() {
     requestAnimationFrame(() => {
@@ -449,15 +578,22 @@
 
   /********* initialization *********/
 
-  if (document.readyState === "loading") {
+  if (
+    document.readyState ===
+    "loading"
+  ) {
     document.addEventListener(
       "DOMContentLoaded",
       scheduleBoot,
-      { once: true }
+      {
+        once: true,
+      }
     );
   } else {
     scheduleBoot();
   }
+
+  /********* lifecycle *********/
 
   window.addEventListener(
     "pageshow",
