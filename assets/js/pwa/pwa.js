@@ -1,11 +1,13 @@
-(function () {
+(() => {
   if (window.__pwaModuleInitialized) return;
   window.__pwaModuleInitialized = true;
 
-  /********* module state *********/
+  /********* state *********/
 
-  let destroyPullToRefresh = null;
   let ptrIndicator = null;
+  let destroyPullToRefresh = null;
+  let interactionHandlersInstalled = false;
+  let refreshInProgress = false;
 
   /********* pwa detection *********/
 
@@ -34,11 +36,25 @@
     return standalone;
   }
 
+  /********* dom helpers *********/
+
+  function getRoot() {
+    return (
+      document.querySelector("#root") ||
+      document.querySelector("#main-page") ||
+      document.body
+    );
+  }
+
+  function getIndicator() {
+    return document.querySelector(".ptr-indicator");
+  }
+
   /********* scroll helpers *********/
 
   function getScrollTop() {
     return Math.max(
-      window.pageYOffset || 0,
+      window.scrollY || 0,
       document.documentElement.scrollTop || 0,
       document.body?.scrollTop || 0
     );
@@ -52,193 +68,246 @@
     });
   }
 
-  /********* pull to refresh indicator *********/
-
-  function createPTRIcon(indicator) {
-    if (!indicator) return null;
-
-    let icon = indicator.querySelector(".ptr-icon");
-    if (icon) return icon;
-
-    indicator.innerHTML = `
-      <svg
-        class="ptr-icon"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 48 48"
-        aria-hidden="true"
-      >
-        <g
-          fill="none"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="4"
-        >
-          <path d="M42 8V24" />
-          <path d="M6 24L6 40" />
-          <path d="M42 24C42 14.0589 33.9411 6 24 6C18.9145 6 14.3216 8.10896 11.0481 11.5" />
-          <path d="M6 24C6 33.9411 14.0589 42 24 42C28.8556 42 33.2622 40.0774 36.5 36.9519" />
-        </g>
-      </svg>
-    `;
-
-    return indicator.querySelector(".ptr-icon");
+  function nextFrame() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(resolve);
+    });
   }
 
-  function getPTRIndicator() {
-    return document.querySelector(".ptr-indicator");
-  }
+  /********* indicator *********/
 
-  function ensurePTRIndicator() {
-    if (!isStandalonePWA()) return null;
+  function ensureIndicator() {
+    const indicator = getIndicator();
 
-    const indicator = getPTRIndicator();
-    if (!indicator) return null;
+    if (!indicator) {
+      ptrIndicator = null;
+      return null;
+    }
 
     ptrIndicator = indicator;
-    createPTRIcon(ptrIndicator);
 
-    return ptrIndicator;
+    if (!indicator.querySelector(".ptr-icon")) {
+      indicator.innerHTML = `
+        <svg
+          class="ptr-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+        >
+          <g
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="4"
+          >
+            <path d="M42 8V24" />
+            <path d="M6 24L6 40" />
+            <path d="M42 24C42 14.0589 33.9411 6 24 6C18.9145 6 14.3216 8.10896 11.0481 11.5" />
+            <path d="M6 24C6 33.9411 14.0589 42 24 42C28.8556 42 33.2622 40.0774 36.5 36.9519" />
+          </g>
+        </svg>
+      `;
+    }
+
+    return indicator;
   }
 
-  function removePTRIndicator() {
+  function setIndicatorPosition(y) {
     if (!ptrIndicator) return;
 
-    ptrIndicator.classList.remove("active", "loading");
-    ptrIndicator.style.removeProperty("--ptr-y");
+    ptrIndicator.style.transform =
+      `translate3d(-50%, ${y}px, 0)`;
+  }
+
+  function setIndicatorProgress(progress) {
+    if (!ptrIndicator) return;
+
+    ptrIndicator.style.setProperty(
+      "--ptr-progress",
+      Math.max(0, Math.min(1, progress))
+    );
+  }
+
+  function showPullState(distance, trigger) {
+    if (!ptrIndicator) return;
+
+    const resistance = 0.58;
+    const pull = Math.min(120, distance * resistance);
+
+    const y = -54 + pull;
+
+    ptrIndicator.classList.add("active", "pulling");
+    ptrIndicator.classList.remove("loading");
+
+    setIndicatorPosition(y);
+    setIndicatorProgress(distance / trigger);
+  }
+
+  function showLoadingState() {
+    if (!ptrIndicator) return;
+
+    ptrIndicator.classList.add("active", "loading");
+    ptrIndicator.classList.remove("pulling");
+
+    setIndicatorProgress(1);
+    setIndicatorPosition(16);
+  }
+
+  function resetIndicator() {
+    if (!ptrIndicator) return;
+
+    ptrIndicator.classList.remove(
+      "active",
+      "loading",
+      "pulling"
+    );
+
     ptrIndicator.style.removeProperty("--ptr-progress");
+
+    setIndicatorPosition(-80);
+  }
+
+  /********* native interactions *********/
+
+  function installNativeInteractions() {
+    if (interactionHandlersInstalled) return;
+
+    interactionHandlersInstalled = true;
+
+    document.addEventListener(
+      "contextmenu",
+      (event) => {
+        if (!isStandalonePWA()) return;
+
+        const target = event.target;
+
+        if (
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target instanceof HTMLSelectElement
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+      },
+      true
+    );
+
+    document.addEventListener(
+      "dragstart",
+      (event) => {
+        if (!isStandalonePWA()) return;
+        event.preventDefault();
+      },
+      true
+    );
+
+    document.addEventListener(
+      "selectstart",
+      (event) => {
+        if (!isStandalonePWA()) return;
+
+        const target = event.target;
+
+        if (
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target?.isContentEditable
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+      },
+      true
+    );
   }
 
   /********* pull to refresh *********/
 
-  function initPullToRefresh(onRefresh, options = {}) {
-    const root = options.root || document;
-    const indicator = options.indicator || ensurePTRIndicator();
+  function initPullToRefresh(onRefresh) {
+    const root = getRoot();
+    const indicator = ensureIndicator();
 
     if (!root || !indicator) return null;
 
-    /********* state *********/
-
     let startY = 0;
     let currentY = 0;
+    let tracking = false;
     let pulling = false;
-    let refreshing = false;
 
-    /********* configuration *********/
+    const START_ZONE = 120;
+    const TRIGGER = 90;
 
-    const START_ZONE = 90;
-    const TRIGGER = 85;
-    const MAX_PULL = 130;
-
-    /********* pull easing *********/
-
-    function easePull(distance) {
-      if (distance <= 0) return 0;
-
-      return Math.min(
-        MAX_PULL,
-        distance * 0.45 + Math.sqrt(distance) * 2
-      );
-    }
-
-    /********* indicator position *********/
-
-    function setIndicatorY(y) {
-      indicator.style.setProperty("--ptr-y", `${y}px`);
-    }
-
-    /********* pulling state *********/
-
-    function showPulling(pull) {
-      indicator.classList.add("active");
-      indicator.classList.remove("loading");
-
-      setIndicatorY(Math.max(-80, pull - 80));
-
-      const progress = Math.min(
-        1,
-        Math.max(0, pull / TRIGGER)
-      );
-
-      indicator.style.setProperty("--ptr-progress", progress);
-    }
-
-    /********* loading state *********/
-
-    function showLoading() {
-      indicator.classList.add("active", "loading");
-      indicator.style.setProperty("--ptr-progress", "1");
-      setIndicatorY(16);
-    }
-
-    /********* reset indicator *********/
-
-    function reset() {
-      pulling = false;
-      startY = 0;
-      currentY = 0;
-
-      indicator.classList.remove("active", "loading");
-      indicator.style.removeProperty("--ptr-y");
-      indicator.style.removeProperty("--ptr-progress");
-    }
-
-    /********* touch start *********/
-
-    function onTouchStart(event) {
-      if (refreshing) return;
+    function touchStart(event) {
+      if (refreshInProgress) return;
       if (getScrollTop() > 0) return;
+      if (event.touches.length !== 1) return;
 
-      const touch = event.touches?.[0];
-      if (!touch) return;
+      const touch = event.touches[0];
 
-      const y = touch.clientY;
-      if (y > START_ZONE) return;
+      if (touch.clientY > START_ZONE) return;
 
-      startY = y;
-      currentY = y;
-      pulling = true;
+      startY = touch.clientY;
+      currentY = touch.clientY;
+
+      tracking = true;
+      pulling = false;
     }
 
-    /********* touch move *********/
+    function touchMove(event) {
+      if (!tracking || refreshInProgress) return;
+      if (event.touches.length !== 1) return;
 
-    function onTouchMove(event) {
-      if (!pulling || refreshing) return;
+      if (getScrollTop() > 0) {
+        tracking = false;
+        pulling = false;
+        resetIndicator();
+        return;
+      }
 
-      const touch = event.touches?.[0];
-      if (!touch) return;
+      const touch = event.touches[0];
 
       currentY = touch.clientY;
 
       const distance = currentY - startY;
+
       if (distance <= 0) return;
 
-      if (getScrollTop() > 0) {
-        reset();
-        return;
-      }
+      pulling = true;
 
       event.preventDefault();
 
-      const pull = easePull(distance);
-      showPulling(pull);
+      showPullState(distance, TRIGGER);
     }
 
-    /********* touch end *********/
-
-    async function onTouchEnd() {
-      if (!pulling) return;
+    async function touchEnd() {
+      if (!tracking) return;
 
       const distance = currentY - startY;
-      pulling = false;
 
-      if (distance < TRIGGER || refreshing) {
-        reset();
+      tracking = false;
+
+      if (!pulling || distance < TRIGGER) {
+        pulling = false;
+
+        if (ptrIndicator) {
+          ptrIndicator.classList.remove("pulling");
+          setIndicatorPosition(-80);
+        }
+
+        await wait(180);
+
+        resetIndicator();
         return;
       }
 
-      refreshing = true;
-      showLoading();
+      pulling = false;
+      refreshInProgress = true;
+
+      showLoadingState();
 
       try {
         await Promise.resolve(onRefresh?.());
@@ -246,49 +315,109 @@
         console.error("[PWA] Refresh failed:", error);
       }
 
-      await wait(150);
+      await wait(180);
 
-      refreshing = false;
-      reset();
+      refreshInProgress = false;
+
+      resetIndicator();
     }
 
-    /********* listeners *********/
+    function touchCancel() {
+      if (refreshInProgress) return;
 
-    root.addEventListener("touchstart", onTouchStart, { passive: true });
-    root.addEventListener("touchmove", onTouchMove, { passive: false });
-    root.addEventListener("touchend", onTouchEnd, { passive: true });
-    root.addEventListener("touchcancel", onTouchEnd, { passive: true });
+      tracking = false;
+      pulling = false;
 
-    /********* destroy *********/
+      resetIndicator();
+    }
 
-    return function destroyPullToRefreshInstance() {
-      root.removeEventListener("touchstart", onTouchStart);
-      root.removeEventListener("touchmove", onTouchMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchEnd);
-      reset();
+    root.addEventListener(
+      "touchstart",
+      touchStart,
+      { passive: true }
+    );
+
+    root.addEventListener(
+      "touchmove",
+      touchMove,
+      { passive: false }
+    );
+
+    root.addEventListener(
+      "touchend",
+      touchEnd,
+      { passive: true }
+    );
+
+    root.addEventListener(
+      "touchcancel",
+      touchCancel,
+      { passive: true }
+    );
+
+    return () => {
+      root.removeEventListener(
+        "touchstart",
+        touchStart
+      );
+
+      root.removeEventListener(
+        "touchmove",
+        touchMove
+      );
+
+      root.removeEventListener(
+        "touchend",
+        touchEnd
+      );
+
+      root.removeEventListener(
+        "touchcancel",
+        touchCancel
+      );
+
+      tracking = false;
+      pulling = false;
+
+      resetIndicator();
     };
   }
 
-  /********* refresh app *********/
+  /********* refresh *********/
 
   async function refreshApp() {
-    const router = window.router || window.appRouter || window.APP_ROUTER;
+    if (refreshInProgress) return;
+
+    refreshInProgress = true;
+    showLoadingState();
 
     try {
-      if (router && typeof router.refreshCurrentPage === "function") {
+      const router = window.router;
+
+      if (
+        router &&
+        typeof router.refreshCurrentPage === "function"
+      ) {
         await router.refreshCurrentPage();
-        return;
+      } else {
+        window.location.reload();
       }
+    } catch (error) {
+      console.error(
+        "[PWA] Application refresh failed:",
+        error
+      );
 
       window.location.reload();
-    } catch (error) {
-      console.error("[PWA] Application refresh failed:", error);
-      window.location.reload();
+    } finally {
+      await nextFrame();
+      await nextFrame();
+
+      refreshInProgress = false;
     }
   }
 
-  /********* boot pwa *********/
+  /********* boot *********/
 
   function bootPWA() {
     const standalone = syncStandaloneClass();
@@ -299,54 +428,85 @@
     }
 
     if (!standalone) {
-      removePTRIndicator();
       return;
     }
 
-    const indicator = ensurePTRIndicator();
-    if (!indicator) return;
+    installNativeInteractions();
 
-    destroyPullToRefresh = initPullToRefresh(refreshApp, {
-      root: document,
-      indicator,
-    });
+    ensureIndicator();
+
+    destroyPullToRefresh =
+      initPullToRefresh(refreshApp);
   }
 
-  /********* delayed boot *********/
+  /********* page lifecycle *********/
 
   function scheduleBoot() {
-    window.requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
       bootPWA();
     });
   }
 
-  /********* lifecycle events *********/
+  /********* initialization *********/
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", scheduleBoot, {
-      once: true,
-    });
+    document.addEventListener(
+      "DOMContentLoaded",
+      scheduleBoot,
+      { once: true }
+    );
   } else {
     scheduleBoot();
   }
 
-  window.addEventListener("pageshow", scheduleBoot);
+  window.addEventListener(
+    "pageshow",
+    scheduleBoot
+  );
 
-  document.addEventListener("pageLoaded", scheduleBoot);
-  document.addEventListener("pageRefreshed", scheduleBoot);
+  document.addEventListener(
+    "pageLoaded",
+    scheduleBoot
+  );
 
-  const standaloneQuery = window.matchMedia("(display-mode: standalone)");
-  const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
+  document.addEventListener(
+    "pageRefreshed",
+    scheduleBoot
+  );
 
-  if (standaloneQuery && typeof standaloneQuery.addEventListener === "function") {
-    standaloneQuery.addEventListener("change", scheduleBoot);
+  /********* display mode *********/
+
+  const standaloneQuery =
+    window.matchMedia(
+      "(display-mode: standalone)"
+    );
+
+  const fullscreenQuery =
+    window.matchMedia(
+      "(display-mode: fullscreen)"
+    );
+
+  if (
+    typeof standaloneQuery.addEventListener ===
+    "function"
+  ) {
+    standaloneQuery.addEventListener(
+      "change",
+      scheduleBoot
+    );
   }
 
-  if (fullscreenQuery && typeof fullscreenQuery.addEventListener === "function") {
-    fullscreenQuery.addEventListener("change", scheduleBoot);
+  if (
+    typeof fullscreenQuery.addEventListener ===
+    "function"
+  ) {
+    fullscreenQuery.addEventListener(
+      "change",
+      scheduleBoot
+    );
   }
 
-  /********* public api *********/
+  /********* api *********/
 
   window.pwaApp = {
     isStandalonePWA,
