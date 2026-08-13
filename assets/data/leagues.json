@@ -2456,7 +2456,50 @@
       "slug": "Albania_1st_division",
       "icon": "/assets/icons/Albania_1st_divsion.svg",
       "type": "league"
-    }
+    
+    },
+    {
+  "id": 512,
+  "name": "2nd Division Group A",
+  "slug": "2nd-Division-Group-A",
+  "icon": "/assets/icons/Albania_2nd_Divsion_Group_A.svg",
+  "type": "league"
+},
+{
+      "id": 513,
+      "name": "2nd Division Group B",
+      "slug": "2nd-Division-Group-B",
+      "icon": "/assets/icons/Albania_2nd_Divsion_Group_B.svg",
+      "type": "league"
+    },
+    {
+      "id": 707,
+      "name": "Albania cup",
+      "slug": "Albania-cup",
+      "icon": "/assets/icons/Albania_cup.svg",
+      "type": "league"
+    },{
+      "id": 708,
+      "name": "Albania super cup",
+      "slug": "Albania-super-cup",
+      "icon": "/assets/icons/Albania_Albania_super_cup.svg",
+      "type": "league"
+    },
+    {
+      "id": 310,
+      "name": "Super liga",
+      "slug": "Super-liga",
+      "icon": "/assets/icons/Albania_Super_liga.svg",
+      "type": "league"
+    },
+    {
+  "id": 978,
+  "name": "2nd Division play-offs",
+  "slug": "2nd_Division_play_offs",
+  "icon": "/assets/icons/Albania_2nd_Divsion_play_offs.svg",
+  "type": "league"
+}
+    
   ]
 },
 {
@@ -3793,13 +3836,6 @@
       "slug": "Algerian-ligue-2",
       "icon": "/assets/icons/algeria_ligue-2.svg",
       "type": "league"
-    },
-    {
-      "id": 832,
-      "name": "Coupe de la ligue",
-      "slug": "Coupe-de-la-ligue",
-      "icon": "/assets/icons/algeria_Coupe-de-la-ligue.svg",
-      "type": "ligue"
     },
     {
       "id": 516,
