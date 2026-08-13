@@ -3531,6 +3531,7 @@
     }
   ]
 },
+
 {
   "country": "Honduras",
   "code": "honduras",
@@ -3720,6 +3721,42 @@
     }
   ]
 },
+{
+  "country": "Andorra",
+  "code": "Andorra",
+  "flag": "/assets/icons/Andorra.svg",
+  "leagues": [
+    {
+      "id": 312,
+      "name": "Division 1a",
+      "slug": "Division-1a",
+      "icon": "/assets/icons/Andorra-1a.svg",
+      "type": "league"
+    },
+    {
+      "id": 313,
+      "name": "Division 2a",
+      "slug": "Division-2a",
+      "icon": "/assets/icons/Albania_Division_2a.svg",
+      "type": "league"
+    },
+    {
+      "id": 655,
+      "name": "Copa Constitucio",
+      "slug": "Copa-Constitucio",
+      "icon": "/assets/icons/Copa_Constitucio.svg",
+      "type": "league"
+    },
+    {
+      "id": 203,
+      "name": "Super Cup",
+      "slug": "Super-cup",
+      "icon": "/assets/icons/Andorra_Super_cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+
 {
   "country": "South Africa",
   "code": "south-africa",
