@@ -1,803 +1,396 @@
-/********* router *********/
+/********* CSS *********/
 
 const REQUIRED_CSS = [
   "/assets/css/components.css",
-  "/assets/css/index.css",
+  "/assets/css/index.css"
 ];
+
+async function waitForStylesheets() {
+  const links = [...document.querySelectorAll('link[rel="stylesheet"]')];
+
+  const required = REQUIRED_CSS
+    .map(path =>
+      links.find(link => {
+        try {
+          return new URL(link.href, location.origin).pathname === path;
+        } catch {
+          return false;
+        }
+      })
+    )
+    .filter(Boolean);
+
+  await Promise.all(
+    required.map(link => {
+      if (link.sheet) return Promise.resolve();
+
+      return new Promise(resolve => {
+        link.addEventListener("load", resolve, { once: true });
+        link.addEventListener("error", resolve, { once: true });
+      });
+    })
+  );
+}
+
+
+/********* ROUTES *********/
 
 const HOME_ROUTE = "/overview";
 
 const ROUTE_ALIASES = {
-  "/": "/overview",
-  "/home": "/overview",
+  "/": HOME_ROUTE,
+  "/home": HOME_ROUTE
 };
-
-const HOME_BACK_ROUTES = new Set([
-  "/notifications",
-  "/leagues",
-  "/vip-tips",
-  "/predictions",
-  "/next-world-cup-count-downs",
-  "/profile",
-  "/favourites",
-]);
 
 const routes = {
   404: {
     file: "/pages/404.html",
-    title: "Page Not Found",
+    title: "Page Not Found"
   },
 
   "/overview": {
     file: "/pages/overview.html",
-    title: "Overview",
+    title: "Overview"
   },
 
   "/notifications": {
     file: "/pages/notifications.html",
-    title: "Notifications",
+    title: "Notifications"
   },
 
   "/league-page": {
     file: "/pages/league-page.html",
-    title: "League",
+    title: "League"
   },
 
   "/leagues": {
     file: "/pages/leagues.html",
-    title: "Leagues",
+    title: "Leagues"
   },
 
   "/vip-tips": {
     file: "/pages/vip-tips.html",
-    title: "VIP Tips",
+    title: "VIP Tips"
   },
 
   "/predictions": {
     file: "/pages/predictions.html",
-    title: "Predictions",
+    title: "Predictions"
   },
 
   "/next-world-cup-count-downs": {
     file: "/pages/next-world-cup-count-downs.html",
-    title: "Next World Cup",
+    title: "Next World Cup"
   },
 
   "/profile": {
     file: "/pages/profile.html",
-    title: "Profile",
+    title: "Profile"
   },
 
   "/profile/coins": {
     file: "/pages/profile/coin.html",
-    title: "Coins",
+    title: "Coins"
   },
 
   "/favourites": {
     file: "/pages/favourites.html",
-    title: "Favourites",
-  },
+    title: "Favourites"
+  }
 };
 
-const pageRegistry = new Map();
 
+/********* STATE *********/
+
+const pageCache = new Map();
+
+let currentPath = HOME_ROUTE;
 let navigationToken = 0;
-let currentPath = normalizePath(
-  window.location.pathname
-);
 
-let activePageName = null;
-let activePageRoot = null;
 
-/********* dom helpers *********/
-
-function getLoader() {
-  return document.getElementById(
-    "page-loader"
-  );
-}
+/********* DOM *********/
 
 function getMainPage() {
-  return document.getElementById(
-    "main-page"
-  );
+  return document.getElementById("main-page");
+}
+
+function getLoader() {
+  return document.getElementById("page-loader");
 }
 
 function showLoader() {
-  getLoader()?.classList.remove(
-    "hidden"
-  );
+  getLoader()?.classList.remove("hidden");
 }
 
 function hideLoader() {
-  getLoader()?.classList.add(
-    "hidden"
-  );
+  getLoader()?.classList.add("hidden");
 }
 
-/********* path helpers *********/
+
+/********* PATH *********/
 
 function normalizePath(path) {
-  if (!path) {
-    return HOME_ROUTE;
-  }
+  if (!path) return HOME_ROUTE;
 
   try {
-    const url = new URL(
-      path,
-      location.origin
-    );
+    const url = new URL(path, location.origin);
 
-    const clean =
-      url.pathname.replace(
-        /\/+$/,
-        ""
-      ) || "/";
+    let pathname = url.pathname
+      .replace(/\/+$/, "");
 
-    return clean === "/"
-      ? HOME_ROUTE
-      : clean;
+    if (!pathname) pathname = "/";
+
+    return ROUTE_ALIASES[pathname] || pathname;
   } catch {
-    const clean =
-      String(path)
-        .split("?")[0]
-        .split("#")[0]
-        .replace(
-          /\/+$/,
-          ""
-        ) || "/";
-
-    return clean === "/"
-      ? HOME_ROUTE
-      : clean;
+    return HOME_ROUTE;
   }
-}
-
-function topLevelSegment(path) {
-  const clean =
-    normalizePath(path);
-
-  const segment =
-    clean.split("/")[1];
-
-  return segment
-    ? `/${segment}`
-    : clean;
-}
-
-function isLeaguePage(path) {
-  const clean =
-    normalizePath(path);
-
-  return (
-    clean === "/league-page" ||
-    clean.startsWith(
-      "/league-page/"
-    ) ||
-    clean.startsWith(
-      "/league/"
-    )
-  );
-}
-
-function resolveRoutePath(path) {
-  const clean =
-    normalizePath(path);
-
-  const aliased =
-    ROUTE_ALIASES[clean] ||
-    clean;
-
-  if (
-    aliased.startsWith(
-      "/league-page/"
-    ) ||
-    aliased.startsWith(
-      "/league/"
-    )
-  ) {
-    return "/league-page";
-  }
-
-  if (routes[aliased]) {
-    return aliased;
-  }
-
-  const top =
-    topLevelSegment(aliased);
-
-  if (routes[top]) {
-    return top;
-  }
-
-  return "404";
 }
 
 function resolveRoute(path) {
-  return (
-    routes[
-      resolveRoutePath(path)
-    ] ||
-    routes["404"]
-  );
-}
+  const cleanPath = normalizePath(path);
 
-/********* pwa helpers *********/
-
-function isStandalonePWA() {
-  return (
-    window.matchMedia(
-      "(display-mode: standalone)"
-    ).matches ||
-    window.matchMedia(
-      "(display-mode: fullscreen)"
-    ).matches ||
-    window.navigator.standalone === true ||
-    document.referrer.startsWith(
-      "android-app://"
-    )
-  );
-}
-
-function shouldSeedHomeBackStack(path) {
-  const clean =
-    normalizePath(path);
-
-  if (!isStandalonePWA()) {
-    return false;
-  }
-
-  if (clean === HOME_ROUTE) {
-    return false;
-  }
-
-  if (isLeaguePage(clean)) {
-    return false;
+  if (routes[cleanPath]) {
+    return {
+      path: cleanPath,
+      ...routes[cleanPath]
+    };
   }
 
   if (
-    routes[clean] === undefined &&
-    clean !== "/profile/coins"
+    cleanPath.startsWith("/league-page/")
   ) {
-    return false;
-  }
-
-  return HOME_BACK_ROUTES.has(
-    clean
-  );
-}
-
-function seedHomeBackStack(path) {
-  const clean =
-    normalizePath(path);
-
-  if (
-    !shouldSeedHomeBackStack(
-      clean
-    )
-  ) {
-    return;
+    return {
+      path: "/league-page",
+      ...routes["/league-page"]
+    };
   }
 
   if (
-    window.__pwaHomeBackSeeded
+    cleanPath.startsWith("/league/")
   ) {
-    return;
+    return {
+      path: "/league-page",
+      ...routes["/league-page"]
+    };
   }
 
-  window.__pwaHomeBackSeeded =
-    true;
-
-  history.replaceState(
-    {
-      path: HOME_ROUTE,
-      __pwaHomeSeed: true,
-    },
-    "",
-    HOME_ROUTE
-  );
-
-  history.pushState(
-    {
-      path: clean,
-      __pwaHomeSeed: true,
-    },
-    "",
-    clean
-  );
-}
-
-/********* css *********/
-
-function waitForStylesheets() {
-  const links = [
-    ...document.querySelectorAll(
-      'link[rel="stylesheet"]'
-    ),
-  ];
-
-  const required =
-    links.filter((link) => {
-      try {
-        return REQUIRED_CSS.includes(
-          new URL(
-            link.href,
-            location.origin
-          ).pathname
-        );
-      } catch {
-        return false;
-      }
-    });
-
-  if (!required.length) {
-    return Promise.resolve();
-  }
-
-  return Promise.allSettled(
-    required.map(
-      (link) =>
-        new Promise(
-          (resolve) => {
-            if (link.sheet) {
-              resolve();
-              return;
-            }
-
-            link.addEventListener(
-              "load",
-              resolve,
-              { once: true }
-            );
-
-            link.addEventListener(
-              "error",
-              resolve,
-              { once: true }
-            );
-          }
-        )
-    )
-  );
-}
-
-/********* page lifecycle *********/
-
-function registerPage(
-  name,
-  hooks = {}
-) {
-  if (!name) {
-    return;
-  }
-
-  pageRegistry.set(
-    name,
-    {
-      init:
-        typeof hooks.init ===
-        "function"
-          ? hooks.init
-          : null,
-
-      destroy:
-        typeof hooks.destroy ===
-        "function"
-          ? hooks.destroy
-          : null,
-    }
-  );
-}
-
-async function destroyActivePage() {
-  if (!activePageName) {
-    return;
-  }
-
-  const name =
-    activePageName;
-
-  const root =
-    activePageRoot ||
-    getMainPage();
-
-  const hooks =
-    pageRegistry.get(name);
-
-  activePageName = null;
-  activePageRoot = null;
-
-  try {
-    await hooks?.destroy?.(
-      root
-    );
-  } catch (error) {
-    console.error(
-      `[Router] Destroy failed for ${name}:`,
-      error
-    );
-  }
-}
-
-async function mountPage(
-  name,
-  root = getMainPage()
-) {
-  if (!name) {
-    return;
-  }
-
-  if (
-    activePageName === name
-  ) {
-    return;
-  }
-
-  await destroyActivePage();
-
-  const hooks =
-    pageRegistry.get(name);
-
-  if (!hooks) {
-    return;
-  }
-
-  activePageName = name;
-  activePageRoot =
-    root || getMainPage();
-
-  try {
-    await hooks.init?.(
-      activePageRoot
-    );
-  } catch (error) {
-    activePageName = null;
-    activePageRoot = null;
-
-    console.error(
-      `[Router] Init failed for ${name}:`,
-      error
-    );
-  }
-}
-
-/********* page lifecycle mapping *********/
-
-function getPageLifecycleName(path) {
-  const clean =
-    normalizePath(path);
-
-  const lifecycle = {
-    "/overview": "OverviewPage",
-    "/notifications": "NotificationsPage",
-    "/leagues": "LeaguesPage",
-    "/league-page": "LeaguePage",
-    "/vip-tips": "VipTipsPage",
-    "/predictions": "PredictionsPage",
-    "/next-world-cup-count-downs":
-      "NextWorldCupPage",
-    "/profile": "ProfilePage",
-    "/profile/coins": "CoinsPage",
-    "/favourites": "FavouritesPage",
+  return {
+    path: "404",
+    ...routes[404]
   };
-
-  return lifecycle[clean] || null;
 }
 
-/********* nav *********/
+
+/********* ACTIVE NAV *********/
 
 function updateActiveNav() {
-  const current =
-    normalizePath(
-      currentPath
-    );
+  const path = normalizePath(currentPath);
 
   document
-    .querySelectorAll(
-      ".bottom-nav .nav-item[href]"
-    )
-    .forEach((link) => {
-      const href =
-        link.getAttribute(
-          "href"
-        );
+    .querySelectorAll(".bottom-nav .nav-item[href]")
+    .forEach(link => {
+      const href = link.getAttribute("href");
 
-      if (
-        !href ||
-        href.startsWith("#") ||
-        href.startsWith("http")
-      ) {
-        return;
-      }
+      if (!href || href.startsWith("#")) return;
 
       let linkPath;
 
       try {
-        linkPath =
-          normalizePath(
-            new URL(
-              href,
-              location.origin
-            ).pathname
-          );
+        linkPath = normalizePath(
+          new URL(href, location.origin).pathname
+        );
       } catch {
         return;
       }
 
-      const aliased =
-        ROUTE_ALIASES[
-          linkPath
-        ] || linkPath;
-
       const active =
+        linkPath === path ||
         (
-          aliased ===
-            "/league-page" &&
-          isLeaguePage(
-            current
-          )
-        ) ||
-        aliased === current;
-
-      link.classList.toggle(
-        "active",
-        active
-      );
-
-      link
-        .querySelector("svg")
-        ?.classList.toggle(
-          "active",
-          active
+          linkPath === "/league-page" &&
+          path.startsWith("/league-page")
         );
+
+      link.classList.toggle("active", active);
+      link.querySelector("svg")
+        ?.classList.toggle("active", active);
     });
 }
 
-/********* page loading *********/
 
-async function loadPage(
-  path,
-  forceReload = false
-) {
-  const route =
-    resolveRoute(path);
+/********* LOAD PAGE *********/
 
-  const response =
-    await fetch(
-      route.file,
-      {
-        cache: forceReload
-          ? "reload"
-          : "default",
-      }
-    );
+async function loadPage(path) {
+  const route = resolveRoute(path);
 
-  if (!response.ok) {
-    throw new Error(
-      `Failed to load ${route.file}`
-    );
+  if (pageCache.has(route.file)) {
+    return {
+      ...route,
+      html: pageCache.get(route.file)
+    };
   }
 
+  const response = await fetch(route.file, {
+    cache: "default"
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load ${route.file}`);
+  }
+
+  const html = await response.text();
+
+  pageCache.set(route.file, html);
+
   return {
-    html:
-      await response.text(),
-    file:
-      route.file,
-    route,
+    ...route,
+    html
   };
 }
 
-/********* app scripts *********/
 
-async function waitForPageScripts(
-  root
-) {
+/********* LOAD PAGE SCRIPTS *********/
+
+async function loadPageScripts(root) {
   if (
     !root ||
-    typeof window.loadPageScript !==
-      "function"
+    typeof window.loadPageScript !== "function"
   ) {
     return;
   }
 
-  const scripts = [
-    ...root.querySelectorAll(
-      "app-script[src]"
-    ),
+  const elements = [
+    ...root.querySelectorAll("app-script[src]")
   ];
 
-  if (!scripts.length) {
-    return;
-  }
+  if (!elements.length) return;
+
+  const scripts = [
+    ...new Set(
+      elements
+        .map(element => element.getAttribute("src"))
+        .filter(Boolean)
+    )
+  ];
 
   await Promise.all(
-    scripts.map(
-      async (element) => {
-        const src =
-          element.getAttribute(
-            "src"
-          );
-
-        if (!src) {
-          return;
-        }
-
-        try {
-          await window.loadPageScript(
-            src
-          );
-        } catch (error) {
-          console.error(
-            `[Router] Script failed: ${src}`,
-            error
-          );
-        }
+    scripts.map(async src => {
+      try {
+        await window.loadPageScript(src);
+      } catch (error) {
+        console.error(
+          `[Router] Failed to load page script: ${src}`,
+          error
+        );
       }
-    )
+    })
   );
 }
 
-/********* events *********/
 
-function dispatchPageLoaded(
-  path,
-  details = {}
-) {
+/********* PAGE EVENT *********/
+
+function dispatchPageLoaded(path, route) {
   document.dispatchEvent(
-    new CustomEvent(
-      "pageLoaded",
-      {
-        detail: {
-          path:
-            normalizePath(path),
-          ...details,
-        },
+    new CustomEvent("pageLoaded", {
+      detail: {
+        path,
+        file: route.file,
+        title: route.title
       }
-    )
+    })
   );
 }
 
-function dispatchPageRefreshed(
-  path
-) {
-  document.dispatchEvent(
-    new CustomEvent(
-      "pageRefreshed",
-      {
-        detail: {
-          path:
-            normalizePath(path),
-        },
-      }
-    )
-  );
-}
 
-/********* render *********/
+/********* NAVIGATION *********/
 
-async function renderRoute(
+async function navigate(
   path,
-  {
-    updateHistory = true,
-    pushHistory = true,
-    forceReload = false,
-  } = {}
+  pushHistory = true
 ) {
-  const target =
-    normalizePath(path);
+  const target = normalizePath(path);
+  const token = ++navigationToken;
 
-  const token =
-    ++navigationToken;
+  if (
+    pushHistory &&
+    target === normalizePath(location.pathname)
+  ) {
+    return;
+  }
 
   showLoader();
 
   try {
-    await destroyActivePage();
+    /*
+      Load the new page FIRST.
+      Do not destroy the current page until
+      the new HTML has loaded successfully.
+    */
+    const page = await loadPage(target);
 
-    const {
-      html,
-      file,
-      route,
-    } =
-      await loadPage(
-        target,
-        forceReload
-      );
+    if (token !== navigationToken) return;
 
-    if (
-      token !==
-      navigationToken
-    ) {
-      return;
-    }
-
-    const mainPage =
-      getMainPage();
+    const mainPage = getMainPage();
 
     if (!mainPage) {
-      throw new Error(
-        "#main-page not found"
+      throw new Error("#main-page not found");
+    }
+
+    /*
+      Replace the page.
+    */
+    mainPage.innerHTML = page.html;
+
+    /*
+      IMPORTANT:
+      The complete HTML now exists in the DOM.
+      Only now load its app scripts.
+    */
+    await loadPageScripts(mainPage);
+
+    if (token !== navigationToken) return;
+
+    currentPath = page.path;
+
+    if (pushHistory) {
+      history.pushState(
+        { path: page.path },
+        "",
+        page.path
+      );
+    } else {
+      history.replaceState(
+        { path: page.path },
+        "",
+        page.path
       );
     }
 
-    mainPage.innerHTML =
-      html;
-
-    await waitForPageScripts(
-      mainPage
-    );
-
-    if (
-      token !==
-      navigationToken
-    ) {
-      return;
-    }
-
-    currentPath =
-      target;
-
-    if (updateHistory) {
-      const state = {
-        path: target,
-      };
-
-      if (pushHistory) {
-        history.pushState(
-          state,
-          "",
-          target
-        );
-      } else {
-        history.replaceState(
-          state,
-          "",
-          target
-        );
-      }
-    }
-
-    if (route.title) {
-      document.title =
-        `${route.title} | Scoutwave`;
+    if (page.title) {
+      document.title = `${page.title} | Beelooo`;
     }
 
     updateActiveNav();
 
+    /*
+      This event fires EVERY TIME the page is mounted,
+      even when its JS file was loaded before.
+    */
     dispatchPageLoaded(
-      target,
-      {
-        file,
-        route,
-      }
+      page.path,
+      page
     );
 
-    const lifecycle =
-      getPageLifecycleName(
-        target
-      );
-
-    if (lifecycle) {
-      await mountPage(
-        lifecycle,
-        mainPage
-      );
-    }
   } catch (error) {
-    if (
-      token !==
-      navigationToken
-    ) {
-      return;
-    }
+
+    if (token !== navigationToken) return;
 
     console.error(
       "[Router] Navigation failed:",
       error
     );
 
-    const mainPage =
-      getMainPage();
+    const mainPage = getMainPage();
 
     if (mainPage) {
       mainPage.innerHTML = `
@@ -807,252 +400,116 @@ async function renderRoute(
         </section>
       `;
     }
+
   } finally {
-    if (
-      token ===
-      navigationToken
-    ) {
+
+    if (token === navigationToken) {
       hideLoader();
     }
+
   }
 }
 
-/********* public api *********/
 
-async function navigate(
-  path,
-  pushHistory = true,
-  forceReload = false
-) {
-  return renderRoute(
-    path,
-    {
-      updateHistory: true,
-      pushHistory,
-      forceReload,
-    }
-  );
-}
+/********* LINK ROUTING *********/
 
-async function refreshCurrentPage() {
-  const path =
-    normalizePath(
-      currentPath
-    );
+document.addEventListener("click", event => {
+  const link = event.target.closest("a[href]");
 
-  await renderRoute(
-    path,
-    {
-      updateHistory: false,
-      pushHistory: false,
-      forceReload: true,
-    }
-  );
+  if (!link) return;
 
-  dispatchPageRefreshed(
-    path
-  );
-}
-
-function goBack() {
-  history.back();
-}
-
-/********* link routing *********/
-
-document.addEventListener(
-  "click",
-  (event) => {
-    const link =
-      event.target.closest(
-        "a[href]"
-      );
-
-    if (!link) {
-      return;
-    }
-
-    if (
-      link.target === "_blank" ||
-      link.hasAttribute(
-        "download"
-      )
-    ) {
-      return;
-    }
-
-    if (
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey ||
-      event.button !== 0
-    ) {
-      return;
-    }
-
-    let url;
-
-    try {
-      url = new URL(
-        link.href,
-        location.origin
-      );
-    } catch {
-      return;
-    }
-
-    if (
-      url.origin !==
-      location.origin
-    ) {
-      return;
-    }
-
-    if (
-      url.pathname.startsWith(
-        "/assets/"
-      )
-    ) {
-      return;
-    }
-
-    if (
-      /\.[a-z0-9]+$/i.test(
-        url.pathname
-      )
-    ) {
-      return;
-    }
-
-    const path =
-      normalizePath(
-        url.pathname
-      );
-
-    if (
-      path ===
-      normalizePath(
-        currentPath
-      )
-    ) {
-      event.preventDefault();
-      return;
-    }
-
-    event.preventDefault();
-
-    navigate(path);
-  }
-);
-
-/********* browser navigation *********/
-
-window.addEventListener(
-  "popstate",
-  (event) => {
-    const path =
-      normalizePath(
-        event.state?.path ||
-          window.location.pathname
-      );
-
-    renderRoute(
-      path,
-      {
-        updateHistory: false,
-        pushHistory: false,
-        forceReload: false,
-      }
-    );
-  }
-);
-
-/********* global api *********/
-
-window.route = function (
-  event
-) {
-  if (event) {
-    event.preventDefault();
-  }
-
-  const link =
-    event?.currentTarget ||
-    event?.target?.closest(
-      "a[href]"
-    );
-
-  if (!link) {
+  if (
+    link.target === "_blank" ||
+    link.hasAttribute("download") ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    event.button !== 0
+  ) {
     return;
   }
 
   let url;
 
   try {
-    url = new URL(
-      link.href,
-      location.origin
-    );
+    url = new URL(link.href, location.origin);
   } catch {
     return;
   }
 
-  if (
-    url.origin !==
-    location.origin
-  ) {
-    location.href =
-      url.href;
+  if (url.origin !== location.origin) return;
 
+  if (
+    url.pathname.startsWith("/assets/") ||
+    /\.[a-z0-9]+$/i.test(url.pathname)
+  ) {
     return;
   }
 
-  navigate(
-    url.pathname
-  );
-};
+  const path = normalizePath(url.pathname);
 
-window.router = {
-  navigate,
-  refreshCurrentPage,
-  goBack,
-
-  getCurrentPath() {
-    return normalizePath(
-      currentPath
-    );
-  },
-
-  registerPage,
-  mountPage,
-  destroyActivePage,
-  resolveRoute,
-};
-
-/********* startup *********/
-
-(async () => {
-  await waitForStylesheets();
-
-  const initialPath =
-    normalizePath(
-      window.location.pathname
-    );
-
-  seedHomeBackStack(
-    initialPath
-  );
-
-  currentPath =
-    initialPath;
-
-  await renderRoute(
-    initialPath,
-    {
-      updateHistory: false,
-      pushHistory: false,
-      forceReload: false,
+  /*
+    Hash links are NOT SPA routes.
+    This keeps things like #create-customer working.
+  */
+  if (url.hash) {
+    if (path === normalizePath(location.pathname)) {
+      return;
     }
+  }
+
+  event.preventDefault();
+
+  navigate(path);
+});
+
+
+/********* BROWSER BACK / FORWARD *********/
+
+window.addEventListener("popstate", event => {
+  const path = normalizePath(
+    event.state?.path ||
+    location.pathname
   );
+
+  navigate(path, false);
+});
+
+
+/********* PUBLIC API *********/
+
+window.navigate = navigate;
+
+window.route = function(event) {
+  event?.preventDefault();
+
+  const link =
+    event?.currentTarget ||
+    event?.target?.closest("a[href]");
+
+  if (!link) return;
+
+  navigate(
+    new URL(link.href, location.origin).pathname
+  );
+};
+
+
+/********* START APP *********/
+
+(async function boot() {
+  try {
+    await waitForStylesheets();
+
+    await navigate(
+      location.pathname,
+      false
+    );
+  } catch (error) {
+    console.error(
+      "[Router] Startup failed:",
+      error
+    );
+  }
 })();
