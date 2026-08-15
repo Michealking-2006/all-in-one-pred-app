@@ -158,36 +158,36 @@ function initAppUI(signal) {
   const cookieOverlay = document.getElementById("cookieOverlay");
   const acceptCookies = document.getElementById("acceptCookies");
   const declineCookies = document.getElementById("declineCookies");
-
+  
   let cookieTimeout = null;
-
+  
   if (cookieBox && cookieOverlay && acceptCookies && declineCookies && !cookieBox.dataset.initialized) {
     cookieBox.dataset.initialized = "true";
-
+    
     const lockPage = () => {
       document.body.classList.add("cookie-active");
       document.body.style.overflow = "hidden";
     };
-
+    
     const unlockPage = () => {
       document.body.classList.remove("cookie-active");
       document.body.style.overflow = "";
     };
-
+    
     const showCookie = () => {
       cookieBox.classList.add("show");
       cookieOverlay.classList.add("show");
       lockPage();
     };
-
+    
     const hideCookie = () => {
       cookieBox.classList.remove("show");
       cookieOverlay.classList.remove("show");
       unlockPage();
     };
-
+    
     const status = localStorage.getItem("cookiesAccepted");
-
+    
     if (status !== "true") {
       cookieTimeout = setTimeout(() => {
         if (document.body.contains(cookieBox)) {
@@ -195,17 +195,17 @@ function initAppUI(signal) {
         }
       }, 5000);
     }
-
+    
     acceptCookies.addEventListener("click", () => {
       localStorage.setItem("cookiesAccepted", "true");
       hideCookie();
     }, { signal });
-
+    
     declineCookies.addEventListener("click", () => {
       localStorage.setItem("cookiesAccepted", "false");
       hideCookie();
     }, { signal });
-
+    
     addCleanup(() => {
       if (cookieTimeout) clearTimeout(cookieTimeout);
     });
