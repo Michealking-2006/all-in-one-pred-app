@@ -17,6 +17,10 @@
   width: 25px;
 }
 
+.app-skeleton-w-30 {
+  width: 30px;
+}
+
 .app-skeleton-w-50 {
   width: 50px;
 }
@@ -67,6 +71,10 @@
 
 .app-skeleton-h-24 {
   height: 24px;
+}
+
+.app-skeleton-h-30 {
+  height: 30px;
 }
 
 .app-skeleton-h-32 {
