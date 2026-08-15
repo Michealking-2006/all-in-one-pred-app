@@ -141,6 +141,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 18px;
+  text-decoration: none;
   
   transition: .2s;
 }
@@ -178,6 +179,13 @@
 .selected-language-profile-pg {
   font-family: BykerR;
   color: #4B4B4B54;
+}
+
+.coins-balance-el-profile-page {
+  background: #FEF08D40;
+  border-radius: 30px;
+  color: #BBA81F !important; 
+  padding: .3em;
 }
 
 /********************* LOGOUT *********************/
