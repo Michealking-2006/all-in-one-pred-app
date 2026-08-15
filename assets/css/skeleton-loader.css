@@ -4,7 +4,7 @@
 
 .app-skeleton {
   display: block;
-  background: #e9e9e9;
+  background: #e9e9e9 !important;
   animation: app-skeleton-blink 1.2s ease-in-out infinite;
   overflow: hidden;
 }
