@@ -1,6 +1,6 @@
 :root {
   --app-primary-color: #d50000;
-
+--app-white: #ffffff;
   --nav-bg: #fff;
   --nav-color: #6b7280;
   --nav-active: var(--app-primary-color);

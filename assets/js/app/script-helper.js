@@ -1,60 +1,179 @@
 (() => {
-  if (window.__appScriptLoaderInstalled) return;
+  if (window.__appScriptLoaderInstalled) {
+    return;
+  }
+
   window.__appScriptLoaderInstalled = true;
 
   /********* state *********/
 
   const scriptPromises = new Map();
   const scriptElements = new Map();
+  const lifecycleRegistry = new Map();
 
   /********* helpers *********/
 
   function resolveSrc(src) {
-    return new URL(src, document.baseURI).href;
+    return new URL(
+      src,
+      document.baseURI
+    ).href;
   }
 
-  function markLoaded(url, script) {
-    script.dataset.loaded = "true";
+  function normalizeUrl(src) {
+    return resolveSrc(src);
+  }
 
-    scriptElements.set(url, script);
-    scriptPromises.set(
-      url,
-      Promise.resolve(script)
+  function getExistingScript(url) {
+    return (
+      scriptElements.get(url) ||
+      [...document.querySelectorAll(
+        "script[data-app-script-src]"
+      )].find(
+        (script) =>
+          script.getAttribute(
+            "data-app-script-src"
+          ) === url
+      ) ||
+      null
     );
   }
 
-  /********* load script *********/
+  function getScriptKey(src) {
+    return normalizeUrl(src);
+  }
 
-  function loadPageScript(src, options = {}) {
-    const url = resolveSrc(src);
-    const { async = true } = options;
+  /********* lifecycle registration *********/
 
-    const cached = scriptPromises.get(url);
+  function register(
+    src,
+    hooks = {}
+  ) {
+    const key =
+      getScriptKey(src);
+
+    lifecycleRegistry.set(
+      key,
+      {
+        init:
+          typeof hooks.init ===
+          "function"
+            ? hooks.init
+            : null,
+
+        destroy:
+          typeof hooks.destroy ===
+          "function"
+            ? hooks.destroy
+            : null,
+
+        active: false,
+      }
+    );
+
+    return lifecycleRegistry.get(
+      key
+    );
+  }
+
+  function getLifecycle(src) {
+    return lifecycleRegistry.get(
+      getScriptKey(src)
+    );
+  }
+
+  async function initLifecycle(
+    src,
+    context = {}
+  ) {
+    const lifecycle =
+      getLifecycle(src);
+
+    if (
+      !lifecycle ||
+      lifecycle.active
+    ) {
+      return;
+    }
+
+    lifecycle.active = true;
+
+    try {
+      await lifecycle.init?.(
+        context
+      );
+    } catch (error) {
+      lifecycle.active = false;
+
+      console.error(
+        `[AppScript] Init failed for ${src}:`,
+        error
+      );
+
+      throw error;
+    }
+  }
+
+  async function destroyLifecycle(
+    src,
+    context = {}
+  ) {
+    const lifecycle =
+      getLifecycle(src);
+
+    if (
+      !lifecycle ||
+      !lifecycle.active
+    ) {
+      return;
+    }
+
+    try {
+      await lifecycle.destroy?.(
+        context
+      );
+    } catch (error) {
+      console.error(
+        `[AppScript] Destroy failed for ${src}:`,
+        error
+      );
+    }
+
+    lifecycle.active = false;
+  }
+
+  /********* script loading *********/
+
+  function loadPageScript(
+    src,
+    options = {}
+  ) {
+    const url =
+      normalizeUrl(src);
+
+    const {
+      async = true,
+    } = options;
+
+    const cached =
+      scriptPromises.get(url);
 
     if (cached) {
       return cached;
     }
 
     const existing =
-      scriptElements.get(url) ||
-      [
-        ...document.querySelectorAll(
-          "script[data-app-script-src]"
-        ),
-      ].find(
-        (script) =>
-          script.getAttribute(
-            "data-app-script-src"
-          ) === url
-      );
+      getExistingScript(url);
 
     if (existing) {
-      scriptElements.set(url, existing);
-
       if (
-        existing.dataset.loaded === "true"
+        existing.dataset.loaded ===
+        "true"
       ) {
-        const ready = Promise.resolve(existing);
+        const ready =
+          Promise.resolve(
+            existing
+          );
 
         scriptPromises.set(
           url,
@@ -64,50 +183,59 @@
         return ready;
       }
 
-      const pending = new Promise(
-        (resolve, reject) => {
-          const onLoad = () => {
-            cleanup();
-            markLoaded(url, existing);
-            resolve(existing);
-          };
+      const pending =
+        new Promise(
+          (resolve, reject) => {
+            const cleanup = () => {
+              existing.removeEventListener(
+                "load",
+                onLoad
+              );
 
-          const onError = () => {
-            cleanup();
-            scriptPromises.delete(url);
+              existing.removeEventListener(
+                "error",
+                onError
+              );
+            };
 
-            reject(
-              new Error(
-                `Failed to load ${url}`
-              )
-            );
-          };
+            const onLoad = () => {
+              cleanup();
 
-          function cleanup() {
-            existing.removeEventListener(
+              existing.dataset.loaded =
+                "true";
+
+              resolve(
+                existing
+              );
+            };
+
+            const onError = () => {
+              cleanup();
+
+              scriptPromises.delete(
+                url
+              );
+
+              reject(
+                new Error(
+                  `Failed to load ${url}`
+                )
+              );
+            };
+
+            existing.addEventListener(
               "load",
-              onLoad
+              onLoad,
+              { once: true }
             );
 
-            existing.removeEventListener(
+            existing.addEventListener(
               "error",
-              onError
+              onError,
+              { once: true }
             );
           }
-
-          existing.addEventListener(
-            "load",
-            onLoad,
-            { once: true }
-          );
-
-          existing.addEventListener(
-            "error",
-            onError,
-            { once: true }
-          );
-        }
-      );
+        );
 
       scriptPromises.set(
         url,
@@ -117,55 +245,74 @@
       return pending;
     }
 
-    const promise = new Promise(
-      (resolve, reject) => {
-        const script =
-          document.createElement(
-            "script"
+    const promise =
+      new Promise(
+        (resolve, reject) => {
+          const script =
+            document.createElement(
+              "script"
+            );
+
+          script.src = url;
+          script.async = async;
+
+          script.setAttribute(
+            "data-app-script-src",
+            url
           );
 
-        script.src = url;
-        script.async = async;
+          script.addEventListener(
+            "load",
+            () => {
+              script.dataset.loaded =
+                "true";
 
-        script.setAttribute(
-          "data-app-script-src",
-          url
-        );
+              scriptElements.set(
+                url,
+                script
+              );
 
-        script.addEventListener(
-          "load",
-          () => {
-            markLoaded(url, script);
-            resolve(script);
-          },
-          { once: true }
-        );
+              resolve(
+                script
+              );
+            },
+            {
+              once: true,
+            }
+          );
 
-        script.addEventListener(
-          "error",
-          () => {
-            scriptPromises.delete(url);
-            scriptElements.delete(url);
+          script.addEventListener(
+            "error",
+            () => {
+              scriptPromises.delete(
+                url
+              );
 
-            reject(
-              new Error(
-                `Failed to load ${url}`
-              )
-            );
-          },
-          { once: true }
-        );
+              scriptElements.delete(
+                url
+              );
 
-        scriptElements.set(
-          url,
-          script
-        );
+              reject(
+                new Error(
+                  `Failed to load ${url}`
+                )
+              );
+            },
+            {
+              once: true,
+            }
+          );
 
-        document.head.appendChild(
-          script
-        );
-      }
-    );
+          scriptElements.set(
+            url,
+            script
+          );
+
+          document.head.appendChild(
+            script
+          );
+        }
+      );
 
     scriptPromises.set(
       url,
@@ -175,28 +322,82 @@
     return promise;
   }
 
-  /********* custom element *********/
+  /********* app-script *********/
 
-  class AppScript extends HTMLElement {
-    connectedCallback() {
+  class AppScript
+    extends HTMLElement {
+
+    async connectedCallback() {
       const src =
         this.getAttribute("src");
 
-      if (!src) return;
+      if (!src) {
+        return;
+      }
 
-      loadPageScript(src).catch(
-        (error) => {
-          console.error(
-            "[AppScript]",
-            error
-          );
+      try {
+        await loadPageScript(src);
+
+        this.dispatchEvent(
+          new CustomEvent(
+            "appscriptready",
+            {
+              bubbles: true,
+              detail: {
+                src:
+                  normalizeUrl(
+                    src
+                  ),
+                element: this,
+              },
+            }
+          )
+        );
+      } catch (error) {
+        console.error(
+          "[AppScript]",
+          error
+        );
+
+        this.dispatchEvent(
+          new CustomEvent(
+            "appscripterror",
+            {
+              bubbles: true,
+              detail: {
+                src:
+                  normalizeUrl(
+                    src
+                  ),
+                error,
+              },
+            }
+          )
+        );
+      }
+    }
+
+    async disconnect() {
+      const src =
+        this.getAttribute("src");
+
+      if (!src) {
+        return;
+      }
+
+      await destroyLifecycle(
+        src,
+        {
+          element: this,
         }
       );
     }
   }
 
   if (
-    !customElements.get("app-script")
+    !customElements.get(
+      "app-script"
+    )
   ) {
     customElements.define(
       "app-script",
@@ -204,12 +405,24 @@
     );
   }
 
-  /********* api *********/
+  /********* public api *********/
 
   window.loadPageScript =
     loadPageScript;
 
+  window.registerAppScript =
+    register;
+
+  window.initAppScript =
+    initLifecycle;
+
+  window.destroyAppScript =
+    destroyLifecycle;
+
   window.appScriptLoader = {
     loadPageScript,
+    register,
+    init: initLifecycle,
+    destroy: destroyLifecycle,
   };
 })();
