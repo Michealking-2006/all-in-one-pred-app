@@ -13,12 +13,14 @@ const PROFILE_SELECTORS = {
   username: "#appProfileUsername",
   memberSince: "#appProfileMemberSince",
   avatar: "#appProfileAvatar",
+  coins: ".coins-balance-el-profile-page",
   authBtn: "#appProfileAuthBtn",
 };
 
 const PROFILE_DEFAULTS = {
   username: "Guest",
   memberSince: "Member",
+  coins: "0",
   avatar: "/assets/icons/normal-pfp.jpeg",
   authTextLoggedOut: "Login",
   authTextLoggedIn: "Logout",
@@ -98,6 +100,16 @@ function formatMemberSince(dateValue) {
   )}`;
 }
 
+function formatCoins(value) {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount) || amount < 0) {
+    return PROFILE_DEFAULTS.coins;
+  }
+
+  return amount.toLocaleString("en-US");
+}
+
 /********* auth readiness *********/
 
 function getAuthReadyPromise() {
@@ -126,9 +138,7 @@ function getAuthReadyPromise() {
         resolve(session || null);
       };
 
-      const {
-        data,
-      } =
+      const { data } =
         supabase.auth.onAuthStateChange(
           (event, session) => {
             finish(session);
@@ -137,11 +147,6 @@ function getAuthReadyPromise() {
 
       PROFILE_PAGE.authSubscription =
         data?.subscription || null;
-
-      /*
-       * Covers a session that was already
-       * restored before this listener ran.
-       */
 
       supabase.auth
         .getSession()
@@ -200,18 +205,11 @@ async function recoverOAuthSession() {
       return null;
     }
 
-    /*
-     * Remove the one-time OAuth code
-     * from the visible URL.
-     */
-
     url.searchParams.delete("code");
 
     const cleanUrl =
       url.pathname +
-      (url.search
-        ? url.search
-        : "") +
+      (url.search || "") +
       (url.hash || "");
 
     window.history.replaceState(
@@ -220,9 +218,7 @@ async function recoverOAuthSession() {
       cleanUrl
     );
 
-    return (
-      data?.session || null
-    );
+    return data?.session || null;
   } catch (error) {
     console.error(
       "[Profile] OAuth recovery failed:",
@@ -323,7 +319,7 @@ async function getUserProfile(userId) {
       await supabase
         .from("profiles")
         .select(
-          "username, avatar_url, created_at"
+          "username, avatar_url, created_at, coins_balance"
         )
         .eq("id", userId)
         .maybeSingle();
@@ -357,7 +353,7 @@ async function getUserProfile(userId) {
   }
 }
 
-/********* dom *********/
+/********* dom setters *********/
 
 function setProfileUsername(username) {
   const el = getEl(
@@ -380,6 +376,16 @@ function setProfileMemberSince(dateValue) {
 
   el.textContent =
     formatMemberSince(dateValue);
+}
+
+function setProfileCoins(value) {
+  const el = getEl(
+    PROFILE_SELECTORS.coins
+  );
+
+  if (!el) return;
+
+  el.textContent = formatCoins(value);
 }
 
 function setProfileAvatar(src) {
@@ -428,6 +434,10 @@ function renderGuestProfile() {
   );
 
   setProfileMemberSince(null);
+
+  setProfileCoins(
+    PROFILE_DEFAULTS.coins
+  );
 
   setProfileAvatar(
     PROFILE_DEFAULTS.avatar
@@ -489,12 +499,17 @@ async function renderAuthenticatedProfile(
     metadata.picture ||
     PROFILE_DEFAULTS.avatar;
 
+  const coins =
+    profile?.coins_balance ?? 0;
+
   setProfileUsername(username);
 
   setProfileMemberSince(
     profile?.created_at ||
       user.created_at
   );
+
+  setProfileCoins(coins);
 
   setProfileAvatar(avatar);
 
@@ -503,6 +518,15 @@ async function renderAuthenticatedProfile(
   bindAuthButton();
 
   if (error) {
+    /*
+     * Keep the authenticated user visible
+     * even when the profile query fails.
+     */
+
+    setProfileCoins(
+      PROFILE_DEFAULTS.coins
+    );
+
     notify(
       "warning",
       "Your account is signed in, but your profile data could not be loaded."
@@ -522,11 +546,6 @@ async function renderProfileState(
     return;
   }
 
-  /*
-   * Wait until Supabase has restored
-   * the persisted OAuth/session state.
-   */
-
   const readySession =
     await getAuthReadyPromise();
 
@@ -538,29 +557,15 @@ async function renderProfileState(
     return;
   }
 
-  /*
-   * First prefer a session explicitly
-   * supplied by the auth event.
-   */
-
   let session =
     suppliedSession !== undefined
       ? suppliedSession
       : readySession;
 
-  /*
-   * Try OAuth code recovery when necessary.
-   */
-
   if (!session) {
     session =
       await recoverOAuthSession();
   }
-
-  /*
-   * Read the final session again after
-   * code exchange.
-   */
 
   if (!session) {
     session =
@@ -579,11 +584,6 @@ async function renderProfileState(
     renderGuestProfile();
     return;
   }
-
-  /*
-   * Verify the authenticated identity
-   * with Supabase Auth.
-   */
 
   const user =
     await getAuthenticatedUser();
