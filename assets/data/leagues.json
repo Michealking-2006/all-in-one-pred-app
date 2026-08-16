@@ -1383,17 +1383,6 @@
       "featured": false
     },
     {
-      "id": 134,
-      "name": "Torneo Federal A",
-      "slug": "torneo-federal-a",
-      "icon": "/assets/icons/argentina_torneo-federal-a.svg",
-      "type": "league",
-      "division": 3,
-      "gender": "men",
-      "active": true,
-      "featured": false
-    },
-    {
       "id": 132,
       "name": "Primera C",
       "slug": "primera-c",
@@ -1456,17 +1445,6 @@
       "type": "super_cup",
       "division": null,
       "gender": "men",
-      "active": true,
-      "featured": false
-    },
-    {
-      "id": 129,
-      "name": "Primera Nacional",
-      "slug": "Primera-Nacional",
-      "icon": "/assets/icons/argentina_primera-Nacional.svg",
-      "type": "Liga",
-      "division": 1,
-      "gender": "Men",
       "active": true,
       "featured": false
     },
@@ -2610,28 +2588,28 @@
   "flag": "/assets/icons/armenia.svg",
   "leagues": [
     {
-      "id": 325,
-      "name": "Premier League",
-      "slug": "premier-league",
+      "id": 342,
+      "name": "Armenia Premier League",
+      "slug": "Armenia-premier-league",
       "icon": "/assets/icons/armenia_premier-league.svg",
       "type": "league"
     },
     {
-      "id": 326,
-      "name": "First League",
-      "slug": "first-league",
+      "id": 343,
+      "name": "A-First League",
+      "slug": "A-first-league",
       "icon": "/assets/icons/armenia_first-league.svg",
       "type": "league"
     },
     {
-      "id": 327,
+      "id": 709,
       "name": "Armenian Cup",
       "slug": "armenian-cup",
       "icon": "/assets/icons/armenia_armenian-cup.svg",
       "type": "cup"
     },
     {
-      "id": 328,
+      "id": 654,
       "name": "Armenian Super Cup",
       "slug": "armenian-super-cup",
       "icon": "/assets/icons/armenia_armenian-super-cup.svg",
