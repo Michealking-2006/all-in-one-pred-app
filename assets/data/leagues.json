@@ -1360,6 +1360,17 @@
       "active": true,
       "featured": true
     },
+      {
+    "id": 130,
+    "name": "Copa Argentina",
+    "slug": "Copa-Argentina",
+    "icon": "/assets/icons/argentina_Copa_Argentina.svg",
+    "type": "league",
+    "division": 2,
+    "gender": "men",
+    "active": true,
+    "featured": true
+  },
     {
       "id": 131,
       "name": "Primera B Metropolitana",
