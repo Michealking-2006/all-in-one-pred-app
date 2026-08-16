@@ -73,6 +73,11 @@ const routes = {
   title: "Coins",
 },
 
+"/profile/edit": {
+  file: "/pages/profile/edit.html",
+  title: "Edit",
+},
+
   "/favourites": {
     file: "/pages/favourites.html",
     title: "Favourites",

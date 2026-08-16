@@ -1,0 +1,172 @@
+<div class="edit-profile-page" id="editProfilePage">
+
+  <header class="edit-profile-header">
+    <button
+      class="edit-profile-back-btn"
+      type="button"
+      data-back
+      aria-label="Go back"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+    </button>
+
+    <h1>Edit Profile</h1>
+  </header>
+
+  <main class="edit-profile-content">
+
+    <section class="edit-profile-avatar-section">
+      <div
+        class="edit-profile-avatar"
+        id="editProfileAvatarPreview"
+      >
+        <img
+          src="/assets/icons/normal-pfp.jpeg"
+          alt="Profile avatar"
+          id="editProfileAvatarImage"
+        >
+      </div>
+
+      <h2>Choose your avatar</h2>
+      <p>Select an avatar for your profile.</p>
+
+      <div
+        class="edit-profile-avatar-grid"
+        id="editProfileAvatarGrid"
+      >
+        <button
+          class="avatar-option is-selected"
+          type="button"
+          data-avatar="/assets/icons/normal-pfp.jpeg"
+          aria-label="Avatar 1"
+        >
+          <img
+            src="/assets/icons/normal-pfp.jpeg"
+            alt=""
+          >
+        </button>
+
+        <button
+          class="avatar-option"
+          type="button"
+          data-avatar="/assets/icons/avatar-2.jpeg"
+          aria-label="Avatar 2"
+        >
+          <img
+            src="/assets/icons/avatar-2.jpeg"
+            alt=""
+          >
+        </button>
+
+        <button
+          class="avatar-option"
+          type="button"
+          data-avatar="/assets/icons/avatar-3.jpeg"
+          aria-label="Avatar 3"
+        >
+          <img
+            src="/assets/icons/avatar-3.jpeg"
+            alt=""
+          >
+        </button>
+
+        <button
+          class="avatar-option"
+          type="button"
+          data-avatar="/assets/icons/avatar-4.jpeg"
+          aria-label="Avatar 4"
+        >
+          <img
+            src="/assets/icons/avatar-4.jpeg"
+            alt=""
+          >
+        </button>
+
+        <button
+          class="avatar-option"
+          type="button"
+          data-avatar="/assets/icons/avatar-5.jpeg"
+          aria-label="Avatar 5"
+        >
+          <img
+            src="/assets/icons/avatar-5.jpeg"
+            alt=""
+          >
+        </button>
+
+        <button
+          class="avatar-option"
+          type="button"
+          data-avatar="/assets/icons/avatar-6.jpeg"
+          aria-label="Avatar 6"
+        >
+          <img
+            src="/assets/icons/avatar-6.jpeg"
+            alt=""
+          >
+        </button>
+      </div>
+    </section>
+
+    <section class="edit-profile-form">
+
+      <div class="edit-profile-field">
+        <label
+          for="editProfileUsername"
+        >
+          Username
+        </label>
+
+        <input
+          type="text"
+          id="editProfileUsername"
+          name="username"
+          autocomplete="username"
+          maxlength="30"
+          placeholder="Enter your username"
+        >
+
+        <small>
+          Your username is visible on your Scoutwave profile.
+        </small>
+      </div>
+
+      <button
+        class="edit-profile-save-btn"
+        id="editProfileSaveBtn"
+        type="button"
+      >
+        Save Changes
+      </button>
+
+    </section>
+
+    <section class="edit-profile-danger">
+
+      <div class="edit-profile-danger-info">
+        <h2>Delete Account</h2>
+
+        <p>
+          Permanently delete your Scoutwave account and
+          all associated account data.
+        </p>
+      </div>
+
+      <button
+        class="edit-profile-delete-btn"
+        id="editProfileDeleteBtn"
+        type="button"
+      >
+        Delete Account
+      </button>
+
+    </section>
+
+  </main>
+
+</div>
