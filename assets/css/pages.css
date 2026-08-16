@@ -1634,6 +1634,7 @@ input[type="range"]::-moz-range-thumb{
 }
 
 .coins-note {
+  font-family: BykerR;
   margin: 43px auto 0;
 
   max-width: 420px;
@@ -1793,8 +1794,8 @@ input[type="range"]::-moz-range-thumb{
    =============================== */
 
 .coin-package-main {
-  height: 151px;
-
+  height: 110px;
+  width: 120px;
   display: flex;
   flex-direction: column;
 
@@ -1846,7 +1847,7 @@ input[type="range"]::-moz-range-thumb{
   min-width: 100px;
   height: 34px;
 
-  padding: 0 16px;
+  padding: 0 13px;
 
   display: flex;
   align-items: center;
@@ -1900,7 +1901,7 @@ input[type="range"]::-moz-range-thumb{
 .coins-pay-btn {
   width: 100%;
 
-  min-height: 52px;
+  min-height: 43px;
 
   border: 0;
 
@@ -1926,7 +1927,7 @@ input[type="range"]::-moz-range-thumb{
 }
 
 .coins-pay-btn strong {
-  font-weight: 900;
+  
 }
 
 .coins-legal {
