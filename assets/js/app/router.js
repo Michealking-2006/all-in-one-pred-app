@@ -73,15 +73,35 @@ const routes = {
   title: "Coins",
 },
 
+"/profile/premuim": {
+  file: "/pages/profile/premuim.html",
+  title: "Premium"
+},
+
 "/profile/edit": {
   file: "/pages/profile/edit.html",
   title: "Edit",
 },
 
-  "/favourites": {
-    file: "/pages/favourites.html",
+"/security/change-password": {
+  file: "/pages/security/change-password.html",
+  title: "Change password",
+},
+
+  "/profile/favourites": {
+    file: "/pages/profile/favourites.html",
     title: "Favourites",
   },
+  
+  "/news": {
+  file: "/pages/news.html",
+  title: "News",
+},
+
+"/profile/languages": {
+  file: "/pages/profile/languages.html",
+  title: "Languages",
+},
 };
 
 let navigationToken = 0;

@@ -3,6 +3,7 @@
 
 /****** app profile page ********/
 
+
 .app-profile-page {
   width: 100%;
   min-height: 100vh;
@@ -55,6 +56,173 @@
   font-weight: 700;
   margin: 0;
 }
+
+/**** profile page icons ****/
+
+.profile-icon {
+  --icon-size: 20px;
+
+  display: inline-block;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex: 0 0 var(--icon-size);
+
+  background-color: #4b4b4b;
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+
+/* Back */
+
+.profile-icon-back {
+  --icon-size: 20px;
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.299-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.299-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E");
+}
+
+.profile-icon-edit {
+--icon-size: 15px;
+background: #fff;
+-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23000' d='M404 0c19.2 0 37.6 7.6 51.1 21.2l35.7 35.7C504.4 70.4 512 88.8 512 108s-7.6 37.6-21.2 51.1L445.9 204L308 66.1l44.9-44.9C366.4 7.6 384.8 0 404 0M274.1 100L412 237.9L196.9 453c-10.7 10.7-24.1 18.5-38.7 22.6L30.4 511.1c-8.3 2.3-17.3 0-23.4-6.2s-8.5-15.1-6.2-23.4l35.6-127.7c4.1-14.6 11.8-27.9 22.6-38.7l181.1-181.2l-17.1-17c-9.4-9.4-24.6-9.4-33.9 0L89 217c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l100-100.2c28.1-28.1 73.7-28.1 101.8 0z'/%3E%3C/svg%3E");
+mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23000' d='M404 0c19.2 0 37.6 7.6 51.1 21.2l35.7 35.7C504.4 70.4 512 88.8 512 108s-7.6 37.6-21.2 51.1L445.9 204L308 66.1l44.9-44.9C366.4 7.6 384.8 0 404 0M274.1 100L412 237.9L196.9 453c-10.7 10.7-24.1 18.5-38.7 22.6L30.4 511.1c-8.3 2.3-17.3 0-23.4-6.2s-8.5-15.1-6.2-23.4l35.6-127.7c4.1-14.6 11.8-27.9 22.6-38.7l181.1-181.2l-17.1-17c-9.4-9.4-24.6-9.4-33.9 0L89 217c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l100-100.2c28.1-28.1 73.7-28.1 101.8 0z'/%3E%3C/svg%3E");
+}
+
+.profile-icon-premium {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M3 1h1.046L2.997 4H1.191l1.362-2.724A.5.5 0 0 1 3 1ZM1.227 5l3.014 4.687L2.97 5H1.227Zm2.779 0l1.53 5.645a.48.48 0 0 0 .928 0L7.998 5H4.006Zm5.028 0L7.76 9.685L10.773 5h-1.74Zm1.775-1H9.006l-1.05-3H9a.5.5 0 0 1 .448.276L10.809 4ZM7.947 4h-3.89l1.048-3h1.79l1.052 3Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M3 1h1.046L2.997 4H1.191l1.362-2.724A.5.5 0 0 1 3 1ZM1.227 5l3.014 4.687L2.97 5H1.227Zm2.779 0l1.53 5.645a.48.48 0 0 0 .928 0L7.998 5H4.006Zm5.028 0L7.76 9.685L10.773 5h-1.74Zm1.775-1H9.006l-1.05-3H9a.5.5 0 0 1 .448.276L10.809 4ZM7.947 4h-3.89l1.048-3h1.79l1.052 3Z'/%3E%3C/svg%3E");
+}
+
+
+/* Coins */
+
+.profile-icon-coins {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23000' d='M256 243.2c141.4 0 256-47.8 256-106.7c0-58.9-114.6-106.7-256-106.7S0 77.6 0 136.5c0 58.9 114.6 106.7 256 106.7zm0 170.6c-97.7 0-184.1-23.5-238.6-59.8C6.3 366 0 378.9 0 392.5c0 58.9 114.6 106.7 256 106.7s256-47.8 256-106.7c0-13.6-6.3-26.5-17.4-38.4c-54.5 36.2-140.9 59.7-238.6 59.7zm0-128c-97.7 0-184.1-23.5-238.6-59.8C6.3 238 0 250.9 0 264.5c0 58.9 114.6 106.7 256 106.7s256-47.8 256-106.7c0-13.6-6.3-26.5-17.4-38.4c-54.5 36.2-140.9 59.7-238.6 59.7z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23000' d='M256 243.2c141.4 0 256-47.8 256-106.7c0-58.9-114.6-106.7-256-106.7S0 77.6 0 136.5c0 58.9 114.6 106.7 256 106.7zm0 170.6c-97.7 0-184.1-23.5-238.6-59.8C6.3 366 0 378.9 0 392.5c0 58.9 114.6 106.7 256 106.7s256-47.8 256-106.7c0-13.6-6.3-26.5-17.4-38.4c-54.5 36.2-140.9 59.7-238.6 59.7zm0-128c-97.7 0-184.1-23.5-238.6-59.8C6.3 238 0 250.9 0 264.5c0 58.9 114.6 106.7 256 106.7s256-47.8 256-106.7c0-13.6-6.3-26.5-17.4-38.4c-54.5 36.2-140.9 59.7-238.6 59.7z'/%3E%3C/svg%3E");
+}
+
+
+/* Chevron */
+
+.profile-icon-chevron {
+  --icon-size: 18px;
+
+  flex-shrink: 0;
+  color: #8a8a8a;
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m9 18l6-6l-6-6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m9 18l6-6l-6-6'/%3E%3C/svg%3E");
+}
+
+
+/* User */
+
+.profile-icon-user {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M8 7a4 4 0 1 1 8 0a4 4 0 0 1-8 0Zm0 6a5 5 0 0 0-5 5a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3a5 5 0 0 0-5-5H8Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M8 7a4 4 0 1 1 8 0a4 4 0 0 1-8 0Zm0 6a5 5 0 0 0-5 5a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3a5 5 0 0 0-5-5H8Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+
+/* Star */
+
+.profile-icon-star {
+  --icon-size: 22px;
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M22 10.1c.1-.5-.3-1.1-.8-1.1l-5.7-.8L12.9 3c-.1-.2-.2-.3-.4-.4c-.5-.3-1.1-.1-1.4.4L8.6 8.2L2.9 9c-.3 0-.5.1-.6.3c-.4.4-.4 1 0 1.4l4.1 4l-1 5.7c0 .2 0 .4.1.6c.3.5.9.7 1.4.4l5.1-2.7l5.1 2.7c.1.1.3.1.5.1h.2c.5-.1.9-.6.8-1.2l-1-5.7l4.1-4c.2-.1.3-.3.3-.5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M22 10.1c.1-.5-.3-1.1-.8-1.1l-5.7-.8L12.9 3c-.1-.2-.2-.3-.4-.4c-.5-.3-1.1-.1-1.4.4L8.6 8.2L2.9 9c-.3 0-.5.1-.6.3c-.4.4-.4 1 0 1.4l4.1 4l-1 5.7c0 .2 0 .4.1.6c.3.5.9.7 1.4.4l5.1-2.7l5.1 2.7c.1.1.3.1.5.1h.2c.5-.1.9-.6.8-1.2l-1-5.7l4.1-4c.2-.1.3-.3.3-.5z'/%3E%3C/svg%3E");
+}
+
+
+/* Password */
+
+.profile-icon-password {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 472 384'%3E%3Cpath fill='%23000' d='M249 149h220v86h-42v85h-86v-85h-92q-14 37-47 61t-74 24q-53 0-90.5-37.5T0 192t37.5-90.5T128 64q41 0 74 24t47 61zm-121 86q18 0 30.5-12.5T171 192t-12.5-30.5T128 149t-30.5 12.5T85 192t12.5 30.5T128 235z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 472 384'%3E%3Cpath fill='%23000' d='M249 149h220v86h-42v85h-86v-85h-92q-14 37-47 61t-74 24q-53 0-90.5-37.5T0 192t37.5-90.5T128 64q41 0 74 24t47 61zm-121 86q18 0 30.5-12.5T171 192t-12.5-30.5T128 149t-30.5 12.5T85 192t12.5 30.5T128 235z'/%3E%3C/svg%3E");
+}
+
+
+/* News */
+
+.profile-icon-news {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 21q-.825 0-1.413-.588T2 19V5q0-.825.588-1.413T4 3h16q.825 0 1.413.588T22 5v14q0 .825-.588 1.413T20 21H4Zm3-4h10q.425 0 .713-.288T18 16q0-.425-.288-.713T17 15H7q-.425 0-.713.288T6 16q0 .425.288.713T7 17Zm0-4h2q.425 0 .713-.288T10 12V8q0-.425-.288-.713T9 7H7q-.425 0-.713.288T6 8v4q0 .425.288.713T7 13Zm6 0h4q.425 0 .713-.288T18 12q0-.425-.288-.713T17 11h-4q-.425 0-.713.288T12 12q0 .425.288.713T13 13Zm0-4h4q.425 0 .713-.288T18 8q0-.425-.288-.713T17 7h-4q-.425 0-.713.288T12 8q0 .425.288.713T13 9Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 21q-.825 0-1.413-.588T2 19V5q0-.825.588-1.413T4 3h16q.825 0 1.413.588T22 5v14q0 .825-.588 1.413T20 21H4Zm3-4h10q.425 0 .713-.288T18 16q0-.425-.288-.713T17 15H7q-.425 0-.713.288T6 16q0 .425.288.713T7 17Zm0-4h2q.425 0 .713-.288T10 12V8q0-.425-.288-.713T9 7H7q-.425 0-.713.288T6 8v4q0 .425.288.713T7 13Zm6 0h4q.425 0 .713-.288T18 12q0-.425-.288-.713T17 11h-4q-.425 0-.713.288T12 12q0 .425.288.713T13 13Zm0-4h4q.425 0 .713-.288T18 8q0-.425-.288-.713T17 7h-4q-.425 0-.713.288T12 8q0 .425.288.713T13 9Z'/%3E%3C/svg%3E");
+}
+
+
+/* Theme */
+
+.profile-icon-theme {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M8 1a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 1m2.5 7a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0m2.45-3.89a.75.75 0 1 0-1.06-1.06l-1.062 1.06a.75.75 0 0 0 1.061 1.062zM15 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 15 8m-3.11 4.95a.75.75 0 0 0 1.06-1.06l-1.06-1.062a.75.75 0 0 0-1.062 1.061zM8 12a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 12m-2.828-.11a.75.75 0 0 0-1.061-1.062L3.05 11.89a.75.75 0 1 0 1.06 1.06zM4 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 4 8m.11-2.828A.75.75 0 0 0 5.173 4.11L4.11 3.05a.75.75 0 1 0-1.06 1.06z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M8 1a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 1m2.5 7a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0m2.45-3.89a.75.75 0 1 0-1.06-1.06l-1.062 1.06a.75.75 0 0 0 1.061 1.062zM15 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 15 8m-3.11 4.95a.75.75 0 0 0 1.06-1.06l-1.06-1.062a.75.75 0 0 0-1.062 1.061zM8 12a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 12m-2.828-.11a.75.75 0 0 0-1.061-1.062L3.05 11.89a.75.75 0 1 0 1.06 1.06zM4 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 4 8m.11-2.828A.75.75 0 0 0 5.173 4.11L4.11 3.05a.75.75 0 1 0-1.06 1.06z'/%3E%3C/svg%3E");
+}
+
+
+/* Help */
+
+.profile-icon-help {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16ZM4.927 4.99c-.285.429-.427.853-.427 1.27c0 .203.09.392.27.566c.18.174.4.26.661.26c.443 0 .744-.248.903-.746c.168-.475.373-.835.616-1.08c.243-.244.62-.366 1.134-.366c.439 0 .797.12 1.075.363c.277.242.416.54.416.892a.97.97 0 0 1-.136.502a1.91 1.91 0 0 1-.336.419a14.35 14.35 0 0 1-.648.558c-.34.282-.611.525-.812.73c-.2.205-.362.443-.483.713c-.322 1.245 1.35 1.345 1.736.456c.047-.086.118-.18.213-.284c.096-.103.223-.223.382-.36c.159-.137.357-.301.595-.491c.221-.204.412-.448.573-.73a1.95 1.95 0 0 0 .242-.984c0-.475-.141-.915-.424-1.32c-.282-.406-.682-.726-1.2-.962c-.518-.235-1.115-.353-1.792-.353c-.728 0-1.365.14-1.911.423c-.546.282-.961.637-1.246 1.066Zm2.14 7.08a1 1 0 1 0 2 0a1 1 0 0 0-2 0Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16ZM4.927 4.99c-.285.429-.427.853-.427 1.27c0 .203.09.392.27.566c.18.174.4.26.661.26c.443 0 .744-.248.903-.746c.168-.475.373-.835.616-1.08c.243-.244.62-.366 1.134-.366c.439 0 .797.12 1.075.363c.277.242.416.54.416.892a.97.97 0 0 1-.136.502a1.91 1.91 0 0 1-.336.419a14.35 14.35 0 0 1-.648.558c-.34.282-.611.525-.812.73c-.2.205-.362.443-.483.713c-.322 1.245 1.35 1.345 1.736.456c.047-.086.118-.18.213-.284c.096-.103.223-.223.382-.36c.159-.137.357-.301.595-.491c.221-.204.412-.448.573-.73a1.95 1.95 0 0 0 .242-.984c0-.475-.141-.915-.424-1.32c-.282-.406-.682-.726-1.2-.962c-.518-.235-1.115-.353-1.792-.353c-.728 0-1.365.14-1.911.423c-.546.282-.961.637-1.246 1.066Zm2.14 7.08a1 1 0 1 0 2 0a1 1 0 0 0-2 0Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+
+/* Warning */
+
+.profile-icon-warning {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M2.73 21h18.53c.77 0 1.25-.83.87-1.5l-9.27-16a.996.996 0 0 0-1.73 0l-9.27 16c-.38.67.1 1.5.87 1.5zM13 18h-2v-2h2v2zm-1-4c-.55 0-1-.45-1-1v-2c0-.55.45-1 1-1s1 .45 1 1v2c0 .55-.45 1-1 1z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M2.73 21h18.53c.77 0 1.25-.83 0.87-1.5l-9.27-16a.996.996 0 0 0-1.73 0l-9.27 16c-.38.67.1 1.5.87 1.5zM13 18h-2v-2h2v2zm-1-4c-.55 0-1-.45-1-1v-2c0-.55.45-1 1-1s1 .45 1 1v2c0 0.55-.45 1-1 1z'/%3E%3C/svg%3E");
+}
+
+
+/* Phone */
+
+.profile-icon-phone {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m7.772 2.439l1.077-.344c1.008-.322 2.086.199 2.518 1.217l.86 2.028c.375.883.167 1.922-.514 2.568L9.82 9.706c.117 1.076.478 2.135 1.084 3.177a8.68 8.68 0 0 0 2.271 2.595l2.276-.76c.862-.287 1.801.044 2.33.821l1.232 1.81c.616.904.505 2.15-.258 2.916l-.818.821c-.814.817-1.976 1.114-3.052.778c-2.539-.792-4.873-3.143-7.003-7.053c-2.133-3.916-2.885-7.24-2.258-9.968c.264-1.148 1.082-2.063 2.15-2.404Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m7.772 2.439l1.077-.344c1.008-.322 2.086.199 2.518 1.217l.86 2.028c.375.883.167 1.922-.514 2.568L9.82 9.706c.117 1.076.478 2.135 1.084 3.177a8.68 8.68 0 0 0 2.271 2.595l2.276-.76c.862-.287 1.801.044 2.33.821l1.232 1.81c.616.904.505 2.15-.258 2.916l-.818.821c-.814.817-1.976 1.114-3.052.778c-2.539-.792-4.873-3.143-7.003-7.053c-2.133-3.916-2.885-7.24-2.258-9.968c.264-1.148 1.082-2.063 2.15-2.404Z'/%3E%3C/svg%3E");
+}
+
+
+/* Privacy */
+
+.profile-icon-privacy {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 21.9q-.175 0-.325-.025t-.3-.075Q8 20.675 6 17.638T4 11.1V6.375q0-.625.363-1.125t.937-.725l6-2.25q.35-.125.7-.125t.7.125l6 2.25q.575.225.938.725T20 6.375V11.1q0 1.575-.413 3.063T18.4 17l-2.95-2.95q.275-.475.413-.988T16 12q0-1.65-1.175-2.825T12 8q-1.65 0-2.825 1.175T8 12q0 1.65 1.175 2.825T12 16q.525 0 1.038-.138T14 15.45l3.225 3.2q-.95 1.125-2.087 1.913T12.625 21.8q-.15.05-.3.075T12 21.9Zm0-7.9q-.825 0-1.413-.587T10 12q0-.825.588-1.413T12 10q.825 0 1.413.588T14 12q0 .825-.588 1.413T12 14Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 21.9q-.175 0-.325-.025t-.3-.075Q8 20.675 6 17.638T4 11.1V6.375q0-.625.363-1.125t.937-.725l6-2.25q.35-.125.7-.125t.7.125l6 2.25q.575.225.938.725T20 6.375V11.1q0 1.575-.413 3.063T18.4 17l-2.95-2.95q.275-.475.413-.988T16 12q0-1.65-1.175-2.825T12 8q-1.65 0-2.825 1.175T8 12q0 1.65 1.175 2.825T12 16q.525 0 1.038-.138T14 15.45l3.225 3.2q-.95 1.125-2.087 1.913T12.625 21.8q-.15.05-.3.075T12 21.9Zm0-7.9q-.825 0-1.413-.587T10 12q0-.825.588-1.413T12 10q.825 0 1.413.588T14 12q0 .825-.588 1.413T12 14Z'/%3E%3C/svg%3E");
+}
+
+
+/* Terms */
+
+.profile-icon-terms {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2 4v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h7v-2H7z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2 4v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h7v-2H7z'/%3E%3C/svg%3E");
+}
+
+
+/* About */
+
+.profile-icon-about {
+  --icon-size: 22px;
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m1 15h-2v-6h2zm0-8h-2V7h2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m1 15h-2v-6h2zm0-8h-2V7h2z'/%3E%3C/svg%3E");
+}
+
+
+/* Language */
+
+.profile-icon-language {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 22q-2.05 0-3.875-.788t-3.188-2.15q-1.362-1.362-2.15-3.187T2 12q0-2.075.788-3.888t2.15-3.174Q6.3 3.575 8.124 2.788T12 2q2.075 0 3.888.788t3.174 2.15q1.363 1.362 2.15 3.175T22 12q0 2.05-.788 3.875t-2.15 3.188q-1.362 1.362-3.175 2.15T12 22Zm0-2.05q.65-.9 1.125-1.875T13.9 16h-3.8q.3 1.1.775 2.075T12 19.95Zm-2.6-.4q-.45-.825-.788-1.713T8.05 16H5.1q.725 1.25 1.813 2.175T9.4 19.55Zm5.2 0q1.4-.45 2.488-1.375T18.9 16h-2.95q-.225.95-.562 1.838T14.6 19.55ZM4.25 14h3.4q-.075-.5-.113-.988T7.5 12q0-.525.038-1.012T7.65 10h-3.4q-.125.5-.188.988T4 12q0 .525.063 1.012T4.25 14Zm5.4 0h4.7q.075-.5.113-.988T14.5 12q0-.525-.038-1.012T14.35 10h-4.7q-.075.5-.113.988T9.5 12q0 .525.038 1.012T9.65 14Zm6.7 0h3.4q.125-.5.188-.988T20 12q0-.525-.063-1.012T19.75 10h-3.4q.075.5.113.988T16.5 12q0 .525-.038 1.012T16.35 14Zm-.4-6h2.95q-.725-1.25-1.812-2.175T14.6 4.45q.45.825.788 1.713T15.95 8ZM10.1 8h3.8q-.3-1.1-.775-2.075T12 4.05q-.65.9-1.125 1.875T10.1 8Zm-5 0h2.95q.225-.95.563-1.838T9.4 4.45Q8 4.9 6.912 5.825T5.1 8Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 22q-2.05 0-3.875-.788t-3.188-2.15q-1.362-1.362-2.15-3.187T2 12q0-2.075.788-3.888t2.15-3.174Q6.3 3.575 8.124 2.788T12 2q2.075 0 3.888.788t3.174 2.15q1.363 1.362 2.15 3.175T22 12q0 2.05-.788 3.875t-2.15 3.188q-1.362 1.362-3.175 2.15T12 22Zm0-2.05q.65-.9 1.125-1.875T13.9 16h-3.8q.3 1.1.775 2.075T12 19.95Zm-2.6-.4q-.45-.825-.788-1.713T8.05 16H5.1q.725 1.25 1.813 2.175T9.4 19.55Zm5.2 0q1.4-.45 2.488-1.375T18.9 16h-2.95q-.225.95-.562 1.838T14.6 19.55ZM4.25 14h3.4q-.075-.5-.113-.988T7.5 12q0-.525.038-1.012T7.65 10h-3.4q-.125.5-.188.988T4 12q0 .525.063 1.012T4.25 14Zm5.4 0h4.7q.075-.5.113-.988T14.5 12q0-.525-.038-1.012T14.35 10h-4.7q-.075.5-.113.988T9.5 12q0 .525.038 1.012T9.65 14Zm6.7 0h3.4q.125-.5.188-.988T20 12q0-.525-.063-1.012T19.75 10h-3.4q.075.5.113.988T16.5 12q0 .525-.038 1.012T16.35 14Zm-.4-6h2.95q-.725-1.25-1.812-2.175T14.6 4.45q.45.825.788 1.713T15.95 8ZM10.1 8h3.8q-.3-1.1-.775-2.075T12 4.05q-.65.9-1.125 1.875T10.1 8Zm-5 0h2.95q.225-.95.563-1.838T9.4 4.45Q8 4.9 6.912 5.825T5.1 8Z'/%3E%3C/svg%3E");
+}
+
+
 
 /********************* USER *********************/
 
@@ -306,1141 +474,6 @@
 
 /**********************/
 
-
-/***** vip page *******/
-
-button,
-input{
-  font:inherit;
-}
-
-.app{
-  max-width:430px;
-  margin:0 auto;
-  min-height:100vh;
-  background:var(--bg);
-  overflow-x:hidden;
-  padding-bottom:92px;
-}
-
-/* Top bar */
-.topbar{
-  background:var(--app-primary-color);
-  border-bottom-left-radius:20px;
-  border-bottom-right-radius:20px;
-  padding:14px 14px 12px;
-  box-shadow:0 8px 18px rgba(0,0,0,.10);
-  position:sticky;
-  top:0;
-  z-index:20;
-}
-
-.topbar-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  min-width:0;
-}
-
-.brand-title{
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:20px;
-  line-height:1;
-  font-style:italic;
-  letter-spacing:.06em;
-  font-weight:900;
-  color:#fff;
-  white-space:nowrap;
-}
-
-.actions{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  flex:0 0 auto;
-}
-
-.icon-pill,
-.vip-pill,
-.profile-btn{
-  border:none;
-  outline:none;
-  display:grid;
-  place-items:center;
-  
-}
-
-.icon-pill{
-  width:34px;
-  height:34px;
-  border-radius:999px;
-  background:rgba(255,255,255,.16);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.12);
-  font-size:14px;
-}
-
-.vip-pill{
-  height:34px;
-  border-radius:999px;
-  padding:0 12px;
-  background:#ffd93a;
-  color:#121212;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:12px;
-  font-weight:900;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  box-shadow:inset 0 -2px 0 rgba(0,0,0,.07);
-}
-
-.profile-btn{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  background:rgba(255,255,255,.16);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.12);
-}
-
-.tabs-row{
-  display:flex;
-  gap:14px;
-  padding:14px 2px 0;
-  align-items:center;
-  white-space:nowrap;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-}
-
-.tabs-row::-webkit-scrollbar{
-  display:none;
-}
-
-.top-tab{
-  border:none;
-  background:none;
-  padding:10px 0;
-  color:rgba(255,255,255,.72);
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:14px;
-  font-weight:700;
-  position:relative;
-  flex:0 0 auto;
-  
-}
-
-.top-tab.active{
-  color:#fff;
-  font-weight:900;
-}
-
-.top-tab.active::after{
-  content:"";
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:-8px;
-  height:3px;
-  border-radius:999px;
-  background:#fff;
-}
-
-.slip-btn{
-  margin-left:auto;
-  background:#fff;
-  color:var(--app-primary-color);
-  border:none;
-  border-radius:10px;
-  padding:10px 14px;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:13px;
-  font-weight:900;
-  flex:0 0 auto;
-}
-
-.slip-btn.active{
-  background:#fff;
-  color:var(--app-primary-color);
-}
-
-/* Main content */
-.content{
-  padding:12px 10px 16px;
-}
-
-.card{
-  background:var(--card);
-  border-radius:22px;
-  box-shadow:var(--shadow);
-  padding:14px;
-  margin-bottom:14px;
-}
-
-.section-title{
-  margin:0 0 12px;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:17px;
-  line-height:1.1;
-  letter-spacing:-.02em;
-  color:#191919;
-}
-
-/* Selector rows */
-.number-row,
-.chips,
-.league-tabs,
-.market-strip{
-  display:flex;
-  gap:10px;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-}
-
-.number-row::-webkit-scrollbar,
-.chips::-webkit-scrollbar,
-.league-tabs::-webkit-scrollbar,
-.market-strip::-webkit-scrollbar{
-  display:none;
-}
-
-.number-row{
-  padding:2px 1px 4px;
-}
-
-.number-btn{
-  width:50px;
-  height:50px;
-  border-radius:14px;
-  border:1px solid #e4e4e4;
-  background:#f6f6f6;
-  color:#b4b4b4;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:18px;
-  font-weight:900;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
-  flex:0 0 auto;
-  
-}
-
-.number-btn.active{
-  background:var(--app-primary-color);
-  color:#fff;
-  border-color:var(--app-primary-color);
-}
-
-.segmented{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  background:#f7f7f7;
-  border:1px solid #e8e8e8;
-  border-radius:22px;
-  padding:5px;
-  gap:5px;
-}
-
-.seg-btn{
-  border:none;
-  border-radius:18px;
-  height:42px;
-  background:transparent;
-  color:#7a7a7a;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:14px;
-  font-weight:800;
-  
-}
-
-.seg-btn.active{
-  background:var(--app-primary-color);
-  color:#fff;
-}
-
-.toggle-card{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  background:#f7f7f7;
-  border:1px solid #e8e8e8;
-  border-radius:18px;
-  padding:12px;
-}
-
-.toggle-copy{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width:0;
-}
-
-.toggle-icon{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#efefef;
-  color:#a4a4a4;
-  flex:0 0 auto;
-  font-size:16px;
-}
-
-.toggle-title{
-  margin:0;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:15px;
-  line-height:1.1;
-  font-weight:900;
-}
-
-.toggle-sub{
-  margin:3px 0 0;
-  color:#a2a7af;
-  font-size:12px;
-  line-height:1.25;
-}
-
-.switch{
-  position:relative;
-  width:48px;
-  height:26px;
-  flex:0 0 auto;
-}
-
-.switch input{
-  opacity:0;
-  width:0;
-  height:0;
-}
-
-.slider{
-  position:absolute;
-  inset:0;
-  background:#bbb;
-  border-radius:999px;
-  transition:.2s;
-}
-
-.slider:before{
-  content:"";
-  position:absolute;
-  width:18px;
-  height:18px;
-  left:4px;
-  top:4px;
-  background:#fff;
-  border-radius:50%;
-  transition:.2s;
-  box-shadow:0 4px 8px rgba(0,0,0,.16);
-}
-
-.switch input:checked + .slider{
-  background:var(--app-primary-color);
-}
-
-.switch input:checked + .slider:before{
-  transform:translateX(22px);
-}
-
-.chips{
-  padding-bottom:2px;
-}
-
-.chip{
-  border:none;
-  border-radius:14px;
-  background:var(--app-primary-color);
-  color:#fff;
-  height:42px;
-  padding:0 14px;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:13px;
-  font-weight:900;
-  white-space:nowrap;
-  box-shadow:0 8px 16px rgba(213,0,0,.16);
-  flex:0 0 auto;
-  
-}
-
-.chip.light{
-  background:#f3f3f3;
-  color:#6c6c6c;
-  box-shadow:none;
-  border:1px solid #e5e5e5;
-}
-
-.chip.selected{
-  background:var(--app-primary-color);
-  color:#fff;
-}
-
-.range-wrap{
-  margin-top:6px;
-}
-
-.range-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:10px;
-  color:#a5a9af;
-  font-family:BykerR,system-ui,sans-serif;
-  font-size:12px;
-  font-weight:400;
-}
-
-.range-value{
-  min-width:72px;
-  text-align:center;
-  padding:8px 10px;
-  border-radius:12px;
-  background:#fff2f2;
-  color:var(--app-primary-color);
-  border:1px solid #f1d1d1;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:16px;
-  font-weight:900;
-  box-shadow:0 4px 10px rgba(0,0,0,.03);
-}
-
-input[type="range"]{
-  width:100%;
-  appearance:none;
-  height:6px;
-  border-radius:999px;
-  background:#ececec;
-  outline:none;
-  margin:4px 0 2px;
-}
-
-input[type="range"]::-webkit-slider-thumb{
-  appearance:none;
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  background:#fff;
-  border:1px solid #ebebeb;
-  box-shadow:0 8px 16px rgba(0,0,0,.14);
-}
-
-input[type="range"]::-moz-range-thumb{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  background:#fff;
-  border:1px solid #ebebeb;
-  box-shadow:0 8px 16px rgba(0,0,0,.14);
-}
-
-.generate-btn{
-  margin-top:16px;
-  width:100%;
-  height:44px;
-  border:none;
-  border-radius:18px;
-  background:var(--app-primary-color);
-  color:#fff;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:15px;
-  font-weight:900;
-  box-shadow:0 10px 18px rgba(213,0,0,.18);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  
-}
-
-/* VIP tips area */
-.subhead{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:10px;
-}
-
-.subhead h2{
-  margin:0;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:17px;
-  letter-spacing:-.02em;
-}
-
-.league-tabs{
-  padding:0 1px 10px;
-  margin:0 0 4px;
-}
-
-.league-tab{
-  border:none;
-  background:transparent;
-  color:#8f949b;
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:13px;
-  font-weight:800;
-  white-space:nowrap;
-  padding:10px 0;
-  flex:0 0 auto;
-  
-}
-
-.league-tab.active{
-  color:#161616;
-  border-bottom:3px solid var(--app-primary-color);
-}
-
-/********************* PREDICTION TYPE BUTTON ********************/
-
-#list-all-prediction-type-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-#list-all-prediction-type-btn::after {
-  content: "";
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: #fff;
-  fill: #fff;
-  
-  color: currentColor;
-  transition: .3s ease;
-}
-
-/* Rotate when opened */
-#list-all-prediction-type-btn.active::after {
-  transform: rotate(180deg);
-}
-
-.league-list{
-  display:grid;
-  gap:10px;
-}
-
-.league-item{
-  background:#fff;
-  border-radius:16px;
-  box-shadow:0 8px 20px rgba(0,0,0,.04);
-  border:1px solid #f0f0f0;
-  overflow:hidden;
-}
-
-.league-row{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:12px 12px;
-  width:100%;
-  border:none;
-  background:#fff;
-  
-}
-
-.league-logo{
-  width:24px;
-  height:24px;
-  flex:0 0 auto;
-  border-radius:5px;
-  object-fit:contain;
-}
-
-.league-name{
-  flex:1;
-  text-align:left;
-  font-size:14px;
-  line-height:1.2;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.league-name strong{
-  font-family:BykerM,system-ui,sans-serif;
-  font-weight:900;
-}
-
-.star{
-  width:20px;
-  height:20px;
-  flex:0 0 auto;
-  color:#8b8f95;
-  font-size:15px;
-  display:grid;
-  place-items:center;
-}
-
-.count{
-  min-width:24px;
-  height:22px;
-  padding:0 7px;
-  border-radius:999px;
-  background:#f4e8e8;
-  color:var(--app-primary-color);
-  display:grid;
-  place-items:center;
-  font-family:BykerM,system-ui,sans-serif;
-  font-weight:900;
-  font-size:12px;
-  flex:0 0 auto;
-}
-
-.chev{
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  background:#f4f4f4;
-  color:#a5a5a5;
-  display:grid;
-  place-items:center;
-  flex:0 0 auto;
-  font-size:16px;
-}
-
-.market-strip{
-  display:flex;
-  gap:8px;
-  overflow:auto;
-  padding:0 12px 10px;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
-  background:linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,.98));
-}
-
-.market-strip::-webkit-scrollbar{
-  display:none;
-}
-
-.market-pill{
-  flex:0 0 auto;
-  background:var(--app-primary-color);
-  color:#fff;
-  border:none;
-  border-radius:12px;
-  padding:9px 12px;
-  font-family:BykerM,system-ui,sans-serif;
-  font-weight:900;
-  font-size:12px;
-  box-shadow:0 6px 14px rgba(213,0,0,.14);
-  
-}
-
-.match-card{
-  margin:0 12px 12px;
-  border-radius:16px;
-  background:#f8f3f3;
-  border:1px solid #eadada;
-  overflow:hidden;
-  display:block;
-}
-
-.match-top{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:6px;
-  background:var(--app-primary-color);
-  color:#fff;
-  font-family:BykerM,system-ui,sans-serif;
-  font-weight:900;
-  padding:8px 10px;
-  font-size:13px;
-  clip-path:polygon(8% 0, 92% 0, 100% 100%, 0 100%);
-  margin:0 auto;
-  width:84%;
-  border-bottom-left-radius:10px;
-  border-bottom-right-radius:10px;
-}
-
-.match-body{
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
-  align-items:center;
-  padding:12px 12px 10px;
-  gap:8px;
-}
-
-.team{
-  display:grid;
-  justify-items:center;
-  text-align:center;
-  gap:6px;
-  min-width:0;
-}
-
-.team-logo{
-  width:26px;
-  height:26px;
-  object-fit:contain;
-}
-
-.team-name{
-  font-size:13px;
-  font-weight:900;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:110px;
-}
-
-.odd{
-  font-size:12px;
-  font-weight:800;
-  color:#1f1f1f;
-}
-
-.center{
-  display:grid;
-  justify-items:center;
-  gap:5px;
-}
-
-.score{
-  font-family:BykerM,system-ui,sans-serif;
-  font-size:18px;
-  font-weight:900;
-  letter-spacing:.03em;
-  color:#3d4d38;
-}
-
-.time{
-  font-size:11px;
-  color:#667065;
-  font-weight:700;
-}
-
-
-/* Helpful open state */
-.league-item.open .market-strip,
-.league-item.open .match-card{
-  display:block;
-}
-
-/* Responsive */
-@media (max-width:380px){
-  .brand-title{font-size:18px}
-  .section-title,
-  .subhead h2{font-size:16px}
-  .chip{padding:0 12px}
-  .generate-btn{font-size:14px}
-  .top-tab{font-size:13px}
-}
-
-
-/**********************/
-
-
-
-
-/* ===========================
-   Predictions Page
-=========================== */
-
-:root{
-  --primary:#16a34a;
-  --primary-light:#ecfdf3;
-  --text:#111827;
-  --text-light:#6b7280;
-  --border:#e5e7eb;
-  --surface:#ffffff;
-  --bg:#f8fafc;
-  --danger:#ef4444;
-  --warning:#f59e0b;
-  --shadow:0 8px 25px rgba(0,0,0,.06);
-  --radius:18px;
-}
-
-
-.predictions-page{
-  font-family: BykerR;
-  min-height: 100vh;
-  padding: 16px;
-  color:var(--text);
-  margin-top: 8em;
-  margin-bottom: 5em;
-}
-
-
-
-.prediction-filter-btn{
-  width:46px;
-  height:46px;
-  border:none;
-  border-radius:14px;
-  background:#fff;
-  color:var(--text);
-  box-shadow:var(--shadow);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:.25s;
-}
-
-.prediction-filter-btn:hover{
-  transform:translateY(-2px);
-}
-
-/* ===========================
-   Horizontal Scroll
-=========================== */
-
-.prediction-day-scroll,
-.prediction-market-scroll{
-  display:flex;
-  gap:12px;
-  overflow-x:auto;
-  scrollbar-width:none;
-  -ms-overflow-style:none;
-  margin-bottom: 10px;
-  margin-top: 10px;
-  padding: 8px;
-}
-
-.prediction-day-scroll::-webkit-scrollbar,
-.prediction-market-scroll::-webkit-scrollbar{
-  display:none;
-}
-
-/* ===========================
-   Day Filter
-=========================== */
-
-.prediction-day{
-  min-width:88px;
-  border:none;
-  border-radius: 30px;
-  background:#fff;
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:3px;
-  transition:.25s;
-}
-
-.prediction-day span{
-  font-size:.95rem;
-  font-weight:600;
-}
-
-.prediction-day.active{
-  background:var(--app-primary-color);
-  color:#fff;
-}
-
-.prediction-day.active small{
-  color:#fff;
-}
-
-/* ===========================
-   Market Filter
-=========================== */
-
-.prediction-market{
-  white-space:nowrap;
-  border:none;
-  background:#fff;
-  padding:11px 18px;
-  border-radius:999px;
-  font-weight:600;
-  transition:.25s;
-}
-
-.prediction-market.active{
-  background:var(--app-primary-color);
-  color:#fff;
-}
-
-
-/* ===========================
-   Featured Card
-=========================== */
-
-.featured-prediction-card{
-  background: #D6000030;
-  border-radius:22px;
-  padding:18px;
-  box-shadow:var(--shadow);
-  margin-bottom:24px;
-}
-
-.featured-prediction-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.featured-league{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.featured-league img{
-  width:28px;
-  height:28px;
-  object-fit:contain;
-}
-
-.featured-league span{
-  font-weight:700;
-}
-
-.prediction-confidence{
-  font-weight:700;
-  font-size:.82rem;
-  padding:7px 12px;
-  border-radius:999px;
-}
-
-.prediction-confidence.high{
-  background:#dcfce7;
-  color:#15803d;
-}
-
-.featured-match-row{
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
-  gap:16px;
-  align-items:center;
-}
-
-.featured-team{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:8px;
-}
-
-.featured-team img{
-  width:54px;
-  height:54px;
-  object-fit:contain;
-}
-
-.featured-team span{
-  font-weight:600;
-  text-align:center;
-}
-
-.featured-vs{
-  text-align:center;
-}
-
-.featured-vs strong{
-  display:block;
-  font-size:1.1rem;
-}
-
-.featured-vs small{
-  color:var(--text-light);
-}
-
-/* ===========================
-   Prediction Pills
-=========================== */
-
-.featured-picks{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:20px;
-}
-
-.prediction-pill{
-  border:none;
-  background:#f3f4f6;
-  border-radius:999px;
-  padding:10px 16px;
-  
-  font-weight:600;
-}
-
-.prediction-pill.active{
-  background:var(--app-primary-color);
-  color:#fff;
-}
-
-/* ===========================
-   League Section
-=========================== */
-
-.prediction-league-section{
-  margin-top:28px;
-}
-
-.prediction-league-title{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:16px;
-}
-
-.prediction-league-title img{
-  width:28px;
-  height:28px;
-}
-
-.prediction-league-title span{
-  font-size:1.05rem;
-  font-weight:700;
-}
-
-/* ===========================
-   Cards
-=========================== */
-
-.prediction-list{
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
-
-.prediction-card{
-  background:#fff;
-  border-radius:20px;
-  padding:18px;
-  box-shadow:var(--shadow);
-}
-
-.prediction-card-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:16px;
-}
-
-.prediction-card-top span:first-child{
-  font-weight:700;
-}
-
-.confidence{
-  font-size:.8rem;
-  font-weight:700;
-  padding:6px 12px;
-  border-radius:999px;
-}
-
-.confidence.high{
-  background:#dcfce7;
-  color:#15803d;
-}
-
-.confidence.medium{
-  background:#fef3c7;
-  color:#b45309;
-}
-
-.confidence.low{
-  background:#fee2e2;
-  color:#b91c1c;
-}
-
-/* ===========================
-   Match
-=========================== */
-
-.prediction-card-match{
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
-  gap:12px;
-  align-items:center;
-}
-
-.team{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:8px;
-}
-
-.team img{
-  width:42px;
-  height:42px;
-  object-fit:contain;
-}
-
-.team span{
-  font-weight:600;
-  text-align:center;
-  font-size:.92rem;
-}
-
-.vs{
-  font-weight:700;
-  color:var(--text-light);
-}
-
-/* ===========================
-   Options
-=========================== */
-
-.prediction-options{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:18px;
-}
-
-.prediction-options button{
-  border:none;
-  background:var(--primary-light);
-  color:var(--app-primary-color);
-  padding:10px 15px;
-  border-radius:999px;
-  font-weight:700;
-  
-  transition:.25s;
-}
-
-.prediction-options button:hover{
-  background: var(--app-primary-color);
-  color:#fff;
-}
-
-/* ===========================
-   Responsive
-=========================== */
-
-@media (max-width:640px){
-
-  .prediction-summary{
-    gap:10px;
-  }
-
-  .prediction-summary-card{
-    padding:14px 10px;
-  }
-
-  .prediction-summary-card strong{
-    font-size:1.2rem;
-  }
-
-  .featured-team img{
-    width:48px;
-    height:48px;
-  }
-
-  .team img{
-    width:38px;
-    height:38px;
-  }
-
-}
 
 
 /*********** coins page *********/
