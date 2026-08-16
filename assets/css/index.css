@@ -4,11 +4,10 @@
   --nav-bg: #fff;
   --nav-color: #6b7280;
   --nav-active: var(--app-primary-color);
-
-  /* Updated dynamically by JS */
   --header-height: 0px;
-
-  --bottom-nav-height: 20px;
+  --app-padding-from-bottom: padding-top: 20%;
+  --bottom-nav-height: 20%;
+  --page-z-index: 9999;
 }
 
 /* =========================
