@@ -1,1 +1,329 @@
-news
+<div class="news-page" id="newsPage">
+
+  <header class="news-header">
+
+    <button
+      class="news-back-btn"
+      type="button"
+      data-back
+      aria-label="Go back"
+    ></button>
+
+    <h1>News</h1>
+
+  </header>
+
+
+  <main class="news-content">
+
+    <nav class="news-categories" aria-label="News categories">
+
+      <button
+        class="news-category is-active"
+        type="button"
+        data-news-category="latest"
+        aria-selected="true"
+      >
+        Latest
+      </button>
+
+      <button
+        class="news-category"
+        type="button"
+        data-news-category="football"
+        aria-selected="false"
+      >
+        Football
+      </button>
+
+      <button
+        class="news-category"
+        type="button"
+        data-news-category="transfers"
+        aria-selected="false"
+      >
+        Transfers
+      </button>
+
+      <button
+        class="news-category"
+        type="button"
+        data-news-category="premier-league"
+        aria-selected="false"
+      >
+        Premier League
+      </button>
+
+      <button
+        class="news-category"
+        type="button"
+        data-news-category="champions-league"
+        aria-selected="false"
+      >
+        Champions League
+      </button>
+
+    </nav>
+
+
+    <section class="news-featured">
+
+      <article
+        class="news-featured-card"
+        data-news-id="featured-1"
+      >
+
+        <div class="news-featured-image">
+          <img
+            src="/assets/images/news/featured.jpg"
+            alt=""
+          >
+        </div>
+
+        <div class="news-featured-overlay"></div>
+
+        <div class="news-featured-content">
+
+          <span class="news-tag">
+            Featured
+          </span>
+
+          <h2>
+            The latest football stories,
+            updates and breaking news
+          </h2>
+
+          <div class="news-meta">
+            <span>Scoutwave News</span>
+            <span>·</span>
+            <span>2h ago</span>
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <section class="news-section">
+
+      <div class="news-section-heading">
+
+        <h2>
+          Latest news
+        </h2>
+
+        <button
+          class="news-refresh-btn"
+          type="button"
+          data-news-refresh
+          aria-label="Refresh news"
+        ></button>
+
+      </div>
+
+
+      <div
+        class="news-list"
+        id="newsList"
+      >
+
+        <article
+          class="news-card"
+          data-news-id="news-1"
+          data-news-category="football"
+        >
+
+          <div class="news-card-image">
+            <img
+              src="/assets/images/news/news-1.jpg"
+              alt=""
+              loading="lazy"
+            >
+          </div>
+
+          <div class="news-card-content">
+
+            <span class="news-card-category">
+              Football
+            </span>
+
+            <h3>
+              Major football updates making headlines today
+            </h3>
+
+            <p>
+              Get the latest updates from around the football world.
+            </p>
+
+            <div class="news-card-meta">
+              <span>Scoutwave</span>
+              <span>·</span>
+              <span>1h ago</span>
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article
+          class="news-card"
+          data-news-id="news-2"
+          data-news-category="transfers"
+        >
+
+          <div class="news-card-image">
+            <img
+              src="/assets/images/news/news-2.jpg"
+              alt=""
+              loading="lazy"
+            >
+          </div>
+
+          <div class="news-card-content">
+
+            <span class="news-card-category">
+              Transfers
+            </span>
+
+            <h3>
+              Transfer news, rumours and confirmed moves
+            </h3>
+
+            <p>
+              Follow the biggest transfer stories and latest developments.
+            </p>
+
+            <div class="news-card-meta">
+              <span>Scoutwave</span>
+              <span>·</span>
+              <span>3h ago</span>
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article
+          class="news-card"
+          data-news-id="news-3"
+          data-news-category="premier-league"
+        >
+
+          <div class="news-card-image">
+            <img
+              src="/assets/images/news/news-3.jpg"
+              alt=""
+              loading="lazy"
+            >
+          </div>
+
+          <div class="news-card-content">
+
+            <span class="news-card-category">
+              Premier League
+            </span>
+
+            <h3>
+              Everything you need to know from the Premier League
+            </h3>
+
+            <p>
+              Match updates, team news, performances and more.
+            </p>
+
+            <div class="news-card-meta">
+              <span>Scoutwave</span>
+              <span>·</span>
+              <span>5h ago</span>
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article
+          class="news-card"
+          data-news-id="news-4"
+          data-news-category="champions-league"
+        >
+
+          <div class="news-card-image">
+            <img
+              src="/assets/images/news/news-4.jpg"
+              alt=""
+              loading="lazy"
+            >
+          </div>
+
+          <div class="news-card-content">
+
+            <span class="news-card-category">
+              Champions League
+            </span>
+
+            <h3>
+              Champions League news and match developments
+            </h3>
+
+            <p>
+              Stay updated with Europe's biggest football competition.
+            </p>
+
+            <div class="news-card-meta">
+              <span>Scoutwave</span>
+              <span>·</span>
+              <span>Yesterday</span>
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <section
+      class="news-empty"
+      id="newsEmpty"
+      hidden
+    >
+
+      <div
+        class="news-empty-icon"
+        aria-hidden="true"
+      ></div>
+
+      <h2>
+        No news available
+      </h2>
+
+      <p>
+        There are no stories available in this category right now.
+      </p>
+
+    </section>
+
+
+    <div
+      class="news-loader"
+      id="newsLoader"
+      hidden
+      aria-hidden="true"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+  </main>
+
+</div>
+
+<app-script src="/assets/js/pages/news.js"></app-script>

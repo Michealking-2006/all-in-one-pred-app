@@ -73,8 +73,8 @@ const routes = {
   title: "Coins",
 },
 
-"/profile/premuim": {
-  file: "/pages/profile/premuim.html",
+"/profile/premium": {
+  file: "/pages/profile/premium.html",
   title: "Premium"
 },
 

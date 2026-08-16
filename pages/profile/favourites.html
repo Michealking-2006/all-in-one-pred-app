@@ -1,1 +1,261 @@
-favs
+<div class="favourites-page" id="favouritesPage">
+
+  <header class="favourites-header">
+
+    <button
+      class="favourites-back-btn"
+      type="button"
+      data-back
+      aria-label="Go back"
+    ></button>
+
+    <h1>Favourites</h1>
+
+  </header>
+
+
+  <main class="favourites-content">
+
+    <nav
+      class="favourites-tabs"
+      aria-label="Favourite categories"
+    >
+
+      <button
+        class="favourites-tab is-active"
+        type="button"
+        data-favourite-tab="all"
+        aria-selected="true"
+      >
+        All
+      </button>
+
+      <button
+        class="favourites-tab"
+        type="button"
+        data-favourite-tab="matches"
+        aria-selected="false"
+      >
+        Matches
+      </button>
+
+      <button
+        class="favourites-tab"
+        type="button"
+        data-favourite-tab="players"
+        aria-selected="false"
+      >
+        Players
+      </button>
+
+      <button
+        class="favourites-tab"
+        type="button"
+        data-favourite-tab="leagues"
+        aria-selected="false"
+      >
+        Leagues
+      </button>
+
+      <button
+        class="favourites-tab"
+        type="button"
+        data-favourite-tab="teams"
+        aria-selected="false"
+      >
+        Teams
+      </button>
+
+    </nav>
+
+
+    <section
+      class="favourites-list"
+      id="favouritesList"
+      aria-live="polite"
+    >
+
+      <!-- matches -->
+
+      <article
+        class="favourite-item favourite-match"
+        data-favourite-type="matches"
+        data-favourite-id="match-1"
+      >
+
+        <div class="favourite-item-icon favourite-match-icon">
+          <span>VS</span>
+        </div>
+
+        <div class="favourite-item-info">
+
+          <strong>
+            Manchester United
+          </strong>
+
+          <span>
+            Arsenal
+          </span>
+
+          <small>
+            Premier League · Today, 20:00
+          </small>
+
+        </div>
+
+        <button
+          class="favourite-remove-btn"
+          type="button"
+          aria-label="Remove match from favourites"
+          data-remove-favourite
+        ></button>
+
+      </article>
+
+
+      <!-- player -->
+
+      <article
+        class="favourite-item favourite-player"
+        data-favourite-type="players"
+        data-favourite-id="player-1"
+      >
+
+        <div class="favourite-item-avatar">
+          <img
+            src="/assets/icons/normal-pfp.jpeg"
+            alt="Player"
+          >
+        </div>
+
+        <div class="favourite-item-info">
+
+          <strong>
+            Bukayo Saka
+          </strong>
+
+          <span>
+            Arsenal · England
+          </span>
+
+          <small>
+            Forward
+          </small>
+
+        </div>
+
+        <button
+          class="favourite-remove-btn"
+          type="button"
+          aria-label="Remove player from favourites"
+          data-remove-favourite
+        ></button>
+
+      </article>
+
+
+      <!-- league -->
+
+      <article
+        class="favourite-item favourite-league"
+        data-favourite-type="leagues"
+        data-favourite-id="league-1"
+      >
+
+        <div class="favourite-item-icon favourite-league-icon">
+          <span>🏆</span>
+        </div>
+
+        <div class="favourite-item-info">
+
+          <strong>
+            Premier League
+          </strong>
+
+          <span>
+            England
+          </span>
+
+          <small>
+            2025/26 Season
+          </small>
+
+        </div>
+
+        <button
+          class="favourite-remove-btn"
+          type="button"
+          aria-label="Remove league from favourites"
+          data-remove-favourite
+        ></button>
+
+      </article>
+
+
+      <!-- team -->
+
+      <article
+        class="favourite-item favourite-team"
+        data-favourite-type="teams"
+        data-favourite-id="team-1"
+      >
+
+        <div class="favourite-item-icon favourite-team-icon">
+          <span>FC</span>
+        </div>
+
+        <div class="favourite-item-info">
+
+          <strong>
+            Barcelona
+          </strong>
+
+          <span>
+            Spain
+          </span>
+
+          <small>
+            La Liga
+          </small>
+
+        </div>
+
+        <button
+          class="favourite-remove-btn"
+          type="button"
+          aria-label="Remove team from favourites"
+          data-remove-favourite
+        ></button>
+
+      </article>
+
+    </section>
+
+
+    <section
+      class="favourites-empty"
+      id="favouritesEmpty"
+      hidden
+    >
+
+      <div
+        class="favourites-empty-icon"
+        aria-hidden="true"
+      ></div>
+
+      <h2>
+        No favourites yet
+      </h2>
+
+      <p>
+        Save matches, players, leagues and teams
+        to find them quickly here.
+      </p>
+
+    </section>
+
+  </main>
+
+</div>
+
+<app-script src="/assets/js/pages/favourites.js"></app-script>

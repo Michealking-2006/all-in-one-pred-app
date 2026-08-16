@@ -217,8 +217,6 @@ body {
   padding: .5em;
   overflow-x: auto;
 
-  scroll-behavior: smooth;
-
   scrollbar-width: none;
 
   -webkit-overflow-scrolling: touch;
@@ -572,8 +570,6 @@ body {
   gap: 16px;
 
   overflow-x: auto;
-
-  scroll-behavior: smooth;
 
   scrollbar-width: none;
 
