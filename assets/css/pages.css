@@ -3009,7 +3009,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   justify-content: center;
   gap: 4px;
 
-  width: 100%;
+  width: 95%;
   min-height: 52px;
   padding: 0 18px;
 
@@ -3035,7 +3035,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   -webkit-tap-highlight-color: transparent;
 
   box-shadow:
-    0 13px 30px rgba(213, 0, 0, .21);
+    0 13px 20px rgba(213, 0, 0, .21);
 
   animation:
     premium-cta-pulse 3.2s ease-in-out 1.5s infinite;
