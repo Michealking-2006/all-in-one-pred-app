@@ -3170,79 +3170,108 @@
     },
     {
       "id": 189,
-      "name": "National Premier Leagues",
-      "slug": "national-premier-leagues",
-      "icon": "/assets/icons/australia_national-premier-leagues.svg",
+      "name": "Capital Territory Npl",
+      "slug": "Capital-Territory-Npl",
+      "icon": "/assets/icons/australia_Capital-Territory-Npl.svg",
       "type": "league"
     },
     {
       "id": 190,
-      "name": "National Premier Leagues NSW",
-      "slug": "npl-nsw",
-      "icon": "/assets/icons/australia_npl-nsw.svg",
+      "name": "A-League women",
+      "slug": "A-League-women",
+      "icon": "/assets/icons/australia_A-League-women.svg",
       "type": "league"
     },
     {
       "id": 191,
-      "name": "National Premier Leagues Victoria",
-      "slug": "npl-victoria",
-      "icon": "/assets/icons/australia_npl-victoria.svg",
+      "name": "Brisban Premier League",
+      "slug": "Brisban-Premier-League",
+      "icon": "/assets/icons/australia_Brisban-Premier-League.svg",
       "type": "league"
     },
     {
       "id": 192,
-      "name": "National Premier Leagues Queensland",
-      "slug": "npl-queensland",
-      "icon": "/assets/icons/australia_npl-queensland.svg",
+      "name": "New South Wales Npl",
+      "slug": "New-South-Wales-Npl",
+      "icon": "/assets/icons/australia_New-South-Wales-Npl.svg",
       "type": "league"
     },
     {
       "id": 193,
-      "name": "National Premier Leagues South Australia",
-      "slug": "npl-south-australia",
-      "icon": "/assets/icons/australia_npl-south-australia.svg",
+      "name": "Northern Territory League",
+      "slug": "Northern-Territory-League",
+      "icon": "/assets/icons/australia_Northern-Territory-League.svg",
       "type": "league"
     },
     {
       "id": 194,
-      "name": "National Premier Leagues Western Australia",
-      "slug": "npl-western-australia",
-      "icon": "/assets/icons/australia_npl-western-australia.svg",
+      "name": "South Australia League Npl",
+      "slug": "South-Australia League-Npl",
+      "icon": "/assets/icons/australia_South-Australia-League-Npl.svg",
       "type": "league"
     },
     {
       "id": 195,
-      "name": "National Premier Leagues ACT",
-      "slug": "npl-act",
-      "icon": "/assets/icons/australia_npl-act.svg",
+      "name": "Victoria Npl",
+      "slug": "Victoria-Npl",
+      "icon": "/assets/icons/australia_Victoria-Npl.svg",
+      "type": "league"
+    },
+     {
+      "id": 836,
+      "name": "Victoria Npl 2",
+      "slug": "Victoria-Npl-2"  ,
+      "icon": "/assets/icons/australia_Victoria-Npl 2.svg",
       "type": "league"
     },
     {
       "id": 196,
-      "name": "National Premier Leagues Tasmania",
-      "slug": "npl-tasmania",
-      "icon": "/assets/icons/australia_npl-tasmania.svg",
+      "name": "Western Australia Npl",
+      "slug": "Western-Australia-Npl",
+      "icon": "/assets/icons/australia_Western-Australia-Npl.svg",
       "type": "league"
     },
     {
-      "id": 197,
-      "name": "National Premier Leagues Northern NSW",
-      "slug": "npl-northern-nsw",
-      "icon": "/assets/icons/australia_npl-northern-nsw.svg",
+      "id": 1090,
+      "name": "NNSW League",
+      "slug": "NNSW-League",
+      "icon": "/assets/icons/australia_NNSW-League.svg",
       "type": "league"
     },
     {
-      "id": 198,
+      "id": 481,
+      "name": "Northern Nsw Npl",
+      "slug": "Northern-Nsw-Npl",
+      "icon": "/assets/icons/australia_Northern-Nsw-Npl.svg",
+      "type": "league"
+    },
+   
+    {
+      "id": 833,
+      "name": "Queen Land Permier League",
+      "slug": "Queen-Land-Permier-League",
+      "icon": "/assets/icons/australia_Queen-Land-Permier-League.svg",
+      "type": "league"
+    },
+     {
+      "id": 648,
+      "name": "Tasmania Npl",
+      "slug": "Tasmania-Npl",
+      "icon": "/assets/icons/australia_Tasmania-Npl.svg",
+      "type": "league"
+    },
+    {
+      "id": 874,
       "name": "Australia Cup",
       "slug": "australia-cup",
       "icon": "/assets/icons/australia_australia-cup.svg",
       "type": "cup"
     },
     {
-      "id": 199,
-      "name": "Australia Cup Preliminary",
-      "slug": "australia-cup-preliminary",
-      "icon": "/assets/icons/australia_australia-cup-preliminary.svg",
+      "id": 1202,
+      "name": "Australia Championship",
+      "slug": "Australia-Championship",
+      "icon": "/assets/icons/australia_Australia-Championship.svg",
       "type": "cup"
     }
   ]
