@@ -2246,7 +2246,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   min-height: 100%;
   padding-top: 80px;
   padding-bottom: 32px;
-  z-index: 300000;
+  z-index: 30000;
   overflow: hidden;
 
   background:
@@ -2995,7 +2995,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   right: 0;
   left: 0;
   margin-top: 25px;
-  padding: 10px;
+  padding: 15px;
   animation:
     premium-section-in .6s ease .94s both;
     background: #fff;
@@ -3009,7 +3009,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   justify-content: center;
   gap: 4px;
 
-  width: 95%;
+  width: 100%;
   min-height: 52px;
   padding: 0 18px;
 
