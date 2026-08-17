@@ -2246,7 +2246,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   min-height: 100%;
   padding-top: 80px;
   padding-bottom: 32px;
-  z-index: 30;
+  z-index: 300000;
   overflow: hidden;
 
   background:
