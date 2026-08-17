@@ -2497,7 +2497,13 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   padding: 15px;
   animation:
     premium-section-in .6s ease .94s both;
-    background: #fff;
+    background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0),
+      rgba(255,255,255,.95) 27%,
+      #fff 55%
+    );
 }
 
 .premium-continue-btn {
@@ -4154,68 +4160,8 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   padding: 24px 20px 21px;
 
-  border: 1px solid rgba(213, 0, 0, .12);
-  border-radius: 22px;
+  }
 
-  background:
-    linear-gradient(
-      145deg,
-      #fff7f7,
-      #fff 58%,
-      #fffafa
-    );
-
-  box-shadow:
-    0 18px 42px rgba(213, 0, 0, .065),
-    0 5px 16px rgba(0, 0, 0, .035);
-
-  animation:
-    coins-balance-in .7s cubic-bezier(.22, 1, .36, 1) both;
-}
-
-.coins-balance-orb {
-  position: absolute;
-
-  border-radius: 50%;
-
-  pointer-events: none;
-}
-
-.coins-balance-orb-one {
-  width: 170px;
-  height: 170px;
-
-  top: -100px;
-  right: -80px;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(213, 0, 0, .10),
-      transparent 70%
-    );
-
-  animation:
-    coins-balance-orb-one 6s ease-in-out infinite;
-}
-
-.coins-balance-orb-two {
-  width: 130px;
-  height: 130px;
-
-  bottom: -90px;
-  left: -70px;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(244, 183, 46, .07),
-      transparent 70%
-    );
-
-  animation:
-    coins-balance-orb-two 7s ease-in-out infinite;
-}
 
 .coins-balance-top {
   position: relative;
