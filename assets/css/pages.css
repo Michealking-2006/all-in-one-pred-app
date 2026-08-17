@@ -2995,7 +2995,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   right: 0;
   left: 0;
   margin-top: 25px;
-  z-
+  z-index: 30;
   animation:
     premium-section-in .6s ease .94s both;
 }
