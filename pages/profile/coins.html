@@ -1,67 +1,161 @@
 <div class="coins-page" id="coinsPage">
 
-  <div class="coins-bg-orb coins-bg-orb-left"></div>
-  <div class="coins-bg-orb coins-bg-orb-right"></div>
-
   <header class="coins-header">
-    <button class="coins-back-btn" type="button" data-back aria-label="Go back">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M19 12H5"></path>
-        <path d="m11 18-6-6 6-6"></path>
-      </svg>
-    </button>
+
+    <button
+      class="coins-back-btn"
+      type="button"
+      data-back
+      aria-label="Go back"
+    ></button>
 
     <div class="coins-user">
-      <div class="coins-avatar" id="coinsAvatar">M</div>
-      <span id="coinsUsername">Micheal King_5063642</span>
+      <div
+        class="coins-avatar"
+        id="coinsAvatar"
+      >
+        M
+      </div>
+
+      <div class="coins-user-info">
+        <span class="coins-user-label">
+          Scoutwave Coins
+        </span>
+
+        <strong id="coinsUsername">
+          Micheal King_5063642
+        </strong>
+      </div>
     </div>
+
   </header>
+
 
   <main class="coins-content">
 
-    <section class="coins-balance">
-      <div class="coins-balance-label">
-        Your Coins
+    <section
+      class="coins-balance"
+      aria-labelledby="coinsBalanceTitle"
+    >
+
+      <div class="coins-balance-orb coins-balance-orb-one"></div>
+      <div class="coins-balance-orb coins-balance-orb-two"></div>
+
+      <div class="coins-balance-top">
+
+        <div>
+          <span class="coins-balance-label">
+            Your balance
+          </span>
+
+          <h1 id="coinsBalanceTitle">
+            Scoutwave Coins
+          </h1>
+        </div>
+
+        <span
+          class="coins-balance-mark"
+          aria-hidden="true"
+        ></span>
+
       </div>
 
+
       <div class="coins-current">
-        <div class="scout-coin scout-coin-large">
+
+        <div
+          class="scout-coin scout-coin-large"
+          aria-hidden="true"
+        >
           <span>⚽</span>
         </div>
 
-        <strong id="coinBalance">8</strong>
+        <strong id="coinBalance">
+          8
+        </strong>
+
+        <span class="coins-current-label">
+          coins
+        </span>
+
       </div>
 
+
       <p class="coins-note">
-        Purchased Scoutwave Coins cannot be withdrawn
+        Purchased Scoutwave Coins cannot be withdrawn.
       </p>
+
     </section>
 
-    <section class="coins-store">
 
-      <h1>Buy Scoutwave Coins</h1>
+    <section
+      class="coins-store"
+      aria-labelledby="coinsStoreTitle"
+    >
+
+      <div class="coins-section-heading">
+
+        <div>
+          <span class="coins-section-eyebrow">
+            Scoutwave Store
+          </span>
+
+          <h2 id="coinsStoreTitle">
+            Buy Scoutwave Coins
+          </h2>
+
+          <p>
+            Choose a package that works for you.
+          </p>
+        </div>
+
+      </div>
+
 
       <div class="coins-grid">
+
 
         <button
           class="coin-package is-selected"
           type="button"
           data-coins="8"
           data-price="430"
+          aria-pressed="true"
         >
+
+          <div class="coin-package-top">
+            <span class="coin-package-label">
+              Starter
+            </span>
+          </div>
+
           <div class="coin-package-main">
+
             <div class="coin-single">
-              <div class="scout-coin">
+              <div
+                class="scout-coin"
+                aria-hidden="true"
+              >
                 <span>⚽</span>
               </div>
             </div>
 
             <strong>8</strong>
+
           </div>
 
-          <div class="coin-package-price">
-            ₦430.00
+          <div class="coin-package-bottom">
+
+            <span class="coin-package-price">
+              ₦430
+            </span>
+
+            <span class="coin-package-unit">
+              8 coins
+            </span>
+
           </div>
+
         </button>
 
 
@@ -70,7 +164,15 @@
           type="button"
           data-coins="28"
           data-price="1490"
+          aria-pressed="false"
         >
+
+          <div class="coin-package-top">
+            <span class="coin-package-label">
+              Basic
+            </span>
+          </div>
+
           <div class="coin-package-main">
 
             <div class="coin-stack">
@@ -84,11 +186,21 @@
             </div>
 
             <strong>28</strong>
+
           </div>
 
-          <div class="coin-package-price">
-            ₦1,490.00
+          <div class="coin-package-bottom">
+
+            <span class="coin-package-price">
+              ₦1,490
+            </span>
+
+            <span class="coin-package-unit">
+              28 coins
+            </span>
+
           </div>
+
         </button>
 
 
@@ -97,14 +209,23 @@
           type="button"
           data-coins="72"
           data-price="3610"
+          aria-pressed="false"
         >
+
           <span class="coin-discount">
             -5%
           </span>
 
+          <div class="coin-package-top">
+            <span class="coin-package-label">
+              Popular
+            </span>
+          </div>
+
           <div class="coin-package-main">
 
             <div class="coin-stack stack-3">
+
               <div class="scout-coin coin-front">
                 <span>⚽</span>
               </div>
@@ -112,14 +233,25 @@
               <div class="scout-coin coin-back">
                 <span>⚽</span>
               </div>
+
             </div>
 
             <strong>72</strong>
+
           </div>
 
-          <div class="coin-package-price">
-            ₦3,610.00
+          <div class="coin-package-bottom">
+
+            <span class="coin-package-price">
+              ₦3,610
+            </span>
+
+            <span class="coin-package-unit">
+              72 coins
+            </span>
+
           </div>
+
         </button>
 
 
@@ -128,14 +260,23 @@
           type="button"
           data-coins="120"
           data-price="5730"
+          aria-pressed="false"
         >
+
           <span class="coin-discount">
             -10%
           </span>
 
+          <div class="coin-package-top">
+            <span class="coin-package-label">
+              Value
+            </span>
+          </div>
+
           <div class="coin-package-main">
 
             <div class="coin-stack stack-4">
+
               <div class="scout-coin coin-front">
                 <span>⚽</span>
               </div>
@@ -147,14 +288,25 @@
               <div class="scout-coin coin-third">
                 <span>⚽</span>
               </div>
+
             </div>
 
             <strong>120</strong>
+
           </div>
 
-          <div class="coin-package-price">
-            ₦5,730.00
+          <div class="coin-package-bottom">
+
+            <span class="coin-package-price">
+              ₦5,730
+            </span>
+
+            <span class="coin-package-unit">
+              120 coins
+            </span>
+
           </div>
+
         </button>
 
 
@@ -163,14 +315,23 @@
           type="button"
           data-coins="220"
           data-price="9980"
+          aria-pressed="false"
         >
+
           <span class="coin-discount">
             -15%
           </span>
 
+          <div class="coin-package-top">
+            <span class="coin-package-label">
+              Pro
+            </span>
+          </div>
+
           <div class="coin-package-main">
 
             <div class="coin-stack stack-5">
+
               <div class="scout-coin coin-front">
                 <span>⚽</span>
               </div>
@@ -182,14 +343,25 @@
               <div class="scout-coin coin-third">
                 <span>⚽</span>
               </div>
+
             </div>
 
             <strong>220</strong>
+
           </div>
 
-          <div class="coin-package-price">
-            ₦9,980.00
+          <div class="coin-package-bottom">
+
+            <span class="coin-package-price">
+              ₦9,980
+            </span>
+
+            <span class="coin-package-unit">
+              220 coins
+            </span>
+
           </div>
+
         </button>
 
 
@@ -198,14 +370,23 @@
           type="button"
           data-coins="1000"
           data-price="36500"
+          aria-pressed="false"
         >
+
           <span class="coin-discount">
             -31%
           </span>
 
+          <div class="coin-package-top">
+            <span class="coin-package-label">
+              Ultimate
+            </span>
+          </div>
+
           <div class="coin-package-main">
 
             <div class="coin-stack stack-6">
+
               <div class="scout-coin coin-front">
                 <span>⚽</span>
               </div>
@@ -217,42 +398,83 @@
               <div class="scout-coin coin-third">
                 <span>⚽</span>
               </div>
+
             </div>
 
             <strong>1000</strong>
+
           </div>
 
-          <div class="coin-package-price">
-            ₦36,500.00
+          <div class="coin-package-bottom">
+
+            <span class="coin-package-price">
+              ₦36,500
+            </span>
+
+            <span class="coin-package-unit">
+              1,000 coins
+            </span>
+
           </div>
+
         </button>
 
       </div>
+
     </section>
 
   </main>
 
+
   <footer class="coins-footer">
 
-    <button
-      class="coins-pay-btn"
-      id="coinsPayBtn"
-      type="button"
-    >
-      Pay for
-      <strong id="selectedCoins">8</strong>
-    </button>
+    <div class="coins-footer-inner">
 
-    <p class="coins-legal">
-      *The payment for the purchase will be charged to your
-      selected payment account. By purchasing, you agree to our
-      <a href="/terms">User Agreement</a> and
-      <a href="/privacy">Privacy Policy</a>.
-    </p>
+      <div class="coins-selection">
+
+        <span>
+          Selected package
+        </span>
+
+        <strong>
+          <span id="selectedCoins">
+            8
+          </span>
+          coins
+        </strong>
+
+      </div>
+
+
+      <button
+        class="coins-pay-btn"
+        id="coinsPayBtn"
+        type="button"
+      >
+        <span>
+          Continue
+        </span>
+
+        <strong>
+          ₦430
+        </strong>
+
+      </button>
+
+      <p class="coins-legal">
+        Payment will be charged to your selected payment account.
+        By purchasing, you agree to our
+        <a href="/terms">User Agreement</a>
+        and
+        <a href="/privacy">Privacy Policy</a>.
+      </p>
+
+    </div>
 
   </footer>
 
 </div>
 
-
-<app-script src="/assets/js/pages/coins.js"></app-script>
+<app-script
+  src="/assets/js/pages/coins.js"
+></app-script>
