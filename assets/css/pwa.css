@@ -47,10 +47,13 @@ html.pwa-standalone .bottom-nav {
 /********* pull to refresh *********/
 
 html.pwa-standalone .ptr-indicator {
+  --ptr-y: -80px;
+  
   position: fixed;
   top: 0;
   left: 50%;
-  z-index: 25;
+  
+  z-index: 999;
   
   display: flex;
   align-items: center;
@@ -59,47 +62,69 @@ html.pwa-standalone .ptr-indicator {
   width: 56px;
   height: 56px;
   
+  padding: 0;
+  
   border-radius: 50%;
   
   background: var(--app-bg, #fff);
-  color: var(--app-primary-color);
+  color: var(--app-primary-color, #d50000);
   
   box-shadow:
-    0 6px 20px rgba(0, 0, 0, .1),
+    0 6px 20px rgba(0, 0, 0, .10),
     0 2px 8px rgba(0, 0, 0, .06);
   
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   
-  transform: translate3d(-50%, -80px, 0);
+  transform:
+    translate3d(-50%, var(--ptr-y), 0);
+  
+  will-change:
+    transform,
+    opacity;
   
   transition:
-    transform .25s cubic-bezier(.22, .61, .36, 1),
-    opacity .2s ease,
-    visibility .2s ease;
+    opacity .18s ease,
+    visibility .18s ease;
 }
+
+/********* visible *********/
 
 html.pwa-standalone .ptr-indicator.active {
   opacity: 1;
   visibility: visible;
-  transform: translate3d(-50%, 16px, 0);
 }
+
+/********* pulling *********/
 
 html.pwa-standalone .ptr-indicator.pulling {
   transition: none;
 }
 
-html.pwa-standalone .ptr-icon {
+/********* icon *********/
+
+html.pwa-standalone .ptr-indicator .ptr-icon {
   display: block;
   
   width: 28px;
   height: 28px;
+  
+  flex: 0 0 28px;
+  
+  color: currentColor;
+  
+  transform-origin: center;
 }
 
+/********* loading *********/
+
 html.pwa-standalone .ptr-indicator.loading .ptr-icon {
-  animation: ptr-spin .75s linear infinite;
+  animation:
+    ptr-spin .75s linear infinite;
 }
+
+/********* spinner *********/
 
 @keyframes ptr-spin {
   to {
