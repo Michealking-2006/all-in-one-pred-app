@@ -1,140 +1,118 @@
+/********* PWA *********/
+
 html.pwa-standalone {
-overscroll-behavior-y: none;
--webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html.pwa-standalone body {
-margin: 0;
-min-height: 100%;
-overflow-x: hidden;
+  margin: 0;
+  min-height: 100%;
+  overflow-x: hidden;
 }
 
+/********* app containers *********/
+
 html.pwa-standalone #root {
-position: relative;
-width: 100%;
+  width: 100%;
 }
 
 html.pwa-standalone #main-page {
-position: relative;
-width: 100%;
-transform: translate3d(0, 0, 0);
-will-change: transform;
-transition: transform 0.28s cubic-bezier(.22, .61, .36, 1);
+  width: 100%;
 }
 
 html.pwa-standalone #main-page.dragging {
-transition: none;
+  transition: none;
 }
 
+/********* bottom navigation *********/
+
 html.pwa-standalone .bottom-navigation-wrapper {
-position: fixed;
-left: 0;
-right: 0;
-bottom: 0;
-z-index: 1000;
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
 }
 
 html.pwa-standalone .bottom-nav {
-height: 70px;
-background: var(--nav-bg);
-display: flex;
-justify-content: space-around;
-align-items: center;
-border-top: 1px solid #e5e7eb;
-padding-bottom: env(safe-area-inset-bottom);
-transform: translateZ(0);
-backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  
+  height: 70px;
+  padding-bottom: env(safe-area-inset-bottom);
+  
+  background: var(--nav-bg);
+  border-top: 1px solid #e5e7eb;
+  
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
-/***** pull to refresh ****/
-
-/*********************
-
-pull-to-refresh indicator
-*********************/
-
+/********* pull to refresh *********/
 
 html.pwa-standalone .ptr-indicator {
-position: fixed;
-top: 0;
-left: 50%;
-
-width: 56px;
-height: 56px;
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-color: var(--app-primary-color);
-
-transform: translate3d(-50%, -80px, 0);
-
-border-radius: 50%;
-background: var(--app-bg, #fff);
-
-box-shadow:
-0 6px 24px rgba(0, 0, 0, 0.12),
-0 2px 8px rgba(0, 0, 0, 0.08);
-
-z-index: 999999;
-
-opacity: 0;
-visibility: hidden;
-pointer-events: none;
-
-will-change: transform, opacity;
-
-transition:
-transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
-opacity 0.2s ease,
-visibility 0.2s ease;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 999999;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 56px;
+  height: 56px;
+  
+  border-radius: 50%;
+  
+  background: var(--app-bg, #fff);
+  color: var(--app-primary-color);
+  
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, .12),
+    0 2px 8px rgba(0, 0, 0, .08);
+  
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  
+  transform: translate3d(-50%, -80px, 0);
+  
+  transition:
+    transform .25s cubic-bezier(.22, .61, .36, 1),
+    opacity .2s ease,
+    visibility .2s ease;
+  
+  will-change: transform, opacity;
 }
 
 html.pwa-standalone .ptr-indicator.active {
-opacity: 1;
-visibility: visible;
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(-50%, 16px, 0);
+}
 
-transform: translate3d(-50%, 16px, 0);
+html.pwa-standalone .ptr-indicator.pulling {
+  transition: none;
 }
 
 html.pwa-standalone .ptr-icon {
-width: 28px;
-height: 28px;
-
-display: block;
-
-flex: 0 0 auto;
+  display: block;
+  
+  flex: 0 0 auto;
+  
+  width: 28px;
+  height: 28px;
 }
-
-/*********************
-
-loading state
-*********************/
-
 
 html.pwa-standalone .ptr-indicator.loading .ptr-icon {
-animation: ptr-spin 0.75s linear infinite;
+  animation: ptr-spin .75s linear infinite;
 }
-
-/*********************
-
-pull progress
-*********************/
-
-
-html.pwa-standalone .ptr-indicator.pulling {
-transition: none;
-}
-
-/*********************
-
-animation
-*********************/
-
 
 @keyframes ptr-spin {
-to {
-transform: rotate(360deg);
-}
+  to {
+    transform: rotate(360deg);
+  }
 }
