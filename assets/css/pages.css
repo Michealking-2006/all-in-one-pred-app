@@ -3898,10 +3898,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   --coins-text: #171717;
   --coins-muted: #777;
   --coins-border: #ececec;
-  --coins-bg: #fff;
-  --coins-soft: #fafafa;
-  --coins-gold: #f4b72e;
-
+  z-index: 3000;
   position: relative;
   min-height: 100%;
   padding-top: 60px;
@@ -3928,26 +3925,21 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   color: var(--coins-text);
   font-family: "BykerR", sans-serif;
-  isolation: isolate;
 }
 
-/********* ambient background *********/
+/********* background *********/
 
 .coins-bg-orb {
   position: absolute;
   z-index: -1;
 
   border-radius: 50%;
-
   pointer-events: none;
-
-  will-change: transform;
 }
 
 .coins-bg-orb-left {
   width: 220px;
   height: 220px;
-
   top: 140px;
   left: -150px;
 
@@ -3958,14 +3950,12 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
       transparent 70%
     );
 
-  animation:
-    coins-orb-left 8s ease-in-out infinite;
+  animation: coins-orb-left 8s ease-in-out infinite;
 }
 
 .coins-bg-orb-right {
   width: 280px;
   height: 280px;
-
   top: 330px;
   right: -190px;
 
@@ -3976,21 +3966,18 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
       transparent 70%
     );
 
-  animation:
-    coins-orb-right 9s ease-in-out infinite;
+  animation: coins-orb-right 9s ease-in-out infinite;
 }
 
 /********* header *********/
 
 .coins-header {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0 0 auto;
   z-index: 40;
 
   display: flex;
   align-items: center;
-  gap: 12px;
 
   width: 100%;
   height: 60px;
@@ -4001,21 +3988,35 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-
-  animation:
-    coins-header-in .5s ease both;
 }
 
-/********* back *********/
+/********* header *********/
 
-.coins-back-btn {
-  position: relative;
+.coins-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 60px;
+  padding: 0 16px;
+  gap: 0;
+}
 
-  flex: 0 0 auto;
+/********* back button *********/
 
-  width: 40px;
-  height: 40px;
-  padding: 0;
+.coins-header .app-profile-back-btn {
+  position: static !important;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 40px !important;
+
+  width: 40px !important;
+  height: 40px !important;
+
+  margin: 0 14px 0 0 !important;
+  padding: 0 !important;
 
   border: 0;
   border-radius: 50%;
@@ -4023,52 +4024,39 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   background: transparent;
   color: var(--coins-text);
 
+  transform: none;
+
+  text-decoration: none;
   cursor: pointer;
 
   -webkit-tap-highlight-color: transparent;
-
-  transition:
-    background-color .2s ease,
-    transform .2s ease;
 }
 
-.coins-back-btn::before {
-  content: "";
-
-  position: absolute;
-  top: 50%;
-  left: 50%;
-
-  width: 10px;
-  height: 10px;
-
-  border-left: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-
-  transform:
-    translate(-35%, -50%)
-    rotate(45deg);
+.coins-header .app-profile-back-btn:active {
+  background: #f2f2f2;
+  transform: scale(.93) !important;
 }
 
-.coins-back-btn::after {
-  content: "";
+.coins-header .profile-icon-back {
+  display: block !important;
 
-  position: absolute;
-  top: 50%;
-  left: 13px;
+  flex: 0 0 20px;
 
-  width: 15px;
-  height: 2px;
+  width: 20px !important;
+  height: 20px !important;
 
-  border-radius: 2px;
+  margin: 0 !important;
+  padding: 0;
+
   background: currentColor;
 
-  transform: translateY(-50%);
-}
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 
-.coins-back-btn:active {
-  background: #f2f2f2;
-  transform: scale(.93);
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31-.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 /********* user *********/
@@ -4076,16 +4064,22 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 .coins-user {
   display: flex;
   align-items: center;
+
+  flex: 1 1 auto !important;
+  min-width: 0;
+
   gap: 10px;
 
-  min-width: 0;
+  overflow: hidden;
 }
+
+/********* avatar *********/
 
 .coins-avatar {
   display: grid;
   place-items: center;
 
-  flex: 0 0 auto;
+  flex: 0 0 36px;
 
   width: 36px;
   height: 36px;
@@ -4095,12 +4089,11 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   border: 2px solid #fff;
   border-radius: 50%;
 
-  background:
-    linear-gradient(
-      145deg,
-      #f3f3f3,
-      #e7e7e7
-    );
+  background: linear-gradient(
+    145deg,
+    #f3f3f3,
+    #e7e7e7
+  );
 
   color: var(--coins-primary);
 
@@ -4112,25 +4105,199 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 }
 
 .coins-avatar img {
+  display: block;
+
   width: 100%;
   height: 100%;
+
   object-fit: cover;
 }
 
+/********* user information *********/
+
 .coins-user-info {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  gap: 1px;
 
   min-width: 0;
+  gap: 1px;
+
+  overflow: hidden;
 }
 
 .coins-user-label {
+  overflow: hidden;
+
   color: var(--coins-muted);
+
   font-size: 9px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .coins-user-info strong {
+  display: block;
+
+  overflow: hidden;
+
+  font-family: "BykerM", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}/********* header *********/
+
+.coins-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 60px;
+  padding: 0 16px;
+  gap: 0;
+}
+
+/********* back button *********/
+
+.coins-header .app-profile-back-btn {
+  position: static !important;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 40px !important;
+
+  width: 40px !important;
+  height: 40px !important;
+
+  margin: 0 14px 0 0 !important;
+  padding: 0 !important;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--coins-text);
+
+  transform: none;
+
+  text-decoration: none;
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.coins-header .app-profile-back-btn:active {
+  background: #f2f2f2;
+  transform: scale(.93) !important;
+}
+
+.coins-header .profile-icon-back {
+  display: block !important;
+
+  flex: 0 0 20px;
+
+  width: 20px !important;
+  height: 20px !important;
+
+  margin: 0 !important;
+  padding: 0;
+
+  background: currentColor;
+
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31-.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/********* user *********/
+
+.coins-user {
+  display: flex;
+  align-items: center;
+
+  flex: 1 1 auto !important;
+  min-width: 0;
+
+  gap: 10px;
+
+  overflow: hidden;
+}
+
+/********* avatar *********/
+
+.coins-avatar {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 36px;
+
+  width: 36px;
+  height: 36px;
+
+  overflow: hidden;
+
+  border: 2px solid #fff;
+  border-radius: 50%;
+
+  background: linear-gradient(
+    145deg,
+    #f3f3f3,
+    #e7e7e7
+  );
+
+  color: var(--coins-primary);
+
+  font-family: "BykerM", sans-serif;
+  font-size: 13px;
+
+  box-shadow:
+    0 0 0 1px var(--coins-border);
+}
+
+.coins-avatar img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+/********* user information *********/
+
+.coins-user-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-width: 0;
+  gap: 1px;
+
+  overflow: hidden;
+}
+
+.coins-user-label {
+  overflow: hidden;
+
+  color: var(--coins-muted);
+
+  font-size: 9px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coins-user-info strong {
+  display: block;
+
   overflow: hidden;
 
   font-family: "BykerM", sans-serif;
@@ -4146,129 +4313,44 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 .coins-content {
   width: min(100%, 560px);
   margin: 0 auto;
-
   padding: 18px 14px 30px;
 }
 
 /********* balance *********/
 
 .coins-balance {
-  position: relative;
-  isolation: isolate;
-
-  overflow: hidden;
-
-  padding: 24px 20px 21px;
-
-  }
-
-
-.coins-balance-top {
-  position: relative;
-  z-index: 1;
-
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  padding: 18px 4px 8px;
+  text-align: center;
 }
-
-.coins-balance-label {
-  display: block;
-
-  margin-bottom: 4px;
-
-  color: var(--coins-primary);
-
-  font-family: "BykerM", sans-serif;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-
-.coins-balance-top h1 {
-  margin: 0;
-
-  font-family: "BykerM", sans-serif;
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -.02em;
-}
-
-.coins-balance-mark {
-  position: relative;
-
-  display: block;
-
-  width: 30px;
-  height: 30px;
-
-  border-radius: 10px;
-
-  background: rgba(213, 0, 0, .07);
-}
-
-.coins-balance-mark::before {
-  content: "";
-
-  position: absolute;
-  inset: 8px;
-
-  border: 2px solid var(--coins-primary);
-  border-radius: 50%;
-}
-
-.coins-balance-mark::after {
-  content: "";
-
-  position: absolute;
-  top: 12px;
-  right: 6px;
-
-  width: 5px;
-  height: 5px;
-
-  border-top: 2px solid var(--coins-primary);
-  border-right: 2px solid var(--coins-primary);
-
-  transform: rotate(45deg);
-}
-
-/********* current balance *********/
 
 .coins-current {
-  position: relative;
-  z-index: 1;
-
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 11px;
+  gap: 12px;
 
-  margin-top: 25px;
-
-  animation:
-    coins-current-in .7s cubic-bezier(.22, 1, .36, 1) .12s both;
+  animation: coins-current-in .6s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 .coins-current strong {
+  display: block;
+  margin: 0;
+
+  color: var(--coins-text);
+
   font-family: "BykerM", sans-serif;
-  font-size: 43px;
+  font-size: 44px;
   font-weight: 500;
   line-height: 1;
 
-  letter-spacing: -.04em;
-
-  text-shadow:
-    0 7px 20px rgba(213, 0, 0, .07);
+  letter-spacing: -.045em;
+  text-shadow: 0 6px 18px rgba(213, 0, 0, .06);
 }
 
 .coins-current-label {
-  align-self: flex-end;
-
-  margin-bottom: 4px;
-
   color: var(--coins-muted);
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1;
 }
 
 /********* coin *********/
@@ -4282,7 +4364,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   width: 39px;
   height: 39px;
 
-  border: 2px solid rgba(255,255,255,.7);
+  border: 2px solid rgba(255,255,255,.72);
   border-radius: 50%;
 
   background:
@@ -4303,8 +4385,27 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   transform: rotate(-8deg);
 
-  animation:
-    coins-coin-float 3s ease-in-out infinite;
+  animation: coins-coin-float 3s ease-in-out infinite;
+}
+
+.scout-coin span {
+  display: block;
+
+  width: 22px;
+  height: 22px;
+
+  font-size: 0;
+  line-height: 0;
+
+  background: currentColor;
+
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M23.005 12.003v2c0 3.314-4.925 6-11 6c-5.967 0-10.824-2.591-10.995-5.823l-.005-.177v-2c0 3.314 4.925 6 11 6s11-2.686 11-6Zm-11-8c6.075 0 11 2.686 11 6s-4.925 6-11 6s-11-2.686-11-6s4.925-6 11-6Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M23.005 12.003v2c0 3.314-4.925 6-11 6c-5.967 0-10.824-2.591-10.995-5.823l-.005-.177v-2c0 3.314 4.925 6 11 6s11-2.686 11-6Zm-11-8c6.075 0 11 2.686 11 6s-4.925 6-11 6s-11-2.686-11-6s4.925-6 11-6Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 .scout-coin::after {
@@ -4313,47 +4414,46 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   position: absolute;
   inset: 3px;
 
-  border: 1px solid rgba(255,255,255,.36);
+  border: 1px solid rgba(255,255,255,.35);
   border-radius: 50%;
 }
 
-.scout-coin span {
-  position: relative;
-  z-index: 1;
-
-  font-size: 17px;
-  line-height: 1;
-}
-
 .scout-coin-large {
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
+
+  border-width: 0;
 
   box-shadow:
-    inset 0 2px 4px rgba(255,255,255,.55),
-    inset 0 -4px 6px rgba(120,70,0,.25),
-    0 10px 25px rgba(198,132,12,.22);
+    inset 0 2px 4px rgba(255,255,255,.5),
+    inset 0 -4px 6px rgba(120,70,0,.22),
+    0 8px 20px rgba(198,132,12,.18);
 
-  animation:
-    coins-large-coin 3.4s ease-in-out infinite;
+  transform: none;
+
+  animation: coins-large-coin 3.4s ease-in-out infinite;
+}
+
+.scout-coin-large::after {
+  inset: 4px;
+  border-color: rgba(255,255,255,.28);
 }
 
 .scout-coin-large span {
-  font-size: 23px;
+  width: 27px;
+  height: 27px;
 }
 
 /********* note *********/
 
 .coins-note {
-  position: relative;
-  z-index: 1;
-
-  margin: 15px 0 0;
+  max-width: 320px;
+  margin: 13px auto 0;
 
   color: var(--coins-muted);
 
   font-size: 10px;
-  line-height: 1.5;
+  line-height: 1.45;
   text-align: center;
 }
 
@@ -4361,42 +4461,19 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
 .coins-store {
   margin-top: 26px;
-
-  animation:
-    coins-section-in .65s ease .25s both;
+  animation: coins-section-in .65s ease .25s both;
 }
 
 .coins-section-heading {
   margin-bottom: 14px;
 }
 
-.coins-section-eyebrow {
-  display: block;
-
-  margin-bottom: 4px;
-
-  color: var(--coins-primary);
-
-  font-family: "BykerM", sans-serif;
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-}
-
 .coins-section-heading h2 {
   margin: 0;
 
-  font-family: "BykerM", sans-serif;
-  font-size: 20px;
-  font-weight: 500;
+  font-family: "BykerM";
+  font-size: 15px;
   letter-spacing: -.02em;
-}
-
-.coins-section-heading p {
-  margin: 5px 0 0;
-
-  color: var(--coins-muted);
-  font-size: 12px;
 }
 
 /********* grid *********/
@@ -4414,34 +4491,25 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
   min-width: 0;
-  min-height: 168px;
-
-  padding: 13px;
-
-  overflow: visible;
+  min-height: 138px;
+  padding: 14px;
 
   border: 1px solid var(--coins-border);
   border-radius: 16px;
 
-  background:
-    linear-gradient(
-      180deg,
-      #fff,
-      #fdfdfd
-    );
-
+  background: linear-gradient(180deg, #fff, #fdfdfd);
   color: var(--coins-text);
 
-  text-align: left;
-
+  text-align: center;
   cursor: pointer;
 
   -webkit-tap-highlight-color: transparent;
 
-  box-shadow:
-    0 6px 18px rgba(0,0,0,.025);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .025);
 
   transition:
     border-color .25s ease,
@@ -4451,13 +4519,9 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 }
 
 .coin-package:hover {
+  border-color: rgba(213, 0, 0, .18);
+  box-shadow: 0 12px 26px rgba(213, 0, 0, .07);
   transform: translateY(-2px);
-
-  border-color:
-    rgba(213, 0, 0, .2);
-
-  box-shadow:
-    0 12px 26px rgba(213, 0, 0, .07);
 }
 
 .coin-package:active {
@@ -4479,41 +4543,17 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
     0 0 0 3px rgba(213, 0, 0, .035);
 
   animation:
-    coins-package-select .42s cubic-bezier(.22,1,.36,1) both;
+    coins-package-select .42s cubic-bezier(.22, 1, .36, 1) both;
 }
 
-.coin-package.is-selected::after {
-  content: "";
-
-  position: absolute;
-  inset: 0;
-
-  border-radius: inherit;
-
-  background:
-    linear-gradient(
-      105deg,
-      transparent 0%,
-      rgba(255,255,255,.55) 48%,
-      transparent 62%
-    );
-
-  background-size: 220% 100%;
-
-  pointer-events: none;
-
-  animation:
-    coins-package-shine 2.6s ease-in-out infinite;
-}
-
-/********* package top *********/
+/********* package content *********/
 
 .coin-package-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
 
-  min-height: 17px;
+  width: 100%;
 }
 
 .coin-package-label {
@@ -4521,22 +4561,23 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   font-family: "BykerM", sans-serif;
   font-size: 9px;
+  font-weight: 500;
+
   text-transform: uppercase;
   letter-spacing: .05em;
 }
 
-.coin-package.is-selected
-.coin-package-label {
+.coin-package.is-selected .coin-package-label {
   color: var(--coins-primary);
 }
-
-/********* package main *********/
 
 .coin-package-main {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
 
+  width: 100%;
   margin-top: 12px;
 }
 
@@ -4544,7 +4585,24 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   font-family: "BykerM", sans-serif;
   font-size: 26px;
   font-weight: 500;
+  line-height: 1;
   letter-spacing: -.03em;
+}
+
+.coin-package-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  margin-top: 12px;
+}
+
+.coin-package-price {
+  font-family: "BykerM", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 /********* coin stack *********/
@@ -4553,7 +4611,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 .coin-stack {
   position: relative;
 
-  flex: 0 0 auto;
+  flex: 0 0 43px;
 
   width: 43px;
   height: 43px;
@@ -4571,36 +4629,16 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
 .coin-stack .coin-back {
   top: 5px;
-  left: 7px;
+  left: 6px;
   z-index: 2;
   opacity: .82;
 }
 
 .coin-stack .coin-third {
   top: 9px;
-  left: 14px;
+  left: 12px;
   z-index: 1;
   opacity: .65;
-}
-
-.stack-3 .coin-back {
-  left: 6px;
-}
-
-.stack-4 .coin-back {
-  left: 6px;
-}
-
-.stack-4 .coin-third {
-  left: 12px;
-}
-
-.stack-5 .coin-back {
-  left: 6px;
-}
-
-.stack-5 .coin-third {
-  left: 12px;
 }
 
 .stack-6 .coin-back {
@@ -4611,60 +4649,32 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   left: 11px;
 }
 
-/********* package bottom *********/
-
-.coin-package-bottom {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 8px;
-
-  margin-top: auto;
-  padding-top: 13px;
-}
-
-.coin-package-price {
-  font-family: "BykerM", sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.coin-package-unit {
-  color: var(--coins-muted);
-  font-size: 9px;
-}
-
 /********* discount *********/
 
 .coin-discount {
   position: absolute;
-  top: -8px;
-  right: 10px;
-  z-index: 5;
+  top: 9px;
+  right: 9px;
+  z-index: 2;
 
-  padding: 4px 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  border: 1px solid rgba(255,255,255,.4);
+  min-height: 21px;
+  padding: 0 7px;
+
+  border: 1px solid rgba(213, 0, 0, .08);
   border-radius: 999px;
 
-  background:
-    linear-gradient(
-      135deg,
-      var(--coins-primary),
-      #b40000
-    );
-
+  background: var(--app-primary-color);
   color: #fff;
 
-  font-family: "BykerM", sans-serif;
+  font-family: "MontserratEB", sans-serif;
+  
   font-size: 9px;
+  font-weight: 500;
   line-height: 1;
-
-  box-shadow:
-    0 7px 18px rgba(213,0,0,.17);
-
-  animation:
-    coins-discount-float 2.6s ease-in-out infinite;
 }
 
 /********* footer *********/
@@ -4698,11 +4708,8 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   pointer-events: auto;
 
-  animation:
-    coins-footer-in .6s ease .45s both;
+  animation: coins-footer-in .6s ease .45s both;
 }
-
-/********* selection *********/
 
 .coins-selection {
   display: flex;
@@ -4725,9 +4732,9 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   font-weight: 500;
 }
 
-/********* pay button *********/
-
 .coins-pay-btn {
+  position: relative;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4736,6 +4743,8 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   width: 100%;
   min-height: 52px;
   padding: 0 18px;
+
+  overflow: hidden;
 
   border: 0;
   border-radius: 999px;
@@ -4757,7 +4766,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   -webkit-tap-highlight-color: transparent;
 
   box-shadow:
-    0 14px 30px rgba(213,0,0,.21);
+    0 14px 30px rgba(213, 0, 0, .21);
 
   transition:
     transform .18s ease,
@@ -4772,10 +4781,11 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   content: "";
 
   position: absolute;
+  top: 0;
   left: -40%;
 
   width: 25%;
-  height: 52px;
+  height: 100%;
 
   background:
     linear-gradient(
@@ -4791,39 +4801,30 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
     coins-pay-shine 2.8s ease-in-out 1.3s infinite;
 }
 
-.coins-pay-btn:active {
-  transform: scale(.985);
-  box-shadow:
-    0 8px 18px rgba(213,0,0,.18);
-}
-
 .coins-pay-btn > * {
   position: relative;
   z-index: 1;
 }
 
-/********* legal *********/
+.coins-pay-btn:active {
+  transform: scale(.985);
+  box-shadow: 0 8px 18px rgba(213, 0, 0, .18);
+}
 
 .coins-legal {
   max-width: 500px;
-
   margin: 9px auto 0;
 
   color: var(--coins-muted);
 
-  text-align: center;
-
   font-size: 9px;
   line-height: 1.45;
+  text-align: center;
 }
 
 .coins-legal a {
   color: var(--coins-primary);
   text-decoration: none;
-}
-
-.coins-legal a:hover {
-  text-decoration: underline;
 }
 
 /********* animations *********/
@@ -4840,18 +4841,6 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   }
 }
 
-@keyframes coins-balance-in {
-  from {
-    opacity: 0;
-    transform: translateY(22px) scale(.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 @keyframes coins-current-in {
   from {
     opacity: 0;
@@ -4865,8 +4854,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 }
 
 @keyframes coins-coin-float {
-  0%,
-  100% {
+  0%, 100% {
     transform: rotate(-8deg) translateY(0);
   }
 
@@ -4876,8 +4864,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 }
 
 @keyframes coins-large-coin {
-  0%,
-  100% {
+  0%, 100% {
     transform: rotate(-8deg) translateY(0) scale(1);
   }
 
@@ -4887,46 +4874,22 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 }
 
 @keyframes coins-orb-left {
-  0%,
-  100% {
-    transform: translate3d(0,0,0);
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
   }
 
   50% {
-    transform: translate3d(18px,12px,0);
+    transform: translate3d(18px, 12px, 0);
   }
 }
 
 @keyframes coins-orb-right {
-  0%,
-  100% {
-    transform: translate3d(0,0,0);
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
   }
 
   50% {
-    transform: translate3d(-18px,-14px,0);
-  }
-}
-
-@keyframes coins-balance-orb-one {
-  0%,
-  100% {
-    transform: translate3d(0,0,0);
-  }
-
-  50% {
-    transform: translate3d(-12px,15px,0);
-  }
-}
-
-@keyframes coins-balance-orb-two {
-  0%,
-  100% {
-    transform: translate3d(0,0,0);
-  }
-
-  50% {
-    transform: translate3d(13px,-10px,0);
+    transform: translate3d(-18px, -14px, 0);
   }
 }
 
@@ -4956,29 +4919,6 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   }
 }
 
-@keyframes coins-package-shine {
-  0%,
-  48% {
-    background-position: 200% 0;
-  }
-
-  70%,
-  100% {
-    background-position: -40% 0;
-  }
-}
-
-@keyframes coins-discount-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
 @keyframes coins-footer-in {
   from {
     opacity: 0;
@@ -4992,85 +4932,22 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 }
 
 @keyframes coins-pay-pulse {
-  0%,
-  100% {
-    box-shadow:
-      0 14px 30px rgba(213,0,0,.21);
+  0%, 100% {
+    box-shadow: 0 14px 30px rgba(213, 0, 0, .21);
   }
 
   50% {
-    box-shadow:
-      0 17px 38px rgba(213,0,0,.29);
+    box-shadow: 0 17px 38px rgba(213, 0, 0, .29);
   }
 }
 
 @keyframes coins-pay-shine {
-  0%,
-  50% {
+  0%, 50% {
     left: -40%;
   }
 
-  72%,
-  100% {
+  72%, 100% {
     left: 130%;
   }
 }
 
-/********* mobile *********/
-
-@media (max-width: 420px) {
-  .coins-content {
-    padding-inline: 12px;
-  }
-
-  .coins-balance {
-    padding-inline: 17px;
-  }
-
-  .coins-current strong {
-    font-size: 39px;
-  }
-
-  .coins-grid {
-    gap: 9px;
-  }
-
-  .coin-package {
-    min-height: 160px;
-    padding: 12px;
-  }
-
-  .coin-package-main > strong {
-    font-size: 24px;
-  }
-
-  .coins-footer {
-    padding-inline: 12px;
-  }
-}
-
-/********* reduced motion *********/
-
-@media (prefers-reduced-motion: reduce) {
-  .coins-bg-orb,
-  .coins-balance-orb,
-  .coins-header,
-  .coins-balance,
-  .coins-current,
-  .scout-coin,
-  .coins-store,
-  .coin-package,
-  .coin-package::after,
-  .coin-discount,
-  .coins-footer-inner,
-  .coins-pay-btn,
-  .coins-pay-btn::before {
-    animation: none !important;
-  }
-
-  .coin-package,
-  .coins-pay-btn,
-  .coins-back-btn {
-    transition: none;
-  }
-}
