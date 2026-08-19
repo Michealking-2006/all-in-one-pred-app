@@ -818,7 +818,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   color: var(--edit-text);
 
   font-family: "BykerM", sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
 }
 
@@ -975,17 +975,18 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   flex: 0 0 auto;
 
-  min-height: 40px;
+  width: 100%;
+min-height: 48px;
   padding: 0 15px;
 
-  border: 1px solid #dfbbbb;
+  border: 1.4px solid #CE292930;
   border-radius: 999px;
 
   background: #fff;
   color: var(--edit-danger);
 
   font-family: "BykerM", sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 
   cursor: pointer;
