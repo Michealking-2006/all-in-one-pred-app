@@ -486,6 +486,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   --edit-border: #e8e8e8;
   --edit-soft: #fafafa;
   --edit-danger: #c40000;
+  z-index: 30000;
 
   min-height: 100%;
   padding-top: 60px;
@@ -496,8 +497,6 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   font-family: "BykerR", sans-serif;
 }
-
-/********* header *********/
 
 /********* edit profile header *********/
 
@@ -4105,7 +4104,7 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
   --coins-text: #171717;
   --coins-muted: #777;
   --coins-border: #ececec;
-  z-index: 3000;
+  z-index: 30000;
   position: relative;
   min-height: 100%;
   padding-top: 60px;
@@ -4552,12 +4551,6 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
   letter-spacing: -.045em;
   text-shadow: 0 6px 18px rgba(213, 0, 0, .06);
-}
-
-.coins-current-label {
-  color: var(--coins-muted);
-  font-size: 12px;
-  line-height: 1;
 }
 
 /********* coin *********/
