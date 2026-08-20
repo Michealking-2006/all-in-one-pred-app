@@ -2,12 +2,16 @@
 
   <header class="favourites-header">
 
-    <button
+    <a
+      href="/"
       class="favourites-back-btn"
-      type="button"
-      data-back
-      aria-label="Go back"
-    ></button>
+      aria-label="Back"
+    >
+      <span
+        class="profile-icon profile-icon-back"
+        aria-hidden="true"
+      ></span>
+    </a>
 
     <h1>Favourites</h1>
 
@@ -75,33 +79,34 @@
       aria-live="polite"
     >
 
-      <!-- matches -->
-
       <article
-        class="favourite-item favourite-match"
+        class="favourite-item"
         data-favourite-type="matches"
         data-favourite-id="match-1"
       >
 
-        <div class="favourite-item-icon favourite-match-icon">
-          <span>VS</span>
-        </div>
+        <a
+          href="/match/match-1"
+          class="favourite-item-link"
+        >
 
-        <div class="favourite-item-info">
+          <div class="favourite-item-icon favourite-match-icon">
+            <span aria-hidden="true"></span>
+          </div>
 
-          <strong>
-            Manchester United
-          </strong>
+          <div class="favourite-item-info">
 
-          <span>
-            Arsenal
-          </span>
+            <strong>Manchester United</strong>
 
-          <small>
-            Premier League · Today, 20:00
-          </small>
+            <span>Arsenal</span>
 
-        </div>
+            <small>
+              Premier League · Today, 20:00
+            </small>
+
+          </div>
+
+        </a>
 
         <button
           class="favourite-remove-btn"
@@ -113,36 +118,35 @@
       </article>
 
 
-      <!-- player -->
-
       <article
-        class="favourite-item favourite-player"
+        class="favourite-item"
         data-favourite-type="players"
         data-favourite-id="player-1"
       >
 
-        <div class="favourite-item-avatar">
-          <img
-            src="/assets/icons/normal-pfp.jpeg"
-            alt="Player"
-          >
-        </div>
+        <a
+          href="/player/bukayo-saka"
+          class="favourite-item-link"
+        >
 
-        <div class="favourite-item-info">
+          <div class="favourite-item-avatar">
+            <img
+              src="/assets/icons/normal-pfp.jpeg"
+              alt="Bukayo Saka"
+            >
+          </div>
 
-          <strong>
-            Bukayo Saka
-          </strong>
+          <div class="favourite-item-info">
 
-          <span>
-            Arsenal · England
-          </span>
+            <strong>Bukayo Saka</strong>
 
-          <small>
-            Forward
-          </small>
+            <span>Arsenal · England</span>
 
-        </div>
+            <small>Forward</small>
+
+          </div>
+
+        </a>
 
         <button
           class="favourite-remove-btn"
@@ -154,33 +158,32 @@
       </article>
 
 
-      <!-- league -->
-
       <article
-        class="favourite-item favourite-league"
+        class="favourite-item"
         data-favourite-type="leagues"
         data-favourite-id="league-1"
       >
 
-        <div class="favourite-item-icon favourite-league-icon">
-          <span>🏆</span>
-        </div>
+        <a
+          href="/league-page/premier-league"
+          class="favourite-item-link"
+        >
 
-        <div class="favourite-item-info">
+          <div class="favourite-item-icon favourite-league-icon">
+            <span aria-hidden="true"></span>
+          </div>
 
-          <strong>
-            Premier League
-          </strong>
+          <div class="favourite-item-info">
 
-          <span>
-            England
-          </span>
+            <strong>Premier League</strong>
 
-          <small>
-            2025/26 Season
-          </small>
+            <span>England</span>
 
-        </div>
+            <small>2025/26 Season</small>
+
+          </div>
+
+        </a>
 
         <button
           class="favourite-remove-btn"
@@ -192,33 +195,32 @@
       </article>
 
 
-      <!-- team -->
-
       <article
-        class="favourite-item favourite-team"
+        class="favourite-item"
         data-favourite-type="teams"
         data-favourite-id="team-1"
       >
 
-        <div class="favourite-item-icon favourite-team-icon">
-          <span>FC</span>
-        </div>
+        <a
+          href="/team/barcelona"
+          class="favourite-item-link"
+        >
 
-        <div class="favourite-item-info">
+          <div class="favourite-item-icon favourite-team-icon">
+            <span aria-hidden="true"></span>
+          </div>
 
-          <strong>
-            Barcelona
-          </strong>
+          <div class="favourite-item-info">
 
-          <span>
-            Spain
-          </span>
+            <strong>Barcelona</strong>
 
-          <small>
-            La Liga
-          </small>
+            <span>Spain</span>
 
-        </div>
+            <small>La Liga</small>
+
+          </div>
+
+        </a>
 
         <button
           class="favourite-remove-btn"
@@ -243,9 +245,7 @@
         aria-hidden="true"
       ></div>
 
-      <h2>
-        No favourites yet
-      </h2>
+      <h2>No favourites yet</h2>
 
       <p>
         Save matches, players, leagues and teams

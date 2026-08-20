@@ -2,12 +2,17 @@
 
   <header class="news-header">
 
-    <button
+    <a
+      href="/"
       class="news-back-btn"
-      type="button"
       data-back
-      aria-label="Go back"
-    ></button>
+      aria-label="Back"
+    >
+      <span
+        class="profile-icon profile-icon-back"
+        aria-hidden="true"
+      ></span>
+    </a>
 
     <h1>News</h1>
 
@@ -16,7 +21,10 @@
 
   <main class="news-content">
 
-    <nav class="news-categories" aria-label="News categories">
+    <nav
+      class="news-categories"
+      aria-label="News categories"
+    >
 
       <button
         class="news-category is-active"
@@ -68,7 +76,8 @@
 
     <section class="news-featured">
 
-      <article
+      <a
+        href="/news/featured-1"
         class="news-featured-card"
         data-news-id="featured-1"
       >
@@ -76,7 +85,7 @@
         <div class="news-featured-image">
           <img
             src="/assets/images/news/featured.jpg"
-            alt=""
+            alt="Featured football news"
           >
         </div>
 
@@ -101,7 +110,7 @@
 
         </div>
 
-      </article>
+      </a>
 
     </section>
 
@@ -110,9 +119,13 @@
 
       <div class="news-section-heading">
 
-        <h2>
-          Latest news
-        </h2>
+        <div>
+          <span class="news-section-eyebrow">
+            Stay informed
+          </span>
+
+          <h2>Latest news</h2>
+        </div>
 
         <button
           class="news-refresh-btn"
@@ -135,35 +148,42 @@
           data-news-category="football"
         >
 
-          <div class="news-card-image">
-            <img
-              src="/assets/images/news/news-1.jpg"
-              alt=""
-              loading="lazy"
-            >
-          </div>
+          <a
+            href="/news/news-1"
+            class="news-card-link"
+          >
 
-          <div class="news-card-content">
-
-            <span class="news-card-category">
-              Football
-            </span>
-
-            <h3>
-              Major football updates making headlines today
-            </h3>
-
-            <p>
-              Get the latest updates from around the football world.
-            </p>
-
-            <div class="news-card-meta">
-              <span>Scoutwave</span>
-              <span>·</span>
-              <span>1h ago</span>
+            <div class="news-card-image">
+              <img
+                src="/assets/images/news/news-1.jpg"
+                alt="Football news"
+                loading="lazy"
+              >
             </div>
 
-          </div>
+            <div class="news-card-content">
+
+              <span class="news-card-category">
+                Football
+              </span>
+
+              <h3>
+                Major football updates making headlines today
+              </h3>
+
+              <p>
+                Get the latest updates from around the football world.
+              </p>
+
+              <div class="news-card-meta">
+                <span>Scoutwave</span>
+                <span>·</span>
+                <span>1h ago</span>
+              </div>
+
+            </div>
+
+          </a>
 
         </article>
 
@@ -174,35 +194,42 @@
           data-news-category="transfers"
         >
 
-          <div class="news-card-image">
-            <img
-              src="/assets/images/news/news-2.jpg"
-              alt=""
-              loading="lazy"
-            >
-          </div>
+          <a
+            href="/news/news-2"
+            class="news-card-link"
+          >
 
-          <div class="news-card-content">
-
-            <span class="news-card-category">
-              Transfers
-            </span>
-
-            <h3>
-              Transfer news, rumours and confirmed moves
-            </h3>
-
-            <p>
-              Follow the biggest transfer stories and latest developments.
-            </p>
-
-            <div class="news-card-meta">
-              <span>Scoutwave</span>
-              <span>·</span>
-              <span>3h ago</span>
+            <div class="news-card-image">
+              <img
+                src="/assets/images/news/news-2.jpg"
+                alt="Transfer news"
+                loading="lazy"
+              >
             </div>
 
-          </div>
+            <div class="news-card-content">
+
+              <span class="news-card-category">
+                Transfers
+              </span>
+
+              <h3>
+                Transfer news, rumours and confirmed moves
+              </h3>
+
+              <p>
+                Follow the biggest transfer stories and latest developments.
+              </p>
+
+              <div class="news-card-meta">
+                <span>Scoutwave</span>
+                <span>·</span>
+                <span>3h ago</span>
+              </div>
+
+            </div>
+
+          </a>
 
         </article>
 
@@ -213,35 +240,42 @@
           data-news-category="premier-league"
         >
 
-          <div class="news-card-image">
-            <img
-              src="/assets/images/news/news-3.jpg"
-              alt=""
-              loading="lazy"
-            >
-          </div>
+          <a
+            href="/news/news-3"
+            class="news-card-link"
+          >
 
-          <div class="news-card-content">
-
-            <span class="news-card-category">
-              Premier League
-            </span>
-
-            <h3>
-              Everything you need to know from the Premier League
-            </h3>
-
-            <p>
-              Match updates, team news, performances and more.
-            </p>
-
-            <div class="news-card-meta">
-              <span>Scoutwave</span>
-              <span>·</span>
-              <span>5h ago</span>
+            <div class="news-card-image">
+              <img
+                src="/assets/images/news/news-3.jpg"
+                alt="Premier League news"
+                loading="lazy"
+              >
             </div>
 
-          </div>
+            <div class="news-card-content">
+
+              <span class="news-card-category">
+                Premier League
+              </span>
+
+              <h3>
+                Everything you need to know from the Premier League
+              </h3>
+
+              <p>
+                Match updates, team news, performances and more.
+              </p>
+
+              <div class="news-card-meta">
+                <span>Scoutwave</span>
+                <span>·</span>
+                <span>5h ago</span>
+              </div>
+
+            </div>
+
+          </a>
 
         </article>
 
@@ -252,35 +286,42 @@
           data-news-category="champions-league"
         >
 
-          <div class="news-card-image">
-            <img
-              src="/assets/images/news/news-4.jpg"
-              alt=""
-              loading="lazy"
-            >
-          </div>
+          <a
+            href="/news/news-4"
+            class="news-card-link"
+          >
 
-          <div class="news-card-content">
-
-            <span class="news-card-category">
-              Champions League
-            </span>
-
-            <h3>
-              Champions League news and match developments
-            </h3>
-
-            <p>
-              Stay updated with Europe's biggest football competition.
-            </p>
-
-            <div class="news-card-meta">
-              <span>Scoutwave</span>
-              <span>·</span>
-              <span>Yesterday</span>
+            <div class="news-card-image">
+              <img
+                src="/assets/images/news/news-4.jpg"
+                alt="Champions League news"
+                loading="lazy"
+              >
             </div>
 
-          </div>
+            <div class="news-card-content">
+
+              <span class="news-card-category">
+                Champions League
+              </span>
+
+              <h3>
+                Champions League news and match developments
+              </h3>
+
+              <p>
+                Stay updated with Europe's biggest football competition.
+              </p>
+
+              <div class="news-card-meta">
+                <span>Scoutwave</span>
+                <span>·</span>
+                <span>Yesterday</span>
+              </div>
+
+            </div>
+
+          </a>
 
         </article>
 
@@ -300,9 +341,7 @@
         aria-hidden="true"
       ></div>
 
-      <h2>
-        No news available
-      </h2>
+      <h2>No news available</h2>
 
       <p>
         There are no stories available in this category right now.
