@@ -3286,42 +3286,42 @@
       "id": 218,
       "name": "Bundesliga 1",
       "slug": "Bundesliga-1",
-      "icon": "/assets/icons/austrian_Bundesliga-1.svg",
+      "icon": "/assets/icons/austria_Bundesliga-1.svg",
       "type": "league"
     },
     {
-      "id": 189,
-      "name": "Capital Territory Npl",
-      "slug": "Capital-Territory-Npl",
-      "icon": "/assets/icons/australia_Capital-Territory-Npl.svg",
+      "id": 219,
+      "name": "Bundesliga 1",
+      "slug": "Bundesliga-1",
+      "icon": "/assets/icons/Austria_Bundesliga-1.svg",
       "type": "league"
     },
     {
-      "id": 190,
-      "name": "A-League women",
-      "slug": "A-League-women",
-      "icon": "/assets/icons/australia_A-League-women.svg",
+      "id": 220,
+      "name": "liga cup ",
+      "slug": "liga-cup ",
+      "icon": "/assets/icons/austria_liga-cup.svg",
       "type": "league"
     },
     {
-      "id": 191,
-      "name": "Brisban Premier League",
-      "slug": "Brisban-Premier-League",
-      "icon": "/assets/icons/australia_Brisban-Premier-League.svg",
+      "id": 484,
+      "name": "Frauen liga",
+      "slug": "Frauen-liga",
+      "icon": "/assets/icons/austria_Frauen-liga.svg",
       "type": "league"
     },
     {
-      "id": 192,
-      "name": "New South Wales Npl",
-      "slug": "New-South-Wales-Npl",
-      "icon": "/assets/icons/australia_New-South-Wales-Npl.svg",
+      "id": 224,
+      "name": "Lands liga-burgenland",
+      "slug": "Lands liga-burgenland",
+      "icon": "/assets/icons/austria_Lands-liga-burgenland.svg",
       "type": "league"
     },
     {
-      "id": 193,
-      "name": "Northern Territory League",
-      "slug": "Northern-Territory-League",
-      "icon": "/assets/icons/australia_Northern-Territory-League.svg",
+      "id": 225,
+      "name": "Lands liga-Karnten",
+      "slug": "Lands liga-Karnten",
+      "icon": "/assets/icons/austria_Lands-liga-Jarnten.svg",
       "type": "league"
     },
     {
