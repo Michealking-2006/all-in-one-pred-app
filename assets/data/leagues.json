@@ -3277,6 +3277,62 @@
   ]
 },
 {
+  "country": "Austria",
+  "code": "Austria",
+  "flag": "/assets/icons/Austria.svg",
+  "leagues": [
+    {
+      "id": 219,  
+      "name": "Bundesliga 1",
+      "slug": "Bundesliga-1",
+      "icon": "/assets/icons/Austria_Bundesliga-1.svg",
+      "type": "league"
+    },
+    {
+      "id": 272,
+      "name": "I-League",
+      "slug": "i-league",
+      "icon": "/assets/icons/india_i-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 273,
+      "name": "I-League 2",
+      "slug": "i-league-2",
+      "icon": "/assets/icons/india_i-league-2.svg",
+      "type": "league"
+    },
+    {
+      "id": 274,
+      "name": "Indian Women's League",
+      "slug": "indian-womens-league",
+      "icon": "/assets/icons/india_indian-womens-league.svg",
+      "type": "league"
+    },
+    {
+      "id": 275,
+      "name": "Durand Cup",
+      "slug": "durand-cup",
+      "icon": "/assets/icons/india_durand-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 276,
+      "name": "Super Cup",
+      "slug": "super-cup",
+      "icon": "/assets/icons/india_super-cup.svg",
+      "type": "cup"
+    },
+    {
+      "id": 277,
+      "name": "Santosh Trophy",
+      "slug": "santosh-trophy",
+      "icon": "/assets/icons/india_santosh-trophy.svg",
+      "type": "cup"
+    }
+  ]
+},
+{
   "country": "India",
   "code": "india",
   "flag": "/assets/icons/india.svg",
