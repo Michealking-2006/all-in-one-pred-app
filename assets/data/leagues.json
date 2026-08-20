@@ -3283,10 +3283,10 @@
   "flag": "/assets/icons/Austria.svg",
   "leagues": [
     {
-      "id": 188,
-      "name": "A-League Men",
-      "slug": "a-league-men",
-      "icon": "/assets/icons/australia_a-league-men.svg",
+      "id": 219,
+      "name": "Bundesliga 1",
+      "slug": "Bundesliga-1",
+      "icon": "/assets/icons/austrian_Bundesliga-1.svg",
       "type": "league"
     },
     {
