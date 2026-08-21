@@ -3291,9 +3291,9 @@
     },
     {
       "id": 219,
-      "name": "Bundesliga 1",
-      "slug": "Bundesliga-1",
-      "icon": "/assets/icons/Austria_Bundesliga-1.svg",
+      "name": "Bundesliga 2",
+      "slug": "Bundesliga-2",
+      "icon": "/assets/icons/Austria_Bundesliga-2.svg",
       "type": "league"
     },
     {
