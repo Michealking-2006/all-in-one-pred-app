@@ -2279,32 +2279,25 @@
   "flag": "/assets/icons/azerbaijan.svg",
   "leagues": [
     {
-      "id": 265,
+      "id": 419,
       "name": "Premyer Liqa",
       "slug": "premyer-liqa",
       "icon": "/assets/icons/azerbaijan_premyer-liqa.svg",
       "type": "league"
     },
     {
-      "id": 266,
+      "id": 418,
       "name": "Birinci Liqa",
       "slug": "birinci-liqa",
       "icon": "/assets/icons/azerbaijan_birinci-liqa.svg",
       "type": "league"
     },
     {
-      "id": 267,
-      "name": "Azərbaycan Kuboku",
-      "slug": "azerbaijan-kuboku",
-      "icon": "/assets/icons/azerbaijan_azerbaijan-kuboku.svg",
+      "id": 420,
+      "name": "Azerbaijan-Cup",
+      "slug": "azerbaijan-Cup",
+      "icon": "/assets/icons/azerbaijan_azerbaijan-Cup.svg",
       "type": "cup"
-    },
-    {
-      "id": 268,
-      "name": "Azərbaycan Superkuboku",
-      "slug": "azerbaijan-superkuboku",
-      "icon": "/assets/icons/azerbaijan_azerbaijan-superkuboku.svg",
-      "type": "super_cup"
     }
   ]
 },
