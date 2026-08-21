@@ -3305,63 +3305,63 @@
     },
     {
       "id": 484,
-      "name": "Frauen liga",
+      "name": "Frauenliga",
       "slug": "Frauen-liga",
       "icon": "/assets/icons/austria_Frauen-liga.svg",
       "type": "league"
     },
     {
       "id": 224,
-      "name": "Landes liga-burgenland",
+      "name": "Landesliga-burgenland",
       "slug": "Landes liga-burgenland",
       "icon": "/assets/icons/austria_Landes-liga-burgenland.svg",
       "type": "league"
     },
     {
       "id": 225,
-      "name": "Landes liga-Karnten",
+      "name": "Landesliga-Karnten",
       "slug": "Landes liga-Karnten",
       "icon": "/assets/icons/austria_Landes-liga-Jarnten.svg",
       "type": "league"
     },
     {
       "id": 226,
-      "name": "Landes liga-Niederosterreeich",
+      "name": "Landesliga-Niederosterreeich",
       "slug": "Landes-liga-Niederosterreeich",
       "icon": "/assets/icons/austria_Landes-liga-Niederosterreeich.svg",
       "type": "league"
     },
     {
       "id": 227,
-      "name": "Landes liga-Oberosterreich",
+      "name": "Landesliga-Oberosterreich",
       "slug": "Landes-liga-Oberosterreich",
       "icon": "/assets/icons/austria_Landes-liga-Oberosterreich.svg",
       "type": "league"
     },
      {
       "id": 228,
-      "name": "Landes liga-Salzburg",
+      "name": "Landesliga-Salzburg",
       "slug": "Landes-liga-Salzburg"  ,
       "icon": "/assets/icons/austria_Landes-liga-Salzburg.svg",
       "type": "league"
     },
     {
       "id": 229,
-      "name": "Landes liga-steiermark",
+      "name": "Landesliga-steiermark",
       "slug": "Landes-liga-steiermark",
       "icon": "/assets/icons/austria_Landes-liga-steiermark.svg",
       "type": "league"
     },
     {
       "id": 230,
-      "name": "Landes liga-Tirol",
+      "name": "Landesliga-Tirol",
       "slug": "Landes liga-Tirol",
       "icon": "/assets/icons/austria_Landes liga-Tirol.svg",
       "type": "league"
     },
     {
       "id": 231,
-      "name": "Landes liga-Vorarbug liga",
+      "name": "Landesliga-Vorarbug liga",
       "slug": "Landes liga-Vorarbug -liga",
       "icon": "/assets/icons/austria_Landes liga-Vorarbug-liga.svg",
       "type": "league"
@@ -3369,28 +3369,28 @@
    
     {
       "id": 232,
-      "name": "Landes liga-Wien",
+      "name": "Landesliga-Wien",
       "slug": "Landes-liga-Wien",
       "icon": "/assets/icons/austria_Landes-liga-Wien.svg",
       "type": "league"
     },
      {
       "id": 222,
-      "name": "Regional liga-Mitte",
+      "name": "Regionalliga-Mitte",
       "slug": "Regional-liga-Mitte",
       "icon": "/assets/icons/austria_Regional-liga-Mitte.svg",
       "type": "league"
     },
     {
       "id": 1239,
-      "name": "Regional liga-North",
+      "name": "Regionalliga-North",
       "slug": "Regional-liga-North",
       "icon": "/assets/icons/australia_austria_Regional-liga-North.svg",
       "type": "cup"
     },
     {
       "id": 688,
-      "name": "Regional liga-Salzburg",
+      "name": "Regionalliga-Salzburg",
       "slug": "Regional-liga-Salzburg",
       "icon": "/assets/icons/australia_austria_Regional-liga-Salzburg.svg",
       "type": "cup"
