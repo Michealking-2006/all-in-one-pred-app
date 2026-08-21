@@ -3298,9 +3298,9 @@
     },
    {
       "id": 220,
-      "name": "Cup",
-      "slug": "cup",
-      "icon": "/assets/icons/australia_austria_cup.svg",
+      "name": "Austria Cup",
+      "slug": "Austria-cup",
+      "icon": "/assets/icons/australia_austria_Austria-cup.svg",
       "type": "cup"
     },
     {
