@@ -3296,12 +3296,12 @@
       "icon": "/assets/icons/Austria_Bundesliga-2.svg",
       "type": "league"
     },
-    {
+   {
       "id": 220,
-      "name": " Austria liga cup ",
-      "slug": "Austria liga-cup ",
-      "icon": "/assets/icons/austria_Austria-liga-cup.svg",
-      "type": "league"
+      "name": "Cup",
+      "slug": "cup",
+      "icon": "/assets/icons/australia_austria_cup.svg",
+      "type": "cup"
     },
     {
       "id": 484,
