@@ -432,26 +432,54 @@ async function waitForPageScripts(
 ) {
   if (
     !root ||
-    typeof window.loadPageScript !== "function"
+    typeof window.loadPageScript !==
+      "function"
   ) {
     return;
   }
 
-  const elements = $$(
-    "app-script[src]",
-    root
-  );
+  const elements = [
+    ...root.querySelectorAll(
+      "app-script[src]"
+    ),
+  ];
 
-  if (!elements.length) return;
+  for (const element of elements) {
+    const src =
+      element.getAttribute("src");
 
-  await Promise.allSettled(
-    elements.map(element => {
-      const src = element.getAttribute("src");
-      return src
-        ? window.loadPageScript(src)
-        : Promise.resolve();
-    })
-  );
+    if (!src) {
+      continue;
+    }
+
+    try {
+      await window.loadPageScript(
+        src,
+        {
+          async:
+            element.hasAttribute("async"),
+
+          defer:
+            element.hasAttribute("defer"),
+
+          type:
+            element.getAttribute("type") ||
+            "",
+
+          noModule:
+            element.hasAttribute(
+              "nomodule"
+            ),
+        }
+      );
+    } catch (error) {
+      console.error(
+        "[Router] Page script failed:",
+        src,
+        error
+      );
+    }
+  }
 }
 
 /********* events *********/
