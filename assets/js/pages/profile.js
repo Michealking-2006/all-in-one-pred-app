@@ -18,10 +18,6 @@
     root: null,
   };
 
-  window.__scoutwaveProfilePage = {
-    destroy,
-  };
-
   const SELECTORS = {
     root: "#profile-page",
     username: "#appProfileUsername",
@@ -66,6 +62,41 @@
   function isProfileRoute() {
     return getPath() === "/profile";
   }
+
+  /********* toast *********/
+
+  function notify(type, message, options = {}) {
+    const toast =
+      window.Toast ||
+      window.toast;
+
+    if (
+      toast &&
+      typeof toast[type] === "function"
+    ) {
+      return toast[type](
+        message,
+        options
+      );
+    }
+
+    /*
+     * Toast system may not have loaded yet.
+     * Never allow a notification failure
+     * to break the profile page.
+     */
+    console[type === "error"
+      ? "error"
+      : type === "warning"
+        ? "warn"
+        : "log"](
+      `[Profile] ${message}`
+    );
+
+    return null;
+  }
+
+  /********* formatting *********/
 
   function formatMemberSince(value) {
     if (!value) {
@@ -181,7 +212,8 @@
   /********* session *********/
 
   async function getSession() {
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
     if (!supabase?.auth) {
       return null;
@@ -191,7 +223,8 @@
       const {
         data,
         error,
-      } = await supabase.auth.getSession();
+      } =
+        await supabase.auth.getSession();
 
       if (error) {
         console.error(
@@ -214,7 +247,8 @@
   }
 
   async function getUser() {
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
     if (!supabase?.auth) {
       return null;
@@ -224,7 +258,8 @@
       const {
         data,
         error,
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
       if (error) {
         console.error(
@@ -249,7 +284,8 @@
   /********* profile query *********/
 
   async function getProfile(userId) {
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
     if (!supabase || !userId) {
       return {
@@ -264,13 +300,14 @@
       const {
         data,
         error,
-      } = await supabase
-        .from("profiles")
-        .select(
-          "username, avatar_url, created_at, coins_balance"
-        )
-        .eq("id", userId)
-        .maybeSingle();
+      } =
+        await supabase
+          .from("profiles")
+          .select(
+            "username, avatar_url, created_at, coins_balance"
+          )
+          .eq("id", userId)
+          .maybeSingle();
 
       if (error) {
         console.error(
@@ -303,7 +340,8 @@
       return state.authReadyPromise;
     }
 
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
     if (!supabase?.auth) {
       return Promise.resolve(null);
@@ -334,6 +372,7 @@
                 }
 
                 finish(session);
+
                 render().catch(
                   error => {
                     console.error(
@@ -414,6 +453,7 @@
 
     const {
       profile,
+      error,
     } =
       await getProfile(user.id);
 
@@ -460,6 +500,21 @@
     setAuthButton(true);
 
     bindAuthButton();
+
+    /*
+     * Authentication succeeded even if
+     * the profile table couldn't be read.
+     */
+    if (error) {
+      setCoins(
+        DEFAULTS.coins
+      );
+
+      notify(
+        "warning",
+        "Your account is signed in, but some profile data could not be loaded."
+      );
+    }
   }
 
   /********* render *********/
@@ -554,6 +609,11 @@
           "[Profile] Supabase auth unavailable."
         );
 
+        notify(
+          "error",
+          "Something went wrong. Please try again."
+        );
+
         return;
       }
 
@@ -561,12 +621,19 @@
         btn.dataset.state ===
         "logged-in";
 
+      /*
+       * LOGIN
+       */
       if (!loggedIn) {
         window.location.href =
           LOGIN_URL;
 
         return;
       }
+
+      /*
+       * LOGOUT
+       */
 
       btn.disabled = true;
 
@@ -580,7 +647,18 @@
           throw error;
         }
 
+        /*
+         * Update UI immediately.
+         * Supabase auth listener will also
+         * receive the signed-out state.
+         */
         renderGuest();
+
+        notify(
+          "success",
+          "You have been logged out."
+        );
+
       } catch (error) {
         console.error(
           "[Profile] Sign out failed:",
@@ -588,6 +666,11 @@
         );
 
         btn.disabled = false;
+
+        notify(
+          "error",
+          "Unable to sign out. Please try again."
+        );
       }
     };
 
@@ -610,7 +693,8 @@
       state.authSubscription
     ) {
       try {
-        state.authSubscription.unsubscribe?.();
+        state.authSubscription
+          .unsubscribe?.();
       } catch (error) {
         console.warn(
           "[Profile] Auth cleanup failed:",
@@ -667,6 +751,13 @@
         "[Profile] Initial render failed:",
         error
       );
+
+      if (state.active) {
+        notify(
+          "error",
+          "Unable to load your profile."
+        );
+      }
     });
   }
 
@@ -725,4 +816,11 @@
       destroy,
     }
   );
+
+  /********* public api *********/
+
+  window.__scoutwaveProfilePage = {
+    destroy,
+    init,
+  };
 })();
