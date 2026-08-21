@@ -1,3 +1,5 @@
+/********* Scoutwave toast *********/
+
 (() => {
   "use strict";
 
@@ -16,42 +18,55 @@
   const ICONS = {
     success: `
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor"
-          d="m9 16.17-4.17-4.17-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        <path
+          fill="currentColor"
+          d="m9 16.17-4.17-4.17-1.42 1.41L9 19 21 7l-1.41-1.41z"
+        />
       </svg>
     `,
 
     error: `
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor"
-          d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 15h-2v-2h2Zm0-4h-2V7h2Z"/>
+        <path
+          fill="currentColor"
+          d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 15h-2v-2h2Zm0-4h-2V7h2Z"
+        />
       </svg>
     `,
 
     warning: `
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor"
-          d="M12 2 1 21h22ZM13 18h-2v-2h2Zm0-4h-2V9h2Z"/>
+        <path
+          fill="currentColor"
+          d="M12 2 1 21h22ZM13 18h-2v-2h2Zm0-4h-2V9h2Z"
+        />
       </svg>
     `,
 
     info: `
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor"
-          d="M11 17h2v-6h-2Zm1-15a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8ZM11 9h2V7h-2Z"/>
+        <path
+          fill="currentColor"
+          d="M11 17h2v-6h-2Zm1-15a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8ZM11 9h2V7h-2Z"
+        />
       </svg>
     `,
 
     loading: `
-      <span class="toast-spinner" aria-hidden="true"></span>
+      <span
+        class="toast-spinner"
+        aria-hidden="true"
+      ></span>
     `,
   };
 
   let container = null;
   let sequence = 0;
 
-  const active = new Map();
-  const recent = new Map();
+  const activeToasts = new Map();
+  const recentMessages = new Map();
+
+  /********* helpers *********/
 
   function getContainer() {
     if (
@@ -65,10 +80,9 @@
       return null;
     }
 
-    container =
-      document.querySelector(
-        "[data-toast-container]"
-      );
+    container = document.querySelector(
+      "[data-toast-container]"
+    );
 
     if (!container) {
       container =
@@ -77,7 +91,8 @@
       container.className =
         `toast-container toast-position-${CONFIG.position}`;
 
-      container.dataset.toastContainer = "true";
+      container.dataset.toastContainer =
+        "true";
 
       container.setAttribute(
         "aria-live",
@@ -97,7 +112,7 @@
     return container;
   }
 
-  function typeOf(type) {
+  function normalizeType(type) {
     return [
       "success",
       "error",
@@ -109,7 +124,21 @@
       : "info";
   }
 
-  function escape(value) {
+  function normalizeOptions(options) {
+    if (
+      typeof options === "string"
+    ) {
+      return {
+        message: options,
+      };
+    }
+
+    return {
+      ...(options || {}),
+    };
+  }
+
+  function escapeHTML(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -118,25 +147,24 @@
       .replace(/'/g, "&#039;");
   }
 
-  function normalizeOptions(options) {
-    return typeof options === "string"
-      ? { message: options }
-      : { ...(options || {}) };
-  }
+  function createId() {
+    sequence += 1;
 
-  function nextId() {
-    sequence++;
     return `toast-${Date.now()}-${sequence}`;
   }
 
-  function duplicate(type, message) {
+  function isDuplicate(
+    type,
+    message
+  ) {
     const key =
       `${type}:${String(message)}`;
 
     const now = Date.now();
-    const previous = recent.get(key);
+    const previous =
+      recentMessages.get(key);
 
-    recent.set(key, now);
+    recentMessages.set(key, now);
 
     return (
       previous &&
@@ -145,18 +173,27 @@
     );
   }
 
-  function remove(id, immediate = false) {
-    const state = active.get(id);
+  /********* remove *********/
 
-    if (!state) return;
+  function removeToast(
+    id,
+    immediate = false
+  ) {
+    const state =
+      activeToasts.get(id);
+
+    if (!state) {
+      return;
+    }
 
     if (state.timer) {
       clearTimeout(state.timer);
     }
 
-    active.delete(id);
+    activeToasts.delete(id);
 
-    const element = state.element;
+    const element =
+      state.element;
 
     if (
       immediate ||
@@ -174,34 +211,45 @@
       "toast-removing"
     );
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       element.remove();
     }, CONFIG.animationDuration);
   }
 
-  function limit() {
+  function enforceLimit() {
     while (
-      active.size >
+      activeToasts.size >
       CONFIG.maxVisible
     ) {
-      const id =
-        active.keys().next().value;
+      const first =
+        activeToasts
+          .keys()
+          .next()
+          .value;
 
-      if (!id) break;
+      if (!first) {
+        break;
+      }
 
-      remove(id);
+      removeToast(first);
     }
   }
 
-  function create(type, options = {}) {
-    type = typeOf(type);
+  /********* create *********/
 
-    const opts =
+  function createToast(
+    type,
+    options = {}
+  ) {
+    type =
+      normalizeType(type);
+
+    const normalized =
       normalizeOptions(options);
 
     const message =
-      opts.message ??
-      opts.text ??
+      normalized.message ??
+      normalized.text ??
       "";
 
     if (!message) {
@@ -209,39 +257,42 @@
     }
 
     if (
-      opts.preventDuplicate !== false &&
-      duplicate(type, message)
+      normalized.preventDuplicate !==
+        false &&
+      isDuplicate(type, message)
     ) {
       return null;
     }
 
-    const root = getContainer();
+    const root =
+      getContainer();
 
     if (!root) {
       console.warn(
-        "[Toast] document.body is not ready."
+        "[Toast] Document body is not ready."
       );
 
       return null;
     }
 
     const id =
-      opts.id || nextId();
+      normalized.id ||
+      createId();
 
     const duration =
       type === "loading"
         ? 0
         : Number.isFinite(
-            opts.duration
+            normalized.duration
           )
           ? Math.max(
               0,
-              opts.duration
+              normalized.duration
             )
           : CONFIG.duration;
 
     const title =
-      opts.title ||
+      normalized.title ||
       {
         success: "Success",
         error: "Error",
@@ -256,8 +307,11 @@
     toast.className =
       `toast toast-${type}`;
 
-    toast.dataset.toastId = id;
-    toast.dataset.toastType = type;
+    toast.dataset.toastId =
+      id;
+
+    toast.dataset.toastType =
+      type;
 
     toast.setAttribute(
       "role",
@@ -266,25 +320,24 @@
         : "status"
     );
 
-    const action =
-      opts.action &&
-      typeof opts.action === "object"
+    const actionHTML =
+      normalized.action
         ? `
           <button
             type="button"
             class="toast-action"
             data-toast-action
           >
-            ${escape(
-              opts.action.label ||
+            ${escapeHTML(
+              normalized.action.label ||
               "Action"
             )}
           </button>
         `
         : "";
 
-    const closeButton =
-      opts.closeButton === false
+    const closeHTML =
+      normalized.closeButton === false
         ? ""
         : `
           <button
@@ -293,7 +346,10 @@
             data-toast-close
             aria-label="Close notification"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
               <path
                 fill="currentColor"
                 d="m18.3 5.71-1.41-1.42L12 9.17 7.11 4.29 5.7 5.7l4.89 4.89-4.89 4.89 1.41 1.41L12 12l4.89 4.89 1.41-1.41-4.89-4.89z"
@@ -308,24 +364,26 @@
       </div>
 
       <div class="toast-content">
+
         ${
-          opts.showTitle === false
+          normalized.showTitle === false
             ? ""
             : `
               <div class="toast-title">
-                ${escape(title)}
+                ${escapeHTML(title)}
               </div>
             `
         }
 
         <div class="toast-message">
-          ${escape(message)}
+          ${escapeHTML(message)}
         </div>
 
-        ${action}
+        ${actionHTML}
+
       </div>
 
-      ${closeButton}
+      ${closeHTML}
 
       ${
         duration > 0
@@ -341,7 +399,10 @@
       timer: null,
     };
 
-    active.set(id, state);
+    activeToasts.set(
+      id,
+      state
+    );
 
     requestAnimationFrame(() => {
       if (toast.isConnected) {
@@ -357,7 +418,9 @@
       )
       ?.addEventListener(
         "click",
-        () => remove(id)
+        () => {
+          removeToast(id);
+        }
       );
 
     toast
@@ -368,56 +431,50 @@
         "click",
         () => {
           try {
-            opts.action?.onClick?.();
+            normalized
+              .action
+              ?.onClick?.();
           } finally {
             if (
-              opts.action?.close !==
-              false
+              normalized.action
+                ?.close !== false
             ) {
-              remove(id);
+              removeToast(id);
             }
           }
         }
       );
 
     if (duration > 0) {
-      state.timer = setTimeout(
-        () => remove(id),
-        duration
-      );
+      state.timer =
+        window.setTimeout(
+          () => {
+            removeToast(id);
+          },
+          duration
+        );
     }
 
-    limit();
+    enforceLimit();
 
-    return controller(id);
+    return createController(id);
   }
 
-  function replace(
-    id,
-    type,
-    message,
-    options = {}
-  ) {
-    remove(id, true);
+  /********* controller *********/
 
-    return create(type, {
-      ...options,
-      message,
-      id,
-      preventDuplicate: false,
-    });
-  }
-
-  function controller(id) {
+  function createController(id) {
     return {
       id,
 
       close() {
-        remove(id);
+        removeToast(id);
       },
 
-      success(message, options = {}) {
-        return replace(
+      success(
+        message,
+        options = {}
+      ) {
+        return replaceToast(
           id,
           "success",
           message,
@@ -425,8 +482,11 @@
         );
       },
 
-      error(message, options = {}) {
-        return replace(
+      error(
+        message,
+        options = {}
+      ) {
+        return replaceToast(
           id,
           "error",
           message,
@@ -434,8 +494,11 @@
         );
       },
 
-      warning(message, options = {}) {
-        return replace(
+      warning(
+        message,
+        options = {}
+      ) {
+        return replaceToast(
           id,
           "warning",
           message,
@@ -443,8 +506,11 @@
         );
       },
 
-      info(message, options = {}) {
-        return replace(
+      info(
+        message,
+        options = {}
+      ) {
+        return replaceToast(
           id,
           "info",
           message,
@@ -452,8 +518,11 @@
         );
       },
 
-      loading(message, options = {}) {
-        return replace(
+      loading(
+        message,
+        options = {}
+      ) {
+        return replaceToast(
           id,
           "loading",
           message,
@@ -463,14 +532,43 @@
     };
   }
 
+  function replaceToast(
+    id,
+    type,
+    message,
+    options = {}
+  ) {
+    removeToast(
+      id,
+      true
+    );
+
+    return createToast(
+      type,
+      {
+        ...options,
+        id,
+        message,
+        preventDuplicate: false,
+      }
+    );
+  }
+
+  /********* public methods *********/
+
   function show(type, options) {
-    return create(type, options);
+    return createToast(
+      normalizeType(type),
+      options
+    );
   }
 
   function clear() {
-    [...active.keys()].forEach(
-      id => remove(id)
-    );
+    [
+      ...activeToasts.keys(),
+    ].forEach(id => {
+      removeToast(id);
+    });
   }
 
   function configure(options = {}) {
@@ -484,16 +582,23 @@
         `toast-container toast-position-${CONFIG.position}`;
     }
 
-    return { ...CONFIG };
+    return {
+      ...CONFIG,
+    };
   }
+
+  /********* API *********/
 
   const Toast = {
     __scoutwaveToast: true,
 
     show,
 
-    success(message, options = {}) {
-      return create(
+    success(
+      message,
+      options = {}
+    ) {
+      return createToast(
         "success",
         {
           ...options,
@@ -502,8 +607,11 @@
       );
     },
 
-    error(message, options = {}) {
-      return create(
+    error(
+      message,
+      options = {}
+    ) {
+      return createToast(
         "error",
         {
           ...options,
@@ -512,8 +620,11 @@
       );
     },
 
-    warning(message, options = {}) {
-      return create(
+    warning(
+      message,
+      options = {}
+    ) {
+      return createToast(
         "warning",
         {
           ...options,
@@ -522,8 +633,11 @@
       );
     },
 
-    info(message, options = {}) {
-      return create(
+    info(
+      message,
+      options = {}
+    ) {
+      return createToast(
         "info",
         {
           ...options,
@@ -532,8 +646,11 @@
       );
     },
 
-    loading(message, options = {}) {
-      return create(
+    loading(
+      message,
+      options = {}
+    ) {
+      return createToast(
         "loading",
         {
           ...options,
@@ -543,7 +660,7 @@
     },
 
     close(id) {
-      remove(id);
+      removeToast(id);
     },
 
     clear,
@@ -551,10 +668,11 @@
     configure,
 
     get count() {
-      return active.size;
+      return activeToasts.size;
     },
   };
 
   window.Toast = Toast;
   window.toast = Toast;
+
 })();
