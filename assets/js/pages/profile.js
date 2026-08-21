@@ -1,322 +1,270 @@
-/********* profile page *********/
+(() => {
+  "use strict";
 
-let PROFILE_PAGE = {
-  active: false,
-  authSubscription: null,
-  renderToken: 0,
-  authReady: false,
-  authReadyPromise: null,
-};
+  /********* state *********/
 
-const PROFILE_SELECTORS = {
-  root: "#profile-page",
-  username: "#appProfileUsername",
-  memberSince: "#appProfileMemberSince",
-  avatar: "#appProfileAvatar",
-  coins: ".coins-balance-el-profile-page",
-  authBtn: "#appProfileAuthBtn",
-};
+  const previous =
+    window.__scoutwaveProfilePage;
 
-const PROFILE_DEFAULTS = {
-  username: "Guest",
-  memberSince: "Member",
-  coins: "0",
-  avatar: "/assets/icons/normal-pfp.jpeg",
-  authTextLoggedOut: "Login",
-  authTextLoggedIn: "Logout",
-};
+  if (previous?.destroy) {
+    previous.destroy();
+  }
 
-const PROFILE_AUTH_LOGIN_URL =
-  "https://auth.myscoutwave.com/login";
+  const state = {
+    active: false,
+    authSubscription: null,
+    renderToken: 0,
+    authReadyPromise: null,
+    root: null,
+  };
 
-/********* helpers *********/
+  window.__scoutwaveProfilePage = {
+    destroy,
+  };
 
-function getSupabaseClient() {
-  return window.supabaseClient || null;
-}
+  const SELECTORS = {
+    root: "#profile-page",
+    username: "#appProfileUsername",
+    memberSince: "#appProfileMemberSince",
+    avatar: "#appProfileAvatar",
+    coins: ".coins-balance-el-profile-page",
+    authBtn: "#appProfileAuthBtn",
+  };
 
-function getEl(selector, root = document) {
-  return root.querySelector(selector);
-}
+  const DEFAULTS = {
+    username: "Guest",
+    memberSince: "Member",
+    coins: "0",
+    avatar: "/assets/icons/normal-pfp.jpeg",
+    loginText: "Login",
+    logoutText: "Logout",
+  };
 
-function getCurrentPath() {
-  try {
+  const LOGIN_URL =
+    "https://auth.myscoutwave.com/login";
+
+  /********* helpers *********/
+
+  function getSupabase() {
+    return window.supabaseClient || null;
+  }
+
+  function getEl(selector, root = document) {
+    return root?.querySelector(selector) || null;
+  }
+
+  function getPath() {
     return (
       window.router?.getCurrentPath?.() ||
-      location.pathname
+      window.location.pathname
     )
       .split("?")[0]
       .split("#")[0]
       .replace(/\/+$/, "") || "/";
-  } catch {
-    return (
-      location.pathname
-        .split("?")[0]
-        .split("#")[0]
-        .replace(/\/+$/, "") || "/"
-    );
-  }
-}
-
-function notify(type, message, options = {}) {
-  const toast = window.Toast || window.toast;
-
-  if (
-    toast &&
-    typeof toast[type] === "function"
-  ) {
-    return toast[type](message, options);
   }
 
-  const logger =
-    type === "error"
-      ? console.error
-      : type === "warning"
-        ? console.warn
-        : console.log;
-
-  logger("[Profile]", message);
-
-  return null;
-}
-
-function formatMemberSince(dateValue) {
-  if (!dateValue) {
-    return PROFILE_DEFAULTS.memberSince;
+  function isProfileRoute() {
+    return getPath() === "/profile";
   }
 
-  const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return PROFILE_DEFAULTS.memberSince;
-  }
-
-  return `Member since ${date.toLocaleDateString(
-    "en-US",
-    {
-      month: "short",
-      year: "numeric",
+  function formatMemberSince(value) {
+    if (!value) {
+      return DEFAULTS.memberSince;
     }
-  )}`;
-}
 
-function formatCoins(value) {
-  const amount = Number(value);
+    const date = new Date(value);
 
-  if (!Number.isFinite(amount) || amount < 0) {
-    return PROFILE_DEFAULTS.coins;
-  }
+    if (Number.isNaN(date.getTime())) {
+      return DEFAULTS.memberSince;
+    }
 
-  return amount.toLocaleString("en-US");
-}
-
-/********* auth readiness *********/
-
-function getAuthReadyPromise() {
-  if (PROFILE_PAGE.authReadyPromise) {
-    return PROFILE_PAGE.authReadyPromise;
-  }
-
-  PROFILE_PAGE.authReadyPromise =
-    new Promise((resolve) => {
-      const supabase =
-        getSupabaseClient();
-
-      if (!supabase?.auth) {
-        resolve(null);
-        return;
+    return `Member since ${date.toLocaleDateString(
+      "en-US",
+      {
+        month: "short",
+        year: "numeric",
       }
-
-      let resolved = false;
-
-      const finish = (session) => {
-        if (resolved) return;
-
-        resolved = true;
-        PROFILE_PAGE.authReady = true;
-
-        resolve(session || null);
-      };
-
-      const { data } =
-        supabase.auth.onAuthStateChange(
-          (event, session) => {
-            finish(session);
-          }
-        );
-
-      PROFILE_PAGE.authSubscription =
-        data?.subscription || null;
-
-      supabase.auth
-        .getSession()
-        .then(({ data }) => {
-          finish(data?.session || null);
-        })
-        .catch((error) => {
-          console.error(
-            "[Profile] Auth initialization failed:",
-            error
-          );
-
-          finish(null);
-        });
-    });
-
-  return PROFILE_PAGE.authReadyPromise;
-}
-
-/********* oauth callback recovery *********/
-
-async function recoverOAuthSession() {
-  const supabase =
-    getSupabaseClient();
-
-  if (!supabase?.auth) {
-    return null;
+    )}`;
   }
 
-  const url = new URL(
-    window.location.href
-  );
+  function formatCoins(value) {
+    const amount = Number(value);
 
-  const code =
-    url.searchParams.get("code");
-
-  if (!code) {
-    return null;
-  }
-
-  try {
-    const {
-      data,
-      error,
-    } =
-      await supabase.auth.exchangeCodeForSession(
-        code
-      );
-
-    if (error) {
-      console.error(
-        "[Profile] OAuth code exchange failed:",
-        error
-      );
-
-      return null;
+    if (
+      !Number.isFinite(amount) ||
+      amount < 0
+    ) {
+      return DEFAULTS.coins;
     }
 
-    url.searchParams.delete("code");
+    return amount.toLocaleString("en-US");
+  }
 
-    const cleanUrl =
-      url.pathname +
-      (url.search || "") +
-      (url.hash || "");
+  /********* dom *********/
 
-    window.history.replaceState(
-      window.history.state,
-      "",
-      cleanUrl
+  function setUsername(value) {
+    const el = getEl(
+      SELECTORS.username,
+      state.root
     );
 
-    return data?.session || null;
-  } catch (error) {
-    console.error(
-      "[Profile] OAuth recovery failed:",
-      error
+    if (!el) return;
+
+    el.textContent =
+      value || DEFAULTS.username;
+  }
+
+  function setMemberSince(value) {
+    const el = getEl(
+      SELECTORS.memberSince,
+      state.root
     );
 
-    return null;
-  }
-}
+    if (!el) return;
 
-/********* session *********/
-
-async function getCurrentSession() {
-  const supabase =
-    getSupabaseClient();
-
-  if (!supabase) {
-    return null;
+    el.textContent =
+      formatMemberSince(value);
   }
 
-  try {
-    const {
-      data,
-      error,
-    } =
-      await supabase.auth.getSession();
-
-    if (error) {
-      throw error;
-    }
-
-    return data?.session || null;
-  } catch (error) {
-    console.error(
-      "[Profile] Session request failed:",
-      error
+  function setCoins(value) {
+    const el = getEl(
+      SELECTORS.coins,
+      state.root
     );
 
-    return null;
-  }
-}
+    if (!el) return;
 
-async function getAuthenticatedUser() {
-  const supabase =
-    getSupabaseClient();
-
-  if (!supabase) {
-    return null;
+    el.textContent =
+      formatCoins(value);
   }
 
-  try {
-    const {
-      data,
-      error,
-    } =
-      await supabase.auth.getUser();
-
-    if (error) {
-      console.error(
-        "[Profile] User verification failed:",
-        error
-      );
-
-      return null;
-    }
-
-    return data?.user || null;
-  } catch (error) {
-    console.error(
-      "[Profile] User verification failed:",
-      error
+  function setAvatar(src) {
+    const el = getEl(
+      SELECTORS.avatar,
+      state.root
     );
 
-    return null;
-  }
-}
+    if (!el) return;
 
-/********* profile data *********/
+    el.onerror = null;
 
-async function getUserProfile(userId) {
-  const supabase =
-    getSupabaseClient();
+    el.src =
+      src || DEFAULTS.avatar;
 
-  if (!supabase || !userId) {
-    return {
-      profile: null,
-      error: new Error(
-        "Authentication service unavailable."
-      ),
+    el.onerror = () => {
+      el.onerror = null;
+      el.src = DEFAULTS.avatar;
     };
   }
 
-  try {
-    const {
-      data,
-      error,
-    } =
-      await supabase
+  function setAuthButton(loggedIn) {
+    const btn = getEl(
+      SELECTORS.authBtn,
+      state.root
+    );
+
+    if (!btn) return;
+
+    btn.dataset.state =
+      loggedIn
+        ? "logged-in"
+        : "logged-out";
+
+    btn.textContent =
+      loggedIn
+        ? DEFAULTS.logoutText
+        : DEFAULTS.loginText;
+
+    btn.disabled = false;
+  }
+
+  /********* session *********/
+
+  async function getSession() {
+    const supabase = getSupabase();
+
+    if (!supabase?.auth) {
+      return null;
+    }
+
+    try {
+      const {
+        data,
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error(
+          "[Profile] Session error:",
+          error
+        );
+
+        return null;
+      }
+
+      return data?.session || null;
+    } catch (error) {
+      console.error(
+        "[Profile] Session request failed:",
+        error
+      );
+
+      return null;
+    }
+  }
+
+  async function getUser() {
+    const supabase = getSupabase();
+
+    if (!supabase?.auth) {
+      return null;
+    }
+
+    try {
+      const {
+        data,
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error(
+          "[Profile] User error:",
+          error
+        );
+
+        return null;
+      }
+
+      return data?.user || null;
+    } catch (error) {
+      console.error(
+        "[Profile] User request failed:",
+        error
+      );
+
+      return null;
+    }
+  }
+
+  /********* profile query *********/
+
+  async function getProfile(userId) {
+    const supabase = getSupabase();
+
+    if (!supabase || !userId) {
+      return {
+        profile: null,
+        error: new Error(
+          "Profile service unavailable."
+        ),
+      };
+    }
+
+    try {
+      const {
+        data,
+        error,
+      } = await supabase
         .from("profiles")
         .select(
           "username, avatar_url, created_at, coins_balance"
@@ -324,9 +272,20 @@ async function getUserProfile(userId) {
         .eq("id", userId)
         .maybeSingle();
 
-    if (error) {
+      if (error) {
+        console.error(
+          "[Profile] Profile query failed:",
+          error
+        );
+      }
+
+      return {
+        profile: data || null,
+        error: error || null,
+      };
+    } catch (error) {
       console.error(
-        "[Profile] Profile query failed:",
+        "[Profile] Profile request failed:",
         error
       );
 
@@ -335,304 +294,264 @@ async function getUserProfile(userId) {
         error,
       };
     }
+  }
 
-    return {
-      profile: data || null,
-      error: null,
-    };
-  } catch (error) {
-    console.error(
-      "[Profile] Profile request failed:",
-      error
+  /********* auth readiness *********/
+
+  function waitForAuth() {
+    if (state.authReadyPromise) {
+      return state.authReadyPromise;
+    }
+
+    const supabase = getSupabase();
+
+    if (!supabase?.auth) {
+      return Promise.resolve(null);
+    }
+
+    state.authReadyPromise =
+      new Promise(resolve => {
+        let resolved = false;
+
+        const finish = session => {
+          if (resolved) return;
+
+          resolved = true;
+          resolve(session || null);
+        };
+
+        try {
+          const {
+            data,
+          } =
+            supabase.auth.onAuthStateChange(
+              (
+                event,
+                session
+              ) => {
+                if (!state.active) {
+                  return;
+                }
+
+                finish(session);
+                render().catch(
+                  error => {
+                    console.error(
+                      "[Profile] Auth render failed:",
+                      error
+                    );
+                  }
+                );
+              }
+            );
+
+          state.authSubscription =
+            data?.subscription ||
+            null;
+        } catch (error) {
+          console.error(
+            "[Profile] Auth listener failed:",
+            error
+          );
+        }
+
+        supabase.auth
+          .getSession()
+          .then(({ data }) => {
+            finish(
+              data?.session ||
+              null
+            );
+          })
+          .catch(error => {
+            console.error(
+              "[Profile] Auth initialization failed:",
+              error
+            );
+
+            finish(null);
+          });
+      });
+
+    return state.authReadyPromise;
+  }
+
+  /********* render guest *********/
+
+  function renderGuest() {
+    setUsername(
+      DEFAULTS.username
     );
 
-    return {
-      profile: null,
-      error,
-    };
-  }
-}
+    setMemberSince(null);
 
-/********* dom setters *********/
-
-function setProfileUsername(username) {
-  const el = getEl(
-    PROFILE_SELECTORS.username
-  );
-
-  if (!el) return;
-
-  el.textContent =
-    username ||
-    PROFILE_DEFAULTS.username;
-}
-
-function setProfileMemberSince(dateValue) {
-  const el = getEl(
-    PROFILE_SELECTORS.memberSince
-  );
-
-  if (!el) return;
-
-  el.textContent =
-    formatMemberSince(dateValue);
-}
-
-function setProfileCoins(value) {
-  const el = getEl(
-    PROFILE_SELECTORS.coins
-  );
-
-  if (!el) return;
-
-  el.textContent = formatCoins(value);
-}
-
-function setProfileAvatar(src) {
-  const el = getEl(
-    PROFILE_SELECTORS.avatar
-  );
-
-  if (!el) return;
-
-  el.onerror = null;
-
-  el.src =
-    src ||
-    PROFILE_DEFAULTS.avatar;
-
-  el.onerror = () => {
-    el.onerror = null;
-    el.src =
-      PROFILE_DEFAULTS.avatar;
-  };
-}
-
-function setAuthButton(loggedIn) {
-  const btn = getEl(
-    PROFILE_SELECTORS.authBtn
-  );
-
-  if (!btn) return;
-
-  btn.dataset.state = loggedIn
-    ? "logged-in"
-    : "logged-out";
-
-  btn.textContent = loggedIn
-    ? PROFILE_DEFAULTS.authTextLoggedIn
-    : PROFILE_DEFAULTS.authTextLoggedOut;
-
-  btn.disabled = false;
-}
-
-/********* guest *********/
-
-function renderGuestProfile() {
-  setProfileUsername(
-    PROFILE_DEFAULTS.username
-  );
-
-  setProfileMemberSince(null);
-
-  setProfileCoins(
-    PROFILE_DEFAULTS.coins
-  );
-
-  setProfileAvatar(
-    PROFILE_DEFAULTS.avatar
-  );
-
-  setAuthButton(false);
-
-  bindAuthButton();
-}
-
-/********* authenticated profile *********/
-
-async function renderAuthenticatedProfile(
-  user,
-  requestId
-) {
-  if (
-    !PROFILE_PAGE.active ||
-    requestId !==
-      PROFILE_PAGE.renderToken
-  ) {
-    return;
-  }
-
-  if (!user) {
-    renderGuestProfile();
-    return;
-  }
-
-  const {
-    profile,
-    error,
-  } =
-    await getUserProfile(user.id);
-
-  if (
-    !PROFILE_PAGE.active ||
-    requestId !==
-      PROFILE_PAGE.renderToken
-  ) {
-    return;
-  }
-
-  const metadata =
-    user.user_metadata || {};
-
-  const username =
-    profile?.username ||
-    metadata.user_name ||
-    metadata.preferred_username ||
-    metadata.full_name ||
-    metadata.name ||
-    user.email?.split("@")?.[0] ||
-    PROFILE_DEFAULTS.username;
-
-  const avatar =
-    profile?.avatar_url ||
-    metadata.avatar_url ||
-    metadata.picture ||
-    PROFILE_DEFAULTS.avatar;
-
-  const coins =
-    profile?.coins_balance ?? 0;
-
-  setProfileUsername(username);
-
-  setProfileMemberSince(
-    profile?.created_at ||
-      user.created_at
-  );
-
-  setProfileCoins(coins);
-
-  setProfileAvatar(avatar);
-
-  setAuthButton(true);
-
-  bindAuthButton();
-
-  if (error) {
-    /*
-     * Keep the authenticated user visible
-     * even when the profile query fails.
-     */
-
-    setProfileCoins(
-      PROFILE_DEFAULTS.coins
+    setCoins(
+      DEFAULTS.coins
     );
 
-    notify(
-      "warning",
-      "Your account is signed in, but your profile data could not be loaded."
+    setAvatar(
+      DEFAULTS.avatar
     );
-  }
-}
 
-/********* render *********/
+    setAuthButton(false);
 
-async function renderProfileState(
-  suppliedSession = undefined
-) {
-  const requestId =
-    ++PROFILE_PAGE.renderToken;
-
-  if (!PROFILE_PAGE.active) {
-    return;
+    bindAuthButton();
   }
 
-  const readySession =
-    await getAuthReadyPromise();
+  /********* render authenticated *********/
 
-  if (
-    !PROFILE_PAGE.active ||
-    requestId !==
-      PROFILE_PAGE.renderToken
-  ) {
-    return;
-  }
-
-  let session =
-    suppliedSession !== undefined
-      ? suppliedSession
-      : readySession;
-
-  if (!session) {
-    session =
-      await recoverOAuthSession();
-  }
-
-  if (!session) {
-    session =
-      await getCurrentSession();
-  }
-
-  if (
-    !PROFILE_PAGE.active ||
-    requestId !==
-      PROFILE_PAGE.renderToken
-  ) {
-    return;
-  }
-
-  if (!session?.user) {
-    renderGuestProfile();
-    return;
-  }
-
-  const user =
-    await getAuthenticatedUser();
-
-  if (
-    !PROFILE_PAGE.active ||
-    requestId !==
-      PROFILE_PAGE.renderToken
-  ) {
-    return;
-  }
-
-  if (!user) {
-    renderGuestProfile();
-    return;
-  }
-
-  await renderAuthenticatedProfile(
+  async function renderAuthenticated(
     user,
     requestId
-  );
-}
-
-/********* auth button *********/
-
-function bindAuthButton() {
-  const btn = getEl(
-    PROFILE_SELECTORS.authBtn
-  );
-
-  if (
-    !btn ||
-    btn.dataset.bound === "true"
   ) {
-    return;
+    if (
+      !state.active ||
+      requestId !==
+        state.renderToken
+    ) {
+      return;
+    }
+
+    const {
+      profile,
+    } =
+      await getProfile(user.id);
+
+    if (
+      !state.active ||
+      requestId !==
+        state.renderToken
+    ) {
+      return;
+    }
+
+    const metadata =
+      user.user_metadata || {};
+
+    const username =
+      profile?.username ||
+      metadata.user_name ||
+      metadata.preferred_username ||
+      metadata.full_name ||
+      metadata.name ||
+      user.email?.split("@")[0] ||
+      DEFAULTS.username;
+
+    const avatar =
+      profile?.avatar_url ||
+      metadata.avatar_url ||
+      metadata.picture ||
+      DEFAULTS.avatar;
+
+    const coins =
+      profile?.coins_balance ?? 0;
+
+    setUsername(username);
+
+    setMemberSince(
+      profile?.created_at ||
+      user.created_at
+    );
+
+    setCoins(coins);
+
+    setAvatar(avatar);
+
+    setAuthButton(true);
+
+    bindAuthButton();
   }
 
-  btn.dataset.bound = "true";
+  /********* render *********/
 
-  btn.addEventListener(
-    "click",
-    async () => {
+  async function render() {
+    if (
+      !state.active ||
+      !state.root ||
+      !isProfileRoute()
+    ) {
+      return;
+    }
+
+    const requestId =
+      ++state.renderToken;
+
+    const readySession =
+      await waitForAuth();
+
+    if (
+      !state.active ||
+      requestId !==
+        state.renderToken
+    ) {
+      return;
+    }
+
+    let session =
+      readySession ||
+      await getSession();
+
+    if (
+      !state.active ||
+      requestId !==
+        state.renderToken
+    ) {
+      return;
+    }
+
+    if (!session?.user) {
+      renderGuest();
+      return;
+    }
+
+    const user =
+      await getUser();
+
+    if (
+      !state.active ||
+      requestId !==
+        state.renderToken
+    ) {
+      return;
+    }
+
+    if (!user) {
+      renderGuest();
+      return;
+    }
+
+    await renderAuthenticated(
+      user,
+      requestId
+    );
+  }
+
+  /********* auth button *********/
+
+  function bindAuthButton() {
+    const btn = getEl(
+      SELECTORS.authBtn,
+      state.root
+    );
+
+    if (!btn) return;
+
+    if (
+      btn.__profileClickHandler
+    ) {
+      btn.removeEventListener(
+        "click",
+        btn.__profileClickHandler
+      );
+    }
+
+    const handler = async () => {
       const supabase =
-        getSupabaseClient();
+        getSupabase();
 
-      if (!supabase) {
-        notify(
-          "error",
-          "Something went wrong. Please try again."
+      if (!supabase?.auth) {
+        console.error(
+          "[Profile] Supabase auth unavailable."
         );
 
         return;
@@ -643,9 +562,8 @@ function bindAuthButton() {
         "logged-in";
 
       if (!loggedIn) {
-        window.location.replace(
-          PROFILE_AUTH_LOGIN_URL
-        );
+        window.location.href =
+          LOGIN_URL;
 
         return;
       }
@@ -662,12 +580,7 @@ function bindAuthButton() {
           throw error;
         }
 
-        renderGuestProfile();
-
-        notify(
-          "success",
-          "You have been logged out."
-        );
+        renderGuest();
       } catch (error) {
         console.error(
           "[Profile] Sign out failed:",
@@ -675,178 +588,141 @@ function bindAuthButton() {
         );
 
         btn.disabled = false;
+      }
+    };
 
-        notify(
-          "error",
-          "Unable to sign out. Please try again."
+    btn.__profileClickHandler =
+      handler;
+
+    btn.addEventListener(
+      "click",
+      handler
+    );
+  }
+
+  /********* destroy *********/
+
+  function destroy() {
+    state.renderToken++;
+    state.active = false;
+
+    if (
+      state.authSubscription
+    ) {
+      try {
+        state.authSubscription.unsubscribe?.();
+      } catch (error) {
+        console.warn(
+          "[Profile] Auth cleanup failed:",
+          error
         );
       }
     }
-  );
-}
 
-/********* auth listener *********/
-
-function subscribeToAuthChanges() {
-  const supabase =
-    getSupabaseClient();
-
-  if (
-    !supabase?.auth?.onAuthStateChange
-  ) {
-    return;
-  }
-
-  if (
-    PROFILE_PAGE.authSubscription
-  ) {
-    PROFILE_PAGE.authSubscription.unsubscribe?.();
-    PROFILE_PAGE.authSubscription =
+    state.authSubscription =
       null;
-  }
 
-  const {
-    data,
-  } =
-    supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!PROFILE_PAGE.active) {
-          return;
-        }
+    state.authReadyPromise =
+      null;
 
-        renderProfileState(
-          session
-        ).catch((error) => {
-          console.error(
-            "[Profile] Auth state render failed:",
-            error
-          );
-        });
-      }
+    const btn = getEl(
+      SELECTORS.authBtn,
+      state.root
     );
 
-  PROFILE_PAGE.authSubscription =
-    data?.subscription || null;
-}
-
-/********* lifecycle *********/
-
-function destroyProfilePage() {
-  PROFILE_PAGE.renderToken++;
-
-  PROFILE_PAGE.active = false;
-  PROFILE_PAGE.authReady = false;
-  PROFILE_PAGE.authReadyPromise = null;
-
-  if (
-    PROFILE_PAGE.authSubscription
-  ) {
-    try {
-      PROFILE_PAGE
-        .authSubscription
-        .unsubscribe?.();
-    } catch (error) {
-      console.warn(
-        "[Profile] Auth unsubscribe failed:",
-        error
+    if (
+      btn &&
+      btn.__profileClickHandler
+    ) {
+      btn.removeEventListener(
+        "click",
+        btn.__profileClickHandler
       );
+
+      delete btn.__profileClickHandler;
     }
 
-    PROFILE_PAGE.authSubscription =
-      null;
-  }
-}
-
-function initProfilePage() {
-  const root = getEl(
-    PROFILE_SELECTORS.root
-  );
-
-  if (!root) {
-    return;
+    state.root = null;
   }
 
-  if (PROFILE_PAGE.active) {
-    return;
-  }
+  /********* init *********/
 
-  PROFILE_PAGE.active = true;
-  PROFILE_PAGE.renderToken = 0;
-  PROFILE_PAGE.authReady = false;
-  PROFILE_PAGE.authReadyPromise = null;
+  function init() {
+    const root =
+      document.querySelector(
+        SELECTORS.root
+      );
 
-  bindAuthButton();
-  subscribeToAuthChanges();
+    if (!root) {
+      return;
+    }
 
-  renderProfileState().catch(
-    (error) => {
+    destroy();
+
+    state.root = root;
+    state.active = true;
+
+    render().catch(error => {
       console.error(
         "[Profile] Initial render failed:",
         error
       );
+    });
+  }
 
-      if (
-        PROFILE_PAGE.active
-      ) {
-        notify(
-          "error",
-          "Unable to load your profile."
-        );
-      }
+  /********* page events *********/
+
+  function onPageLoaded(event) {
+    const path =
+      event?.detail?.path ||
+      getPath();
+
+    if (
+      path === "/profile"
+    ) {
+      init();
+    } else {
+      destroy();
+    }
+  }
+
+  function onPageRefreshed(event) {
+    const path =
+      event?.detail?.path ||
+      getPath();
+
+    if (
+      path === "/profile"
+    ) {
+      init();
+    }
+  }
+
+  document.addEventListener(
+    "pageLoaded",
+    onPageLoaded
+  );
+
+  document.addEventListener(
+    "pageRefreshed",
+    onPageRefreshed
+  );
+
+  /********* initial boot *********/
+
+  if (
+    getPath() === "/profile"
+  ) {
+    queueMicrotask(init);
+  }
+
+  /********* router registry *********/
+
+  window.router?.registerPage?.(
+    "ProfilePage",
+    {
+      init,
+      destroy,
     }
   );
-}
-
-/********* page lifecycle *********/
-
-function handleProfilePageLifecycle(event) {
-  const path =
-    event?.detail?.path ||
-    getCurrentPath();
-
-  const cleanPath =
-    String(path)
-      .split("?")[0]
-      .split("#")[0]
-      .replace(/\/+$/, "") || "/";
-
-  if (cleanPath === "/profile") {
-    initProfilePage();
-    return;
-  }
-
-  destroyProfilePage();
-}
-
-/********* router lifecycle *********/
-
-document.addEventListener(
-  "pageLoaded",
-  handleProfilePageLifecycle
-);
-
-document.addEventListener(
-  "pageRefreshed",
-  handleProfilePageLifecycle
-);
-
-/********* direct boot *********/
-
-if (
-  getCurrentPath() ===
-  "/profile"
-) {
-  queueMicrotask(
-    initProfilePage
-  );
-}
-
-/********* router registry *********/
-
-window.router?.registerPage?.(
-  "ProfilePage",
-  {
-    init: initProfilePage,
-    destroy: destroyProfilePage,
-  }
-);
+})();
