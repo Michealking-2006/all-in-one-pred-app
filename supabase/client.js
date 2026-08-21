@@ -1,4 +1,3 @@
-
 (() => {
   "use strict";
 
@@ -15,20 +14,14 @@
     "sb_publishable_l-EwBR_dCGpxDo_87GC1HA_1COYjj3W";
 
   /*
-   * auth.myscoutwave.com
-   * and
-   * app.myscoutwave.com
-   *
-   * must share this storage.
+   * KEEP THESE VALUES COMPATIBLE
+   * WITH YOUR EXISTING AUTH SESSION.
    */
   const COOKIE_DOMAIN =
     ".myscoutwave.com";
 
   const COOKIE_PREFIX =
-    "scoutwave-auth";
-
-  const STORAGE_KEY =
-    "scoutwave-auth";
+    "scoutwave-sb";
 
   const COOKIE_MAX_AGE =
     60 * 60 * 24 * 30;
@@ -38,6 +31,9 @@
 
   const MAX_COOKIE_CHUNKS =
     20;
+
+  const STORAGE_KEY =
+    "scoutwave-auth";
 
   /********* dependency check *********/
 
@@ -53,7 +49,7 @@
     return;
   }
 
-  /********* cookie helpers *********/
+  /********* helpers *********/
 
   function encode(value) {
     return encodeURIComponent(
@@ -132,22 +128,22 @@
 
   /********* storage keys *********/
 
-  function getBaseKey(name) {
-    return `${COOKIE_PREFIX}-${name}`;
+  function getCountKey(name) {
+    return `${COOKIE_PREFIX}-${name}-count`;
   }
 
-  function getCountKey(name) {
-    return `${getBaseKey(name)}-count`;
+  function getValueKey(name) {
+    return `${COOKIE_PREFIX}-${name}`;
   }
 
   function getChunkKey(
     name,
     index
   ) {
-    return `${getBaseKey(name)}-${index}`;
+    return `${COOKIE_PREFIX}-${name}-${index}`;
   }
 
-  /********* read stored value *********/
+  /********* read *********/
 
   function getStoredValue(name) {
     const countRaw =
@@ -158,9 +154,6 @@
     const count =
       Number(countRaw);
 
-    /*
-     * Reject malformed cookie metadata.
-     */
     if (
       Number.isInteger(count) &&
       count > 0
@@ -188,8 +181,7 @@
           );
 
         if (
-          typeof chunk !==
-          "string"
+          chunk === null
         ) {
           return null;
         }
@@ -201,11 +193,11 @@
     }
 
     return getCookie(
-      getBaseKey(name)
+      getValueKey(name)
     );
   }
 
-  /********* remove stored value *********/
+  /********* remove *********/
 
   function removeStoredValue(name) {
     const count =
@@ -235,8 +227,7 @@
     }
 
     /*
-     * Also remove possible
-     * stale chunks.
+     * Remove stale chunks too.
      */
     for (
       let i = 0;
@@ -256,11 +247,11 @@
     );
 
     removeCookie(
-      getBaseKey(name)
+      getValueKey(name)
     );
   }
 
-  /********* write stored value *********/
+  /********* write *********/
 
   function setStoredValue(
     name,
@@ -269,17 +260,12 @@
     removeStoredValue(name);
 
     if (
-      typeof value !==
-        "string" ||
+      typeof value !== "string" ||
       value.length === 0
     ) {
       return;
     }
 
-    /*
-     * Prevent uncontrolled
-     * cookie creation.
-     */
     const chunks = [];
 
     for (
@@ -315,7 +301,7 @@
       chunks.length === 1
     ) {
       setCookie(
-        getBaseKey(name),
+        getValueKey(name),
         chunks[0]
       );
 
@@ -344,15 +330,10 @@
 
   const sharedStorage = {
     getItem(key) {
-      return getStoredValue(
-        key
-      );
+      return getStoredValue(key);
     },
 
-    setItem(
-      key,
-      value
-    ) {
+    setItem(key, value) {
       setStoredValue(
         key,
         value
@@ -360,13 +341,11 @@
     },
 
     removeItem(key) {
-      removeStoredValue(
-        key
-      );
+      removeStoredValue(key);
     },
   };
 
-  /********* create Supabase client *********/
+  /********* create client *********/
 
   const client =
     window.supabase.createClient(
@@ -403,7 +382,7 @@
   window.__scoutwaveSupabaseClient =
     true;
 
-  /********* auth events *********/
+  /********* auth state *********/
 
   const {
     data: authListener,
@@ -419,9 +398,7 @@
             {
               detail: {
                 event,
-
                 session,
-
                 user:
                   session?.user ||
                   null,
