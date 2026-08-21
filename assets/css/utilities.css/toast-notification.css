@@ -2,6 +2,8 @@
 
 .toast-container {
   position: fixed;
+  top: 0;
+  right: 0;
   z-index: 99999;
 
   display: flex;
@@ -13,46 +15,76 @@
     390px
   );
 
+  padding-top: 14px;
+  padding-right: 14px;
+
   pointer-events: none;
+  isolation: isolate;
 }
 
 .toast-position-top-right {
-  top: 14px;
-  right: 14px;
+  top: 0;
+  right: 0;
 }
 
 .toast-position-top-left {
-  top: 14px;
-  left: 14px;
-}
+  top: 0;
+  left: 0;
 
-.toast-position-bottom-right {
-  right: 14px;
-  bottom: 14px;
-}
-
-.toast-position-bottom-left {
-  bottom: 14px;
-  left: 14px;
+  padding-right: 0;
+  padding-left: 14px;
 }
 
 .toast-position-top-center {
-  top: 14px;
+  top: 0;
   left: 50%;
 
+  padding-right: 0;
+  padding-left: 0;
+
   transform: translateX(-50%);
+}
+
+.toast-position-bottom-right {
+  right: 0;
+  bottom: 0;
+
+  padding-top: 0;
+  padding-right: 14px;
+  padding-bottom: 14px;
+
+  justify-content: flex-end;
+}
+
+.toast-position-bottom-left {
+  bottom: 0;
+  left: 0;
+
+  padding: 0 0 14px 14px;
+
+  justify-content: flex-end;
 }
 
 .toast-position-bottom-center {
-  bottom: 14px;
+  bottom: 0;
   left: 50%;
+
+  padding: 0 0 14px;
+
+  justify-content: flex-end;
 
   transform: translateX(-50%);
 }
+
 
 /********* toast item *********/
 
 .toast {
+  --toast-accent: var(
+    --app-primary-color,
+    #d50000
+  );
+
   position: relative;
 
   display: flex;
@@ -60,36 +92,36 @@
   gap: 11px;
 
   width: 100%;
-  min-height: 62px;
+  min-height: 64px;
 
   padding: 12px 12px 12px 13px;
 
   overflow: hidden;
 
-  border: 1px solid rgba(225, 225, 225, .95);
-  border-radius: 15px;
+  border: 1px solid rgba(225, 225, 225, .86);
+  border-radius: 16px;
 
   background:
     linear-gradient(
-      145deg,
+      135deg,
       rgba(255, 255, 255, .97),
-      rgba(249, 249, 249, .94)
+      rgba(249, 249, 249, .91)
     );
 
   color: #171717;
 
   box-shadow:
-    0 14px 34px rgba(0, 0, 0, .10),
-    0 3px 10px rgba(0, 0, 0, .045),
-    inset 0 1px 0 rgba(255,255,255,.95);
+    0 18px 42px rgba(0, 0, 0, .10),
+    0 5px 15px rgba(0, 0, 0, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .96);
 
   backdrop-filter:
-    blur(18px)
-    saturate(145%);
+    blur(20px)
+    saturate(155%);
 
   -webkit-backdrop-filter:
-    blur(18px)
-    saturate(145%);
+    blur(20px)
+    saturate(155%);
 
   pointer-events: auto;
 
@@ -97,22 +129,60 @@
 
   transform:
     translate3d(
-      26px,
-      -8px,
+      42px,
+      -14px,
       0
     )
-    scale(.97);
+    scale(.94);
+
+  transform-origin:
+    top right;
+
+  will-change:
+    transform,
+    opacity;
 
   transition:
-    opacity .24s ease,
-    transform .24s cubic-bezier(.22,1,.36,1);
+    opacity .28s ease,
+    transform .42s cubic-bezier(
+      .22,
+      1.28,
+      .36,
+      1
+    );
+}
+
+.toast::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(255,255,255,.42) 45%,
+      transparent 64%
+    );
+
+  transform:
+    translateX(-120%);
+
+  animation:
+    toast-surface-shine
+    1.8s ease
+    .15s
+    both;
 }
 
 .toast.is-visible {
   opacity: 1;
 
   transform:
-    translate3d(0,0,0)
+    translate3d(0, 0, 0)
     scale(1);
 }
 
@@ -120,31 +190,113 @@
   opacity: 0;
 
   transform:
-    translate3d(26px,-5px,0)
-    scale(.97);
+    translate3d(
+      38px,
+      -8px,
+      0
+    )
+    scale(.95);
+
+  transition:
+    opacity .2s ease,
+    transform .2s
+      cubic-bezier(
+        .4,
+        0,
+        1,
+        1
+      );
 }
 
-/********* icons *********/
+
+/********* type accents *********/
+
+.toast-success {
+  --toast-accent: #16803c;
+}
+
+.toast-error {
+  --toast-accent: #c62828;
+}
+
+.toast-warning {
+  --toast-accent: #a56a00;
+}
+
+.toast-info {
+  --toast-accent: #4169d8;
+}
+
+.toast-loading {
+  --toast-accent:
+    var(
+      --app-primary-color,
+      #d50000
+    );
+}
+
+
+/********* icon container *********/
 
 .toast-icon {
+  position: relative;
+
   display: grid;
   place-items: center;
 
-  flex: 0 0 34px;
+  flex: 0 0 36px;
 
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
 
-  border-radius: 10px;
+  margin-top: 1px;
+
+  overflow: hidden;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--toast-accent) 12%,
+      #fff
+    );
+
+  border-radius: 11px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--toast-accent) 7%,
+      #fff
+    );
+
+  color:
+    var(--toast-accent);
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255,255,255,.85);
+
+  animation:
+    toast-icon-enter
+    .45s
+    .08s
+    both
+    cubic-bezier(
+      .22,
+      1.2,
+      .36,
+      1
+    );
 }
 
 .toast-icon-mask {
   display: block;
 
-  width: 19px;
-  height: 19px;
+  width: 21px;
+  height: 21px;
 
-  background: currentColor;
+  background:
+    currentColor;
 
   -webkit-mask-position: center;
   mask-position: center;
@@ -156,107 +308,69 @@
   mask-size: contain;
 }
 
-/********* success *********/
+
+/********* success icon *********/
 
 .toast-icon-success {
-  background:
-    #edf9f1;
-
-  color:
-    #16803c;
-
   -webkit-mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M9.55 18.05 3.7 12.2l1.4-1.4 4.45 4.45L18.9 5.9l1.4 1.4-10.75 10.75Z'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='m6.933.332l.113.101l.89.89l1.26.001a1.48 1.48 0 0 1 1.453 1.198l.02.138l.007.143l-.002 1.259l.893.892a1.48 1.48 0 0 1 .19 1.86l-.089.12l-.101.112l-.893.891l.001 1.258c0 .659-.432 1.224-1.056 1.415l-.136.035l-.142.023l-.144.007h-1.26l-.891.892a1.48 1.48 0 0 1-1.86.19l-.12-.089l-.112-.101l-.892-.893l-1.258.001A1.48 1.48 0 0 1 1.35 9.48l-.02-.139l-.006-.142V7.936l-.89-.89a1.48 1.48 0 0 1-.19-1.86l.088-.12l.101-.112l.89-.891l.001-1.26c0-.72.516-1.32 1.198-1.452l.139-.02l.142-.007h1.26l.891-.89a1.48 1.48 0 0 1 1.98-.102zm1.212 3.657l-.085.071L5.5 6.62L4.44 5.56a.63.63 0 0 0-.88 0a.63.63 0 0 0-.071.795l.071.085l1.5 1.5a.625.625 0 0 0 .804.065l.076-.065l3-3a.61.61 0 0 0 0-.88a.63.63 0 0 0-.795-.071'/%3E%3C/svg%3E");
 
   mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M9.55 18.05 3.7 12.2l1.4-1.4 4.45 4.45L18.9 5.9l1.4 1.4-10.75 10.75Z'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='m6.933.332l.113.101l.89.89l1.26.001a1.48 1.48 0 0 1 1.453 1.198l.02.138l.007.143l-.002 1.259l.893.892a1.48 1.48 0 0 1 .19 1.86l-.089.12l-.101.112l-.893.891l.001 1.258c0 .659-.432 1.224-1.056 1.415l-.136.035l-.142.023l-.144.007h-1.26l-.891.892a1.48 1.48 0 0 1-1.86.19l-.12-.089l-.112-.101l-.892-.893l-1.258.001A1.48 1.48 0 0 1 1.35 9.48l-.02-.139l-.006-.142V7.936l-.89-.89a1.48 1.48 0 0 1-.19-1.86l.088-.12l.101-.112l.89-.891l.001-1.26c0-.72.516-1.32 1.198-1.452l.139-.02l.142-.007h1.26l.891-.89a1.48 1.48 0 0 1 1.98-.102zm1.212 3.657l-.085.071L5.5 6.62L4.44 5.56a.63.63 0 0 0-.88 0a.63.63 0 0 0-.071.795l.071.085l1.5 1.5a.625.625 0 0 0 .804.065l.076-.065l3-3a.61.61 0 0 0 0-.88a.63.63 0 0 0-.795-.071'/%3E%3C/svg%3E");
 }
 
-.toast-success .toast-icon {
-  color: #16803c;
-}
 
-/********* error *********/
-
-.toast-icon-error {
-  background:
-    #fff0f0;
-
-  color:
-    #c62828;
-
-  -webkit-mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 15h-2v-2h2Zm0-4h-2V7h2Z'/%3E%3C/svg%3E");
-
-  mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 15h-2v-2h2Zm0-4h-2V7h2Z'/%3E%3C/svg%3E");
-}
-
-/********* warning *********/
+/********* warning icon *********/
 
 .toast-icon-warning {
-  background:
-    #fff8e8;
-
-  color:
-    #a66b00;
-
   -webkit-mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M12 2 1 21h22ZM13 18h-2v-2h2Zm0-4h-2V9h2Z'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath fill='%23000' d='M512 64a448 448 0 1 1 0 896a448 448 0 0 1 0-896zm0 192a58.432 58.432 0 0 0-58.24 63.744l23.36 256.384a35.072 35.072 0 0 0 69.76 0l23.296-256.384A58.432 58.432 0 0 0 512 256zm0 512a51.2 51.2 0 1 0 0-102.4a51.2 51.2 0 0 0 0 102.4z'/%3E%3C/svg%3E");
 
   mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M12 2 1 21h22ZM13 18h-2v-2h2Zm0-4h-2V9h2Z'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath fill='%23000' d='M512 64a448 448 0 1 1 0 896a448 448 0 0 1 0-896zm0 192a58.432 58.432 0 0 0-58.24 63.744l23.36 256.384a35.072 35.072 0 0 0 69.76 0l23.296-256.384A58.432 58.432 0 0 0 512 256zm0 512a51.2 51.2 0 1 0 0-102.4a51.2 51.2 0 0 0 0 102.4z'/%3E%3C/svg%3E");
 }
 
-/********* info *********/
 
-.toast-icon-info {
-  background:
-    #f1f5ff;
+/********* error icon *********/
 
-  color:
-    #4169d8;
-
+.toast-icon-error {
   -webkit-mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M11 17h2v-6h-2Zm1-15a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8ZM11 9h2V7h-2Z'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M10.565 2.075c-.394.189-.755.497-1.26.928l-.079.066a2.56 2.56 0 0 1-1.58.655l-.102.008c-.662.053-1.135.09-1.547.236a3.33 3.33 0 0 0-2.03 2.029c-.145.412-.182.885-.235 1.547l-.008.102a2.56 2.56 0 0 1-.655 1.58l-.066.078c-.431.506-.74.867-.928 1.261a3.33 3.33 0 0 0 0 2.87c.189.394.497.755.928 1.26l.066.079c.41.48.604.939.655 1.58l.008.102c.053.662.09 1.135.236 1.547a3.33 3.33 0 0 0 2.029 2.03c.412.145.885.182 1.547.235l.102.008c.629.05 1.09.238 1.58.655l.079.066c.505.431.866.74 1.26.928a3.33 3.33 0 0 0 2.87 0c.394-.189.755-.497 1.26-.928l.079-.066c.48-.41.939-.604 1.58-.655l.102-.008c.662-.053 1.135-.09 1.547-.236a3.33 3.33 0 0 0 2.03-2.029c.145-.412.182-.885.235-1.547l.008-.102c.05-.629.238-1.09.655-1.58l.066-.079c.431-.505.74-.866.928-1.26a3.33 3.33 0 0 0 0-2.87c-.189-.394-.497-.755-.928-1.26l-.066-.079a2.56 2.56 0 0 1-.655-1.58l-.008-.102c-.053-.662-.09-1.135-.236-1.547a3.33 3.33 0 0 0-2.029-2.03c-.412-.145-.885-.182-1.547-.235l-.102-.008a2.56 2.56 0 0 1-1.58-.655l-.079-.066c-.505-.431-.866-.74-1.26-.928a3.33 3.33 0 0 0-2.87 0M8.47 8.47a.75.75 0 0 1 1.06 0L12 10.94l2.47-2.47a.75.75 0 1 1 1.06 1.06L13.06 12l2.47 2.47a.75.75 0 1 1-1.06 1.06L12 13.06l-2.47 2.47a.75.75 0 1 1-1.06-1.06L10.94 12 8.47 9.53a.75.75 0 0 1 0-1.06'/%3E%3C/svg%3E");
 
   mask-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' d='M11 17h2v-6h-2Zm1-15a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8ZM11 9h2V7h-2Z'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M10.565 2.075c-.394.189-.755.497-1.26.928l-.079.066a2.56 2.56 0 0 1-1.58.655l-.102.008c-.662.053-1.135.09-1.547.236a3.33 3.33 0 0 0-2.03 2.029c-.145.412-.182.885-.235 1.547l-.008.102a2.56 2.56 0 0 1-.655 1.58l-.066.078c-.431.506-.74.867-.928 1.261a3.33 3.33 0 0 0 0 2.87c.189.394.497.755.928 1.26l.066.079c.41.48.604.939.655 1.58l.008.102c.053.662.09 1.135.236 1.547a3.33 3.33 0 0 0 2.029 2.03c.412.145.885.182 1.547.235l.102.008c.629.05 1.09.238 1.58.655l.079.066c.505.431.866.74 1.26.928a3.33 3.33 0 0 0 2.87 0c.394-.189.755-.497 1.26-.928l.079-.066c.48-.41.939-.604 1.58-.655l.102-.008c.662-.053 1.135-.09 1.547-.236a3.33 3.33 0 0 0 2.03-2.029c.145-.412.182-.885.235-1.547l.008-.102c.05-.629.238-1.09.655-1.58l.066-.079c.431-.505.74-.866.928-1.26a3.33 3.33 0 0 0 0-2.87c-.189-.394-.497-.755-.928-1.26l-.066-.079a2.56 2.56 0 0 1-.655-1.58l-.008-.102c-.053-.662-.09-1.135-.236-1.547a3.33 3.33 0 0 0-2.029-2.03c-.412-.145-.885-.182-1.547-.235l-.102-.008a2.56 2.56 0 0 1-1.58-.655l-.079-.066c-.505-.431-.866-.74-1.26-.928a3.33 3.33 0 0 0-2.87 0M8.47 8.47a.75.75 0 0 1 1.06 0L12 10.94l2.47-2.47a.75.75 0 1 1 1.06 1.06L13.06 12l2.47 2.47a.75.75 0 1 1-1.06 1.06L12 13.06l-2.47 2.47a.75.75 0 1 1-1.06-1.06L10.94 12 8.47 9.53a.75.75 0 0 1 0-1.06'/%3E%3C/svg%3E");
 }
 
-/********* content *********/
 
-.toast-content {
-  flex: 1;
-  min-width: 0;
-
-  padding-top: 1px;
-}
+/********* text *********/
 
 .toast-title {
-  margin-bottom: 3px;
+  margin: 0 0 3px;
 
   color: #171717;
 
-  font-family:
-    "BykerM",
-    sans-serif;
+  font-family: "BykerM", sans-serif;
 
   font-size: 12px;
   font-weight: 500;
   line-height: 1.25;
+
+  letter-spacing: -.005em;
 }
 
 .toast-message {
-  color: #707070;
+  color: #6f6f6f;
+
+  font-family: "BykerR", sans-serif;
 
   font-size: 11px;
-  line-height: 1.45;
+  line-height: 1.5;
 
   overflow-wrap: anywhere;
 }
 
-/********* close *********/
+
+/********* close button *********/
 
 .toast-close {
   position: relative;
@@ -265,22 +379,26 @@
   align-items: center;
   justify-content: center;
 
-  flex: 0 0 28px;
+  flex: 0 0 29px;
 
-  width: 28px;
-  height: 28px;
+  width: 29px;
+  height: 29px;
 
   margin: -2px -2px 0 0;
   padding: 0;
 
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
 
   background: transparent;
 
   cursor: pointer;
 
   -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color .16s ease,
+    transform .16s ease;
 }
 
 .toast-close::before,
@@ -290,9 +408,9 @@
   position: absolute;
 
   width: 14px;
-  height: 1.7px;
+  height: 1.6px;
 
-  border-radius: 2px;
+  border-radius: 3px;
 
   background: #999;
 }
@@ -306,40 +424,55 @@
 }
 
 .toast-close:hover {
-  background: #f4f4f4;
+  background: #f3f3f3;
 }
 
 .toast-close:active {
-  transform: scale(.9);
+  transform: scale(.88);
 }
+
 
 /********* action *********/
 
 .toast-action {
   margin-top: 8px;
-  padding: 5px 9px;
+  padding: 6px 10px;
 
-  border: 1px solid #e2e2e2;
-  border-radius: 7px;
+  border: 1px solid
+    rgba(213, 0, 0, .12);
+
+  border-radius: 8px;
 
   background: #fff;
-  color:
-    var(--app-primary-color, #d50000);
 
-  font-family:
-    "BykerM",
-    sans-serif;
+  color:
+    var(
+      --app-primary-color,
+      #d50000
+    );
+
+  font-family: "BykerM", sans-serif;
 
   font-size: 10px;
+  font-weight: 500;
 
   cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
 }
+
 
 /********* loading *********/
 
 .toast-loading .toast-icon {
   background:
-    #fff5f5;
+    #fff4f4;
+
+  color:
+    var(
+      --app-primary-color,
+      #d50000
+    );
 }
 
 .toast-spinner {
@@ -348,15 +481,24 @@
   width: 18px;
   height: 18px;
 
-  border: 2px solid #ead0d0;
+  border: 2px solid
+    rgba(213, 0, 0, .14);
+
   border-top-color:
-    var(--app-primary-color, #d50000);
+    var(
+      --app-primary-color,
+      #d50000
+    );
 
   border-radius: 50%;
 
   animation:
-    toast-spin .7s linear infinite;
+    toast-spin
+    .7s
+    linear
+    infinite;
 }
+
 
 /********* progress *********/
 
@@ -369,75 +511,114 @@
 
   height: 2px;
 
+  border-radius: 999px;
+
   background:
-    var(--app-primary-color, #d50000);
+    var(
+      --toast-accent,
+      var(--app-primary-color, #d50000)
+    );
 
   transform-origin: left;
 
   animation:
     toast-progress
     var(--toast-duration)
-    linear forwards;
+    linear
+    forwards;
 }
 
-.toast-success .toast-progress {
-  background: #16803c;
-}
 
-.toast-error .toast-progress {
-  background: #c62828;
-}
-
-.toast-warning .toast-progress {
-  background: #a66b00;
-}
-
-.toast-info .toast-progress {
-  background: #4169d8;
-
-/********* mobile *********/
+/********* responsive *********/
 
 @media (max-width: 520px) {
   .toast-container {
     width:
       calc(100vw - 20px);
+
+    padding-top: 10px;
+    padding-right: 10px;
   }
 
-  .toast-position-top-right {
-    top: 10px;
-    right: 10px;
+  .toast-position-top-left {
+    padding-right: 0;
+    padding-left: 10px;
   }
 
   .toast {
-    border-radius: 14px;
+    min-height: 62px;
+
+    padding:
+      11px
+      11px
+      11px
+      12px;
+
+    border-radius: 15px;
+  }
+
+  .toast-icon {
+    flex-basis: 34px;
+
+    width: 34px;
+    height: 34px;
+  }
+
+  .toast-title {
+    font-size: 11.5px;
+  }
+
+  .toast-message {
+    font-size: 10.5px;
   }
 }
+
 
 /********* safe area *********/
 
 @supports (
   padding-top: env(safe-area-inset-top)
 ) {
-  .toast-position-top-right,
-  .toast-position-top-left,
-  .toast-position-top-center {
-    margin-top:
-      env(safe-area-inset-top);
+  .toast-position-top-right {
+    padding-top:
+      calc(
+        10px +
+        env(safe-area-inset-top)
+      );
   }
 
-  .toast-position-bottom-right,
-  .toast-position-bottom-left,
-  .toast-position-bottom-center {
-    margin-bottom:
-      env(safe-area-inset-bottom);
+  .toast-position-top-left {
+    padding-top:
+      calc(
+        10px +
+        env(safe-area-inset-top)
+      );
+  }
+
+  .toast-position-top-center {
+    padding-top:
+      calc(
+        10px +
+        env(safe-area-inset-top)
+      );
   }
 }
+
 
 /********* reduced motion *********/
 
 @media (prefers-reduced-motion: reduce) {
   .toast {
     transition: none;
+    animation: none;
+  }
+
+  .toast::before {
+    animation: none;
+  }
+
+  .toast-icon {
+    animation: none;
   }
 
   .toast-spinner {
@@ -449,20 +630,54 @@
   }
 }
 
+
 /********* animations *********/
+
+@keyframes toast-icon-enter {
+  from {
+    opacity: 0;
+
+    transform:
+      scale(.72)
+      rotate(-8deg);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      scale(1)
+      rotate(0);
+  }
+}
+
+@keyframes toast-surface-shine {
+  from {
+    transform:
+      translateX(-120%);
+  }
+
+  to {
+    transform:
+      translateX(120%);
+  }
+}
 
 @keyframes toast-spin {
   to {
-    transform: rotate(360deg);
+    transform:
+      rotate(360deg);
   }
 }
 
 @keyframes toast-progress {
   from {
-    transform: scaleX(1);
+    transform:
+      scaleX(1);
   }
 
   to {
-    transform: scaleX(0);
+    transform:
+      scaleX(0);
   }
 }
