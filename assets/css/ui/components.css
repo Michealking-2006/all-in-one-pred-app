@@ -8,6 +8,7 @@
 --text:#161616;
 --muted:#7e848e;
 --line:#e9ecef;
+--page-z-index: 30000000;
 --shadow:0 10px 24px rgba(0, 0, 0, .07);
 --soft-shadow:0 6px 16px rgba(0, 0, 0, .05);
 --radius-xl:24px;
@@ -70,7 +71,6 @@ html {
   justify-content: space-around;
   align-items: center;
   border-top: 1px solid #e5e7eb;
-  z-index: 999;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
