@@ -3,105 +3,46 @@
 
   /*
    * ============================================================
-   * SCOUTWAVE — EDIT PROFILE PAGE
+   * SCOUTWAVE — EDIT PROFILE
    * ============================================================
    *
-   * Global authentication:
+   * Global dependencies:
    *   window.VerifyAuthStatus
+   *   window.supabaseClient
    *
-   * Global toast manager:
-   *   window.toastManager / ToastManager / toast
-   *
-   * Responsibilities of this file:
-   *   - Load the current user's profile
-   *   - Display username/avatar
-   *   - Change avatar
-   *   - Validate username
-   *   - Save profile
-   *   - Delete account
-   *   - React to global auth changes
-   *
-   * This file does NOT:
-   *   - create an auth system
-   *   - create auth listeners for Supabase
-   *   - redirect guests
-   *   - control auth opacity/disabled styles
-   *
-   * VerifyAuthStatus owns those responsibilities.
+   * This page only handles profile functionality.
+   * Authentication UI is controlled globally.
    * ============================================================
    */
 
-
-  /* ============================================================
-   * INSTALL GUARD
-   * ============================================================ */
-
-  if (window.__scoutwaveEditProfileInstalled) {
-    return;
-  }
-
-  window.__scoutwaveEditProfileInstalled = true;
-
-
-  /* ============================================================
-   * CONFIG
-   * ============================================================ */
-
   const PAGE_ID = "editProfilePage";
+  const DEFAULT_AVATAR = "/assets/icons/normal-pfp.jpeg";
 
-  const DEFAULT_AVATAR =
-    "/assets/icons/normal-pfp.jpeg";
+  const $ = (selector, root = document) =>
+    root.querySelector(selector);
 
-  const SELECTORS = {
-    page: `#${PAGE_ID}`,
-    avatarImage: "#editProfileAvatarImage",
-    avatarGrid: "#editProfileAvatarGrid",
-    username: "#editProfileUsername",
-    save: "#editProfileSaveBtn",
-    delete: "#editProfileDeleteBtn",
-  };
+  const $$ = (selector, root = document) =>
+    [...root.querySelectorAll(selector)];
 
-
-  /* ============================================================
-   * STATE
-   * ============================================================ */
+  let page = null;
+  let removeEvents = null;
 
   const state = {
-    page: null,
-
     user: null,
     profile: null,
-
-    selectedAvatar: DEFAULT_AVATAR,
-
+    avatar: DEFAULT_AVATAR,
     originalUsername: "",
     originalAvatar: DEFAULT_AVATAR,
-
     saving: false,
     deleting: false,
-
-    mounted: false,
-    authReadyHandler: null,
-    authChangeHandler: null,
   };
 
 
   /* ============================================================
-   * DOM
+   * GLOBALS
    * ============================================================ */
 
-  function getPage() {
-    return document.querySelector(
-      SELECTORS.page
-    );
-  }
-
-
-  /* ============================================================
-   * SUPABASE
-   * ============================================================ */
-
-  function getSupabase() {
+  function supabase() {
     return (
       window.supabaseClient ||
       window.supabase ||
@@ -109,46 +50,8 @@
     );
   }
 
-
-  /* ============================================================
-   * GLOBAL AUTH MANAGER
-   * ============================================================ */
-
-  function getAuthManager() {
+  function auth() {
     return window.VerifyAuthStatus || null;
-  }
-
-
-  async function getAuthenticatedUser() {
-    const auth = getAuthManager();
-
-    if (!auth) {
-      return null;
-    }
-
-    try {
-      /*
-       * VerifyAuthStatus is the source of truth.
-       */
-      if (!auth.authenticated) {
-        return null;
-      }
-
-      const user = auth.user;
-
-      if (!user?.id) {
-        return null;
-      }
-
-      return user;
-    } catch (error) {
-      console.error(
-        "Edit Profile auth check failed:",
-        error
-      );
-
-      return null;
-    }
   }
 
 
@@ -156,88 +59,210 @@
    * TOAST
    * ============================================================ */
 
-  function notify(type, message) {
-    if (!message) return;
+  function toast(type, message) {
+    const manager =
+      window.toastManager ||
+      window.ToastManager ||
+      window.ToastNotificationsManager ||
+      window.toast;
+
+    if (!manager) {
+      console.warn(message);
+      return;
+    }
 
     try {
-      const manager =
-        window.toastManager ||
-        window.ToastManager ||
-        window.ToastNotificationsManager ||
-        window.toast;
-
-      if (!manager) {
-        console.warn(message);
-        return;
-      }
-
-      if (
-        typeof manager[type] ===
-        "function"
-      ) {
+      if (typeof manager[type] === "function") {
         manager[type](message);
-        return;
-      }
-
-      if (
-        typeof manager.show ===
-        "function"
-      ) {
-        manager.show(
-          message,
-          type
-        );
-        return;
-      }
-
-      if (
-        typeof manager.notify ===
-        "function"
-      ) {
-        manager.notify({
-          type,
-          message,
-        });
+      } else if (typeof manager.show === "function") {
+        manager.show(message, type);
+      } else if (typeof manager.notify === "function") {
+        manager.notify({ type, message });
       }
     } catch (error) {
-      console.error(
-        "Edit Profile toast error:",
-        error
-      );
+      console.error("Toast error:", error);
     }
   }
 
 
   /* ============================================================
-   * NAVIGATION
+   * ROUTER
    * ============================================================ */
 
-  function goTo(path) {
-    try {
-      if (
-        typeof window.navigate ===
-        "function"
-      ) {
-        window.navigate(path);
-        return;
-      }
+  function navigate(path) {
+    if (typeof window.navigate === "function") {
+      window.navigate(path);
+      return;
+    }
 
-      if (
-        typeof window.routerNavigate ===
-        "function"
-      ) {
-        window.routerNavigate(path);
-        return;
-      }
+    if (typeof window.routerNavigate === "function") {
+      window.routerNavigate(path);
+      return;
+    }
 
-      window.location.href = path;
-    } catch (error) {
-      console.error(
-        "Edit Profile navigation error:",
-        error
+    window.location.href = path;
+  }
+
+
+  /* ============================================================
+   * AUTHENTICATED USER
+   * ============================================================ */
+
+  async function getUser() {
+    const manager = auth();
+
+    if (manager?.authenticated && manager.user?.id) {
+      return manager.user;
+    }
+
+    /*
+     * Auth manager is global, but this fallback prevents
+     * the page from becoming completely dependent on script
+     * execution timing.
+     */
+    const client = supabase();
+
+    if (!client?.auth?.getUser) {
+      return null;
+    }
+
+    const { data, error } =
+      await client.auth.getUser();
+
+    if (error) {
+      return null;
+    }
+
+    return data?.user || null;
+  }
+
+
+  /* ============================================================
+   * PROFILE
+   * ============================================================ */
+
+  async function loadProfile() {
+    const client = supabase();
+    const user = await getUser();
+
+    state.user = user;
+    state.profile = null;
+
+    if (!client || !user?.id) {
+      clearForm();
+      return false;
+    }
+
+    const { data, error } = await client
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    state.profile = data || {};
+
+    const username =
+      String(
+        state.profile.username ||
+          user.user_metadata?.username ||
+          ""
+      ).trim();
+
+    const avatar =
+      state.profile.avatar_url ||
+      user.user_metadata?.avatar_url ||
+      DEFAULT_AVATAR;
+
+    state.originalUsername = username;
+    state.originalAvatar = avatar;
+    state.avatar = avatar;
+
+    const input = $(SELECTORS.username, page);
+
+    if (input) {
+      input.value = username;
+    }
+
+    setAvatar(avatar);
+
+    return true;
+  }
+
+
+  /* ============================================================
+   * UI SELECTORS
+   * ============================================================ */
+
+  const SELECTORS = {
+    page: `#${PAGE_ID}`,
+    image: "#editProfileAvatarImage",
+    grid: "#editProfileAvatarGrid",
+    username: "#editProfileUsername",
+    save: "#editProfileSaveBtn",
+    delete: "#editProfileDeleteBtn",
+  };
+
+
+  /* ============================================================
+   * AVATAR
+   * ============================================================ */
+
+  function setAvatar(avatar) {
+    state.avatar = avatar || DEFAULT_AVATAR;
+
+    const image = $(SELECTORS.image, page);
+
+    if (image) {
+      image.src = state.avatar;
+    }
+
+    $$(".avatar-option", page).forEach((button) => {
+      const selected =
+        (button.dataset.avatar || DEFAULT_AVATAR) ===
+        state.avatar;
+
+      button.classList.toggle(
+        "is-selected",
+        selected
       );
 
-      window.location.href = path;
+      button.setAttribute(
+        "aria-pressed",
+        String(selected)
+      );
+    });
+  }
+
+
+  function handleAvatarClick(event) {
+    const button = event.target.closest(
+      ".avatar-option"
+    );
+
+    if (!button || !page?.contains(button)) {
+      return;
+    }
+
+    /*
+     * VerifyAuthStatus already locks guest
+     * controls. This is only a logical guard.
+     */
+    if (!auth()?.authenticated) {
+      toast(
+        "error",
+        "Please log in to change your avatar."
+      );
+      return;
+    }
+
+    const avatar = button.dataset.avatar;
+
+    if (avatar) {
+      setAvatar(avatar);
     }
   }
 
@@ -253,682 +278,292 @@
   }
 
 
-  function isValidUsername(username) {
-    return /^[A-Za-z0-9._-]{3,30}$/.test(
-      username
-    );
+  function validUsername(username) {
+    return /^[A-Za-z0-9._-]{3,30}$/.test(username);
   }
 
 
   /* ============================================================
-   * BUTTON LOADING
+   * FORM STATE
    * ============================================================ */
 
-  function setButtonLoading(
-    button,
-    loading,
-    loadingText
-  ) {
-    if (!button) return;
-
-    if (loading) {
-      if (
-        !button.dataset.originalText
-      ) {
-        button.dataset.originalText =
-          button.textContent.trim();
-      }
-
-      button.disabled = true;
-
-      button.setAttribute(
-        "aria-busy",
-        "true"
-      );
-
-      button.textContent =
-        loadingText ||
-        "Please wait...";
-
-      return;
-    }
-
-    button.removeAttribute(
-      "aria-busy"
-    );
-
-    /*
-     * Do NOT blindly set disabled=false.
-     *
-     * VerifyAuthStatus may currently have
-     * the button disabled because the user
-     * is logged out.
-     */
-    const auth =
-      getAuthManager();
-
-    const authenticated =
-      Boolean(
-        auth?.authenticated
-      );
-
-    if (authenticated) {
-      button.disabled = false;
-    }
-
-    button.textContent =
-      button.dataset.originalText ||
-      button.textContent;
-  }
-
-
-  /* ============================================================
-   * PROFILE LOAD
-   * ============================================================ */
-
-  async function loadProfile() {
-    const supabase =
-      getSupabase();
-
-    if (!supabase) {
-      throw new Error(
-        "Supabase client is unavailable."
-      );
-    }
-
-    const user =
-      await getAuthenticatedUser();
-
-    /*
-     * Guest users can stay on the page.
-     * The global auth manager handles the
-     * locked UI.
-     */
-    if (!user) {
-      state.user = null;
-      state.profile = null;
-
-      return null;
-    }
-
-    state.user = user;
-
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("profiles")
-      .select(
-        "id, username, avatar_url"
-      )
-      .eq(
-        "id",
-        user.id
-      )
-      .maybeSingle();
-
-    if (error) {
-      console.error(
-        "Edit Profile profile query error:",
-        error
-      );
-
-      throw error;
-    }
-
-    state.profile =
-      data || {};
-
-    return state.profile;
-  }
-
-
-  /* ============================================================
-   * AVATAR PREVIEW
-   * ============================================================ */
-
-  function updateAvatarPreview(
-    avatar
-  ) {
-    const page = state.page;
-
-    if (!page) return;
-
-    const image =
-      page.querySelector(
-        SELECTORS.avatarImage
-      );
-
-    if (!image) return;
-
-    const nextAvatar =
-      avatar || DEFAULT_AVATAR;
-
-    if (
-      image.getAttribute("src") !==
-      nextAvatar
-    ) {
-      image.src = nextAvatar;
-    }
-  }
-
-
-  /* ============================================================
-   * AVATAR SELECTION
-   * ============================================================ */
-
-  function updateAvatarSelection() {
-    const page = state.page;
-
-    if (!page) return;
-
-    page
-      .querySelectorAll(
-        `${SELECTORS.avatarGrid} .avatar-option`
-      )
-      .forEach((button) => {
-        const avatar =
-          button.dataset.avatar ||
-          DEFAULT_AVATAR;
-
-        const selected =
-          avatar ===
-          state.selectedAvatar;
-
-        button.classList.toggle(
-          "is-selected",
-          selected
-        );
-
-        button.setAttribute(
-          "aria-pressed",
-          String(selected)
-        );
-      });
-  }
-
-
-  /* ============================================================
-   * POPULATE UI
-   * ============================================================ */
-
-  function populateProfile() {
-    const page = state.page;
-
-    if (!page) return;
-
-    const input =
-      page.querySelector(
-        SELECTORS.username
-      );
-
-    const username =
-      String(
-        state.profile?.username ||
-          state.user?.user_metadata
-            ?.username ||
-          ""
-      ).trim();
-
-    const avatar =
-      state.profile?.avatar_url ||
-      state.user?.user_metadata
-        ?.avatar_url ||
-      DEFAULT_AVATAR;
-
-    state.originalUsername =
-      username;
-
-    state.originalAvatar =
-      avatar;
-
-    state.selectedAvatar =
-      avatar;
-
-    if (input) {
-      input.value = username;
-    }
-
-    updateAvatarPreview(
-      avatar
-    );
-
-    updateAvatarSelection();
-  }
-
-
-  /* ============================================================
-   * CLEAR PROFILE
-   * ============================================================ */
-
-  function clearProfileState() {
+  function clearForm() {
     state.user = null;
     state.profile = null;
-
-    state.selectedAvatar =
-      DEFAULT_AVATAR;
-
+    state.avatar = DEFAULT_AVATAR;
     state.originalUsername = "";
+    state.originalAvatar = DEFAULT_AVATAR;
 
-    state.originalAvatar =
-      DEFAULT_AVATAR;
-
-    const page = state.page;
-
-    if (!page) return;
-
-    const input =
-      page.querySelector(
-        SELECTORS.username
-      );
+    const input = $(SELECTORS.username, page);
 
     if (input) {
       input.value = "";
     }
 
-    updateAvatarPreview(
-      DEFAULT_AVATAR
-    );
-
-    updateAvatarSelection();
+    setAvatar(DEFAULT_AVATAR);
   }
 
 
-  /* ============================================================
-   * AVATAR CLICK
-   * ============================================================ */
-
-  function handleAvatarClick(event) {
-    const button =
-      event.target.closest(
-        ".avatar-option"
-      );
-
+  function setLoading(button, loading, text) {
     if (!button) return;
 
-    const page = state.page;
+    if (loading) {
+      button.dataset.originalText ??=
+        button.textContent.trim();
 
-    if (!page?.contains(button)) {
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      button.textContent = text;
       return;
     }
 
-    const auth =
-      getAuthManager();
+    button.removeAttribute("aria-busy");
+    button.textContent =
+      button.dataset.originalText ||
+      button.textContent;
 
     /*
-     * The auth manager should already have
-     * disabled this button for guests.
-     *
-     * This second check protects against
-     * programmatic calls.
+     * Let VerifyAuthStatus decide whether the
+     * control should remain disabled.
      */
-    if (!auth?.authenticated) {
-      notify(
-        "error",
-        "Please log in to change your avatar."
-      );
-
-      return;
+    if (auth()?.authenticated) {
+      button.disabled = false;
     }
-
-    const avatar =
-      button.dataset.avatar;
-
-    if (!avatar) return;
-
-    state.selectedAvatar =
-      avatar;
-
-    updateAvatarPreview(
-      avatar
-    );
-
-    updateAvatarSelection();
   }
 
 
   /* ============================================================
-   * SAVE PROFILE
+   * SAVE
    * ============================================================ */
 
   async function saveProfile() {
     if (state.saving) return;
 
-    const page = state.page;
-    const supabase =
-      getSupabase();
+    const client = supabase();
 
-    if (!page || !supabase) {
+    if (!client || !page) {
       return;
     }
 
-    const user =
-      await getAuthenticatedUser();
+    const user = await getUser();
 
-    if (!user) {
-      notify(
+    if (!user?.id) {
+      toast(
         "error",
         "Please log in to save your profile."
       );
-
       return;
     }
 
-    state.user = user;
-
-    const input =
-      page.querySelector(
-        SELECTORS.username
-      );
-
-    const button =
-      page.querySelector(
-        SELECTORS.save
-      );
+    const input = $(SELECTORS.username, page);
+    const button = $(SELECTORS.save, page);
 
     const username =
-      normalizeUsername(
-        input?.value
-      );
+      normalizeUsername(input?.value);
 
     if (!username) {
-      notify(
+      toast(
         "error",
         "Please enter a username."
       );
-
       input?.focus();
-
       return;
     }
 
-    if (!isValidUsername(username)) {
-      notify(
+    if (!validUsername(username)) {
+      toast(
         "error",
         "Username must be 3–30 characters and can only contain letters, numbers, dots, underscores, or hyphens."
       );
-
       input?.focus();
-
       return;
     }
 
-    const unchanged =
-      username ===
-        state.originalUsername &&
-      state.selectedAvatar ===
-        state.originalAvatar;
-
-    if (unchanged) {
-      notify(
+    if (
+      username === state.originalUsername &&
+      state.avatar === state.originalAvatar
+    ) {
+      toast(
         "info",
         "No changes were made."
       );
-
       return;
     }
 
     state.saving = true;
-
-    setButtonLoading(
-      button,
-      true,
-      "Saving..."
-    );
+    setLoading(button, true, "Saving...");
 
     try {
       /*
-       * Check username availability when
-       * the username has actually changed.
+       * Only check uniqueness when the username changed.
        */
       if (
         username.toLowerCase() !==
         state.originalUsername.toLowerCase()
       ) {
-        const {
-          data: existingProfile,
-          error:
-            usernameCheckError,
-        } = await supabase
-          .from("profiles")
-          .select("id")
-          .ilike(
-            "username",
-            username
-          )
-          .neq(
-            "id",
-            user.id
-          )
-          .limit(1)
-          .maybeSingle();
+        const { data: existing, error } =
+          await client
+            .from("profiles")
+            .select("id")
+            .ilike("username", username)
+            .neq("id", user.id)
+            .limit(1)
+            .maybeSingle();
 
-        if (usernameCheckError) {
-          throw usernameCheckError;
+        if (error) {
+          throw error;
         }
 
-        if (existingProfile) {
-          notify(
+        if (existing) {
+          toast(
             "error",
             "That username is already taken."
           );
-
           return;
         }
       }
 
-
-      /* --------------------------------------------------------
-       * UPDATE PROFILE
-       * -------------------------------------------------------- */
-
-      const {
-        data,
-        error,
-      } = await supabase
-        .from("profiles")
-        .update({
-          username,
-          avatar_url:
-            state.selectedAvatar,
-        })
-        .eq(
-          "id",
-          user.id
-        )
-        .select(
-          "id, username, avatar_url"
-        )
-        .maybeSingle();
+      const { data, error } =
+        await client
+          .from("profiles")
+          .update({
+            username,
+            avatar_url: state.avatar,
+          })
+          .eq("id", user.id)
+          .select("id, username, avatar_url")
+          .maybeSingle();
 
       if (error) {
         if (
           error.code === "23505" ||
-          /username/i.test(
-            error.message || ""
-          )
+          /username/i.test(error.message || "")
         ) {
-          notify(
+          toast(
             "error",
             "That username is already taken."
           );
-
           return;
         }
 
         throw error;
       }
 
-      /*
-       * If RLS allows UPDATE but does not
-       * return the updated row, still keep
-       * our local state correct.
-       */
       state.profile =
         data || {
           id: user.id,
           username,
-          avatar_url:
-            state.selectedAvatar,
+          avatar_url: state.avatar,
         };
 
-      state.originalUsername =
-        username;
+      state.originalUsername = username;
+      state.originalAvatar = state.avatar;
 
-      state.originalAvatar =
-        state.selectedAvatar;
-
-
-      /* --------------------------------------------------------
-       * OPTIONAL AUTH METADATA SYNC
-       * -------------------------------------------------------- */
-
-      if (
-        supabase.auth?.updateUser
-      ) {
-        try {
-          await supabase.auth.updateUser({
+      /*
+       * Keep auth metadata synchronized,
+       * but don't make profile saving depend on it.
+       */
+      try {
+        if (client.auth?.updateUser) {
+          await client.auth.updateUser({
             data: {
               username,
-              avatar_url:
-                state.selectedAvatar,
+              avatar_url: state.avatar,
             },
           });
-        } catch (error) {
-          /*
-           * Profile update succeeded.
-           * Metadata is supplementary.
-           */
-          console.warn(
-            "Edit Profile auth metadata update failed:",
-            error
-          );
         }
+      } catch (error) {
+        console.warn(
+          "Auth metadata update failed:",
+          error
+        );
       }
 
-
-      /* --------------------------------------------------------
-       * APP EVENT
-       * -------------------------------------------------------- */
-
       window.dispatchEvent(
-        new CustomEvent(
-          "profile:updated",
-          {
-            detail: {
-              user,
-              profile:
-                state.profile,
-            },
-          }
-        )
+        new CustomEvent("profile:updated", {
+          detail: {
+            user,
+            profile: state.profile,
+          },
+        })
       );
 
-
-      notify(
+      toast(
         "success",
         "Profile updated successfully."
       );
 
-
-      /*
-       * Give the toast a moment to appear
-       * before SPA navigation.
-       */
       setTimeout(() => {
-        if (
-          state.page &&
-          getPage() === state.page
-        ) {
-          goTo("/profile");
+        if (page === $(SELECTORS.page)) {
+          navigate("/profile");
         }
       }, 350);
     } catch (error) {
       console.error(
-        "Edit Profile save error:",
+        "Edit profile save error:",
         error
       );
 
-      notify(
+      toast(
         "error",
         "Something went wrong while saving your profile."
       );
     } finally {
       state.saving = false;
-
-      setButtonLoading(
-        button,
-        false
-      );
+      setLoading(button, false);
     }
   }
 
 
   /* ============================================================
-   * DELETE ACCOUNT
+   * DELETE
    * ============================================================ */
 
   async function deleteAccount() {
     if (state.deleting) return;
 
-    const page = state.page;
-    const supabase =
-      getSupabase();
+    const client = supabase();
 
-    if (!page || !supabase) {
+    if (!client || !page) {
       return;
     }
 
-    const user =
-      await getAuthenticatedUser();
+    const user = await getUser();
 
-    if (!user) {
-      notify(
+    if (!user?.id) {
+      toast(
         "error",
         "Please log in to delete your account."
       );
-
       return;
     }
 
-    state.user = user;
-
-    const button =
-      page.querySelector(
-        SELECTORS.delete
-      );
-
-    const confirmed =
-      window.confirm(
-        "Are you sure you want to permanently delete your Scoutwave account?\n\nThis action cannot be undone."
-      );
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete your Scoutwave account?\n\nThis action cannot be undone."
+    );
 
     if (!confirmed) {
       return;
     }
 
-    state.deleting = true;
+    const button = $(SELECTORS.delete, page);
 
-    setButtonLoading(
-      button,
-      true,
-      "Deleting..."
-    );
+    state.deleting = true;
+    setLoading(button, true, "Deleting...");
 
     try {
-      const {
-        error,
-      } = await supabase.rpc(
-        "delete_user_account"
-      );
+      const { error } =
+        await client.rpc(
+          "delete_user_account"
+        );
 
       if (error) {
         console.error(
-          "Delete account RPC error:",
+          "Delete account error:",
           error
         );
 
-        notify(
+        toast(
           "error",
           "Account deletion is currently unavailable."
         );
@@ -936,102 +571,58 @@
         return;
       }
 
-      /*
-       * Sign out after the server-side
-       * deletion succeeds.
-       */
-      if (
-        supabase.auth?.signOut
-      ) {
-        await supabase.auth.signOut();
-      }
+      await client.auth.signOut();
 
-      clearProfileState();
+      clearForm();
 
-      notify(
+      toast(
         "success",
         "Your account has been deleted."
       );
 
       setTimeout(() => {
-        goTo("/");
+        navigate("/");
       }, 500);
     } catch (error) {
       console.error(
-        "Edit Profile account deletion error:",
+        "Delete account error:",
         error
       );
 
-      notify(
+      toast(
         "error",
         "Something went wrong while deleting your account."
       );
     } finally {
       state.deleting = false;
-
-      setButtonLoading(
-        button,
-        false
-      );
+      setLoading(button, false);
     }
   }
 
 
   /* ============================================================
-   * GLOBAL AUTH EVENT
+   * AUTH CHANGE
    * ============================================================ */
 
   async function handleAuthChange(event) {
-    const detail =
-      event?.detail;
+    const detail = event?.detail;
 
-    if (!detail) return;
-
-    const page =
-      getPage();
-
-    if (
-      !page ||
-      page !== state.page
-    ) {
+    if (!detail || page !== $(SELECTORS.page)) {
       return;
     }
 
-
-    /* ----------------------------------------------------------
-     * USER SIGNED IN
-     * ---------------------------------------------------------- */
-
-    if (
-      detail.authenticated &&
-      detail.user?.id
-    ) {
+    if (detail.authenticated && detail.user?.id) {
       try {
-        const profile =
-          await loadProfile();
+        await loadProfile();
 
-        /*
-         * Route changed while loading.
-         */
-        if (
-          getPage() !== page
-        ) {
+        if (page !== $(SELECTORS.page)) {
           return;
         }
 
-        if (profile) {
-          populateProfile();
-        }
-
-        /*
-         * Ask the global manager to resync
-         * the page controls.
-         */
-        getAuthManager()
-          ?.refresh?.();
+        auth()?.refresh?.();
       } catch (error) {
         console.error(
-          "Edit Profile auth reload error:",
+          "Edit profile auth reload error:",
           error
         );
       }
@@ -1039,16 +630,8 @@
       return;
     }
 
-
-    /* ----------------------------------------------------------
-     * USER SIGNED OUT
-     * ---------------------------------------------------------- */
-
-    if (
-      detail.authenticated ===
-      false
-    ) {
-      clearProfileState();
+    if (detail.authenticated === false) {
+      clearForm();
     }
   }
 
@@ -1057,88 +640,64 @@
    * EVENTS
    * ============================================================ */
 
-  function bindEvents(page) {
-    const avatarGrid =
-      page.querySelector(
-        SELECTORS.avatarGrid
-      );
+  function bindEvents() {
+    if (!page) return;
 
-    const saveButton =
-      page.querySelector(
-        SELECTORS.save
-      );
+    const grid = $(SELECTORS.grid, page);
+    const save = $(SELECTORS.save, page);
+    const deleteButton = $(SELECTORS.delete, page);
 
-    const deleteButton =
-      page.querySelector(
-        SELECTORS.delete
-      );
+    const onAvatar = (event) =>
+      handleAvatarClick(event);
 
+    const onSave = () =>
+      saveProfile();
 
-    const onAvatarClick =
-      (event) => {
-        handleAvatarClick(
-          event
-        );
-      };
+    const onDelete = () =>
+      deleteAccount();
 
-    const onSaveClick =
-      () => {
-        saveProfile();
-      };
+    const onAuth = (event) =>
+      handleAuthChange(event);
 
-    const onDeleteClick =
-      () => {
-        deleteAccount();
-      };
-
-    const onAuthChange =
-      (event) => {
-        handleAuthChange(
-          event
-        );
-      };
-
-
-    avatarGrid?.addEventListener(
+    grid?.addEventListener(
       "click",
-      onAvatarClick
+      onAvatar
     );
 
-    saveButton?.addEventListener(
+    save?.addEventListener(
       "click",
-      onSaveClick
+      onSave
     );
 
     deleteButton?.addEventListener(
       "click",
-      onDeleteClick
+      onDelete
     );
 
     document.addEventListener(
       "scoutwave:auth-state-change",
-      onAuthChange
+      onAuth
     );
 
-
-    return () => {
-      avatarGrid?.removeEventListener(
+    removeEvents = () => {
+      grid?.removeEventListener(
         "click",
-        onAvatarClick
+        onAvatar
       );
 
-      saveButton?.removeEventListener(
+      save?.removeEventListener(
         "click",
-        onSaveClick
+        onSave
       );
 
       deleteButton?.removeEventListener(
         "click",
-        onDeleteClick
+        onDelete
       );
 
       document.removeEventListener(
         "scoutwave:auth-state-change",
-        onAuthChange
+        onAuth
       );
     };
   }
@@ -1149,198 +708,62 @@
    * ============================================================ */
 
   async function mount() {
-    const page =
-      getPage();
+    const nextPage = $(SELECTORS.page);
 
-    /*
-     * Page isn't currently mounted.
-     */
-    if (!page) {
-      if (state.mounted) {
-        destroy();
-      }
-
+    if (!nextPage) {
+      destroy();
       return;
     }
 
-    /*
-     * Same DOM node.
-     */
-    if (
-      state.mounted &&
-      state.page === page
-    ) {
+    if (page === nextPage) {
       return;
     }
 
+    removeEvents?.();
 
-    /*
-     * Clean previous mount.
-     */
-    cleanup?.();
+    page = nextPage;
 
-    cleanup = null;
-
-
-    /*
-     * Establish current page.
-     */
-    state.page = page;
-    state.mounted = true;
-
-
-    /*
-     * Reset local state.
-     */
     state.user = null;
     state.profile = null;
-
-    state.selectedAvatar =
-      DEFAULT_AVATAR;
-
+    state.avatar = DEFAULT_AVATAR;
     state.originalUsername = "";
-
-    state.originalAvatar =
-      DEFAULT_AVATAR;
-
+    state.originalAvatar = DEFAULT_AVATAR;
     state.saving = false;
     state.deleting = false;
 
+    bindEvents();
 
     /*
-     * Bind immediately.
+     * The global auth manager owns the UI state.
      */
-    cleanup =
-      bindEvents(page);
-
+    auth()?.refresh?.();
 
     /*
-     * VerifyAuthStatus is global.
-     *
-     * It should already exist. We don't
-     * load it or create it here.
+     * Guests stay on the page with protected
+     * controls locked by VerifyAuthStatus.
      */
-    const auth =
-      getAuthManager();
-
-
-    /*
-     * Auth manager isn't available yet.
-     *
-     * Wait for its global ready event
-     * instead of creating a second auth
-     * implementation.
-     */
-    if (!auth) {
-      state.authReadyHandler =
-        () => {
-          state.authReadyHandler = null;
-
-          if (
-            getPage() === page
-          ) {
-            mount();
-          }
-        };
-
-      document.addEventListener(
-        "scoutwave:auth-ready",
-        state.authReadyHandler,
-        {
-          once: true,
-        }
-      );
-
+    if (!auth()?.authenticated) {
       return;
     }
 
-
-    /*
-     * Auth manager may still be checking.
-     *
-     * Wait for its ready event if the
-     * state isn't resolved yet.
-     */
-    if (
-      auth.state === "checking"
-    ) {
-      state.authReadyHandler =
-        () => {
-          state.authReadyHandler = null;
-
-          if (
-            getPage() === page
-          ) {
-            mount();
-          }
-        };
-
-      document.addEventListener(
-        "scoutwave:auth-ready",
-        state.authReadyHandler,
-        {
-          once: true,
-        }
-      );
-
-      return;
-    }
-
-
-    /*
-     * Make sure data-auth-required
-     * elements are synchronized.
-     */
-    auth.refresh?.();
-
-
-    /*
-     * Guest:
-     *
-     * The page remains accessible.
-     * VerifyAuthStatus has already locked
-     * the protected elements.
-     */
-    if (!auth.authenticated) {
-      return;
-    }
-
-
-    /*
-     * Authenticated user:
-     * load their profile.
-     */
     try {
-      const profile =
-        await loadProfile();
+      await loadProfile();
 
-      /*
-       * User navigated away while the
-       * network request was running.
-       */
-      if (
-        getPage() !== page
-      ) {
+      if (page !== $(SELECTORS.page)) {
         return;
       }
 
-      if (profile) {
-        populateProfile();
-      }
+      auth()?.refresh?.();
     } catch (error) {
       console.error(
-        "Edit Profile initialization error:",
+        "Edit profile load error:",
         error
       );
 
-      if (
-        getPage() === page
-      ) {
-        notify(
-          "error",
-          "Unable to load your profile."
-        );
-      }
+      toast(
+        "error",
+        "Unable to load your profile."
+      );
     }
   }
 
@@ -1350,30 +773,13 @@
    * ============================================================ */
 
   function destroy() {
-    if (
-      state.authReadyHandler
-    ) {
-      document.removeEventListener(
-        "scoutwave:auth-ready",
-        state.authReadyHandler
-      );
+    removeEvents?.();
 
-      state.authReadyHandler =
-        null;
-    }
-
-    cleanup?.();
-
-    cleanup = null;
-
-    state.page = null;
-    state.mounted = false;
+    removeEvents = null;
+    page = null;
 
     state.user = null;
     state.profile = null;
-
-    state.saving = false;
-    state.deleting = false;
   }
 
 
@@ -1389,27 +795,27 @@
       return {
         user: state.user,
         profile: state.profile,
-        selectedAvatar:
-          state.selectedAvatar,
+        avatar: state.avatar,
         originalUsername:
           state.originalUsername,
         originalAvatar:
           state.originalAvatar,
         saving: state.saving,
         deleting: state.deleting,
-        mounted: state.mounted,
       };
     },
   };
 
 
   /* ============================================================
-   * START
+   * SPA-SAFE START
    * ============================================================ */
 
   /*
-   * Your <app-script> loader should execute this
-   * after the page HTML has been mounted.
+   * Critical for your custom <app-script> loader:
+   *
+   * If this script has already been evaluated before,
+   * execute mount() again instead of returning.
    */
   mount();
 
