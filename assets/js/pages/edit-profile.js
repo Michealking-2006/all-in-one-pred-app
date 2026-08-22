@@ -215,19 +215,10 @@
       );
 
     if (username) {
-      username.setAttribute(
-        "data-auth-required",
-        "disable"
-      );
-
+    
       username.setAttribute(
         "data-auth-message",
         "Please log in to edit your profile."
-      );
-
-      username.setAttribute(
-        "data-auth-opacity",
-        "0.5"
       );
     }
 

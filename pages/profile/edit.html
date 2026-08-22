@@ -39,6 +39,7 @@
         Select an avatar for your profile.
       </p>
 
+
       <div
         class="edit-profile-avatar-grid"
         id="editProfileAvatarGrid"
@@ -50,6 +51,9 @@
           data-avatar="/assets/icons/normal-pfp.jpeg"
           aria-label="Avatar 1"
           aria-pressed="true"
+          data-auth-required="disable"
+          data-auth-message="Please log in to change your avatar."
+          data-auth-opacity="0.3"
         >
           <img
             src="/assets/icons/normal-pfp.jpeg"
@@ -57,18 +61,23 @@
           >
         </button>
 
+
         <button
           class="avatar-option"
           type="button"
           data-avatar="/assets/images/avatars/messi-avatar.png"
           aria-label="Avatar 2"
           aria-pressed="false"
+          data-auth-required="disable"
+          data-auth-message="Please log in to change your avatar."
+          data-auth-opacity="0.3"
         >
           <img
             src="/assets/images/avatars/messi-avatar.png"
-            alt="messi avatar"
+            alt="Messi avatar"
           >
         </button>
+
 
         <button
           class="avatar-option"
@@ -76,12 +85,16 @@
           data-avatar="/assets/images/avatars/ronaldo-avatar.png"
           aria-label="Avatar 3"
           aria-pressed="false"
+          data-auth-required="disable"
+          data-auth-message="Please log in to change your avatar."
+          data-auth-opacity="0.3"
         >
           <img
             src="/assets/images/avatars/ronaldo-avatar.png"
-            alt="ronaldo avatar"
+            alt="Ronaldo avatar"
           >
         </button>
+
 
         <button
           class="avatar-option"
@@ -89,12 +102,16 @@
           data-avatar="/assets/images/avatars/harry-kane-avatar.png"
           aria-label="Avatar 4"
           aria-pressed="false"
+          data-auth-required="disable"
+          data-auth-message="Please log in to change your avatar."
+          data-auth-opacity="0.3"
         >
           <img
             src="/assets/images/avatars/harry-kane-avatar.png"
-            alt="kane avatar"
+            alt="Harry Kane avatar"
           >
         </button>
+
 
         <button
           class="avatar-option"
@@ -102,12 +119,16 @@
           data-avatar="/assets/images/avatars/mbappe-avatar.png"
           aria-label="Avatar 5"
           aria-pressed="false"
+          data-auth-required="disable"
+          data-auth-message="Please log in to change your avatar."
+          data-auth-opacity="0.3"
         >
           <img
             src="/assets/images/avatars/mbappe-avatar.png"
-            alt="mbappe avatar"
+            alt="Mbappe avatar"
           >
         </button>
+
 
         <button
           class="avatar-option"
@@ -115,10 +136,13 @@
           data-avatar="/assets/images/avatars/woman-avatar.png"
           aria-label="Avatar 6"
           aria-pressed="false"
+          data-auth-required="disable"
+          data-auth-message="Please log in to change your avatar."
+          data-auth-opacity="0.3"
         >
           <img
             src="/assets/images/avatars/woman-avatar.png"
-            alt="woman avatar"
+            alt="Woman avatar"
           >
         </button>
 
@@ -142,6 +166,9 @@
           autocomplete="username"
           maxlength="30"
           placeholder="Enter your username"
+          data-auth-required="disable"
+          data-auth-message="Please log in to edit your username."
+          data-auth-opacity="0.45"
         >
 
         <small>
@@ -157,7 +184,7 @@
         type="button"
         data-auth-required="disable"
         data-auth-message="Please log in to save your profile."
-        data-auth-opacity="0.5"
+        data-auth-opacity="0.45"
       >
         Save Changes
       </button>
@@ -185,7 +212,7 @@
         type="button"
         data-auth-required="disable"
         data-auth-message="Please log in to delete your account."
-        data-auth-opacity="0.5"
+        data-auth-opacity="0.45"
       >
         Delete Account
       </button>
