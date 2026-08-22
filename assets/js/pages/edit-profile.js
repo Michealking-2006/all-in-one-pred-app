@@ -6,6 +6,17 @@
    * EDIT PROFILE PAGE
    * ============================================================
    *
+   * Authentication is handled by:
+   *
+   *   window.VerifyAuthStatus
+   *
+   * This page does NOT:
+   *   - create an auth manager
+   *   - redirect unauthenticated users
+   *   - duplicate Supabase auth-state listeners
+   *
+   * It only asks VerifyAuthStatus for the current auth state.
+   *
    * Expected Supabase client:
    *   window.supabaseClient
    *
@@ -14,17 +25,13 @@
    *   username
    *   avatar_url
    *
-   * Existing toast manager:
-   *   This file does NOT create a toast manager.
-   *   notify() only attempts to call the existing manager.
+   * Existing Toast Notifications Manager is used through notify().
    */
 
   const PAGE_ID = "editProfilePage";
 
-  let mountedPage = null;
-  let cleanup = null;
-
-  const DEFAULT_AVATAR = "/assets/icons/normal-pfp.jpeg";
+  const DEFAULT_AVATAR =
+    "/assets/icons/normal-pfp.jpeg";
 
   const SELECTORS = {
     page: `#${PAGE_ID}`,
@@ -36,12 +43,18 @@
     delete: "#editProfileDeleteBtn",
   };
 
+  let mountedPage = null;
+  let cleanup = null;
+
   const state = {
     user: null,
     profile: null,
+
     selectedAvatar: DEFAULT_AVATAR,
+
     originalUsername: "",
     originalAvatar: DEFAULT_AVATAR,
+
     saving: false,
     deleting: false,
   };
@@ -52,19 +65,21 @@
    * ============================================================ */
 
   function getPage() {
-    return document.querySelector(SELECTORS.page);
+    return document.querySelector(
+      SELECTORS.page
+    );
   }
 
   function getSupabase() {
-    return window.supabaseClient || window.supabase || null;
+    return (
+      window.supabaseClient ||
+      window.supabase ||
+      null
+    );
   }
 
-  function getCurrentUser() {
-    if (typeof window.getCurrentUser === "function") {
-      return window.getCurrentUser();
-    }
-
-    return null;
+  function getAuthManager() {
+    return window.VerifyAuthStatus || null;
   }
 
   function goTo(path) {
@@ -73,7 +88,10 @@
       return;
     }
 
-    if (typeof window.routerNavigate === "function") {
+    if (
+      typeof window.routerNavigate ===
+      "function"
+    ) {
       window.routerNavigate(path);
       return;
     }
@@ -88,41 +106,51 @@
   }
 
   function isValidUsername(username) {
-    return /^[a-zA-Z0-9._-]{3,30}$/.test(username);
+    return /^[a-zA-Z0-9._-]{3,30}$/.test(
+      username
+    );
   }
 
-  function setButtonLoading(button, loading, text) {
+  function setButtonLoading(
+    button,
+    loading,
+    text
+  ) {
     if (!button) return;
 
     if (loading) {
       if (!button.dataset.originalText) {
-        button.dataset.originalText = button.textContent.trim();
+        button.dataset.originalText =
+          button.textContent.trim();
       }
 
       button.disabled = true;
-      button.setAttribute("aria-busy", "true");
-      button.textContent = text || "Please wait...";
+      button.setAttribute(
+        "aria-busy",
+        "true"
+      );
+
+      button.textContent =
+        text || "Please wait...";
     } else {
       button.disabled = false;
-      button.removeAttribute("aria-busy");
+
+      button.removeAttribute(
+        "aria-busy"
+      );
+
       button.textContent =
-        button.dataset.originalText || button.textContent;
+        button.dataset.originalText ||
+        button.textContent;
     }
   }
 
 
   /* ============================================================
-   * EXISTING TOAST MANAGER ADAPTER
+   * EXISTING TOAST MANAGER
    * ============================================================ */
 
   function notify(type, message) {
-    /*
-     * Do not create a toast system here.
-     *
-     * Supports several common interfaces so the existing
-     * Toast Notifications Manager can be used without changing it.
-     */
-
     try {
       const manager =
         window.toastManager ||
@@ -135,27 +163,187 @@
         return;
       }
 
-      if (typeof manager[type] === "function") {
+      if (
+        typeof manager[type] ===
+        "function"
+      ) {
         manager[type](message);
         return;
       }
 
-      if (typeof manager.show === "function") {
+      if (
+        typeof manager.show ===
+        "function"
+      ) {
         manager.show(message, type);
         return;
       }
 
-      if (typeof manager.notify === "function") {
+      if (
+        typeof manager.notify ===
+        "function"
+      ) {
         manager.notify({
           type,
           message,
         });
-
-        return;
       }
     } catch (error) {
-      console.error("Toast error:", error);
+      console.error(
+        "Toast error:",
+        error
+      );
     }
+  }
+
+
+  /* ============================================================
+   * AUTH MANAGER INTEGRATION
+   * ============================================================ */
+
+  function configureAuthProtection(
+    page
+  ) {
+    if (!page) return;
+
+    /*
+     * Username field.
+     */
+    const username =
+      page.querySelector(
+        SELECTORS.username
+      );
+
+    if (username) {
+      username.setAttribute(
+        "data-auth-required",
+        "disable"
+      );
+
+      username.setAttribute(
+        "data-auth-message",
+        "Please log in to edit your profile."
+      );
+
+      username.setAttribute(
+        "data-auth-opacity",
+        "0.5"
+      );
+    }
+
+    /*
+     * Save button.
+     */
+    const save =
+      page.querySelector(
+        SELECTORS.save
+      );
+
+    if (save) {
+      save.setAttribute(
+        "data-auth-required",
+        "disable"
+      );
+
+      save.setAttribute(
+        "data-auth-message",
+        "Please log in to save your profile."
+      );
+
+      save.setAttribute(
+        "data-auth-opacity",
+        "0.5"
+      );
+    }
+
+    /*
+     * Delete button.
+     */
+    const deleteButton =
+      page.querySelector(
+        SELECTORS.delete
+      );
+
+    if (deleteButton) {
+      deleteButton.setAttribute(
+        "data-auth-required",
+        "disable"
+      );
+
+      deleteButton.setAttribute(
+        "data-auth-message",
+        "Please log in to delete your account."
+      );
+
+      deleteButton.setAttribute(
+        "data-auth-opacity",
+        "0.5"
+      );
+    }
+
+    /*
+     * Protect avatar choices as well.
+     */
+    page
+      .querySelectorAll(
+        `${SELECTORS.avatarGrid} .avatar-option`
+      )
+      .forEach((button) => {
+        button.setAttribute(
+          "data-auth-required",
+          "disable"
+        );
+
+        button.setAttribute(
+          "data-auth-message",
+          "Please log in to change your avatar."
+        );
+
+        button.setAttribute(
+          "data-auth-opacity",
+          "0.5"
+        );
+      });
+
+    /*
+     * Tell the global manager to immediately
+     * process the newly protected elements.
+     */
+    getAuthManager()?.refresh?.();
+  }
+
+
+  async function requireAuthenticatedUser() {
+    const auth =
+      getAuthManager();
+
+    if (!auth) {
+      console.error(
+        "VerifyAuthStatus is not available."
+      );
+
+      notify(
+        "error",
+        "Authentication service is unavailable."
+      );
+
+      return null;
+    }
+
+    const authenticated =
+      await auth.isAuthenticated();
+
+    if (!authenticated) {
+      return null;
+    }
+
+    const user = auth.user;
+
+    if (!user?.id) {
+      return null;
+    }
+
+    return user;
   }
 
 
@@ -163,58 +351,55 @@
    * PROFILE DATA
    * ============================================================ */
 
-  async function getUser() {
-    const helperUser = getCurrentUser();
-
-    if (helperUser && typeof helperUser.then === "function") {
-      return await helperUser;
-    }
-
-    if (helperUser) {
-      return helperUser;
-    }
-
-    const supabase = getSupabase();
-
-    if (!supabase?.auth?.getUser) {
-      return null;
-    }
-
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error("Unable to get authenticated user:", error);
-      return null;
-    }
-
-    return data?.user || null;
-  }
-
-
   async function loadProfile() {
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
     if (!supabase) {
-      throw new Error("Authentication service unavailable.");
+      throw new Error(
+        "Supabase client unavailable."
+      );
     }
 
-    const user = await getUser();
+    /*
+     * Authentication is now handled entirely
+     * by VerifyAuthStatus.
+     */
+    const user =
+      await requireAuthenticatedUser();
 
-    if (!user?.id) {
-      goTo("/login");
+    /*
+     * IMPORTANT:
+     * Do not redirect.
+     *
+     * The auth manager simply protects the page's
+     * interactive elements for guest users.
+     */
+    if (!user) {
+      state.user = null;
+      state.profile = null;
       return null;
     }
 
     state.user = user;
 
-    const { data, error } = await supabase
+    const {
+      data,
+      error,
+    } = await supabase
       .from("profiles")
-      .select("id, username, avatar_url")
+      .select(
+        "id, username, avatar_url"
+      )
       .eq("id", user.id)
       .maybeSingle();
 
     if (error) {
-      console.error("Profile load error:", error);
+      console.error(
+        "Profile load error:",
+        error
+      );
+
       throw error;
     }
 
@@ -228,15 +413,21 @@
    * UI
    * ============================================================ */
 
-  function updateAvatarPreview(avatar) {
+  function updateAvatarPreview(
+    avatar
+  ) {
     const page = getPage();
 
     if (!page) return;
 
-    const preview = page.querySelector(SELECTORS.avatarImage);
+    const image =
+      page.querySelector(
+        SELECTORS.avatarImage
+      );
 
-    if (preview) {
-      preview.src = avatar || DEFAULT_AVATAR;
+    if (image) {
+      image.src =
+        avatar || DEFAULT_AVATAR;
     }
   }
 
@@ -247,13 +438,27 @@
     if (!page) return;
 
     page
-      .querySelectorAll(`${SELECTORS.avatarGrid} .avatar-option`)
+      .querySelectorAll(
+        `${SELECTORS.avatarGrid} .avatar-option`
+      )
       .forEach((button) => {
-        const avatar = button.dataset.avatar || DEFAULT_AVATAR;
-        const selected = avatar === state.selectedAvatar;
+        const avatar =
+          button.dataset.avatar ||
+          DEFAULT_AVATAR;
 
-        button.classList.toggle("is-selected", selected);
-        button.setAttribute("aria-pressed", String(selected));
+        const selected =
+          avatar ===
+          state.selectedAvatar;
+
+        button.classList.toggle(
+          "is-selected",
+          selected
+        );
+
+        button.setAttribute(
+          "aria-pressed",
+          String(selected)
+        );
       });
   }
 
@@ -263,27 +468,74 @@
 
     if (!page) return;
 
-    const usernameInput = page.querySelector(SELECTORS.username);
+    const usernameInput =
+      page.querySelector(
+        SELECTORS.username
+      );
 
     const username =
       state.profile?.username ||
-      state.user?.user_metadata?.username ||
+      state.user?.user_metadata
+        ?.username ||
       "";
 
     const avatar =
       state.profile?.avatar_url ||
-      state.user?.user_metadata?.avatar_url ||
+      state.user?.user_metadata
+        ?.avatar_url ||
       DEFAULT_AVATAR;
 
-    state.originalUsername = username;
-    state.originalAvatar = avatar;
-    state.selectedAvatar = avatar;
+    state.originalUsername =
+      username;
+
+    state.originalAvatar =
+      avatar;
+
+    state.selectedAvatar =
+      avatar;
 
     if (usernameInput) {
-      usernameInput.value = username;
+      usernameInput.value =
+        username;
     }
 
-    updateAvatarPreview(avatar);
+    updateAvatarPreview(
+      avatar
+    );
+
+    updateAvatarSelection();
+  }
+
+
+  function clearProfileState() {
+    state.user = null;
+    state.profile = null;
+
+    state.selectedAvatar =
+      DEFAULT_AVATAR;
+
+    state.originalUsername = "";
+
+    state.originalAvatar =
+      DEFAULT_AVATAR;
+
+    const page = getPage();
+
+    if (!page) return;
+
+    const usernameInput =
+      page.querySelector(
+        SELECTORS.username
+      );
+
+    if (usernameInput) {
+      usernameInput.value = "";
+    }
+
+    updateAvatarPreview(
+      DEFAULT_AVATAR
+    );
+
     updateAvatarSelection();
   }
 
@@ -292,22 +544,53 @@
    * AVATAR SELECTION
    * ============================================================ */
 
-  function handleAvatarClick(event) {
-    const button = event.target.closest(".avatar-option");
+  function handleAvatarClick(
+    event
+  ) {
+    const button =
+      event.target.closest(
+        ".avatar-option"
+      );
 
     if (!button) return;
 
     const page = getPage();
 
-    if (!page?.contains(button)) return;
+    if (!page?.contains(button)) {
+      return;
+    }
 
-    const avatar = button.dataset.avatar;
+    /*
+     * Let the global auth manager be
+     * the source of truth.
+     */
+    const auth =
+      getAuthManager();
+
+    if (
+      auth &&
+      !auth.authenticated
+    ) {
+      notify(
+        "error",
+        "Please log in to change your avatar."
+      );
+
+      return;
+    }
+
+    const avatar =
+      button.dataset.avatar;
 
     if (!avatar) return;
 
-    state.selectedAvatar = avatar;
+    state.selectedAvatar =
+      avatar;
 
-    updateAvatarPreview(avatar);
+    updateAvatarPreview(
+      avatar
+    );
+
     updateAvatarSelection();
   }
 
@@ -320,17 +603,55 @@
     if (state.saving) return;
 
     const page = getPage();
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
-    if (!page || !supabase || !state.user?.id) return;
+    if (!page || !supabase) {
+      return;
+    }
 
-    const usernameInput = page.querySelector(SELECTORS.username);
-    const saveButton = page.querySelector(SELECTORS.save);
+    /*
+     * Final authentication check.
+     *
+     * The global manager already disables
+     * the button for guests, but this check
+     * protects against programmatic calls.
+     */
+    const user =
+      await requireAuthenticatedUser();
 
-    const username = escapeUsername(usernameInput?.value);
+    if (!user) {
+      notify(
+        "error",
+        "Please log in to save your profile."
+      );
+
+      return;
+    }
+
+    state.user = user;
+
+    const usernameInput =
+      page.querySelector(
+        SELECTORS.username
+      );
+
+    const saveButton =
+      page.querySelector(
+        SELECTORS.save
+      );
+
+    const username =
+      escapeUsername(
+        usernameInput?.value
+      );
 
     if (!username) {
-      notify("error", "Please enter a username.");
+      notify(
+        "error",
+        "Please enter a username."
+      );
+
       usernameInput?.focus();
       return;
     }
@@ -342,95 +663,146 @@
       );
 
       usernameInput?.focus();
+
       return;
     }
 
     const unchanged =
-      username === state.originalUsername &&
-      state.selectedAvatar === state.originalAvatar;
+      username ===
+        state.originalUsername &&
+      state.selectedAvatar ===
+        state.originalAvatar;
 
     if (unchanged) {
-      notify("info", "No changes were made.");
+      notify(
+        "info",
+        "No changes were made."
+      );
+
       return;
     }
 
     state.saving = true;
 
-    setButtonLoading(saveButton, true, "Saving...");
+    setButtonLoading(
+      saveButton,
+      true,
+      "Saving..."
+    );
 
     try {
       /*
-       * Check whether another user already owns the username.
-       * This avoids relying entirely on a database constraint error.
+       * Check whether another profile
+       * already owns this username.
        */
-
-      if (username.toLowerCase() !== state.originalUsername.toLowerCase()) {
-        const { data: existingProfile, error: usernameCheckError } =
-          await supabase
-            .from("profiles")
-            .select("id")
-            .ilike("username", username)
-            .neq("id", state.user.id)
-            .limit(1)
-            .maybeSingle();
+      if (
+        username.toLowerCase() !==
+        state.originalUsername.toLowerCase()
+      ) {
+        const {
+          data:
+            existingProfile,
+          error:
+            usernameCheckError,
+        } = await supabase
+          .from("profiles")
+          .select("id")
+          .ilike(
+            "username",
+            username
+          )
+          .neq(
+            "id",
+            user.id
+          )
+          .limit(1)
+          .maybeSingle();
 
         if (usernameCheckError) {
           throw usernameCheckError;
         }
 
         if (existingProfile) {
-          notify("error", "That username is already taken.");
+          notify(
+            "error",
+            "That username is already taken."
+          );
+
           return;
         }
       }
 
-
-      const { data, error } = await supabase
+      /*
+       * Save profile.
+       */
+      const {
+        data,
+        error,
+      } = await supabase
         .from("profiles")
         .update({
           username,
-          avatar_url: state.selectedAvatar,
+          avatar_url:
+            state.selectedAvatar,
         })
-        .eq("id", state.user.id)
-        .select("id, username, avatar_url")
+        .eq("id", user.id)
+        .select(
+          "id, username, avatar_url"
+        )
         .single();
 
       if (error) {
-        /*
-         * PostgreSQL unique constraint fallback.
-         */
         if (
           error.code === "23505" ||
-          /username/i.test(error.message || "")
+          /username/i.test(
+            error.message || ""
+          )
         ) {
-          notify("error", "That username is already taken.");
+          notify(
+            "error",
+            "That username is already taken."
+          );
+
           return;
         }
 
         throw error;
       }
 
-      state.profile = data || {
-        id: state.user.id,
-        username,
-        avatar_url: state.selectedAvatar,
-      };
+      state.profile =
+        data || {
+          id: user.id,
+          username,
+          avatar_url:
+            state.selectedAvatar,
+        };
 
-      state.originalUsername = username;
-      state.originalAvatar = state.selectedAvatar;
+      state.originalUsername =
+        username;
+
+      state.originalAvatar =
+        state.selectedAvatar;
 
       /*
-       * Keep auth metadata in sync where possible.
-       * Failure here should not undo a successfully saved profile.
+       * Keep auth metadata synchronized.
+       *
+       * This is supplementary only. The
+       * profiles table remains the source
+       * for the editable profile data.
        */
-      if (supabase.auth?.updateUser) {
+      if (
+        supabase.auth?.updateUser
+      ) {
         try {
-          await supabase.auth.updateUser({
-            data: {
-              username,
-              avatar_url: state.selectedAvatar,
-            },
-          });
+          await supabase.auth.updateUser(
+            {
+              data: {
+                username,
+                avatar_url:
+                  state.selectedAvatar,
+              },
+            }
+          );
         } catch (metadataError) {
           console.warn(
             "Auth metadata update failed:",
@@ -440,29 +812,36 @@
       }
 
       /*
-       * Let the rest of the SPA know profile data changed.
+       * Notify the rest of Scoutwave.
        */
       window.dispatchEvent(
-        new CustomEvent("profile:updated", {
-          detail: {
-            user: state.user,
-            profile: state.profile,
-          },
-        })
+        new CustomEvent(
+          "profile:updated",
+          {
+            detail: {
+              user,
+              profile:
+                state.profile,
+            },
+          }
+        )
       );
 
-      notify("success", "Profile updated successfully.");
+      notify(
+        "success",
+        "Profile updated successfully."
+      );
 
-      /*
-       * Return to profile after saving.
-       */
       setTimeout(() => {
         if (getPage()) {
           goTo("/profile");
         }
       }, 350);
     } catch (error) {
-      console.error("Save profile error:", error);
+      console.error(
+        "Save profile error:",
+        error
+      );
 
       notify(
         "error",
@@ -470,7 +849,11 @@
       );
     } finally {
       state.saving = false;
-      setButtonLoading(saveButton, false);
+
+      setButtonLoading(
+        saveButton,
+        false
+      );
     }
   }
 
@@ -483,38 +866,68 @@
     if (state.deleting) return;
 
     const page = getPage();
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
-    if (!page || !supabase || !state.user?.id) return;
+    if (!page || !supabase) {
+      return;
+    }
 
-    const deleteButton = page.querySelector(SELECTORS.delete);
+    /*
+     * Final authentication verification.
+     */
+    const user =
+      await requireAuthenticatedUser();
 
-    const confirmed = window.confirm(
-      "Are you sure you want to permanently delete your Scoutwave account?\n\nThis action cannot be undone."
-    );
+    if (!user) {
+      notify(
+        "error",
+        "Please log in to delete your account."
+      );
 
-    if (!confirmed) return;
+      return;
+    }
+
+    state.user = user;
+
+    const deleteButton =
+      page.querySelector(
+        SELECTORS.delete
+      );
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to permanently delete your Scoutwave account?\n\nThis action cannot be undone."
+      );
+
+    if (!confirmed) {
+      return;
+    }
 
     state.deleting = true;
 
-    setButtonLoading(deleteButton, true, "Deleting...");
+    setButtonLoading(
+      deleteButton,
+      true,
+      "Deleting..."
+    );
 
     try {
       /*
-       * IMPORTANT:
-       * Supabase Auth users cannot be permanently deleted safely
-       * from the browser using auth.admin.deleteUser().
-       *
-       * This calls a server-side RPC that should perform the
-       * account deletion.
+       * Account deletion must be performed
+       * server-side.
        */
-
-      const { error } = await supabase.rpc(
+      const {
+        error,
+      } = await supabase.rpc(
         "delete_user_account"
       );
 
       if (error) {
-        console.error("Delete account RPC error:", error);
+        console.error(
+          "Delete account RPC error:",
+          error
+        );
 
         notify(
           "error",
@@ -525,19 +938,29 @@
       }
 
       /*
-       * End the current session after successful deletion.
+       * End current session.
        */
-      if (supabase.auth?.signOut) {
+      if (
+        supabase.auth?.signOut
+      ) {
         await supabase.auth.signOut();
       }
 
-      notify("success", "Your account has been deleted.");
+      clearProfileState();
+
+      notify(
+        "success",
+        "Your account has been deleted."
+      );
 
       setTimeout(() => {
         goTo("/");
       }, 500);
     } catch (error) {
-      console.error("Delete account error:", error);
+      console.error(
+        "Delete account error:",
+        error
+      );
 
       notify(
         "error",
@@ -545,7 +968,74 @@
       );
     } finally {
       state.deleting = false;
-      setButtonLoading(deleteButton, false);
+
+      setButtonLoading(
+        deleteButton,
+        false
+      );
+    }
+  }
+
+
+  /* ============================================================
+   * AUTH STATE CHANGE
+   * ============================================================ */
+
+  async function handleAuthStateChange(
+    event
+  ) {
+    const detail =
+      event?.detail;
+
+    if (!detail) return;
+
+    const page = getPage();
+
+    if (!page) return;
+
+    if (
+      detail.authenticated &&
+      detail.user?.id
+    ) {
+      /*
+       * User just logged in while
+       * this page was mounted.
+       */
+      try {
+        const profile =
+          await loadProfile();
+
+        if (
+          getPage() !== page ||
+          !profile
+        ) {
+          return;
+        }
+
+        populateProfile();
+      } catch (error) {
+        console.error(
+          "Profile reload after auth:",
+          error
+        );
+      }
+
+      return;
+    }
+
+    /*
+     * User logged out.
+     *
+     * Do not redirect.
+     * VerifyAuthStatus will protect
+     * the interactive elements.
+     */
+    if (
+      detail.state ===
+        "unauthenticated" ||
+      detail.authenticated === false
+    ) {
+      clearProfileState();
     }
   }
 
@@ -555,30 +1045,85 @@
    * ============================================================ */
 
   function bindEvents(page) {
-    const avatarGrid = page.querySelector(SELECTORS.avatarGrid);
-    const saveButton = page.querySelector(SELECTORS.save);
-    const deleteButton = page.querySelector(SELECTORS.delete);
+    const avatarGrid =
+      page.querySelector(
+        SELECTORS.avatarGrid
+      );
 
-    const onAvatarClick = (event) => {
-      handleAvatarClick(event);
-    };
+    const saveButton =
+      page.querySelector(
+        SELECTORS.save
+      );
 
-    const onSaveClick = () => {
-      saveProfile();
-    };
+    const deleteButton =
+      page.querySelector(
+        SELECTORS.delete
+      );
 
-    const onDeleteClick = () => {
-      deleteAccount();
-    };
+    const onAvatarClick =
+      (event) => {
+        handleAvatarClick(
+          event
+        );
+      };
 
-    avatarGrid?.addEventListener("click", onAvatarClick);
-    saveButton?.addEventListener("click", onSaveClick);
-    deleteButton?.addEventListener("click", onDeleteClick);
+    const onSaveClick =
+      () => {
+        saveProfile();
+      };
+
+    const onDeleteClick =
+      () => {
+        deleteAccount();
+      };
+
+    const onAuthChange =
+      (event) => {
+        handleAuthStateChange(
+          event
+        );
+      };
+
+    avatarGrid?.addEventListener(
+      "click",
+      onAvatarClick
+    );
+
+    saveButton?.addEventListener(
+      "click",
+      onSaveClick
+    );
+
+    deleteButton?.addEventListener(
+      "click",
+      onDeleteClick
+    );
+
+    document.addEventListener(
+      "scoutwave:auth-state-change",
+      onAuthChange
+    );
 
     return () => {
-      avatarGrid?.removeEventListener("click", onAvatarClick);
-      saveButton?.removeEventListener("click", onSaveClick);
-      deleteButton?.removeEventListener("click", onDeleteClick);
+      avatarGrid?.removeEventListener(
+        "click",
+        onAvatarClick
+      );
+
+      saveButton?.removeEventListener(
+        "click",
+        onSaveClick
+      );
+
+      deleteButton?.removeEventListener(
+        "click",
+        onDeleteClick
+      );
+
+      document.removeEventListener(
+        "scoutwave:auth-state-change",
+        onAuthChange
+      );
     };
   }
 
@@ -591,8 +1136,7 @@
     const page = getPage();
 
     /*
-     * Page is not currently mounted.
-     * Clean up the previous instance.
+     * Page disappeared.
      */
     if (!page) {
       cleanup?.();
@@ -602,9 +1146,11 @@
     }
 
     /*
-     * Same DOM instance — do not mount twice.
+     * Already mounted on the same DOM node.
      */
-    if (mountedPage === page) {
+    if (
+      mountedPage === page
+    ) {
       return;
     }
 
@@ -614,35 +1160,68 @@
     mountedPage = page;
 
     /*
-     * Reset state for this mount.
+     * Reset local state.
      */
     state.user = null;
     state.profile = null;
-    state.selectedAvatar = DEFAULT_AVATAR;
+
+    state.selectedAvatar =
+      DEFAULT_AVATAR;
+
     state.originalUsername = "";
-    state.originalAvatar = DEFAULT_AVATAR;
+
+    state.originalAvatar =
+      DEFAULT_AVATAR;
+
     state.saving = false;
     state.deleting = false;
 
-    cleanup = bindEvents(page);
+    /*
+     * Give VerifyAuthStatus control
+     * over all protected elements.
+     */
+    configureAuthProtection(
+      page
+    );
+
+    cleanup =
+      bindEvents(page);
 
     try {
-      const profile = await loadProfile();
+      const profile =
+        await loadProfile();
 
       /*
-       * Route may have changed while the async request was running.
+       * Navigation may have changed
+       * while Supabase was loading.
        */
-      if (getPage() !== page) {
+      if (
+        getPage() !== page
+      ) {
         return;
       }
 
-      if (!profile) return;
+      /*
+       * Guest:
+       *
+       * Keep the page available.
+       * VerifyAuthStatus has already
+       * disabled the protected controls.
+       */
+      if (!profile) {
+        return;
+      }
 
       populateProfile();
     } catch (error) {
-      console.error("Edit profile initialization error:", error);
+      console.error(
+        "Edit profile initialization error:",
+        error
+      );
 
-      if (getPage() === page) {
+      if (
+        getPage() === page
+      ) {
         notify(
           "error",
           "Unable to load your profile."
@@ -673,16 +1252,22 @@
   function start() {
     queueMount();
 
-    if (observer) return;
+    if (observer) {
+      return;
+    }
 
-    observer = new MutationObserver(() => {
-      queueMount();
-    });
+    observer =
+      new MutationObserver(() => {
+        queueMount();
+      });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+    observer.observe(
+      document.body,
+      {
+        childList: true,
+        subtree: true,
+      }
+    );
   }
 
 
@@ -692,15 +1277,28 @@
 
   window.EditProfilePage = {
     mount,
+
     destroy() {
       cleanup?.();
+
       cleanup = null;
       mountedPage = null;
 
       observer?.disconnect();
       observer = null;
     },
+
+    getState() {
+      return {
+        ...state,
+      };
+    },
   };
+
+
+  /* ============================================================
+   * START
+   * ============================================================ */
 
   start();
 })();
