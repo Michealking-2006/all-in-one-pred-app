@@ -757,7 +757,6 @@ mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 }
 
 .avatar-option:hover {
-  border-color: rgba(213, 0, 0, .18);
 
   box-shadow:
     0 5px 14px rgba(0, 0, 0, .07);
