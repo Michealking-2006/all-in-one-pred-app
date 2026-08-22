@@ -1,117 +1,77 @@
 (() => {
   "use strict";
 
-  /*
-   * ============================================================
-   * SCOUTWAVE — COINS PAGE
-   * ============================================================
-   *
-   * Global dependencies:
-   *
-   *   window.supabaseClient
-   *   window.VerifyAuthStatus
-   *
-   * Expected profiles columns:
-   *
-   *   username
-   *   avatar_url
-   *   coins
-   *
-   * Guest defaults:
-   *
-   *   username: Guest
-   *   avatar: M
-   *   coins: 0
-   * ============================================================
-   */
+  if (window.__scoutwaveCoinsInstalled) return;
+  window.__scoutwaveCoinsInstalled = true;
 
   const PAGE_ID = "coinsPage";
   const DEFAULT_NAME = "Guest";
-  const DEFAULT_AVATAR = "/assets/icons/normal-pfp.jpeg";
+  const DEFAULT_BALANCE = 0;
 
   const SELECTORS = {
-    page: `#${PAGE_ID}`,
-    avatar: "#coinsAvatar",
+    page: "#coinsPage",
     username: "#coinsUsername",
+    avatar: "#coinsAvatar",
     balance: "#coinBalance",
     packages: ".coin-package",
     selectedCoins: "#selectedCoins",
-    pay: "#coinsPayBtn",
+    payButton: "#coinsPayBtn"
   };
-
-  let page = null;
-  let cleanup = null;
 
   const state = {
+    page: null,
     user: null,
     profile: null,
-
-    balance: 0,
-
-    selectedCoins: 8,
-    selectedPrice: 430,
+    selectedPackage: null,
+    loading: false
   };
 
+  let cleanup = null;
 
-  /* ============================================================
-   * GLOBAL SERVICES
-   * ============================================================ */
+  /* -----------------------------------------------------------
+   * Helpers
+   * --------------------------------------------------------- */
 
-  function getSupabase() {
-    return (
-      window.supabaseClient ||
-      window.supabase ||
-      null
-    );
-  }
+  const getPage = () =>
+    document.querySelector(SELECTORS.page);
 
-  function getAuth() {
-    return window.VerifyAuthStatus || null;
-  }
+  const getSupabase = () =>
+    window.supabaseClient ||
+    window.supabase ||
+    null;
 
+  const getAuth = () =>
+    window.VerifyAuthStatus || null;
 
-  /* ============================================================
-   * TOAST
-   * ============================================================ */
-
-  function toast(type, message) {
-    const manager =
-      window.toastManager ||
-      window.ToastManager ||
-      window.ToastNotificationsManager ||
-      window.toast;
-
-    if (!manager) {
-      console.warn(message);
-      return;
-    }
+  function notify(type, message) {
+    if (!message) return;
 
     try {
-      if (typeof manager[type] === "function") {
-        manager[type](message);
+      const toast =
+        window.toastManager ||
+        window.ToastManager ||
+        window.ToastNotificationsManager ||
+        window.toast;
+
+      if (!toast) return;
+
+      if (typeof toast[type] === "function") {
+        toast[type](message);
         return;
       }
 
-      if (typeof manager.show === "function") {
-        manager.show(message, type);
+      if (typeof toast.show === "function") {
+        toast.show(message, type);
         return;
       }
 
-      if (typeof manager.notify === "function") {
-        manager.notify({
-          type,
-          message,
-        });
+      if (typeof toast.notify === "function") {
+        toast.notify({ type, message });
       }
     } catch (error) {
       console.error("Coins toast error:", error);
     }
   }
-
-
-  /* ============================================================
-   * NAVIGATION
-   * ============================================================ */
 
   function navigate(path) {
     if (typeof window.navigate === "function") {
@@ -127,397 +87,379 @@
     window.location.href = path;
   }
 
-
-  /* ============================================================
-   * FORMATTERS
-   * ============================================================ */
-
-  function formatNumber(value) {
-    return new Intl.NumberFormat("en-NG").format(
-      Number(value) || 0
-    );
-  }
-
-  function formatPrice(value) {
-    return `₦${formatNumber(value)}`;
-  }
-
-
-  /* ============================================================
-   * USER
-   * ============================================================ */
+  /* -----------------------------------------------------------
+   * User
+   * --------------------------------------------------------- */
 
   function getUser() {
     const auth = getAuth();
 
-    if (
-      auth?.authenticated &&
-      auth.user?.id
-    ) {
+    if (auth?.authenticated && auth.user?.id) {
       return auth.user;
     }
 
     return null;
   }
 
+  /* -----------------------------------------------------------
+   * Header
+   * --------------------------------------------------------- */
 
-  /* ============================================================
-   * PROFILE
-   * ============================================================ */
+  function updateUserHeader() {
+    const page = state.page;
 
-  async function loadProfile() {
-    const client = getSupabase();
-    const user = getUser();
+    if (!page) return;
 
-    state.user = user;
-    state.profile = null;
-    state.balance = 0;
+    const username =
+      state.profile?.username ||
+      state.user?.user_metadata?.username ||
+      DEFAULT_NAME;
 
-    if (!client || !user?.id) {
-      renderGuest();
-      return;
+    const avatar =
+      state.profile?.avatar_url ||
+      state.user?.user_metadata?.avatar_url ||
+      "";
+
+    const usernameElement =
+      page.querySelector(SELECTORS.username);
+
+    const avatarElement =
+      page.querySelector(SELECTORS.avatar);
+
+    if (usernameElement) {
+      usernameElement.textContent = username;
     }
 
-    const {
-      data,
-      error,
-    } = await client
-      .from("profiles")
-      .select(
-        "username, avatar_url, coins"
-      )
-      .eq("id", user.id)
-      .maybeSingle();
+    if (!avatarElement) return;
 
-    if (error) {
-      throw error;
-    }
+    if (avatar) {
+      /*
+       * Use an image for real profile avatars.
+       */
+      avatarElement.innerHTML = "";
 
-    state.profile = data || {};
-    state.balance =
-      Number(data?.coins) || 0;
+      const image = document.createElement("img");
 
-    renderUser();
-  }
-
-
-  /* ============================================================
-   * HEADER / BALANCE
-   * ============================================================ */
-
-  function setAvatarDisplay(avatarUrl, username) {
-    const avatar = $(SELECTORS.avatar);
-
-    if (!avatar) return;
-
-    const fallback =
-      String(username || DEFAULT_NAME)
-        .trim()
-        .charAt(0)
-        .toUpperCase() || "G";
-
-    /*
-     * Keep the avatar element lightweight:
-     * use the real image when available,
-     * otherwise show the user's initial.
-     */
-    if (avatarUrl) {
-      avatar.textContent = "";
-
-      const image =
-        document.createElement("img");
-
-      image.src = avatarUrl;
-      image.alt = "";
+      image.src = avatar;
+      image.alt = `${username} avatar`;
       image.loading = "lazy";
 
-      image.addEventListener(
-        "error",
-        () => {
-          image.remove();
-          avatar.textContent = fallback;
-        },
-        { once: true }
-      );
+      image.onerror = () => {
+        avatarElement.textContent =
+          username.charAt(0).toUpperCase() || "G";
+      };
 
-      avatar.appendChild(image);
+      avatarElement.appendChild(image);
       return;
     }
 
-    avatar.textContent = fallback;
+    avatarElement.textContent =
+      username.charAt(0).toUpperCase() || "G";
   }
 
+  /* -----------------------------------------------------------
+   * Balance
+   * --------------------------------------------------------- */
 
-  function renderGuest() {
-    const username = $(SELECTORS.username);
-    const balance = $(SELECTORS.balance);
+  function updateBalance(balance) {
+    const page = state.page;
 
-    if (username) {
-      username.textContent = DEFAULT_NAME;
-    }
+    if (!page) return;
 
-    if (balance) {
-      balance.textContent = formatNumber(0);
-    }
+    const element =
+      page.querySelector(SELECTORS.balance);
 
-    setAvatarDisplay(
-      null,
-      DEFAULT_NAME
-    );
+    if (!element) return;
+
+    const value = Number(balance);
+
+    element.textContent =
+      Number.isFinite(value) && value >= 0
+        ? value.toLocaleString()
+        : DEFAULT_BALANCE.toLocaleString();
   }
 
+  /* -----------------------------------------------------------
+   * Load profile + coins
+   * --------------------------------------------------------- */
 
-  function renderUser() {
-    const username = $(SELECTORS.username);
-    const balance = $(SELECTORS.balance);
+  async function loadCoins() {
+    const supabase = getSupabase();
 
-    const name =
-      String(
-        state.profile?.username ||
-        state.user?.user_metadata?.username ||
-        DEFAULT_NAME
-      ).trim() || DEFAULT_NAME;
+    if (!supabase) {
+      console.error(
+        "Scoutwave Coins: Supabase client not found."
+      );
 
-    if (username) {
-      username.textContent = name;
+      updateBalance(DEFAULT_BALANCE);
+      updateUserHeader();
+
+      return;
     }
 
-    if (balance) {
-      balance.textContent =
-        formatNumber(state.balance);
+    const user = getUser();
+
+    /*
+     * Guest state.
+     */
+    if (!user) {
+      state.user = null;
+      state.profile = null;
+
+      updateUserHeader();
+      updateBalance(DEFAULT_BALANCE);
+
+      return;
     }
 
-    setAvatarDisplay(
-      state.profile?.avatar_url ||
-        state.user?.user_metadata?.avatar_url ||
-        null,
-      name
-    );
+    state.user = user;
+
+    state.loading = true;
+
+    try {
+      /*
+       * IMPORTANT:
+       *
+       * coins_balance is stored directly on
+       * public.profiles.
+       */
+      const {
+        data,
+        error
+      } = await supabase
+        .from("profiles")
+        .select(
+          "id, username, avatar_url, coins_balance"
+        )
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      state.profile = data || null;
+
+      updateUserHeader();
+
+      updateBalance(
+        data?.coins_balance ?? DEFAULT_BALANCE
+      );
+    } catch (error) {
+      console.error(
+        "Scoutwave Coins: failed to load balance:",
+        error
+      );
+
+      state.profile = null;
+
+      updateUserHeader();
+      updateBalance(DEFAULT_BALANCE);
+
+      notify(
+        "error",
+        "Unable to load your coin balance."
+      );
+    } finally {
+      state.loading = false;
+    }
   }
 
-
-  /* ============================================================
-   * PACKAGE SELECTION
-   * ============================================================ */
-
-  function getPackages() {
-    return $$(SELECTORS.packages);
-  }
+  /* -----------------------------------------------------------
+   * Package selection
+   * --------------------------------------------------------- */
 
   function selectPackage(button) {
     if (!button) return;
 
+    const page = state.page;
+
+    if (!page) return;
+
     const coins =
-      Number(button.dataset.coins);
+      Number(button.dataset.coins || 0);
 
     const price =
-      Number(button.dataset.price);
+      Number(button.dataset.price || 0);
 
-    if (
-      !Number.isFinite(coins) ||
-      !Number.isFinite(price)
-    ) {
+    if (!Number.isFinite(coins) || coins <= 0) {
       return;
     }
 
-    state.selectedCoins = coins;
-    state.selectedPrice = price;
+    if (!Number.isFinite(price) || price < 0) {
+      return;
+    }
 
-    getPackages().forEach((item) => {
-      const selected =
-        item === button;
+    state.selectedPackage = {
+      coins,
+      price,
+      button
+    };
 
-      item.classList.toggle(
-        "is-selected",
-        selected
-      );
+    page
+      .querySelectorAll(SELECTORS.packages)
+      .forEach((packageButton) => {
+        const selected =
+          packageButton === button;
 
-      item.setAttribute(
-        "aria-pressed",
-        String(selected)
-      );
-    });
+        packageButton.classList.toggle(
+          "is-selected",
+          selected
+        );
 
-    renderSelection();
-  }
+        packageButton.setAttribute(
+          "aria-pressed",
+          String(selected)
+        );
+      });
 
-
-  function renderSelection() {
     const selectedCoins =
-      $(SELECTORS.selectedCoins);
-
-    const payButton =
-      $(SELECTORS.pay);
+      page.querySelector(
+        SELECTORS.selectedCoins
+      );
 
     if (selectedCoins) {
       selectedCoins.textContent =
-        formatNumber(
-          state.selectedCoins
-        );
+        coins.toLocaleString();
     }
 
+    const payButton =
+      page.querySelector(
+        SELECTORS.payButton
+      );
+
     if (payButton) {
-      const price =
+      const priceElement =
         payButton.querySelector("strong");
 
-      if (price) {
-        price.textContent =
-          formatPrice(
-            state.selectedPrice
-          );
+      if (priceElement) {
+        priceElement.textContent =
+          `₦${price.toLocaleString()}`;
       }
     }
   }
 
+  /* -----------------------------------------------------------
+   * Payment
+   * --------------------------------------------------------- */
 
-  function selectInitialPackage() {
-    const first =
-      getPackages().find(
-        (button) =>
-          button.classList.contains(
-            "is-selected"
-          )
-      ) || getPackages()[0];
+  function handlePayment() {
+    const user = getUser();
 
-    if (!first) return;
-
-    selectPackage(first);
-  }
-
-
-  /* ============================================================
-   * PAYMENT
-   * ============================================================ */
-
-  async function continueToPayment() {
-    const auth = getAuth();
-
-    if (!auth?.authenticated) {
-      toast(
+    if (!user) {
+      notify(
         "error",
         "Please log in to purchase Scoutwave Coins."
       );
+
       return;
     }
 
-    if (!state.user?.id) {
-      toast(
+    const selected =
+      state.selectedPackage;
+
+    if (!selected) {
+      notify(
         "error",
-        "Please log in to continue."
+        "Please select a coin package."
       );
+
       return;
     }
-
-    const packageData = {
-      coins: state.selectedCoins,
-      price: state.selectedPrice,
-      currency: "NGN",
-    };
 
     /*
-     * Payment provider integration goes here.
+     * Payment integration can be connected here.
      *
-     * We intentionally don't fake a successful
-     * purchase or modify the user's coin balance
-     * from the browser.
+     * Do NOT add coins directly from the browser.
+     * Coin crediting should happen server-side
+     * after payment verification.
      */
     window.dispatchEvent(
       new CustomEvent(
-        "coins:purchase-request",
+        "scoutwave:coin-purchase-request",
         {
           detail: {
-            user: state.user,
-            package: packageData,
-          },
+            user,
+            coins: selected.coins,
+            price: selected.price
+          }
         }
       )
     );
-
-    toast(
-      "info",
-      "Payment is not connected yet."
-    );
   }
 
+  /* -----------------------------------------------------------
+   * Auth changes
+   * --------------------------------------------------------- */
 
-  /* ============================================================
-   * EVENTS
-   * ============================================================ */
+  async function handleAuthChange(event) {
+    const page = getPage();
 
-  function bindEvents() {
-    if (!page) return;
+    if (!page || page !== state.page) return;
 
-    const grid =
-      $(SELECTORS.page, document);
+    const detail = event?.detail;
 
-    const pay =
-      $(SELECTORS.pay, page);
+    if (!detail) return;
 
-    const onPackageClick =
-      (event) => {
-        const button =
-          event.target.closest(
-            ".coin-package"
-          );
+    if (
+      detail.authenticated &&
+      detail.user?.id
+    ) {
+      await loadCoins();
+      return;
+    }
 
-        if (
-          !button ||
-          !page.contains(button)
-        ) {
-          return;
-        }
+    if (detail.authenticated === false) {
+      state.user = null;
+      state.profile = null;
 
-        selectPackage(button);
-      };
+      updateUserHeader();
+      updateBalance(DEFAULT_BALANCE);
+    }
+  }
 
-    const onPay =
-      () => {
-        continueToPayment();
-      };
+  /* -----------------------------------------------------------
+   * Events
+   * --------------------------------------------------------- */
 
-    const onAuthChange =
-      async (event) => {
-        if (
-          page !== $(SELECTORS.page)
-        ) {
-          return;
-        }
+  function bindEvents(page) {
+    const packageButtons =
+      page.querySelectorAll(
+        SELECTORS.packages
+      );
 
-        if (
-          event?.detail?.authenticated
-        ) {
-          try {
-            await loadProfile();
-          } catch (error) {
-            console.error(
-              "Coins profile reload error:",
-              error
-            );
+    const payButton =
+      page.querySelector(
+        SELECTORS.payButton
+      );
 
-            toast(
-              "error",
-              "Unable to load your coin balance."
-            );
-          }
+    const onPackageClick = (event) => {
+      const button =
+        event.target.closest(
+          SELECTORS.packages
+        );
 
-          return;
-        }
+      if (!button) return;
 
-        state.user = null;
-        state.profile = null;
-        state.balance = 0;
+      selectPackage(button);
+    };
 
-        renderGuest();
-      };
+    const onPayClick = () => {
+      handlePayment();
+    };
 
-    grid?.addEventListener(
+    const onAuthChange = (event) => {
+      handleAuthChange(event);
+    };
+
+    page.addEventListener(
       "click",
       onPackageClick
     );
 
-    pay?.addEventListener(
+    payButton?.addEventListener(
       "click",
-      onPay
+      onPayClick
     );
 
     document.addEventListener(
@@ -525,15 +467,30 @@
       onAuthChange
     );
 
-    cleanup = () => {
-      grid?.removeEventListener(
+    /*
+     * Select the package already marked
+     * as selected in the HTML.
+     */
+    const selected =
+      page.querySelector(
+        `${SELECTORS.packages}.is-selected`
+      );
+
+    if (selected) {
+      selectPackage(selected);
+    } else if (packageButtons.length) {
+      selectPackage(packageButtons[0]);
+    }
+
+    return () => {
+      page.removeEventListener(
         "click",
         onPackageClick
       );
 
-      pay?.removeEventListener(
+      payButton?.removeEventListener(
         "click",
-        onPay
+        onPayClick
       );
 
       document.removeEventListener(
@@ -543,119 +500,96 @@
     };
   }
 
-
-  /* ============================================================
-   * PAGE MOUNT
-   * ============================================================ */
+  /* -----------------------------------------------------------
+   * Mount
+   * --------------------------------------------------------- */
 
   async function mount() {
-    const nextPage =
-      $(SELECTORS.page);
+    const page = getPage();
 
-    if (!nextPage) {
-      destroy();
+    if (!page) {
+      cleanup?.();
+      cleanup = null;
+      state.page = null;
       return;
     }
 
-    if (page === nextPage) {
+    if (state.page === page) {
       return;
     }
 
     cleanup?.();
 
-    page = nextPage;
-
+    state.page = page;
     state.user = null;
     state.profile = null;
-    state.balance = 0;
-    state.selectedCoins = 8;
-    state.selectedPrice = 430;
+    state.selectedPackage = null;
 
     /*
-     * Guest state renders immediately.
-     * This prevents empty UI while Supabase
-     * is being checked.
+     * Guest is the initial display state.
      */
-    renderGuest();
+    updateUserHeader();
+    updateBalance(DEFAULT_BALANCE);
 
-    selectInitialPackage();
-    bindEvents();
+    cleanup = bindEvents(page);
 
     /*
-     * Global auth manager controls auth state.
+     * If global authentication has already
+     * finished, load immediately.
      */
     const auth = getAuth();
 
-    if (!auth?.authenticated) {
-      return;
-    }
-
-    try {
-      await loadProfile();
-
-      if (
-        page !== $(SELECTORS.page)
-      ) {
-        return;
-      }
-
-      auth.refresh?.();
-    } catch (error) {
-      console.error(
-        "Coins page load error:",
-        error
-      );
-
-      toast(
-        "error",
-        "Unable to load your coin balance."
-      );
+    if (auth?.authenticated) {
+      await loadCoins();
     }
   }
 
-
-  /* ============================================================
-   * DESTROY
-   * ============================================================ */
-
-  function destroy() {
-    cleanup?.();
-
-    cleanup = null;
-    page = null;
-
-    state.user = null;
-    state.profile = null;
-    state.balance = 0;
-  }
-
-
-  /* ============================================================
-   * PUBLIC API
-   * ============================================================ */
+  /* -----------------------------------------------------------
+   * Public API
+   * --------------------------------------------------------- */
 
   window.CoinsPage = {
     mount,
-    destroy,
+
+    refresh() {
+      return loadCoins();
+    },
 
     getState() {
       return {
         user: state.user,
         profile: state.profile,
-        balance: state.balance,
-        selectedCoins:
-          state.selectedCoins,
-        selectedPrice:
-          state.selectedPrice,
+        balance:
+          Number(
+            state.profile?.coins_balance
+          ) || 0,
+        selectedPackage:
+          state.selectedPackage
+            ? {
+                coins:
+                  state.selectedPackage.coins,
+                price:
+                  state.selectedPackage.price
+              }
+            : null
       };
     },
+
+    destroy() {
+      cleanup?.();
+      cleanup = null;
+
+      state.page = null;
+      state.user = null;
+      state.profile = null;
+      state.selectedPackage = null;
+    }
   };
 
-
-  /* ============================================================
-   * START
-   * ============================================================ */
-
+  /*
+   * The app-script loader runs this after
+   * the SPA page has been inserted.
+   */
   mount();
 
 })();
