@@ -967,9 +967,9 @@
   "leagues": [
     {
       "id": 144,
-      "name": "Belgian Pro League",
-      "slug": "belgian-pro-league",
-      "icon": "/assets/icons/belgium_belgian-pro-league.svg",
+      "name": "Jupiler Pro League",
+      "slug": "Jupiler-pro-league",
+      "icon": "/assets/icons/belgium_Jupiler,-pro-league.svg",
       "type": "league",
       "division": 1,
       "gender": "men",
@@ -988,10 +988,10 @@
       "featured": true
     },
     {
-      "id": 146,
-      "name": "National Division 1",
-      "slug": "national-division-1",
-      "icon": "/assets/icons/belgium_national-division-1.svg",
+      "id": 147,
+      "name": "Belgian Cup",
+      "slug": "Belgian-Cup",
+      "icon": "/assets/icons/belgium_Belgian-Cup.svg",
       "type": "league",
       "division": 3,
       "gender": "men",
@@ -999,10 +999,10 @@
       "featured": false
     },
     {
-      "id": 147,
-      "name": "Belgian Division 2 VV",
-      "slug": "belgian-division-2-vv",
-      "icon": "/assets/icons/belgium_belgian-division-2-vv.svg",
+      "id": 487,
+      "name": "Belgian 1st Amateur Division",
+      "slug": "Belgian-1st-Amateur-Division",
+      "icon": "/assets/icons/belgium_Belgian-1st Amateur-Division.svg",
       "type": "league",
       "division": 4,
       "gender": "men",
@@ -1010,10 +1010,10 @@
       "featured": false
     },
     {
-      "id": 148,
-      "name": "Belgian Division 2 ACFF",
-      "slug": "belgian-division-2-acff",
-      "icon": "/assets/icons/belgium_belgian-division-2-acff.svg",
+      "id": 691,
+      "name": "Provincial-Brabant ACFF",
+      "slug": "Provincial-Brabant-ACFF",
+      "icon": "/assets/icons/belgium_Provincial-Brabant-,ACFF.svg",
       "type": "league",
       "division": 4,
       "gender": "men",
@@ -1021,18 +1021,18 @@
       "featured": false
     },
     {
-      "id": 149,
-      "name": "Belgian Cup",
-      "slug": "belgian-cup",
-      "icon": "/assets/icons/belgium_belgian-cup.svg",
-      "type": "cup",
+      "id": 153,
+      "name": "Provincial Antwerpen",
+      "slug": "Provincial-Antwerpen",
+      "icon": "/assets/icons/belgium_Provincial-Antwerpen.svg",
+      "type": "League",
       "division": null,
       "gender": "men",
       "active": true,
       "featured": true
     },
     {
-      "id": 150,
+      "id": 519,
       "name": "Belgian Super Cup",
       "slug": "belgian-super-cup",
       "icon": "/assets/icons/belgium_belgian-super-cup.svg",
@@ -1043,32 +1043,65 @@
       "featured": true
     },
     {
-      "id": 151,
-      "name": "Elite 1 U21",
-      "slug": "elite-1-u21",
-      "icon": "/assets/icons/belgium_elite-1-u21.svg",
-      "type": "youth",
+      "id": 154,
+      "name": "Provincial-Brabant VFV",
+      "slug": "Provincial-Brabant VFV",
+      "icon": "/assets/icons/belgium_Provincial-Brabant-VFV.svg",
+      "type": "League",
       "division": 1,
       "gender": "youth",
       "active": true,
       "featured": false
     },
     {
-      "id": 152,
-      "name": "Elite 2 U21",
-      "slug": "elite-2-u21",
-      "icon": "/assets/icons/belgium_elite-2-u21.svg",
-      "type": "youth",
+      "id": 155,
+      "name": "Provincial-Hainaut",
+      "slug": "Provincial-Hainaut",
+      "icon": "/assets/icons/belgium_Provincial-Hainaut.svg",
+      "type": "League",
       "division": 2,
       "gender": "youth",
       "active": true,
       "featured": false
     },
     {
-      "id": 153,
-      "name": "Belgian U18 League",
-      "slug": "belgian-u18-league",
-      "icon": "/assets/icons/belgium_belgian-u18-league.svg",
+      "id": 146,
+      "name": "Super League women",
+      "slug": "Super-League-women",
+      "icon": "/assets/icons/belgium_Super-League-women.svg",
+      "type": "League",
+      "division": 2,
+      "gender": "Women",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 152,
+      "name": "3rd Amateur Division VFV-B",
+      "slug": "3rd-Amateur-Division VFV-B",
+      "icon": "/assets/icons/belgium_3rd-Amateur-Division-VFV-B.svg",
+      "type": "League",
+      "division": 2,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 979,
+      "name": "Provincial-playoffs-VV",
+      "slug": "Provincial-playoffs-VV",
+      "icon": "/assets/icons/belgium_Provincial-playoffs-VV.svg",
+      "type": "League",
+      "division": 2,
+      "gender": "youth",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": 156,
+      "name": "Provincial-Liege",
+      "slug": "Provincial-Liege",
+      "icon": "/assets/icons/belgium_Provincial-Liege.svg",
       "type": "youth",
       "division": 1,
       "gender": "youth",
@@ -2673,38 +2706,45 @@
   "flag": "/assets/icons/belarus.svg",
   "leagues": [
     {
-      "id": 335,
-      "name": "Premier League",
-      "slug": "premier-league",
-      "icon": "/assets/icons/belarus_premier-league.svg",
+      "id": 116,
+      "name": "Vysshaya Liga",
+      "slug": "Vysshaya-Liga",
+      "icon": "/assets/icons/belarus_Vysshaya-Liga.svg",
       "type": "league"
     },
     {
-      "id": 336,
-      "name": "First League",
-      "slug": "first-league",
-      "icon": "/assets/icons/belarus_first-league.svg",
+      "id": 117,
+      "name": "Pervaya Liga",
+      "slug": "Pervaya-Liga",
+      "icon": "/assets/icons/belarus_Pervaya-Liga.svg",
       "type": "league"
     },
     {
-      "id": 337,
-      "name": "Second League",
-      "slug": "second-league",
-      "icon": "/assets/icons/belarus_second-league.svg",
+      "id": 118,
+      "name": "Vtoraya Liga",
+      "slug": "Vtoraya-Liga",
+      "icon": "/assets/icons/belarus_Vtoraya-Liga.svg",
       "type": "league"
     },
     {
-      "id": 338,
-      "name": "Belarus Cup",
-      "slug": "belarus-cup",
-      "icon": "/assets/icons/belarus_belarus-cup.svg",
+      "id": 562,
+      "name": "Reserve League",
+      "slug": "Reserve-League",
+      "icon": "/assets/icons/belarus_Reserve-League.svg",
+      "type": "League"
+    },
+    {
+      "id": 486,
+      "name": "Belarusian Cup",
+      "slug": "Belarusian-Cup",
+      "icon": "/assets/icons/belarus_Belarusian-Cup.svg",
       "type": "cup"
     },
     {
-      "id": 339,
-      "name": "Belarus Super Cup",
-      "slug": "belarus-super-cup",
-      "icon": "/assets/icons/belarus_belarus-super-cup.svg",
+      "id": 812,
+      "name": "Belarusian Super Cup",
+      "slug": "Belarusian-super-cup",
+      "icon": "/assets/icons/belarus_Belarusian-super-cup.svg",
       "type": "super_cup"
     }
   ]
