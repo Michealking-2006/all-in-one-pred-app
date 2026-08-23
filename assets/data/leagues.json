@@ -2274,6 +2274,42 @@
   ]
 },
 {
+  "country": "Bahrain",
+  "code": "Bahrain",
+  "flag": "/assets/icons/Bahrain.svg",
+  "leagues": [
+    {
+      "id": 485,
+      "name": "Federation Cup",
+      "slug": "Federation-Cup",
+      "icon": "/assets/icons/Bahrain_Federation-Cup.svg",
+      "type": "league"
+    },
+    {
+      "id": 1049,
+      "name": "King's Cup",
+      "slug": "King's-Cup",
+      "icon": "/assets/icons/Bahrain_King's-Cup.svg",
+      "type": "Cup"
+    },
+    {
+      "id": 417,
+      "name": "Bahrain Premier League",
+      "slug": "Bahrain-Premier-League",
+      "icon": "/assets/icons/Bahrain_Premier-League.svg",
+      "type": "league"
+    },
+    {
+      "id": 1109,
+      "name": "Bahrain Super Cup",
+      "slug": "Bahrain-Super-Cup",
+      "icon": "/assets/icons/Bahrain Super-Cup.svg",
+      "type": "cup"
+    }
+  ]
+},
+
+{
   "country": "Azerbaijan",
   "code": "azerbaijan",
   "flag": "/assets/icons/azerbaijan.svg",
@@ -2426,6 +2462,27 @@
       "type": "cup"
     }
   ]
+},
+{
+  "country": "Bangladesh",
+  "code": "Bangladesh",
+  "flag": "/assets/icons/Bangladesh.svg",
+  "leagues": [
+    {
+      "id": 811,
+      "name": "Bangladeshis Federation Cup",
+      "slug": "Bangladeshis-Federation-Cup",
+      "icon": "/assets/icons/Bangladesh_Bangladeshis-Federation-Cup.svg",
+      "type": "Cup"
+    },
+    {
+      "id": 398,
+      "name": "Bangladesh premier league",
+      "slug": "Bangladesh-premier-league",
+      "icon": "/assets/icons/Bangladeshi_Bangladesh-premier-league.svg",
+      "type": "leagues"
+    }
+    ]
 },
 {
   "country": "Albania",
