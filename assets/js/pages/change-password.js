@@ -1,5 +1,7 @@
 /********* change password page *********/
 
+(() => {
+
 let CHANGE_PASSWORD_PAGE = {
   active: false,
   submitting: false,
@@ -747,6 +749,29 @@ function handleChangePasswordPageLifecycle(event) {
 
 /********* router lifecycle *********/
 
+/*
+ * <app-script> re-runs this whole file on every
+ * visit/refresh of this route (no caching, by
+ * design). Since a previous execution's document
+ * listeners are still attached, drop the old ones
+ * before adding new ones, or they'd pile up one
+ * per visit.
+ */
+if (window.__changePasswordLifecycleHandler) {
+  document.removeEventListener(
+    "pageLoaded",
+    window.__changePasswordLifecycleHandler
+  );
+
+  document.removeEventListener(
+    "pageRefreshed",
+    window.__changePasswordLifecycleHandler
+  );
+}
+
+window.__changePasswordLifecycleHandler =
+  handleChangePasswordPageLifecycle;
+
 document.addEventListener(
   "pageLoaded",
   handleChangePasswordPageLifecycle
@@ -777,3 +802,5 @@ window.router?.registerPage?.(
     destroy: destroyChangePasswordPage,
   }
 );
+
+})();
