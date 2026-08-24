@@ -320,7 +320,9 @@
 /********* close button — glass pill, no outline *********/
 
 .toast-close {
-  position: relative;
+  position: absolute;
+  top: .3em;
+  right: 1.1em;
 
   display: flex;
   align-items: center;
@@ -438,15 +440,16 @@
 .toast-progress {
   position: absolute;
 
-  right: 9px;
-  bottom: 7px;
-  left: 16px;
-
+  /*right: 9px;
+  
+  left: 16px;*/
+  bottom: 0;
   height: 2px;
 
   border-radius: 999px;
 
   background: rgba(255, 255, 255, .5);
+  width: 100%;
 }
 
 .toast-progress::after {
@@ -455,7 +458,7 @@
   display: block;
 
   height: 100%;
-
+  width: 100%;
   border-radius: 999px;
 
   background: var(--toast-accent);
