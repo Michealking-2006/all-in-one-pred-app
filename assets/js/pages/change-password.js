@@ -3,6 +3,7 @@
 let CHANGE_PASSWORD_PAGE = {
   active: false,
   submitting: false,
+  oauthLocked: false,
   redirectTimer: null,
 };
 
@@ -41,7 +42,17 @@ const CHANGE_PASSWORD_MESSAGES = {
   genericError: "Unable to update your password. Please try again.",
   signedOut: "You need to be signed in to change your password.",
   success: "Your password has been updated.",
+  oauthLocked: (providerLabel) =>
+    `You signed in with ${providerLabel}, so there's no Scoutwave password to change. Manage your sign-in from your ${providerLabel} account instead.`,
 };
+
+/*
+ * Providers that represent a real Scoutwave
+ * password. If none of these are present on
+ * the account, the user has no password to
+ * change and the form should be locked.
+ */
+const CHANGE_PASSWORD_AUTH_PROVIDER = "email";
 
 /********* helpers *********/
 
@@ -92,6 +103,59 @@ function notify(type, message, options = {}) {
   logger("[ChangePassword]", message);
 
   return null;
+}
+
+function capitalize(value) {
+  const text = String(value || "");
+
+  return text
+    ? text[0].toUpperCase() + text.slice(1)
+    : text;
+}
+
+/********* oauth detection *********/
+
+function getUserProviders(user) {
+  const identities = Array.isArray(
+    user?.identities
+  )
+    ? user.identities
+    : [];
+
+  const fromIdentities = identities
+    .map((identity) => identity.provider)
+    .filter(Boolean);
+
+  if (fromIdentities.length) {
+    return fromIdentities;
+  }
+
+  const fallback =
+    user?.app_metadata?.provider;
+
+  return fallback ? [fallback] : [];
+}
+
+function getOAuthOnlyProviderLabel(user) {
+  const providers = getUserProviders(user);
+
+  if (!providers.length) {
+    return null;
+  }
+
+  const hasPasswordAuth = providers.includes(
+    CHANGE_PASSWORD_AUTH_PROVIDER
+  );
+
+  if (hasPasswordAuth) {
+    return null;
+  }
+
+  const primary = providers.find(
+    (provider) => provider === "google"
+  ) || providers[0];
+
+  return capitalize(primary);
 }
 
 /********* field helpers *********/
@@ -356,12 +420,114 @@ function resetForm(root) {
     });
 }
 
+/********* oauth locked state *********/
+
+function applyOAuthLock(root, providerLabel) {
+  CHANGE_PASSWORD_PAGE.oauthLocked = true;
+
+  root
+    .querySelectorAll(
+      ".change-password-input-wrap input"
+    )
+    .forEach((input) => {
+      input.disabled = true;
+    });
+
+  root
+    .querySelectorAll("[data-password-toggle]")
+    .forEach((btn) => {
+      btn.disabled = true;
+    });
+
+  const submitBtn = getEl(
+    CHANGE_PASSWORD_SELECTORS.submit,
+    root
+  );
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+  }
+
+  const form = getEl(
+    CHANGE_PASSWORD_SELECTORS.form,
+    root
+  );
+
+  let notice = root.querySelector(
+    ".change-password-oauth-notice"
+  );
+
+  if (!notice && form) {
+    notice = document.createElement("div");
+    notice.className =
+      "change-password-oauth-notice";
+    notice.setAttribute("role", "status");
+
+    form.parentNode.insertBefore(
+      notice,
+      form
+    );
+  }
+
+  if (notice) {
+    notice.textContent =
+      CHANGE_PASSWORD_MESSAGES.oauthLocked(
+        providerLabel
+      );
+  }
+}
+
+async function checkOAuthLock(root) {
+  const supabase = getSupabaseClient();
+
+  if (!supabase) {
+    return;
+  }
+
+  try {
+    const {
+      data,
+      error,
+    } = await supabase.auth.getUser();
+
+    if (
+      error ||
+      !CHANGE_PASSWORD_PAGE.active ||
+      !root.isConnected
+    ) {
+      return;
+    }
+
+    const providerLabel =
+      getOAuthOnlyProviderLabel(data?.user);
+
+    if (providerLabel) {
+      applyOAuthLock(root, providerLabel);
+
+      notify(
+        "info",
+        CHANGE_PASSWORD_MESSAGES.oauthLocked(
+          providerLabel
+        )
+      );
+    }
+  } catch (error) {
+    console.error(
+      "[ChangePassword] Provider check failed:",
+      error
+    );
+  }
+}
+
 /********* submit *********/
 
 async function handleSubmit(event, root) {
   event.preventDefault();
 
-  if (CHANGE_PASSWORD_PAGE.submitting) {
+  if (
+    CHANGE_PASSWORD_PAGE.submitting ||
+    CHANGE_PASSWORD_PAGE.oauthLocked
+  ) {
     return;
   }
 
@@ -517,6 +683,7 @@ function destroyChangePasswordPage() {
 
   CHANGE_PASSWORD_PAGE.active = false;
   CHANGE_PASSWORD_PAGE.submitting = false;
+  CHANGE_PASSWORD_PAGE.oauthLocked = false;
 }
 
 function initChangePasswordPage() {
@@ -534,6 +701,7 @@ function initChangePasswordPage() {
 
   CHANGE_PASSWORD_PAGE.active = true;
   CHANGE_PASSWORD_PAGE.submitting = false;
+  CHANGE_PASSWORD_PAGE.oauthLocked = false;
 
   const form = getEl(
     CHANGE_PASSWORD_SELECTORS.form,
@@ -547,6 +715,13 @@ function initChangePasswordPage() {
   bindPasswordToggles(root);
   bindLiveValidation(root);
   updateRequirementsUI(root, "");
+
+  checkOAuthLock(root).catch((error) => {
+    console.error(
+      "[ChangePassword] OAuth lock check failed:",
+      error
+    );
+  });
 }
 
 /********* page lifecycle *********/
