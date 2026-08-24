@@ -15,7 +15,7 @@
     loadingDuration: 0,
     maxVisible: 4,
     gap: 10,
-    animationDuration: 240,
+    animationDuration: 260,
     duplicateWindow: 1200,
   };
 
@@ -154,6 +154,99 @@
     container.classList.add(
       `toast-position-${CONFIG.position}`
     );
+  }
+
+  function prefersReducedMotion() {
+    return (
+      window.matchMedia?.(
+        "(prefers-reduced-motion: reduce)"
+      ).matches ?? false
+    );
+  }
+
+  /********* stacking *********/
+
+  /*
+   * A toast always enters at the edge the
+   * container is anchored to — top stacks
+   * grow downward from a new top card,
+   * bottom stacks grow upward from a new
+   * bottom card — just like a native
+   * notification stack.
+   */
+  function insertToastElement(root, element) {
+    if (CONFIG.position.startsWith("top-")) {
+      root.prepend(element);
+    } else {
+      root.appendChild(element);
+    }
+  }
+
+  /*
+   * Assigns each toast a --stack-i custom
+   * property (0 = frontmost/newest) so the
+   * CSS can fade + scale older cards behind
+   * the active one, like a stacked deck.
+   */
+  function reindexStack() {
+    if (!container) return;
+
+    const children = [...container.children];
+
+    const ordered = CONFIG.position.startsWith("top-")
+      ? children
+      : children.reverse();
+
+    ordered.forEach((el, index) => {
+      el.style.setProperty("--stack-i", index);
+    });
+  }
+
+  /*
+   * FLIP reflow: captures where every other
+   * toast sits before a removal, then — once
+   * the DOM has actually settled — animates
+   * from the old position to the new one, so
+   * the stack glides shut instead of snapping.
+   */
+  function captureRects(excludeEl) {
+    const rects = new Map();
+
+    if (!container) return rects;
+
+    for (const el of container.children) {
+      if (el === excludeEl) continue;
+      rects.set(el, el.getBoundingClientRect());
+    }
+
+    return rects;
+  }
+
+  function playReflow(beforeRects) {
+    if (prefersReducedMotion()) return;
+
+    for (const [el, rectBefore] of beforeRects) {
+      if (!el.isConnected) continue;
+
+      const rectAfter = el.getBoundingClientRect();
+
+      const dx = rectBefore.left - rectAfter.left;
+      const dy = rectBefore.top - rectAfter.top;
+
+      if (!dx && !dy) continue;
+
+      el.animate(
+        [
+          { transform: `translate(${dx}px, ${dy}px)` },
+          { transform: "translate(0px, 0px)" },
+        ],
+        {
+          duration: 320,
+          easing: "cubic-bezier(.22, 1.1, .32, 1)",
+          composite: "add",
+        }
+      );
+    }
   }
 
   function isDuplicate(type, message) {
@@ -381,7 +474,8 @@
         duration
       );
 
-    root.appendChild(element);
+    insertToastElement(root, element);
+    reindexStack();
 
     const state = {
       id,
@@ -496,7 +590,13 @@
       immediate ||
       !element.isConnected
     ) {
+      const beforeRects =
+        captureRects(element);
+
       element.remove();
+
+      reindexStack();
+      playReflow(beforeRects);
       return;
     }
 
@@ -510,7 +610,13 @@
 
     window.setTimeout(
       () => {
+        const beforeRects =
+          captureRects(element);
+
         element.remove();
+
+        reindexStack();
+        playReflow(beforeRects);
       },
       CONFIG.animationDuration
     );
@@ -728,6 +834,7 @@
 
     if (container) {
       applyPosition();
+      reindexStack();
     }
 
     enforceLimit();
