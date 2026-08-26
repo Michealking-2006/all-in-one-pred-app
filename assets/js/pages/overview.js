@@ -1,48 +1,66 @@
 async function loadOverviewProfileImage() {
-  const profileContainer = document.querySelector(".user-profile-img");
+  const profileElement = document.querySelector(".user-profile-img");
   
-  if (!profileContainer) return;
+  if (!profileElement) return;
+  
+  const supabase = window.supabaseClient || window.supabase;
+  
+  if (!supabase) return;
   
   try {
-    const supabase = window.supabaseClient;
+    const { data: { user }, error: userError } =
+    await supabase.auth.getUser();
     
-    if (!supabase) return;
+    if (userError || !user?.id) return;
     
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser();
-    
-    if (authError || !user) return;
-    
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } =
+    await supabase
       .from("profiles")
       .select("avatar_url")
       .eq("id", user.id)
       .maybeSingle();
     
     if (profileError) {
-      console.error("Failed to load profile image:", profileError);
+      console.error(
+        "Failed to load overview profile image:",
+        profileError
+      );
       return;
     }
     
-    const avatarUrl =
-      profile?.avatar_url || "/assets/icons/normal-pfp.jpeg";
+    const avatarUrl = profile?.avatar_url;
     
-    profileContainer.querySelector(".icon")?.remove();
+    if (!avatarUrl) return;
     
-    let profileImage = profileContainer.querySelector(".profile-avatar");
+    /*
+     * Keep the existing border ring.
+     * Replace only the default profile icon.
+     */
+    const icon = profileElement.querySelector(".icon");
     
-    if (!profileImage) {
-      profileImage = document.createElement("img");
-      profileImage.className = "profile-avatar";
-      profileImage.alt = "Profile";
-      profileContainer.appendChild(profileImage);
-    }
+    if (!icon) return;
     
-    profileImage.src = avatarUrl;
+    const image = document.createElement("img");
     
+    image.className = "icon";
+    image.src = avatarUrl;
+    image.alt = "Profile";
+    image.loading = "lazy";
+    image.decoding = "async";
+    
+    image.onerror = () => {
+      image.remove();
+      icon.style.display = "";
+    };
+    
+    icon.replaceWith(image);
   } catch (error) {
-    console.error("Failed to load overview profile image:", error);
+    console.error(
+      "Overview profile image error:",
+      error
+    );
   }
 }
+
+
+loadOverviewProfileImage();
