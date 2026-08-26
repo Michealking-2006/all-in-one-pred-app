@@ -135,6 +135,56 @@ body {
   display: block;
 }
 
+/******* user profile loaded *********/
+
+.user-profile-img {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.user-profile-img .border-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.user-profile-img .icon {
+  position: absolute;
+  inset: 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  display: block;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 1;
+}
+
+.user-profile-img img.icon {
+  background: #f3f3f3;
+  image-rendering: auto;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.user-profile-img:hover img.icon {
+  transform: scale(1.03);
+}
+
+.user-profile-img img.icon {
+  transition: transform 180ms ease;
+}
+
 .user-profile-img,
 .app-more-nav-hamburger-menu,
 .search-app-btn,
