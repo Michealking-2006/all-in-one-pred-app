@@ -104,6 +104,37 @@ body {
   left: 12px;
 }
 
+.user-profile-img {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #a8d4f0;
+  position: relative;
+  text-decoration: none;
+  color: #5c4a8a;
+}
+
+/* Fixed rotation + reasonable spacing */
+.user-profile-img .border-ring {
+  position: absolute;
+  inset: -1.5px;                 /* smaller gap this time */
+  width: calc(100% + 3px);
+  height: calc(100% + 3px);
+  transform: rotate(-65deg);     /* corrected position – arcs sit more on the left */
+  pointer-events: none;
+}
+
+.user-profile-img .icon {
+  width: 22px;
+  height: 22px;
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
 .user-profile-img,
 .app-more-nav-hamburger-menu,
 .search-app-btn,
