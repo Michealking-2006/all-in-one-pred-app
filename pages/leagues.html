@@ -1,29 +1,13 @@
-<link rel="stylesheet" href="/assets/css/leagues.css">
+<link rel="stylesheet" href="/assets/css/pages/leagues.css">
 
 <section class="leagues-page" data-page="leagues">
   <header class="page-header leagues-header">
-    <div>
-      <p class="page-eyebrow">Football</p>
-      <h1>Leagues</h1>
-    </div>
+    <div><p class="page-eyebrow">Football</p><h1>Leagues</h1></div>
   </header>
-
   <div class="leagues-toolbar">
-    <label class="leagues-search">
-      <span class="sr-only">Search leagues</span>
-      <input id="leagues-search-input" type="search" inputmode="search" autocomplete="off" placeholder="Search leagues..." aria-label="Search leagues">
-    </label>
+    <label class="leagues-search"><span class="sr-only">Search leagues</span><input id="leagues-search-input" type="search" inputmode="search" autocomplete="off" placeholder="Search leagues..." aria-label="Search leagues"></label>
   </div>
-
-  <section class="leagues-section" aria-labelledby="featured-leagues-title">
-    <div class="section-heading"><h2 id="featured-leagues-title">Featured</h2></div>
-    <div id="featured-leagues" class="league-grid" aria-live="polite"></div>
-  </section>
-
-  <section class="leagues-section" aria-labelledby="league-countries-title">
-    <div class="section-heading"><h2 id="league-countries-title">Countries</h2></div>
-    <div id="league-countries" class="country-list" aria-live="polite"></div>
-  </section>
+  <section class="leagues-section" aria-labelledby="featured-leagues-title"><div class="section-heading"><h2 id="featured-leagues-title">Featured</h2></div><div id="featured-leagues" class="league-grid" aria-live="polite"></div></section>
+  <section class="leagues-section" aria-labelledby="league-countries-title"><div class="section-heading"><h2 id="league-countries-title">Countries</h2></div><div id="league-countries" class="country-list" aria-live="polite"></div></section>
 </section>
-
 <app-script src="/assets/js/pages/leagues.js"></app-script>
