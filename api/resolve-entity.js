@@ -9,6 +9,27 @@ const LEAGUE_ALIASES = {
   "laliga-ea-sports": "laliga",
 };
 
+// Stable API-Football V3 league IDs for canonical/high-traffic routes.
+// These avoid unnecessary name-search requests for leagues whose IDs are
+// already stable in API-Football V3.
+const KNOWN_LEAGUE_IDS = {
+  laliga: 140,
+  premier-league: 39,
+  championship: 40,
+  league-one: 41,
+  league-two: 42,
+  serie-a: 135,
+  serie-b: 136,
+  bundesliga: 78,
+  ligue-1: 61,
+  ligue-2: 62,
+  eredivisie: 88,
+  primeira-liga: 94,
+  champions-league: 2,
+  europa-league: 3,
+  conference-league: 848,
+};
+
 function slugify(value) {
   const slug = String(value || "")
     .normalize("NFD")
@@ -35,28 +56,46 @@ function playerSlugs(player) {
 
 async function request(path) {
   const credential = process.env.SCOUTWAVE_FOOTBALL_API_KEY;
+
   if (!credential) {
-    throw new Error("Football API is not configured on the server.");
+    const error = new Error("Football API is not configured on the server.");
+    error.code = "MISSING_API_KEY";
+    throw error;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      "x-apisports-key": credential,
-      accept: "application/json",
-    },
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: {
+        "x-apisports-key": credential,
+        accept: "application/json",
+      },
+    });
+  } catch (error) {
+    const networkError = new Error("Unable to reach Football API.");
+    networkError.code = "API_NETWORK_ERROR";
+    networkError.cause = error;
+    throw networkError;
+  }
 
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(data?.message || `Football API HTTP ${response.status}`);
+    const error = new Error(
+      data?.message || `Football API HTTP ${response.status}`
+    );
+    error.code = `API_HTTP_${response.status}`;
+    throw error;
   }
 
   if (data?.errors && Object.keys(data.errors).length) {
-    throw new Error(String(Object.values(data.errors)[0]));
+    const message = String(Object.values(data.errors)[0]);
+    const error = new Error(message);
+    error.code = "API_RESPONSE_ERROR";
+    throw error;
   }
 
-  return data?.response || [];
+  return Array.isArray(data?.response) ? data.response : [];
 }
 
 function cached(key) {
@@ -76,12 +115,16 @@ function save(key, value) {
 }
 
 function makeEntity(type, value, parent = {}) {
+  const playerName = [value?.firstname, value?.lastname]
+    .filter(Boolean)
+    .join(" ");
+
   return {
     type,
-    id: value?.id,
-    name: value?.name || [value?.firstname, value?.lastname].filter(Boolean).join(" "),
+    id: value?.id || null,
+    name: value?.name || playerName || "",
     slug: type === "player"
-      ? slugify([value?.firstname, value?.lastname].filter(Boolean).join(" "))
+      ? slugify(playerName)
       : slugify(value?.name),
     logo: value?.logo || null,
     photo: value?.photo || null,
@@ -99,32 +142,37 @@ function makeEntity(type, value, parent = {}) {
 }
 
 async function findLeague(slug) {
-  const searchTerm = slug === "laliga" ? "La Liga" : slug.replace(/-/g, " ");
+  // Prefer the stable V3 ID when we already know the canonical mapping.
+  const knownId = KNOWN_LEAGUE_IDS[slug];
+  if (knownId) {
+    const results = await request(`/leagues?id=${knownId}`);
+    const match = results.find(entry => Number(entry?.league?.id) === knownId);
+    if (match?.league?.id) return makeEntity("league", match.league, match);
+  }
+
+  const searchTerm = slug.replace(/-/g, " ");
   const results = await request(`/leagues?search=${encodeURIComponent(searchTerm)}`);
-
   const match = results.find(entry => slugify(entry?.league?.name) === slug);
-  if (!match?.league?.id) return null;
 
+  if (!match?.league?.id) return null;
   return makeEntity("league", match.league, match);
 }
 
 async function findClub(slug) {
   const searchTerm = slug.replace(/-/g, " ");
   const results = await request(`/teams?search=${encodeURIComponent(searchTerm)}`);
-
   const match = results.find(entry => slugify(entry?.team?.name) === slug);
-  if (!match?.team?.id) return null;
 
+  if (!match?.team?.id) return null;
   return makeEntity("club", match.team, match);
 }
 
 async function findPlayer(slug) {
   const searchTerm = slug.replace(/-/g, " ");
   const results = await request(`/players?search=${encodeURIComponent(searchTerm)}`);
-
   const match = results.find(entry => playerSlugs(entry?.player).has(slug));
-  if (!match?.player?.id) return null;
 
+  if (!match?.player?.id) return null;
   return makeEntity("player", match.player, match);
 }
 
@@ -136,17 +184,32 @@ async function resolve(slug) {
   const existing = cached(key);
   if (existing !== undefined) return existing;
 
-  // League first, then club, then player. This keeps common football names
-  // deterministic while still allowing every entity type to use one URL.
-  const finders = [findLeague, findClub, findPlayer];
+  const attempts = [
+    ["league", findLeague],
+    ["club", findClub],
+    ["player", findPlayer],
+  ];
 
-  for (const finder of finders) {
-    const entity = await finder(normalized);
-    if (entity) {
-      save(key, entity);
-      return entity;
+  const errors = [];
+
+  for (const [type, finder] of attempts) {
+    try {
+      const entity = await finder(normalized);
+      if (entity) {
+        save(key, entity);
+        return entity;
+      }
+    } catch (error) {
+      console.error(`[Scoutwave] entity ${type} lookup failed`, {
+        slug: normalized,
+        code: error?.code || "UNKNOWN",
+      });
+      errors.push(error);
     }
   }
+
+  // Do not cache an upstream failure as a permanent 404.
+  if (errors.length === attempts.length) return undefined;
 
   save(key, null);
   return null;
@@ -172,6 +235,12 @@ module.exports = async function handler(req, res) {
       "public, s-maxage=600, stale-while-revalidate=3600"
     );
 
+    if (entity === undefined) {
+      return res.status(502).json({
+        error: "Football data provider unavailable",
+      });
+    }
+
     if (!entity) {
       return res.status(404).json({
         error: "Entity not found",
@@ -181,7 +250,12 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({ entity });
   } catch (error) {
-    console.error("[Scoutwave] entity resolver error", error);
-    return res.status(502).json({ error: "Unable to resolve entity" });
+    console.error("[Scoutwave] entity resolver error", {
+      code: error?.code || "UNKNOWN",
+    });
+
+    return res.status(502).json({
+      error: "Unable to resolve entity",
+    });
   }
 };
