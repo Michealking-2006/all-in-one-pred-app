@@ -4,12 +4,18 @@ const cache = globalThis.__SCOUTWAVE_ENTITY_CACHE || new Map();
 globalThis.__SCOUTWAVE_ENTITY_CACHE = cache;
 
 function slugify(value) {
-  return String(value || "")
+  const slug = String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+  const aliases = {
+    "la-liga": "laliga",
+  };
+
+  return aliases[slug] || slug;
 }
 
 async function request(path) {
@@ -39,7 +45,8 @@ function save(key, value) {
 }
 
 async function findEntity(type, endpoint, field, slug) {
-  const results = await request(`${endpoint}?search=${encodeURIComponent(slug.replace(/-/g, " "))}`);
+  const searchTerm = slug === "laliga" ? "La Liga" : slug.replace(/-/g, " ");
+  const results = await request(`${endpoint}?search=${encodeURIComponent(searchTerm)}`);
   const item = results.find(entry => slugify(entry?.[field]?.name) === slug);
   if (!item?.[field]?.id) return null;
 
