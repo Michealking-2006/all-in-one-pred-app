@@ -5,6 +5,7 @@
   window.__scoutwaveRouterInstalled = true;
 
   const HOME_ROUTE = "/overview";
+
   const STATIC_ROUTES = {
     "/404": { file: "/pages/404.html", title: "Page Not Found" },
     "/overview": { file: "/pages/overview.html", title: "Overview" },
@@ -24,12 +25,16 @@
   };
 
   const ENTITY_PAGES = {
-    league: { file: "/pages/entities/league.html" },
-    club: { file: "/pages/entities/club.html" },
-    player: { file: "/pages/entities/player.html" },
+    league: { file: "/pages/entities/league.html", title: "League" },
+    club: { file: "/pages/entities/club.html", title: "Club" },
+    player: { file: "/pages/entities/player.html", title: "Player" },
   };
 
-  const ALIASES = { "/": HOME_ROUTE, "/home": HOME_ROUTE };
+  const ALIASES = {
+    "/": HOME_ROUTE,
+    "/home": HOME_ROUTE,
+  };
+
   let currentPath = normalizePath(location.pathname);
   let navigationToken = 0;
 
@@ -45,8 +50,13 @@
     }
   }
 
-  function showLoader() { $("#page-loader")?.classList.remove("hidden"); }
-  function hideLoader() { $("#page-loader")?.classList.add("hidden"); }
+  function showLoader() {
+    $("#page-loader")?.classList.remove("hidden");
+  }
+
+  function hideLoader() {
+    $("#page-loader")?.classList.add("hidden");
+  }
 
   function legacyLeagueSlug(path) {
     const clean = normalizePath(path);
@@ -76,6 +86,7 @@
     const requested = normalizePath(path);
     const aliased = ALIASES[requested] || requested;
 
+    // Permanently move the old league URLs to the new canonical URL.
     if (isLegacyLeaguePath(aliased)) {
       const slug = legacyLeagueSlug(aliased);
       return {
@@ -86,17 +97,34 @@
 
     const staticRoute = STATIC_ROUTES[aliased];
     if (staticRoute) {
-      return { kind: "static", routePath: aliased, route: staticRoute, entity: null };
+      return {
+        kind: "static",
+        routePath: aliased,
+        route: staticRoute,
+        entity: null,
+      };
     }
 
+    // Entity routes intentionally use exactly one path segment:
+    // /laliga, /arsenal, /kylian-mbappe, etc.
     const parts = aliased.split("/").filter(Boolean);
     if (parts.length !== 1 || parts[0].length < 3) {
-      return { kind: "static", routePath: "/404", route: STATIC_ROUTES["/404"], entity: null };
+      return {
+        kind: "static",
+        routePath: "/404",
+        route: STATIC_ROUTES["/404"],
+        entity: null,
+      };
     }
 
     const entity = await resolveEntity(parts[0]);
     if (!entity || !ENTITY_PAGES[entity.type]) {
-      return { kind: "static", routePath: "/404", route: STATIC_ROUTES["/404"], entity: null };
+      return {
+        kind: "static",
+        routePath: "/404",
+        route: STATIC_ROUTES["/404"],
+        entity: null,
+      };
     }
 
     return {
@@ -109,7 +137,10 @@
 
   async function fetchPage(file, forceReload = false) {
     const target = forceReload ? `${file}?v=${Date.now()}` : file;
-    const response = await fetch(target, { cache: forceReload ? "reload" : "default" });
+    const response = await fetch(target, {
+      cache: forceReload ? "reload" : "default",
+    });
+
     if (!response.ok) throw new Error(`Failed to load ${file} (${response.status})`);
     return response.text();
   }
@@ -120,11 +151,13 @@
 
     return Promise.all(scripts.map(element => new Promise(resolve => {
       let settled = false;
+
       const finish = () => {
         if (settled) return;
         settled = true;
         resolve();
       };
+
       element.addEventListener("appscriptload", finish, { once: true });
       element.addEventListener("appscripterror", finish, { once: true });
       setTimeout(finish, 10000);
@@ -133,15 +166,43 @@
 
   function updateActiveNav() {
     const current = normalizePath(currentPath);
+
     $$(".bottom-nav .nav-item[href]").forEach(link => {
       let path;
-      try { path = normalizePath(new URL(link.href, location.origin).pathname); }
-      catch { return; }
+      try {
+        path = normalizePath(new URL(link.href, location.origin).pathname);
+      } catch {
+        return;
+      }
+
       path = ALIASES[path] || path;
-      const active = path === current || path === current.split("/").slice(0, 2).join("/");
+      const active = path === current;
       link.classList.toggle("active", active);
       link.querySelector("svg")?.classList.toggle("active", active);
     });
+  }
+
+  function updateDocumentMeta(page) {
+    const entity = page.entity;
+    const title = entity?.name
+      ? `${entity.name} | Scoutwave`
+      : `${page.route.title} | Scoutwave`;
+
+    document.title = title;
+
+    const description = entity?.type === "league"
+      ? `${entity.name} football league on Scoutwave.`
+      : entity?.type === "club"
+        ? `${entity.name} football club profile on Scoutwave.`
+        : entity?.type === "player"
+          ? `${entity.name} football player profile on Scoutwave.`
+          : "Scoutwave - Football prediction platform";
+
+    document.querySelector('meta[name="description"]')?.setAttribute("content", description);
+    document.querySelector('link[rel="canonical"]')?.setAttribute("href", location.origin + currentPath);
+    document.querySelector('meta[property="og:url"]')?.setAttribute("content", location.origin + currentPath);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
   }
 
   async function renderRoute(path, options = {}) {
@@ -155,7 +216,10 @@
 
       if (page.kind === "redirect") {
         history.replaceState({ path: page.canonicalPath }, "", page.canonicalPath);
-        return renderRoute(page.canonicalPath, { updateHistory: false, pushHistory: false });
+        return renderRoute(page.canonicalPath, {
+          updateHistory: false,
+          pushHistory: false,
+        });
       }
 
       const html = await fetchPage(page.route.file, options.forceReload === true);
@@ -164,6 +228,7 @@
       const main = $("#main-page");
       if (!main) throw new Error("#main-page not found");
 
+      // Clear the previous page before exposing the new page context.
       main.replaceChildren();
       window.__scoutwaveEntity = page.entity || null;
       main.insertAdjacentHTML("afterbegin", html);
@@ -171,23 +236,31 @@
       await waitForPageScripts(main);
       if (token !== navigationToken) return;
 
-      currentPath = requestedPath;
+      currentPath = page.kind === "static" ? page.routePath : requestedPath;
+
       if (options.updateHistory !== false) {
-        const state = { path: requestedPath };
-        if (options.pushHistory === false) history.replaceState(state, "", requestedPath);
-        else history.pushState(state, "", requestedPath);
+        const state = { path: currentPath };
+        if (options.pushHistory === false) {
+          history.replaceState(state, "", currentPath);
+        } else {
+          history.pushState(state, "", currentPath);
+        }
       }
 
-      document.title = page.entity?.name
-        ? `${page.entity.name} | Scoutwave`
-        : `${page.route.title} | Scoutwave`;
-
+      updateDocumentMeta(page);
       updateActiveNav();
+
       document.dispatchEvent(new CustomEvent("pageLoaded", {
-        detail: { path: currentPath, kind: page.kind, entity: page.entity || null, route: page.route },
+        detail: {
+          path: currentPath,
+          kind: page.kind,
+          entity: page.entity || null,
+          route: page.route,
+        },
       }));
     } catch (error) {
       if (token !== navigationToken) return;
+
       console.error("[Router] Navigation failed:", error);
       $("#main-page")?.replaceChildren(Object.assign(document.createElement("section"), {
         className: "page-error",
@@ -199,20 +272,40 @@
   }
 
   function navigate(path, pushHistory = true, forceReload = false) {
-    return renderRoute(path, { updateHistory: true, pushHistory, forceReload });
+    return renderRoute(path, {
+      updateHistory: true,
+      pushHistory,
+      forceReload,
+    });
   }
 
   function refreshCurrentPage() {
-    return renderRoute(currentPath, { updateHistory: false, pushHistory: false, forceReload: true });
+    return renderRoute(currentPath, {
+      updateHistory: false,
+      pushHistory: false,
+      forceReload: true,
+    });
   }
 
   document.addEventListener("click", event => {
     const link = event.target.closest("a[href]");
-    if (!link || link.target === "_blank" || link.hasAttribute("download") || link.dataset.native !== undefined || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    if (!link ||
+        link.target === "_blank" ||
+        link.hasAttribute("download") ||
+        link.dataset.native !== undefined ||
+        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
+        event.button !== 0) return;
 
     let url;
-    try { url = new URL(link.href, location.origin); } catch { return; }
-    if (url.origin !== location.origin || url.pathname.startsWith("/assets/") || /\.[a-z0-9]+$/i.test(url.pathname)) return;
+    try {
+      url = new URL(link.href, location.origin);
+    } catch {
+      return;
+    }
+
+    if (url.origin !== location.origin ||
+        url.pathname.startsWith("/assets/") ||
+        /\.[a-z0-9]+$/i.test(url.pathname)) return;
 
     event.preventDefault();
     const path = normalizePath(url.pathname);
@@ -220,7 +313,10 @@
   });
 
   window.addEventListener("popstate", event => {
-    renderRoute(event.state?.path || location.pathname, { updateHistory: false, pushHistory: false });
+    renderRoute(event.state?.path || location.pathname, {
+      updateHistory: false,
+      pushHistory: false,
+    });
   });
 
   window.route = function(event) {
@@ -238,5 +334,8 @@
     resolveRoute,
   };
 
-  renderRoute(currentPath, { updateHistory: false, pushHistory: false });
+  renderRoute(currentPath, {
+    updateHistory: false,
+    pushHistory: false,
+  });
 })();
