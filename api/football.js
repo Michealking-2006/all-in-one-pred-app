@@ -1,11 +1,5 @@
 const API_BASE_URL = "https://v3.football.api-sports.io";
-const ALLOWED_PREFIXES = [
-  "/standings",
-  "/fixtures",
-  "/teams",
-  "/players",
-  "/leagues",
-];
+const ALLOWED_PREFIXES = ["/standings", "/fixtures", "/teams", "/players", "/leagues"];
 
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
@@ -19,23 +13,21 @@ module.exports = async function handler(req, res) {
   }
 
   const path = String(req.query?.path || "");
-  if (!path.startsWith("/") || !ALLOWED_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}?`))) {
+  const allowed = ALLOWED_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}?`));
+  if (!path.startsWith("/") || !allowed) {
     return res.status(400).json({ error: "Unsupported Football API endpoint" });
   }
 
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: {
-        "x-apisports-key": credential,
-        accept: "application/json",
-      },
+      headers: { "x-apisports-key": credential, accept: "application/json" },
     });
 
     const text = await response.text();
     res.statusCode = response.status;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=120");
-    return res.send(text);
+    return res.end(text);
   } catch (error) {
     console.error("[Scoutwave] Football API proxy error", error);
     return res.status(502).json({ error: "Unable to reach Football API" });
