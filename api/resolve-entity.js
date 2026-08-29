@@ -1,4 +1,5 @@
-const API_BASE_URL = "https://v3.football.api-sports.io";
+const { football } = require("./_lib/football-api");
+const { slugify } = require("./_lib/entity-utils");
 
 const KNOWN_LEAGUE_IDS = {
   laliga: 140,
@@ -18,70 +19,22 @@ const KNOWN_LEAGUE_IDS = {
   "conference-league": 848,
 };
 
-const ALIASES = {
-  "la-liga": "laliga",
-  "la-liga-ea-sports": "laliga",
-  "laliga-ea-sports": "laliga",
-};
-
-function slugify(value) {
-  const slug = String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return ALIASES[slug] || slug;
-}
-
-async function football(path) {
-  const key = process.env.SCOUTWAVE_FOOTBALL_API_KEY;
-
-  if (!key) throw new Error("SCOUTWAVE_FOOTBALL_API_KEY is missing");
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "GET",
-    headers: {
-      "x-apisports-key": key,
-      accept: "application/json",
-    },
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) throw new Error(`Football API returned HTTP ${response.status}`);
-  if (data?.errors && Object.keys(data.errors).length) throw new Error("Football API returned an error");
-
-  return Array.isArray(data?.response) ? data.response : [];
-}
-
 function leagueEntity(item) {
   const league = item?.league;
   const country = item?.country;
   return {
-    type: "league",
-    id: league.id,
-    name: league.name,
-    slug: slugify(league.name),
-    logo: league.logo || null,
-    country: country?.name || null,
-    countryCode: country?.code || null,
-    flag: country?.flag || null,
+    type: "league", id: league.id, name: league.name, slug: slugify(league.name),
+    logo: league.logo || null, country: country?.name || null,
+    countryCode: country?.code || null, flag: country?.flag || null,
   };
 }
 
 function clubEntity(item) {
   const team = item?.team;
   return {
-    type: "club",
-    id: team.id,
-    name: team.name,
-    slug: slugify(team.name),
-    logo: team.logo || null,
-    country: team.country || null,
-    founded: team.founded || null,
-    venue: item?.venue || null,
+    type: "club", id: team.id, name: team.name, slug: slugify(team.name),
+    logo: team.logo || null, country: team.country || null,
+    founded: team.founded || null, venue: item?.venue || null,
   };
 }
 
@@ -89,28 +42,19 @@ function playerEntity(item) {
   const player = item?.player;
   const name = [player?.firstname, player?.lastname].filter(Boolean).join(" ");
   return {
-    type: "player",
-    id: player.id,
-    name: name || player?.name || "",
-    slug: slugify(name || player?.name),
-    photo: player.photo || null,
-    nationality: player.nationality || null,
-    age: player.age || null,
-    firstname: player.firstname || null,
-    lastname: player.lastname || null,
+    type: "player", id: player.id, name: name || player?.name || "",
+    slug: slugify(name || player?.name), photo: player.photo || null,
+    nationality: player.nationality || null, age: player.age || null,
+    firstname: player.firstname || null, lastname: player.lastname || null,
   };
 }
 
 async function resolveLeague(slug) {
   const knownId = KNOWN_LEAGUE_IDS[slug];
-  if (knownId) {
-    const results = await football(`/leagues?id=${knownId}`);
-    const match = results.find(x => Number(x?.league?.id) === knownId);
-    return match ? leagueEntity(match) : null;
-  }
-
-  const results = await football(`/leagues?search=${encodeURIComponent(slug.replace(/-/g, " "))}`);
-  const match = results.find(x => slugify(x?.league?.name) === slug);
+  const results = knownId
+    ? await football(`/leagues?id=${knownId}`)
+    : await football(`/leagues?search=${encodeURIComponent(slug.replace(/-/g, " "))}`);
+  const match = results.find(x => slugify(x?.league?.name) === slug || Number(x?.league?.id) === knownId);
   return match ? leagueEntity(match) : null;
 }
 
@@ -122,19 +66,15 @@ async function resolveClub(slug) {
 
 async function resolvePlayer(slug) {
   const words = slug.replace(/-/g, " ").trim().split(/\s+/).filter(Boolean);
-  const searchTerms = [...new Set([
-    words.join(" "),
-    words.slice(0, 2).join(" "),
-    words[words.length - 1],
-  ].filter(term => term && term.length >= 3))];
+  const terms = [...new Set([words.join(" "), words.slice(0, 2).join(" "), words.at(-1)])].filter(x => x.length >= 3);
 
-  for (const searchTerm of searchTerms) {
-    const results = await football(`/players/profiles?search=${encodeURIComponent(searchTerm)}`);
-    const exact = results.find(x => {
+  for (const term of terms) {
+    const results = await football(`/players/profiles?search=${encodeURIComponent(term)}`);
+    const match = results.find(x => {
       const name = [x?.player?.firstname, x?.player?.lastname].filter(Boolean).join(" ");
       return slugify(name) === slug || slugify(x?.player?.name) === slug;
     });
-    if (exact) return playerEntity(exact);
+    if (match) return playerEntity(match);
   }
 
   return null;
@@ -153,35 +93,19 @@ module.exports = async function handler(req, res) {
 
   const slug = slugify(rawSlug);
 
-  try {
-    const league = await resolveLeague(slug);
-    if (league) {
-      res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=3600");
-      return res.status(200).json({ entity: league });
+  for (const resolver of [resolveLeague, resolveClub, resolvePlayer]) {
+    try {
+      const entity = await resolver(slug);
+      if (entity) {
+        res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=3600");
+        return res.status(200).json({ entity });
+      }
+    } catch (error) {
+      console.error("[Scoutwave] entity resolver failed:", error.message);
+      if (resolver === resolveLeague && KNOWN_LEAGUE_IDS[slug]) {
+        return res.status(502).json({ error: "Football data provider unavailable" });
+      }
     }
-  } catch (error) {
-    console.error("[Scoutwave] league resolver failed:", error.message);
-    if (KNOWN_LEAGUE_IDS[slug]) return res.status(502).json({ error: "Football data provider unavailable" });
-  }
-
-  try {
-    const club = await resolveClub(slug);
-    if (club) {
-      res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=3600");
-      return res.status(200).json({ entity: club });
-    }
-  } catch (error) {
-    console.error("[Scoutwave] club resolver failed:", error.message);
-  }
-
-  try {
-    const player = await resolvePlayer(slug);
-    if (player) {
-      res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=3600");
-      return res.status(200).json({ entity: player });
-    }
-  } catch (error) {
-    console.error("[Scoutwave] player resolver failed:", error.message);
   }
 
   res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
