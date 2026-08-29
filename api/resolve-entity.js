@@ -38,9 +38,7 @@ function slugify(value) {
 async function football(path) {
   const key = process.env.SCOUTWAVE_FOOTBALL_API_KEY;
 
-  if (!key) {
-    throw new Error("SCOUTWAVE_FOOTBALL_API_KEY is missing");
-  }
+  if (!key) throw new Error("SCOUTWAVE_FOOTBALL_API_KEY is missing");
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "GET",
@@ -52,13 +50,8 @@ async function football(path) {
 
   const data = await response.json().catch(() => null);
 
-  if (!response.ok) {
-    throw new Error(`Football API returned HTTP ${response.status}`);
-  }
-
-  if (data?.errors && Object.keys(data.errors).length) {
-    throw new Error("Football API returned an error");
-  }
+  if (!response.ok) throw new Error(`Football API returned HTTP ${response.status}`);
+  if (data?.errors && Object.keys(data.errors).length) throw new Error("Football API returned an error");
 
   return Array.isArray(data?.response) ? data.response : [];
 }
@@ -66,7 +59,6 @@ async function football(path) {
 function leagueEntity(item) {
   const league = item?.league;
   const country = item?.country;
-
   return {
     type: "league",
     id: league.id,
@@ -81,7 +73,6 @@ function leagueEntity(item) {
 
 function clubEntity(item) {
   const team = item?.team;
-
   return {
     type: "club",
     id: team.id,
@@ -97,7 +88,6 @@ function clubEntity(item) {
 function playerEntity(item) {
   const player = item?.player;
   const name = [player?.firstname, player?.lastname].filter(Boolean).join(" ");
-
   return {
     type: "player",
     id: player.id,
@@ -113,7 +103,6 @@ function playerEntity(item) {
 
 async function resolveLeague(slug) {
   const knownId = KNOWN_LEAGUE_IDS[slug];
-
   if (knownId) {
     const results = await football(`/leagues?id=${knownId}`);
     const match = results.find(x => Number(x?.league?.id) === knownId);
@@ -133,18 +122,22 @@ async function resolveClub(slug) {
 
 async function resolvePlayer(slug) {
   const words = slug.replace(/-/g, " ").trim().split(/\s+/).filter(Boolean);
-  const searchTerm = words[words.length - 1] || slug;
-  const results = await football(`/players/profiles?search=${encodeURIComponent(searchTerm)}`);
+  const searchTerms = [...new Set([
+    words.join(" "),
+    words.slice(0, 2).join(" "),
+    words[words.length - 1],
+  ].filter(term => term && term.length >= 3))];
 
-  const exact = results.find(x => {
-    const name = [x?.player?.firstname, x?.player?.lastname]
-      .filter(Boolean)
-      .join(" ");
+  for (const searchTerm of searchTerms) {
+    const results = await football(`/players/profiles?search=${encodeURIComponent(searchTerm)}`);
+    const exact = results.find(x => {
+      const name = [x?.player?.firstname, x?.player?.lastname].filter(Boolean).join(" ");
+      return slugify(name) === slug || slugify(x?.player?.name) === slug;
+    });
+    if (exact) return playerEntity(exact);
+  }
 
-    return slugify(name) === slug || slugify(x?.player?.name) === slug;
-  });
-
-  return exact ? playerEntity(exact) : null;
+  return null;
 }
 
 module.exports = async function handler(req, res) {
@@ -154,7 +147,6 @@ module.exports = async function handler(req, res) {
   }
 
   const rawSlug = String(req.query?.slug || "").trim();
-
   if (!rawSlug || rawSlug.length > 120 || rawSlug.includes("/")) {
     return res.status(400).json({ error: "Invalid entity slug" });
   }
@@ -169,10 +161,7 @@ module.exports = async function handler(req, res) {
     }
   } catch (error) {
     console.error("[Scoutwave] league resolver failed:", error.message);
-
-    if (KNOWN_LEAGUE_IDS[slug]) {
-      return res.status(502).json({ error: "Football data provider unavailable" });
-    }
+    if (KNOWN_LEAGUE_IDS[slug]) return res.status(502).json({ error: "Football data provider unavailable" });
   }
 
   try {
@@ -196,8 +185,5 @@ module.exports = async function handler(req, res) {
   }
 
   res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
-  return res.status(404).json({
-    error: "Entity not found",
-    slug,
-  });
+  return res.status(404).json({ error: "Entity not found", slug });
 };
