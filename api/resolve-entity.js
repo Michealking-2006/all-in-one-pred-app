@@ -1,8 +1,5 @@
 const API_BASE_URL = "https://v3.football.api-sports.io";
 
-const CURRENT_FOOTBALL_SEASON = 2026;
-const PREVIOUS_FOOTBALL_SEASON = 2025;
-
 const KNOWN_LEAGUE_IDS = {
   laliga: 140,
   "premier-league": 39,
@@ -104,8 +101,8 @@ function playerEntity(item) {
   return {
     type: "player",
     id: player.id,
-    name,
-    slug: slugify(name),
+    name: name || player?.name || "",
+    slug: slugify(name || player?.name),
     photo: player.photo || null,
     nationality: player.nationality || null,
     age: player.age || null,
@@ -135,36 +132,19 @@ async function resolveClub(slug) {
 }
 
 async function resolvePlayer(slug) {
-  const search = encodeURIComponent(slug.replace(/-/g, " "));
+  const words = slug.replace(/-/g, " ").trim().split(/\s+/).filter(Boolean);
+  const searchTerm = words[words.length - 1] || slug;
+  const results = await football(`/players/profiles?search=${encodeURIComponent(searchTerm)}`);
 
-  // API-Football season values represent the season's starting year.
-  // Try the active season first, then the previous season because a player
-  // may not yet have current-season statistics populated early in a season.
-  const seasons = [CURRENT_FOOTBALL_SEASON, PREVIOUS_FOOTBALL_SEASON];
-
-  for (const season of seasons) {
-    const results = await football(`/players?search=${search}&season=${season}`);
-    const match = results.find(x => {
-      const name = [x?.player?.firstname, x?.player?.lastname]
-        .filter(Boolean)
-        .join(" ");
-      return slugify(name) === slug;
-    });
-
-    if (match) return playerEntity(match);
-  }
-
-  // Final compatibility fallback for players that are searchable globally
-  // but are not present in either season's player dataset yet.
-  const results = await football(`/players?search=${search}`);
-  const match = results.find(x => {
+  const exact = results.find(x => {
     const name = [x?.player?.firstname, x?.player?.lastname]
       .filter(Boolean)
       .join(" ");
-    return slugify(name) === slug;
+
+    return slugify(name) === slug || slugify(x?.player?.name) === slug;
   });
 
-  return match ? playerEntity(match) : null;
+  return exact ? playerEntity(exact) : null;
 }
 
 module.exports = async function handler(req, res) {
@@ -182,7 +162,6 @@ module.exports = async function handler(req, res) {
   const slug = slugify(rawSlug);
 
   try {
-    // Resolve leagues first. Known leagues require only one direct API call.
     const league = await resolveLeague(slug);
     if (league) {
       res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=3600");
@@ -191,7 +170,6 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     console.error("[Scoutwave] league resolver failed:", error.message);
 
-    // For known canonical leagues, this is an upstream/API failure, not a 404.
     if (KNOWN_LEAGUE_IDS[slug]) {
       return res.status(502).json({ error: "Football data provider unavailable" });
     }
