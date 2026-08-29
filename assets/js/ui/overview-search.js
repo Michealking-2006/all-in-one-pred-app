@@ -1,20 +1,14 @@
 (() => {
   "use strict";
 
+  if (window.__overviewSearchInstalled) return;
+  window.__overviewSearchInstalled = true;
+
   const STATE = {
-    initialized: false,
     controller: null,
     timer: null,
     request: 0,
   };
-
-  function normalize(value) {
-    return String(value || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-  }
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -37,52 +31,8 @@
   }
 
   function resultHref(item) {
-    const slug = encodeURIComponent(item.slug || "");
-    if (!slug) return "#";
     if (item.type === "matches") return `/match/${encodeURIComponent(item.id)}`;
-    if (item.type === "venues") return `/${slug}`;
-    return `/${slug}`;
-  }
-
-  function render(items, query) {
-    const box = document.querySelector(".search-results-box");
-    const empty = document.querySelector(".search-empty-state");
-    if (!box || !empty) return;
-
-    if (!items.length) {
-      box.replaceChildren();
-      empty.hidden = false;
-      empty.textContent = `No results found for “${query}”.`;
-      return;
-    }
-
-    empty.hidden = true;
-    box.innerHTML = items.map(item => {
-      const icon = item.icon
-        ? `<img class="search-result-icon" src="${escapeHtml(item.icon)}" alt="" loading="lazy">`
-        : `<span class="search-result-icon-fallback">⚽</span>`;
-
-      const meta = [item.country, item.city, item.venue]
-        .filter(Boolean)
-        .map(value => `<span>${escapeHtml(value)}</span>`)
-        .join("");
-
-      return `
-        <a href="${escapeHtml(resultHref(item))}"
-           class="search-result-item"
-           data-search-id="${escapeHtml(item.id || "")}"
-           data-search-slug="${escapeHtml(item.slug || "")}"
-           data-search-type="${escapeHtml(item.type || "")}">
-          <div class="search-result-icon-wrap">${icon}</div>
-          <div class="search-result-content">
-            <div class="search-result-title-row">
-              <strong class="search-result-name">${highlight(item.name, query)}</strong>
-              <span class="search-result-type">${escapeHtml(label(item.type))}</span>
-            </div>
-            <div class="search-result-meta">${meta}</div>
-          </div>
-        </a>`;
-    }).join("");
+    return `/${encodeURIComponent(item.slug || "")}`;
   }
 
   function highlight(text, query) {
@@ -90,7 +40,10 @@
     const q = escapeHtml(query || "");
     if (!q) return source;
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return source.replace(new RegExp(`(${escaped})`, "ig"), '<span class="search-highlight">$1</span>');
+    return source.replace(
+      new RegExp(`(${escaped})`, "ig"),
+      '<span class="search-highlight">$1</span>'
+    );
   }
 
   function ensurePanels(body) {
@@ -123,6 +76,48 @@
       backdrop: backdropClone,
       open: document.querySelector(".search-app-btn"),
     };
+  }
+
+  function render(items, query) {
+    const box = document.querySelector(".search-results-box");
+    const empty = document.querySelector(".search-empty-state");
+    if (!box || !empty) return;
+
+    if (!items.length) {
+      box.replaceChildren();
+      empty.hidden = false;
+      empty.textContent = `No results found for “${query}”.`;
+      return;
+    }
+
+    empty.hidden = true;
+    box.innerHTML = items.map(item => {
+      const icon = item.icon
+        ? `<img class="search-result-icon" src="${escapeHtml(item.icon)}" alt="" loading="lazy">`
+        : `<span class="search-result-icon-fallback">⚽</span>`;
+
+      const meta = [item.country, item.city, item.venue]
+        .filter(Boolean)
+        .map(value => `<span>${escapeHtml(value)}</span>`)
+        .join("");
+
+      return `
+        <a href="${escapeHtml(resultHref(item))}"
+           onclick="route(event)"
+           class="search-result-item"
+           data-search-id="${escapeHtml(item.id || "")}"
+           data-search-slug="${escapeHtml(item.slug || "")}"
+           data-search-type="${escapeHtml(item.type || "")}">
+          <div class="search-result-icon-wrap">${icon}</div>
+          <div class="search-result-content">
+            <div class="search-result-title-row">
+              <strong class="search-result-name">${highlight(item.name, query)}</strong>
+              <span class="search-result-type">${escapeHtml(label(item.type))}</span>
+            </div>
+            <div class="search-result-meta">${meta}</div>
+          </div>
+        </a>`;
+    }).join("");
   }
 
   async function search(query, type) {
@@ -161,14 +156,12 @@
     const input = drawer.querySelector("#app-main-search-input");
     const carousel = drawer.querySelector(".search-filter-carousel");
     const body = drawer.querySelector(".search-body");
-
     if (!close || !input || !carousel || !body) return;
 
     const panel = ensurePanels(body);
     const resultsTitle = panel.querySelector(".search-results-title");
     const trending = body.querySelector(".trending-search-wrapper");
-    const recent = body.querySelector(".search-recent-section") || body.querySelector(".recent-searches-box")?.closest("section");
-
+    const recent = body.querySelector(".recent-searches-box")?.closest("section");
     let activeType = "all";
 
     const closeSearch = () => {
@@ -187,6 +180,7 @@
     const run = () => {
       clearTimeout(STATE.timer);
       const query = input.value.trim();
+
       if (!query) {
         panel.hidden = true;
         if (trending) trending.hidden = false;
@@ -201,7 +195,7 @@
 
       const box = panel.querySelector(".search-results-box");
       const empty = panel.querySelector(".search-empty-state");
-      if (box) box.innerHTML = "";
+      if (box) box.replaceChildren();
       if (empty) {
         empty.hidden = false;
         empty.textContent = "Searching...";
@@ -217,7 +211,7 @@
 
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && drawer.classList.contains("active")) closeSearch();
-    }, { signal: STATE.controller?.signal });
+    });
 
     carousel.addEventListener("click", event => {
       const chip = event.target.closest(".search-filter-chip");
@@ -233,18 +227,14 @@
       const link = event.target.closest(".search-result-item");
       if (!link) return;
       const name = link.querySelector(".search-result-name")?.textContent?.trim();
-      if (name) {
-        try { localStorage.setItem("app_recent_searches", JSON.stringify([{ name, ts: Date.now() }])); } catch {}
-      }
+      if (!name) return;
+      try {
+        localStorage.setItem("app_recent_searches", JSON.stringify([{ name, ts: Date.now() }]));
+      } catch {}
     });
-
-    STATE.initialized = true;
   }
 
   function boot() {
-    if (STATE.controller) STATE.controller.abort();
-    STATE.controller = new AbortController();
-    STATE.initialized = false;
     clearTimeout(STATE.timer);
     if (document.querySelector(".search-drawer")) init();
   }
