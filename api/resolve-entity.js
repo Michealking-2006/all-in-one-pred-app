@@ -1,5 +1,7 @@
 const API_BASE_URL = "https://v3.football.api-sports.io";
 
+const CURRENT_FOOTBALL_SEASON = 2026;
+
 const KNOWN_LEAGUE_IDS = {
   laliga: 140,
   "premier-league": 39,
@@ -132,11 +134,14 @@ async function resolveClub(slug) {
 }
 
 async function resolvePlayer(slug) {
-  const results = await football(`/players?search=${encodeURIComponent(slug.replace(/-/g, " "))}`);
+  const search = encodeURIComponent(slug.replace(/-/g, " "));
+  const results = await football(`/players?search=${search}&season=${CURRENT_FOOTBALL_SEASON}`);
+
   const match = results.find(x => {
     const name = [x?.player?.firstname, x?.player?.lastname].filter(Boolean).join(" ");
     return slugify(name) === slug;
   });
+
   return match ? playerEntity(match) : null;
 }
 
