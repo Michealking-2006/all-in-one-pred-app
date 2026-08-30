@@ -1,8 +1,0 @@
-/* Overview page styles.
- * Keep selectors scoped to the Overview page/component.
- * Shared application primitives belong in assets/css/index.css or assets/css/ui/.
- */
-
-.overview-page {
-  /* Overview-specific styles are migrated here incrementally. */
-}
