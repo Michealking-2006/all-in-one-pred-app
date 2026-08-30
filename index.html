@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scoutwave - Football prediction platform</title>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+
+<link rel="stylesheet" href="/assets/css/navigator-loader.css">
+<link rel="stylesheet" href="/assets/css/skeleton-loader.css">
+<link rel="stylesheet" href="/assets/css/utilities.css/toast-notification.css">
+
+
+  <link rel="stylesheet" href="/assets/css/ui/components.css">
+  <link rel="stylesheet" href="/assets/css/index.css">
+  <link rel="stylesheet" href="/assets/css/pages.css">
+  <link rel="stylesheet" href="/assets/css/pwa.css">
+
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#d60000">
+
+  <meta name="description" content="">
+  <link rel="canonical" href="">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="">
+  <meta property="og:title" content="">
+  <meta property="og:description" content="">
+  <meta property="og:image" content="">
+
+  <link href="/favicons/favicon.png" rel="icon" sizes="48x48">
+  <link href="/favicons/favicon-128.png" rel="icon" sizes="128x128">
+  <link href="/favicons/favicon-192.png" rel="icon" sizes="192x192">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "",
+      "url": "",
+      "description": "",
+      "inLanguage": "en",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Scoutwave",
+        "url": ""
+      }
+    }
+  </script>
+</head>
+
+<body>
+
+<div class="ptr-indicator" aria-hidden="true">
+  
+</div>
+
+  <div id="root">
+    <div id="page-loader" class="page-loader">
+ 
+ <div class="brain-loader" aria-label="Loading" role="status">
+  <svg
+    class="brain-loader__svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width="48"
+    height="48"
+    viewBox="0 0 48 48"
+  >
+    <defs>
+      <!-- Exact icon mask -->
+      <mask id="brain-loader-mask">
+        <g fill="none" stroke="#fff">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="4.667"
+            d="M19.036 44c-.98-3.195-2.458-5.578-4.435-7.147c-2.965-2.353-7.676-.89-9.416-3.318c-1.74-2.428 1.219-6.892 2.257-9.526c1.039-2.634-3.98-3.565-3.394-4.313c.39-.499 2.927-1.937 7.609-4.316C12.987 7.794 17.9 4 26.398 4C39.144 4 44 14.806 44 21.68c0 6.872-5.88 14.276-14.256 15.873c-.749 1.09.331 3.24 3.24 6.447"
+          />
+
+          <path
+            fill="#fff"
+            fill-rule="evenodd"
+            stroke-linejoin="round"
+            stroke-width="4"
+            d="M19.5 14.5c-.654 2.534-.46 4.314.583 5.339c1.042 1.024 2.818 1.695 5.328 2.01c-.57 3.269.125 4.802 2.083 4.6c1.958-.201 3.135-1.015 3.53-2.44c3.06.86 4.719.14 4.976-2.16c.385-3.45-1.475-6.201-2.238-6.201c-.762 0-2.738-.093-2.738-1.148s-2.308-1.65-4.391-1.65s-.83-1.405-3.69-.85c-1.907.37-3.055 1.203-3.443 2.5Z"
+            clip-rule="evenodd"
+          />
+
+          <path
+            stroke-linecap="round"
+            stroke-width="4"
+            d="M30.5 25.5c-1.017.631-2.412 1.68-3 2.5c-1.469 2.05-2.66 3.298-2.92 4.608"
+          />
+        </g>
+      </mask>
+
+      <!-- Water -->
+      <linearGradient
+        id="brain-water-gradient"
+        x1="0"
+        y1="48"
+        x2="0"
+        y2="0"
+      >
+        <stop offset="0%" stop-color="currentColor" />
+        <stop offset="100%" stop-color="currentColor" stop-opacity=".72" />
+      </linearGradient>
+
+      <!-- Clip water to the exact brain shape -->
+      <clipPath id="brain-loader-clip">
+        <path
+          d="M19.036 44c-.98-3.195-2.458-5.578-4.435-7.147c-2.965-2.353-7.676-.89-9.416-3.318c-1.74-2.428 1.219-6.892 2.257-9.526c1.039-2.634-3.98-3.565-3.394-4.313c.39-.499 2.927-1.937 7.609-4.316C12.987 7.794 17.9 4 26.398 4C39.144 4 44 14.806 44 21.68c0 6.872-5.88 14.276-14.256 15.873c-.749 1.09.331 3.24 3.24 6.447"
+        />
+        <path
+          d="M19.5 14.5c-.654 2.534-.46 4.314.583 5.339c1.042 1.024 2.818 1.695 5.328 2.01c-.57 3.269.125 4.802 2.083 4.6c1.958-.201 3.135-1.015 3.53-2.44c3.06.86 4.719.14 4.976-2.16c.385-3.45-1.475-6.201-2.238-6.201c-.762 0-2.738-.093-2.738-1.148s-2.308-1.65-4.391-1.65s-.83-1.405-3.69-.85c-1.907.37-3.055 1.203-3.443 2.5Z"
+        />
+        <path
+          d="M30.5 25.5c-1.017.631-2.412 1.68-3 2.5c-1.469 2.05-2.66 3.298-2.92 4.608"
+        />
+      </clipPath>
+    </defs>
+
+    <!-- Water inside the icon -->
+    <g class="brain-loader__water" clip-path="url(#brain-loader-clip)">
+      <rect
+        class="brain-loader__water-fill"
+        x="0"
+        y="0"
+        width="48"
+        height="48"
+      />
+
+      <!-- moving water surface -->
+      <path
+        class="brain-loader__wave"
+        d="M-48 22
+           C-40 18 -32 26 -24 22
+           C-16 18 -8 26 0 22
+           C8 18 16 26 24 22
+           C32 18 40 26 48 22
+           C56 18 64 26 72 22
+           V48
+           H-48Z"
+      />
+    </g>
+
+    <!-- Original icon outline -->
+    <g
+      class="brain-loader__outline"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="4.667"
+        d="M19.036 44c-.98-3.195-2.458-5.578-4.435-7.147c-2.965-2.353-7.676-.89-9.416-3.318c-1.74-2.428 1.219-6.892 2.257-9.526c1.039-2.634-3.98-3.565-3.394-4.313c.39-.499 2.927-1.937 7.609-4.316C12.987 7.794 17.9 4 26.398 4C39.144 4 44 14.806 44 21.68c0 6.872-5.88 14.276-14.256 15.873c-.749 1.09.331 3.24 3.24 6.447"
+      />
+
+      <path
+        stroke-linejoin="round"
+        stroke-width="4"
+        d="M19.5 14.5c-.654 2.534-.46 4.314.583 5.339c1.042 1.024 2.818 1.695 5.328 2.01c-.57 3.269.125 4.802 2.083 4.6c1.958-.201 3.135-1.015 3.53-2.44c3.06.86 4.719.14 4.976-2.16c.385-3.45-1.475-6.201-2.238-6.201c-.762 0-2.738-.093-2.738-1.148s-2.308-1.65-4.391-1.65s-.83-1.405-3.69-.85c-1.907.37-3.055 1.203-3.443 2.5Z"
+      />
+
+      <path
+        stroke-linecap="round"
+        stroke-width="4"
+        d="M30.5 25.5c-1.017.631-2.412 1.68-3 2.5c-1.469 2.05-2.66 3.298-2.92 4.608"
+      />
+    </g>
+  </svg>
+</div>
+ </div>
+
+    <div id="main-page"></div>
+  </div>
+
+  <section class="bottom-navigation-wrapper">
+    <nav class="bottom-nav">
+      <a onclick="route(event)" href="/overview" class="nav-item active">
+        <svg class="active" xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 12 12">
+          <path fill="currentColor" d="M5.37 1.222a1 1 0 0 1 1.26 0l3.814 3.09A1.5 1.5 0 0 1 11 5.476V10a1 1 0 0 1-1 1H8.5a1 1 0 0 1-1-1V7.5A.5.5 0 0 0 7 7H5a.5.5 0 0 0-.5.5V10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5.477a1.5 1.5 0 0 1 .556-1.166l3.815-3.089Z" />
+        </svg>
+        <span>Home</span>
+      </a>
+
+      <a onclick="route(event)" href="/predictions" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 1024 960">
+          <path fill="currentColor" d="M928 512q-12 0-47-16t-76-32t-69-16q-26 0-58 16.5t-64 40t-66.5 47t-77.5 40t-86 16.5q-52 0-90-25.5T256 512q0-33 21.5-57.5t52-37.5t72.5-20.5t75-9.5t67-2v-1q-13 0-22.5-9.5T512 352t9.5-22.5T544 320q-182 0-273 63q-3 2-22 15.5T225 415t-22.5 12t-30 12t-33 6t-43.5 3q-45 0-70.5-38T0 320q0-70 44-131T160 87.5t164-64T512 0q139 0 257 51.5t186.5 140T1024 384q0 45-26 86.5T928 512zM462 640l114-32q0-25 65-60.5t95-35.5q66 0 113 33t47 63q0 25-65 60.5T736 704q-22 0-27 48t-5 208h-64q0-50-59-141T472 704q-12-6-19.5-21.5t-5-29T462 640z" />
+        </svg>
+        <span>Predictions</span>
+      </a>
+
+      <a onclick="route(event)" href="/leagues" class="nav-item">
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+          <path fill="currentColor" d="M321.8 54.1L298.2 6.3c-3.9-8.3-16.1-8.6-20.4 0l-23.6 47.8l-52.3 7.5c-9.3 1.4-13.3 12.9-6.4 19.8l38 37l-9 52.1c-1.4 9.3 8.2 16.5 16.8 12.2l46.9-24.8l46.6 24.4c8.6 4.3 18.3-2.9 16.8-12.2l-9-52.1l38-36.6c6.8-6.8 2.9-18.3-6.4-19.8l-52.3-7.5zM256 256c-26.5 0-48 21.5-48 48v160c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48zM48 320c-26.5 0-48 21.5-48 48v96c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48v-96c0-26.5-21.5-48-48-48zm368 112v32c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48v-32c0-26.5-21.5-48-48-48h-64c-26.5 0-48 21.5-48 48" />
+        </svg>
+        <span>Leagues</span>
+      </a>
+
+      <a onclick="route(event)" href="/vip-tips" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 17 16">
+          <path fill="currentColor" fill-rule="evenodd" d="M14.849 9.245c-.417-.518-2.513-2.1-1.658-4.219c0 0-1.908.725-1.149 2.953c-.35-.496-3.318-1.616-3.04-7.85c0 0-4.912 2.954-4.912 7.059c0 0 0 3.256 1.974 4.799c0 0-2.616-.43-3.317-4.557c-.176.494-4.756 5.288 1.74 8.446l3.489.083h3.351s7.372-2.493 3.522-6.714z" />
+        </svg>
+        <span>Vip tips</span>
+      </a>
+    </nav>
+  </section>
+  
+  <script src="/assets/js/pages/languages.js"></script>
+
+<script src="/assets/js/ui/loader/skeleton-loader.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase/client.js"></script>
+<script src="/supabase/auth.js"></script>
+<script src="/supabase/database.js"></script>
+<script src="/supabase/storage.js"></script>
+<script src="/backend/supabase/verify-auth-status.js"></script>
+
+<script src="/assets/js/app/script-helper.js"></script>
+<script src="/assets/js/app/router.js"></script>
+
+<script src="/assets/api/data-org.js"></script>
+
+<script src="/assets/js/pages/index.js"></script>
+<script src="/assets/js/ui/toast-notification.js"></script>
+
+<script src="/assets/js/pwa/pwa.js"></script>
+<script src="/assets/js/s-w.js"></script>
+</body>
+</html>
