@@ -1,133 +1,51 @@
-/*********************
- * global skeleton loader
- *********************/
+/* =========================================================
+   GLOBAL SKELETON LOADER
+   ========================================================= */
 
 .app-skeleton {
   display: block;
-  background: #e9e9e9 !important;
-  animation: app-skeleton-blink 1.2s ease-in-out infinite !important;
   overflow: hidden;
+  background: #e9e9e9 !important;
+  animation: app-skeleton-blink 1.2s ease-in-out infinite;
 }
 
-/*********************
- * width utilities
- *********************/
+/* Width utilities */
+.app-skeleton-w-25 { width: 25px; }
+.app-skeleton-w-30 { width: 30px; }
+.app-skeleton-w-50 { width: 50px; }
+.app-skeleton-w-75 { width: 75px; }
+.app-skeleton-w-100 { width: 100px; }
+.app-skeleton-w-120 { width: 120px; }
+.app-skeleton-w-150 { width: 150px; }
+.app-skeleton-w-200 { width: 200px; }
+.app-skeleton-w-full { width: 100%; }
 
-.app-skeleton-w-25 {
-  width: 25px;
-}
+/* Height utilities */
+.app-skeleton-h-10 { height: 10px; }
+.app-skeleton-h-12 { height: 12px; }
+.app-skeleton-h-16 { height: 16px; }
+.app-skeleton-h-20 { height: 20px; }
+.app-skeleton-h-24 { height: 24px; }
+.app-skeleton-h-30 { height: 30px; }
+.app-skeleton-h-32 { height: 32px; }
+.app-skeleton-h-40 { height: 40px; }
+.app-skeleton-h-50 { height: 50px; }
 
-.app-skeleton-w-30 {
-  width: 30px;
-}
-
-.app-skeleton-w-50 {
-  width: 50px;
-}
-
-.app-skeleton-w-75 {
-  width: 75px;
-}
-
-.app-skeleton-w-100 {
-  width: 100px;
-}
-
-.app-skeleton-w-120 {
-  width: 120px;
-}
-
-.app-skeleton-w-150 {
-  width: 150px;
-}
-
-.app-skeleton-w-200 {
-  width: 200px;
-}
-
-.app-skeleton-w-full {
-  width: 100%;
-}
-
-/*********************
- * height utilities
- *********************/
-
-.app-skeleton-h-10 {
-  height: 10px;
-}
-
-.app-skeleton-h-12 {
-  height: 12px;
-}
-
-.app-skeleton-h-16 {
-  height: 16px;
-}
-
-.app-skeleton-h-20 {
-  height: 20px;
-}
-
-.app-skeleton-h-24 {
-  height: 24px;
-}
-
-.app-skeleton-h-30 {
-  height: 30px;
-}
-
-.app-skeleton-h-32 {
-  height: 32px;
-}
-
-.app-skeleton-h-40 {
-  height: 40px;
-}
-
-.app-skeleton-h-50 {
-  height: 50px;
-}
-
-/*********************
- * radius utilities
- *********************/
-
-.app-skeleton-rounded-none {
-  border-radius: 0;
-}
-
-.app-skeleton-rounded-sm {
-  border-radius: 4px;
-}
-
-.app-skeleton-rounded {
-  border-radius: 6px;
-}
-
-.app-skeleton-rounded-md {
-  border-radius: 8px;
-}
-
-.app-skeleton-rounded-lg {
-  border-radius: 12px;
-}
-
-.app-skeleton-rounded-full {
-  border-radius: 9999px;
-}
-
-/*********************
- * animation
- *********************/
+/* Radius utilities */
+.app-skeleton-rounded-none { border-radius: 0; }
+.app-skeleton-rounded-sm { border-radius: 4px; }
+.app-skeleton-rounded { border-radius: 6px; }
+.app-skeleton-rounded-md { border-radius: 8px; }
+.app-skeleton-rounded-lg { border-radius: 12px; }
+.app-skeleton-rounded-full { border-radius: 9999px; }
 
 @keyframes app-skeleton-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: .45; }
+}
 
-  50% {
-    opacity: 0.45;
+@media (prefers-reduced-motion: reduce) {
+  .app-skeleton {
+    animation: none;
   }
 }
