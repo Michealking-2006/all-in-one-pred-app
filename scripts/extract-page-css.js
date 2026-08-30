@@ -8,6 +8,13 @@
  *
  * The script is intentionally conservative: it only moves blocks whose
  * headings are explicitly mapped below. Everything else remains in pages.css.
+ *
+ * Important:
+ * - pages.css currently contains 9 page blocks.
+ * - The remaining global/shared rules (including font declarations and the
+ *   global cursor rule) are intentionally NOT moved by this script.
+ * - The script fails loudly when a mapped marker is missing or appears in an
+ *   invalid order, preventing a partial/unsafe migration.
  */
 
 const fs = require("fs");
@@ -81,17 +88,39 @@ function readSource() {
   return fs.readFileSync(SOURCE, "utf8");
 }
 
-function extract(source, block) {
-  const startMatch = source.match(block.start);
-  if (!startMatch) {
-    return null;
+function findMarker(source, regex, label) {
+  const match = source.match(regex);
+  if (!match) {
+    throw new Error(`Missing ${label} marker in ${path.relative(ROOT, SOURCE)}`);
+  }
+  return match;
+}
+
+function extract(source, block, previousEnd) {
+  const startMatch = findMarker(source, block.start, `${block.heading} start`);
+  const start = startMatch.index;
+
+  if (start < previousEnd) {
+    throw new Error(
+      `Invalid marker order: ${block.heading} starts before the previous block ends.`
+    );
   }
 
-  const start = startMatch.index;
-  const endMatch = block.end ? source.slice(start + startMatch[0].length).match(block.end) : null;
+  const endMatch = block.end
+    ? source.slice(start + startMatch[0].length).match(block.end)
+    : null;
+
+  if (block.end && !endMatch) {
+    throw new Error(`Missing ${block.heading} end marker in ${path.relative(ROOT, SOURCE)}`);
+  }
+
   const end = endMatch
     ? start + startMatch[0].length + endMatch.index
     : source.length;
+
+  if (end <= start) {
+    throw new Error(`Invalid empty block detected for ${block.heading}.`);
+  }
 
   return {
     start,
@@ -104,12 +133,12 @@ function main() {
   const source = readSource();
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
+  let previousEnd = 0;
+  let extractedCount = 0;
+
   for (const block of BLOCKS) {
-    const result = extract(source, block);
-    if (!result) {
-      console.warn(`[skip] ${block.heading}: marker not found`);
-      continue;
-    }
+    const result = extract(source, block, previousEnd);
+    previousEnd = result.end;
 
     const header = [
       `/* ${block.heading}. */`,
@@ -118,10 +147,16 @@ function main() {
       "",
     ].join("\n");
 
-    const output = header + result.content;
-    fs.writeFileSync(path.join(OUT_DIR, block.file), output, "utf8");
-    console.log(`[write] ${path.relative(ROOT, path.join(OUT_DIR, block.file))}`);
+    const outputPath = path.join(OUT_DIR, block.file);
+    fs.writeFileSync(outputPath, header + result.content, "utf8");
+    extractedCount += 1;
+    console.log(`[write] ${path.relative(ROOT, outputPath)}`);
   }
+
+  console.log(`\n[ok] Extracted ${extractedCount}/${BLOCKS.length} mapped page blocks.`);
+  console.log(
+    "[info] Shared/global rules remain in assets/css/pages.css until the final migration audit."
+  );
 }
 
 main();
