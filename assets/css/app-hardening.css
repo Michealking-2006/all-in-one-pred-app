@@ -1,196 +1,68 @@
-/* =========================================================
-   SCOUTWAVE — GLOBAL CSS HARDENING LAYER
-   Loaded after the existing stylesheets.
-   Cross-file fixes only; page-specific styling stays local.
-   ========================================================= */
-
+/* Scoutwave — final global CSS guardrails */
 :root {
   --app-bg: #f5f6fa;
-  --app-surface: #ffffff;
+  --app-surface: #fff;
   --app-text: #171717;
   --app-muted: #737373;
   --app-border: #e8e8e8;
   --app-primary-color: #d50000;
   --app-primary-soft: rgba(213, 0, 0, .07);
-  --app-radius-sm: 10px;
-  --app-radius-md: 14px;
-  --app-radius-lg: 18px;
-  --app-shadow-sm: 0 3px 12px rgba(0, 0, 0, .035);
-  --app-shadow-md: 0 8px 24px rgba(0, 0, 0, .06);
-
-  /* index.css previously defined this as 20%, while the actual
-     bottom navigation is 70px tall in the PWA shell. */
   --bottom-nav-height: 70px;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { width: 100%; max-width: 100%; }
+html { overflow-x: hidden; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { min-height: 100dvh; margin: 0; overflow-x: hidden; color: var(--app-text); background: var(--app-bg); }
+button, input, select, textarea { font: inherit; }
+button, a, input, select, textarea, [role='button'] { -webkit-tap-highlight-color: transparent; }
+button, a, [role='button'] { cursor: pointer; }
+button { touch-action: manipulation; }
+img { display: block; max-width: 100%; }
+svg { max-width: 100%; }
+:where(a, button, input, select, textarea, [role='button']):focus-visible { outline: 2px solid var(--app-primary-color); outline-offset: 2px; }
+[hidden] { display: none !important; }
+:where(button, input, select, textarea):disabled, [aria-disabled='true'] { cursor: not-allowed; }
 
-html,
-body,
-#root {
-  width: 100%;
-  max-width: 100%;
-}
+#main-page { padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 12px); }
+.bottom-navigation-wrapper { padding-bottom: env(safe-area-inset-bottom); }
 
-html {
-  overflow-x: hidden;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-body {
-  min-height: 100dvh;
-  margin: 0;
-  overflow-x: hidden;
-  color: var(--app-text);
-  background: var(--app-bg);
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-button,
-a,
-input,
-select,
-textarea {
-  -webkit-tap-highlight-color: transparent;
-}
-
-button {
-  touch-action: manipulation;
-}
-
-img,
-svg {
-  max-width: 100%;
-}
-
-img {
-  display: block;
-}
-
-:where(a, button, input, select, textarea):focus-visible {
-  outline: 2px solid var(--app-primary-color);
-  outline-offset: 2px;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-#main-page {
-  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 12px);
-}
-
-.bottom-navigation-wrapper {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.app-top-nav-menu-layout,
-.language-header,
-.change-password-header,
-.news-header,
-.premium-header,
-.coins-header,
-.favourites-header,
-.edit-profile-header {
-  max-width: 100vw;
-}
-
-:where(button, input, select, textarea):disabled {
-  cursor: not-allowed;
-}
-
-/* Only constrain text where it is likely to be dynamic. Avoid applying
-   overflow-wrap globally because it can damage icon labels and navigation. */
-.entity-heading h1,
-.entity-heading p,
-.entity-detail-row strong,
-.coins-user-info,
-.coins-user-info strong,
-.news-card h3,
-.news-card p,
-.news-featured-content h2,
-.favourites-empty p,
-.app-profile-username,
-.app-profile-member-since,
-.edit-profile-danger-info,
-.language-option-name,
-.language-option-native,
-.premium-plan-info,
-.premium-plan-price {
-  overflow-wrap: anywhere;
+/* Protect dynamic content from creating horizontal overflow. */
+.entity-heading h1, .entity-heading p, .entity-detail-row strong,
+.coins-user-info, .coins-user-info strong, .news-card h3, .news-card p,
+.news-featured-content h2, .favourites-empty p, .app-profile-username,
+.app-profile-member-since, .edit-profile-danger-info, .language-option-name,
+.language-option-native, .premium-plan-info, .premium-plan-price {
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.premium-page,
-.coins-page,
-.news-page,
-.favourites-page,
-.language-page,
-.change-password-page,
-.edit-profile-page,
-.app-profile-page,
-.predictions-page {
+.premium-page, .coins-page, .news-page, .favourites-page, .language-page,
+.change-password-page, .edit-profile-page, .app-profile-page, .predictions-page {
   max-width: 100%;
   overflow-x: hidden;
 }
 
-/* The app is intentionally light-only. Legacy dark-theme rules in index.css
-   must not override the current visual system. */
-body.dark-theme,
+/* Light-only product: neutralize legacy dark-theme declarations. */
+body.dark-theme { background: var(--app-bg) !important; color: var(--app-text) !important; }
 body.dark-theme .app-main-profile-sec,
 body.dark-theme .menu-card,
 body.dark-theme .setting-row,
 body.dark-theme .app-index-search-box {
-  background: #fff;
-  color: var(--app-text);
+  background: #fff !important;
+  color: var(--app-text) !important;
 }
-
-body.dark-theme .date-circle {
-  background: rgba(255, 255, 255, .15);
-  color: #fff;
-}
-
-body.dark-theme .date-card .day-name {
-  color: rgba(255, 255, 255, .75);
-}
-
-body.dark-theme .date-card.active .date-circle {
-  background: #fff;
-  color: var(--app-primary-color);
-}
-
-body.dark-theme .close-index-search-btn svg,
-body.dark-theme .remove-search-btn svg,
-body.dark-theme .recent-searches-icon {
-  fill: currentColor;
-  stroke: currentColor;
-}
+body.dark-theme .date-circle { background: rgba(255,255,255,.15) !important; color: #fff !important; }
+body.dark-theme .date-card .day-name { color: rgba(255,255,255,.75) !important; }
+body.dark-theme .date-card.active .date-circle { background: #fff !important; color: var(--app-primary-color) !important; }
 
 @media (max-width: 480px) {
-  #main-page {
-    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 8px);
-  }
+  #main-page { padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 8px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto !important;
-  }
-
-  *,
-  *::before,
-  *::after {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
     scroll-behavior: auto !important;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
