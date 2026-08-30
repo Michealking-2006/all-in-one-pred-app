@@ -1,0 +1,149 @@
+/* =========================================================
+   SCOUTWAVE — GLOBAL CSS HARDENING LAYER
+   Loaded after the existing stylesheets.
+   This layer fixes cross-file conflicts without rewriting
+   page-specific styling.
+   ========================================================= */
+
+:root {
+  --app-bg: #f5f6fa;
+  --app-surface: #ffffff;
+  --app-text: #171717;
+  --app-muted: #737373;
+  --app-border: #e8e8e8;
+  --app-primary-color: #d50000;
+  --app-primary-soft: rgba(213, 0, 0, .07);
+  --app-radius-sm: 10px;
+  --app-radius-md: 14px;
+  --app-radius-lg: 18px;
+  --app-shadow-sm: 0 3px 12px rgba(0, 0, 0, .035);
+  --app-shadow-md: 0 8px 24px rgba(0, 0, 0, .06);
+}
+
+/* Predictable sizing and page overflow. */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--app-text);
+  background: var(--app-bg);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+img {
+  display: block;
+}
+
+/* Keep keyboard navigation visible without imposing outlines on taps. */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--app-primary-color);
+  outline-offset: 2px;
+}
+
+/* Normalize hidden UI states so they cannot occupy layout space. */
+[hidden] {
+  display: none !important;
+}
+
+/* Shared safe-area helpers. */
+#main-page {
+  padding-bottom: calc(var(--bottom-nav-height, 70px) + env(safe-area-inset-bottom) + 12px);
+}
+
+.bottom-navigation-wrapper {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Prevent fixed page headers from creating horizontal overflow. */
+.app-top-nav-menu-layout,
+.language-header,
+.change-password-header,
+.news-header,
+.premium-header,
+.coins-header,
+.favourites-header,
+.edit-profile-header {
+  max-width: 100vw;
+}
+
+/* Consistent disabled interaction state. */
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+
+/* Do not let long dynamic names break cards or navigation. */
+:where(h1, h2, h3, h4, h5, h6, p, span, strong, a) {
+  overflow-wrap: anywhere;
+}
+
+/* Remove accidental body-level horizontal scroll caused by animations. */
+.premium-page,
+.coins-page,
+.news-page,
+.favourites-page,
+.language-page,
+.change-password-page,
+.edit-profile-page,
+.app-profile-page,
+.predictions-page {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Mobile stability. */
+@media (max-width: 480px) {
+  #main-page {
+    padding-bottom: calc(var(--bottom-nav-height, 70px) + env(safe-area-inset-bottom) + 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
