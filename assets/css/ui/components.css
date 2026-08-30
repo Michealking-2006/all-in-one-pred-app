@@ -1,81 +1,88 @@
 :root {
-  --nav-active: #d60000;
+  --nav-active: var(--app-primary-color, #d50000);
   --nav-color: #6b7280;
   --nav-bg: #ffffff;
-  --app-primary-color: #d60000;
-  --bg:#f3f5f7;
---card:#ffffff;
---text:#161616;
---muted:#7e848e;
---line:#e9ecef;
---page-z-index: 30000000;
---shadow:0 10px 24px rgba(0, 0, 0, .07);
---soft-shadow:0 6px 16px rgba(0, 0, 0, .05);
---radius-xl:24px;
---radius-lg:18px;
---radius-md:14px;
+  --app-primary-color: #d50000;
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --text: #161616;
+  --muted: #7e848e;
+  --line: #e9ecef;
+  --page-z-index: 300;
+  --shadow: 0 10px 24px rgba(0, 0, 0, .07);
+  --soft-shadow: 0 6px 16px rgba(0, 0, 0, .05);
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
 }
 
-html {
-  
-  user-select: none;
-}
+/* Global text selection is enabled. Individual components may opt out when
+   they are genuinely interaction-only controls. */
 
-* {
-  cursor: none;
-}
 @font-face {
   font-family: 'MontserratEB';
-  src: url("/assets/fonts/Montserrat-ExtraBold.woff2");
+  src: url('/assets/fonts/Montserrat-ExtraBold.woff2') format('woff2');
+  font-display: swap;
 }
+
 @font-face {
   font-family: 'MontserratM';
-  src: url("/assets/fonts/Montserrat-Medium.woff2");
+  src: url('/assets/fonts/Montserrat-Medium.woff2') format('woff2');
+  font-display: swap;
 }
+
 @font-face {
   font-family: 'MontserratR';
-  src: url("/assets/fonts/Montserrat-Regular.woff2");
+  src: url('/assets/fonts/Montserrat-Regular.woff2') format('woff2');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'NotoSansR';
-  src: url("/assets/fonts/NotoSans-Regular.woff2");
+  src: url('/assets/fonts/NotoSans-Regular.woff2') format('woff2');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'BykerR';
-  src: url("/assets/fonts/Byker-Regular.woff2");
+  src: url('/assets/fonts/Byker-Regular.woff2') format('woff2');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'BykerM';
-  src: url("/assets/fonts/Byker-Medium.woff2");
+  src: url('/assets/fonts/Byker-Medium.woff2') format('woff2');
+  font-display: swap;
 }
 
+/* =========================
+   Bottom Navigation
+========================= */
 
 .bottom-nav {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 301;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  min-height: 70px;
   height: 70px;
-  background: rgba(255, 255, 255, .9);
-  border-bottom: 1px solid rgba(236, 236, 236, .9);
-
+  padding: 0 4px env(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, .94);
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, .8) inset;
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, .8) inset;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  border-top: 1px solid #e5e7eb;
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .nav-item {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
   text-decoration: none;
   color: var(--nav-color);
   display: flex;
@@ -83,22 +90,24 @@ html {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: .25s ease;
+  transition: color .25s ease, transform .25s ease;
   user-select: none;
-  cursor: help;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nav-item svg {
   width: 22px;
   height: 22px;
-  transition: .25s ease;
-  fill: #000;
+  flex: 0 0 22px;
+  transition: transform .25s ease, fill .25s ease;
+  fill: currentColor;
 }
 
 .nav-item span {
   font-size: 13px;
   font-weight: 500;
-  font-family: BykerM;
+  font-family: BykerM, sans-serif;
+  line-height: 1.1;
 }
 
 .nav-item.active {
@@ -110,91 +119,69 @@ html {
 }
 
 .nav-item:active {
-  transform: scale(.99);
+  transform: scale(.98);
 }
 
+/* =========================
+   Skeleton Loader
+========================= */
 
-/*** skeleton loader ****/
-
-.skeleton-card{
-    pointer-events:none;
+.skeleton-card {
+  pointer-events: none;
 }
 
-.skeleton-card .league-link{
-    display:flex;
-    align-items:center;
-    gap:14px;
+.skeleton-card .league-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.skeleton{
-    position:relative;
-    overflow:hidden;
-    background:#ececec;
-    border-radius:8px;
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #ececec;
+  border-radius: 8px;
 }
 
-.skeleton::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    transform:translateX(-100%);
-    background:linear-gradient(
-        90deg,
-        transparent,
-        rgba(255,255,255,.7),
-        transparent
-    );
-    animation:skeleton-loading 1.2s infinite;
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent);
+  animation: skeleton-loading 1.2s infinite;
 }
 
-.skeleton-icon{
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    flex-shrink:0;
+.skeleton-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.skeleton-text{
-    height:16px;
-    width:170px;
-    border-radius:4px;
-    flex:1;
+.skeleton-text {
+  width: 170px;
+  height: 16px;
+  border-radius: 4px;
+  flex: 1;
 }
 
-.skeleton-star{
-    width:26px;
-    height:26px;
-    border-radius:50%;
-    flex-shrink:0;
+.skeleton-star {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-@keyframes skeleton-loading{
-    100%{
-        transform:translateX(100%);
-    }
+@keyframes skeleton-loading {
+  to {
+    transform: translateX(100%);
+  }
 }
 
-/******** app season date selector  ******/
-
-
-/********* Dark mode */
-
-.dark .skeleton{
-    background:#2b2b2b;
-}
-
-.dark .skeleton::after{
-    background:linear-gradient(
-        90deg,
-        transparent,
-        rgba(255,255,255,.08),
-        transparent
-    );
-}
-
-
-
-/******** app global search el *********/
+/* =========================
+   Global Search
+========================= */
 
 .app-search {
   position: relative;
@@ -209,7 +196,7 @@ html {
   border-radius: 16px;
   outline: none;
   background: #fff;
-  font: 0.95rem NotoSansR;
+  font: .95rem NotoSansR, sans-serif;
   color: #111;
   transition: border-color .25s ease, box-shadow .25s ease;
 }
@@ -220,10 +207,11 @@ html {
 
 .app-search-input:focus {
   border-color: var(--app-primary-color);
+  box-shadow: 0 0 0 3px rgba(213, 0, 0, .08);
 }
 
 .app-search::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 18px;
   top: 50%;
@@ -235,7 +223,6 @@ html {
 }
 
 .search-filter-carousel {
-  font-family: NotoSansR;
   display: flex;
   gap: 10px;
   overflow-x: auto;
@@ -243,6 +230,7 @@ html {
   padding: 12px 16px 8px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  font-family: NotoSansR, sans-serif;
 }
 
 .search-filter-carousel::-webkit-scrollbar {
@@ -253,23 +241,17 @@ html {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  
+  flex: 0 0 auto;
   height: 38px;
   padding: 0 14px;
-  
   border: 1px solid #e7e7e7;
   border-radius: 999px;
-  
   background: #fff;
   color: #444;
-  
   font-size: 13px;
   font-weight: 600;
-  
   white-space: nowrap;
-  flex-shrink: 0;
-  
-  transition: .2s ease;
+  transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
 }
 
 .search-filter-chip:active {
@@ -286,10 +268,8 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  
   width: 15px;
   height: 15px;
-  
   font-size: 15px;
   line-height: 1;
 }
@@ -298,63 +278,68 @@ html {
   filter: brightness(2);
 }
 
-
-
-
-
-/****** app radio switch ******/
+/* =========================
+   Theme Switch
+========================= */
 
 .app-theme-switch {
-  
-  
   display: flex;
   align-items: center;
 }
-.app-theme-switch input[type="checkbox"] {
-  height: 0;
-  width: 0;
-  visibility: hidden;
+
+.app-theme-switch input[type='checkbox'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .app-theme-switch label {
   --size: 50px;
-  
+  position: relative;
+  display: block;
   width: var(--size);
   height: calc(var(--size) / 2);
-  
-  display: block;
-  position: relative;
-  
-  
-  background: grey;
   border-radius: 100px;
+  background: #b0b0b0;
+  cursor: pointer;
 }
 
 .app-theme-switch label::after {
-  content: "";
-  
+  content: '';
   position: absolute;
   top: 6%;
   left: 2.5%;
-  
   width: calc(50% - 5%);
   height: calc(100% - 11%);
-  
-  background: #fff;
   border-radius: 90px;
-  
-  transition: 0.3s;
+  background: #fff;
+  transition: transform .3s ease, width .3s ease;
 }
 
-.app-theme-switch input:checked+label {
+.app-theme-switch input:checked + label {
   background: var(--app-primary-color);
 }
 
-.app-theme-switch input:checked+label::after {
+.app-theme-switch input:checked + label::after {
   left: calc(100% - 2.5%);
   transform: translateX(-100%);
 }
 
 .app-theme-switch label:active::after {
   width: 55%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item,
+  .nav-item svg,
+  .search-filter-chip,
+  .app-theme-switch label::after {
+    transition: none;
+  }
+
+  .skeleton::after {
+    animation: none;
+  }
 }
