@@ -3,18 +3,10 @@
 /**
  * Deterministically splits the legacy pages.css into page-owned stylesheets.
  *
- * Usage:
- *   node scripts/extract-page-css.js
- *
- * The script is intentionally conservative: it only moves blocks whose
- * headings are explicitly mapped below. Everything else remains in pages.css.
- *
- * Important:
- * - pages.css currently contains 9 page blocks.
- * - The remaining global/shared rules (including font declarations and the
- *   global cursor rule) are intentionally NOT moved by this script.
- * - The script fails loudly when a mapped marker is missing or appears in an
- *   invalid order, preventing a partial/unsafe migration.
+ * The source file is read directly inside GitHub Actions so large CSS blobs do
+ * not need to pass through the connector. Marker matching is deliberately
+ * tolerant of the number of asterisks used in legacy comments, but strict
+ * about marker order and duplicate/missing headings.
  */
 
 const fs = require("fs");
@@ -25,138 +17,81 @@ const SOURCE = path.join(ROOT, "assets", "css", "pages.css");
 const OUT_DIR = path.join(ROOT, "assets", "css", "pages");
 
 const BLOCKS = [
-  {
-    file: "profile.css",
-    start: /\/\*\*\*\*\*\* app profile page \*+\//i,
-    end: /\/\*\*\*\*\* prediction page \*+\//i,
-    heading: "Profile page",
-  },
-  {
-    file: "predictions.css",
-    start: /\/\*\*\*\*\* prediction page \*+\//i,
-    end: /\/\*\*\*\*\* edit profile \*+\//i,
-    heading: "Predictions page",
-  },
-  {
-    file: "edit-profile.css",
-    start: /\/\*\*\*\*\* edit profile \*+\//i,
-    end: /\/\*\*\*\*\* language page \*+\//i,
-    heading: "Edit profile page",
-  },
-  {
-    file: "languages.css",
-    start: /\/\*\*\*\*\* language page \*+\//i,
-    end: /\/\*\*\*\*\* change password page \*+\//i,
-    heading: "Language page",
-  },
-  {
-    file: "change-password.css",
-    start: /\/\*\*\*\*\* change password page \*+\//i,
-    end: /\/\*\*\*\*\* premium page \*+\//i,
-    heading: "Change password page",
-  },
-  {
-    file: "premium.css",
-    start: /\/\*\*\*\*\* premium page \*+\//i,
-    end: /\/\*\*\*\*\* favourites page \*+\//i,
-    heading: "Premium page",
-  },
-  {
-    file: "favourites.css",
-    start: /\/\*\*\*\*\* favourites page \*+\//i,
-    end: /\/\*\*\*\*\* news page \*+\//i,
-    heading: "Favourites page",
-  },
-  {
-    file: "news.css",
-    start: /\/\*\*\*\*\* news page \*+\//i,
-    end: /\/\*\*\*\*\* coins page \*+\//i,
-    heading: "News page",
-  },
-  {
-    file: "coins.css",
-    start: /\/\*\*\*\*\* coins page \*+\//i,
-    end: null,
-    heading: "Coins page",
-  },
-];
+  ["profile.css", "app profile page"],
+  ["predictions.css", "prediction page"],
+  ["edit-profile.css", "edit profile"],
+  ["languages.css", "language page"],
+  ["change-password.css", "change password page"],
+  ["premium.css", "premium page"],
+  ["favourites.css", "favourites page"],
+  ["news.css", "news page"],
+  ["coins.css", "coins page"],
+].map(([file, heading]) => ({ file, heading }));
 
 function readSource() {
-  if (!fs.existsSync(SOURCE)) {
-    throw new Error(`Missing source stylesheet: ${SOURCE}`);
-  }
+  if (!fs.existsSync(SOURCE)) throw new Error(`Missing source stylesheet: ${SOURCE}`);
   return fs.readFileSync(SOURCE, "utf8");
 }
 
-function findMarker(source, regex, label) {
-  const match = source.match(regex);
-  if (!match) {
-    throw new Error(`Missing ${label} marker in ${path.relative(ROOT, SOURCE)}`);
-  }
-  return match;
+function markerRegex(heading) {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Accept any legacy comment decoration around the canonical heading text.
+  return new RegExp(`\\/\\*[^\\n]*${escaped}[^\\n]*\\*\\/`, "i");
 }
 
-function extract(source, block, previousEnd) {
-  const startMatch = findMarker(source, block.start, `${block.heading} start`);
-  const start = startMatch.index;
-
-  if (start < previousEnd) {
-    throw new Error(
-      `Invalid marker order: ${block.heading} starts before the previous block ends.`
-    );
+function findMarkers(source) {
+  const markers = [];
+  for (const block of BLOCKS) {
+    const regex = markerRegex(block.heading);
+    const matches = [...source.matchAll(new RegExp(regex.source, "gi"))];
+    if (matches.length === 0) {
+      throw new Error(`Missing ${block.heading} marker in ${path.relative(ROOT, SOURCE)}`);
+    }
+    if (matches.length > 1) {
+      throw new Error(`Duplicate ${block.heading} markers found in ${path.relative(ROOT, SOURCE)}`);
+    }
+    markers.push({ ...block, index: matches[0].index, marker: matches[0][0] });
   }
 
-  const endMatch = block.end
-    ? source.slice(start + startMatch[0].length).match(block.end)
-    : null;
-
-  if (block.end && !endMatch) {
-    throw new Error(`Missing ${block.heading} end marker in ${path.relative(ROOT, SOURCE)}`);
+  for (let i = 1; i < markers.length; i += 1) {
+    if (markers[i].index <= markers[i - 1].index) {
+      throw new Error(
+        `Invalid marker order: ${markers[i].heading} must appear after ${markers[i - 1].heading}.`
+      );
+    }
   }
 
-  const end = endMatch
-    ? start + startMatch[0].length + endMatch.index
-    : source.length;
+  return markers;
+}
 
-  if (end <= start) {
-    throw new Error(`Invalid empty block detected for ${block.heading}.`);
-  }
+function extract(source, markers) {
+  fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  return {
-    start,
-    end,
-    content: source.slice(start, end).trim() + "\n",
-  };
+  markers.forEach((marker, index) => {
+    const start = marker.index;
+    const end = index + 1 < markers.length ? markers[index + 1].index : source.length;
+    const content = source.slice(start, end).trim();
+
+    if (!content) throw new Error(`Empty CSS block for ${marker.heading}.`);
+
+    const header = [
+      `/* ${marker.heading}. */`,
+      "/* Generated from assets/css/pages.css. */",
+      "/* Run: node scripts/extract-page-css.js */",
+      "",
+    ].join("\n");
+
+    fs.writeFileSync(path.join(OUT_DIR, marker.file), `${header}${content}\n`, "utf8");
+    console.log(`[write] assets/css/pages/${marker.file}`);
+  });
 }
 
 function main() {
   const source = readSource();
-  fs.mkdirSync(OUT_DIR, { recursive: true });
-
-  let previousEnd = 0;
-  let extractedCount = 0;
-
-  for (const block of BLOCKS) {
-    const result = extract(source, block, previousEnd);
-    previousEnd = result.end;
-
-    const header = [
-      `/* ${block.heading}. */`,
-      `/* Generated from assets/css/pages.css. */`,
-      `/* Run: node scripts/extract-page-css.js */`,
-      "",
-    ].join("\n");
-
-    const outputPath = path.join(OUT_DIR, block.file);
-    fs.writeFileSync(outputPath, header + result.content, "utf8");
-    extractedCount += 1;
-    console.log(`[write] ${path.relative(ROOT, outputPath)}`);
-  }
-
-  console.log(`\n[ok] Extracted ${extractedCount}/${BLOCKS.length} mapped page blocks.`);
-  console.log(
-    "[info] Shared/global rules remain in assets/css/pages.css until the final migration audit."
-  );
+  const markers = findMarkers(source);
+  extract(source, markers);
+  console.log(`\n[ok] Extracted ${markers.length}/${BLOCKS.length} mapped page blocks.`);
+  console.log("[info] assets/css/pages.css was not modified.");
 }
 
 main();
