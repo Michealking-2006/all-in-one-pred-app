@@ -20,6 +20,7 @@
     "/profile/languages": "/assets/css/pages/languages.css",
     "/news": "/assets/css/pages/news.css",
     "/reports": "/assets/css/pages/reports.css",
+    "/league-page": "/assets/css/pages/league-page.css"
   };
 
   const loaded = new Map();
@@ -34,17 +35,12 @@
 
   function ensureStylesheet(href) {
     if (!href) return;
-
-    if (loaded.has(href)) {
-      loaded.get(href).disabled = false;
-      return;
-    }
+    if (loaded.has(href)) return loaded.get(href);
 
     const existing = document.querySelector(`link[data-page-style="${href}"]`);
     if (existing) {
-      existing.disabled = false;
       loaded.set(href, existing);
-      return;
+      return existing;
     }
 
     const link = document.createElement("link");
@@ -53,16 +49,17 @@
     link.dataset.pageStyle = href;
     document.head.appendChild(link);
     loaded.set(href, link);
+    return link;
   }
 
   function activate(path) {
     const activeHref = STYLE_MAP[normalizePath(path)] || null;
 
+    if (activeHref) ensureStylesheet(activeHref);
+
     for (const [href, link] of loaded) {
       link.disabled = href !== activeHref;
     }
-
-    if (activeHref) ensureStylesheet(activeHref);
   }
 
   document.addEventListener("pageLoaded", event => {
