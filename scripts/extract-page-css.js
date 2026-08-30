@@ -5,8 +5,9 @@
  *
  * The source file is read directly inside GitHub Actions so large CSS blobs do
  * not need to pass through the connector. Marker matching is deliberately
- * tolerant of the number of asterisks used in legacy comments, but strict
- * about marker order and duplicate/missing headings.
+ * tolerant of legacy comment decoration and duplicate descriptive comments.
+ * The first valid marker for each page, after the previous page marker, is
+ * selected; marker order is then enforced before any files are written.
  */
 
 const fs = require("fs");
@@ -29,28 +30,42 @@ const BLOCKS = [
 ].map(([file, heading]) => ({ file, heading }));
 
 function readSource() {
-  if (!fs.existsSync(SOURCE)) throw new Error(`Missing source stylesheet: ${SOURCE}`);
+  if (!fs.existsSync(SOURCE)) {
+    throw new Error(`Missing source stylesheet: ${SOURCE}`);
+  }
   return fs.readFileSync(SOURCE, "utf8");
 }
 
 function markerRegex(heading) {
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  // Accept any legacy comment decoration around the canonical heading text.
   return new RegExp(`\\/\\*[^\\n]*${escaped}[^\\n]*\\*\\/`, "i");
+}
+
+function findNextMarker(source, heading, fromIndex) {
+  const regex = markerRegex(heading);
+  const tail = source.slice(fromIndex);
+  const match = tail.match(regex);
+
+  if (!match) {
+    throw new Error(
+      `Missing ${heading} marker after byte ${fromIndex} in ${path.relative(ROOT, SOURCE)}`
+    );
+  }
+
+  return {
+    index: fromIndex + match.index,
+    marker: match[0],
+  };
 }
 
 function findMarkers(source) {
   const markers = [];
+  let cursor = 0;
+
   for (const block of BLOCKS) {
-    const regex = markerRegex(block.heading);
-    const matches = [...source.matchAll(new RegExp(regex.source, "gi"))];
-    if (matches.length === 0) {
-      throw new Error(`Missing ${block.heading} marker in ${path.relative(ROOT, SOURCE)}`);
-    }
-    if (matches.length > 1) {
-      throw new Error(`Duplicate ${block.heading} markers found in ${path.relative(ROOT, SOURCE)}`);
-    }
-    markers.push({ ...block, index: matches[0].index, marker: matches[0][0] });
+    const found = findNextMarker(source, block.heading, cursor);
+    markers.push({ ...block, ...found });
+    cursor = found.index + found.marker.length;
   }
 
   for (let i = 1; i < markers.length; i += 1) {
@@ -67,7 +82,7 @@ function findMarkers(source) {
 function extract(source, markers) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  markers.forEach((marker, index) => {
+  const outputs = markers.map((marker, index) => {
     const start = marker.index;
     const end = index + 1 < markers.length ? markers[index + 1].index : source.length;
     const content = source.slice(start, end).trim();
@@ -81,9 +96,18 @@ function extract(source, markers) {
       "",
     ].join("\n");
 
-    fs.writeFileSync(path.join(OUT_DIR, marker.file), `${header}${content}\n`, "utf8");
-    console.log(`[write] assets/css/pages/${marker.file}`);
+    return {
+      path: path.join(OUT_DIR, marker.file),
+      content: `${header}${content}\n`,
+      file: marker.file,
+    };
   });
+
+  // Only write after every marker and every extracted block has been validated.
+  for (const output of outputs) {
+    fs.writeFileSync(output.path, output.content, "utf8");
+    console.log(`[write] assets/css/pages/${output.file}`);
+  }
 }
 
 function main() {
