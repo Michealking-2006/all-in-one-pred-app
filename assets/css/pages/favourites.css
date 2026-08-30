@@ -1,1 +1,660 @@
-/* Favourites page styles. Page-owned CSS. */
+/* favourites page. */
+/* Generated from assets/css/pages.css. */
+/* Run: node scripts/extract-page-css.js */
+/********* favourites page *********/
+
+.favourites-page {
+  --favourites-primary: var(--app-primary-color, #d50000);
+  --favourites-primary-soft: rgba(213, 0, 0, .065);
+  --favourites-text: #171717;
+  --favourites-muted: #737373;
+  --favourites-secondary: #404040;
+  --favourites-border: #e7e7e7;
+
+  min-height: 100%;
+  padding-top: 60px;
+  padding-bottom: 36px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fff 0%,
+      #fff 55%,
+      #fcfcfc 100%
+    );
+
+  color: var(--favourites-text);
+
+  font-family: "BykerR", sans-serif;
+}
+
+
+/********* header *********/
+
+.favourites-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 40;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 60px;
+  padding: 0 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.94),
+      rgba(255,255,255,.82)
+    );
+
+  border-bottom: 1px solid rgba(225,225,225,.72);
+
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.9),
+    0 5px 18px rgba(0,0,0,.035);
+
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+.favourites-header h1 {
+  position: absolute;
+  left: 50%;
+
+  margin: 0;
+
+  color: var(--favourites-text);
+
+  font-family: "BykerM", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+
+  white-space: nowrap;
+
+  transform: translateX(-50%);
+}
+
+
+/********* back anchor *********/
+
+.favourites-back-btn {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--favourites-text);
+
+  text-decoration: none;
+
+  transform: translateY(-50%);
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color .18s ease,
+    transform .18s ease;
+}
+
+.favourites-back-btn:active {
+  background: #f1f1f1;
+  transform: translateY(-50%) scale(.93);
+}
+
+.favourites-back-btn .profile-icon-back {
+  display: block;
+
+  width: 20px;
+  height: 20px;
+
+  background: currentColor;
+
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+
+/********* content *********/
+
+.favourites-content {
+  width: min(100%, 640px);
+  margin: 0 auto;
+
+  padding: 18px 14px 42px;
+}
+
+
+/********* tabs *********/
+
+.favourites-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  overflow-x: auto;
+
+  margin-bottom: 18px;
+  padding: 2px 1px 5px;
+
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.favourites-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.favourites-tab {
+  flex: 0 0 auto;
+
+  min-height: 38px;
+  padding: 0 16px;
+
+  border: 1px solid var(--favourites-border);
+  border-radius: 999px;
+
+  background: rgba(255,255,255,.8);
+  color: var(--favourites-muted);
+
+  font-family: "BykerM", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    transform .18s ease;
+}
+
+.favourites-tab.is-active {
+  border-color: var(--favourites-primary);
+
+  background: var(--favourites-primary);
+  color: #fff;
+
+  box-shadow:
+    0 5px 14px rgba(213,0,0,.13);
+}
+
+.favourites-tab:active {
+  transform: scale(.96);
+}
+
+
+/********* list *********/
+
+.favourites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+
+/********* item *********/
+
+.favourite-item {
+  display: flex;
+  align-items: stretch;
+
+  min-height: 78px;
+
+  border: 1px solid rgba(228,228,228,.9);
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fff,
+      #fdfdfd
+    );
+
+  box-shadow:
+    0 3px 12px rgba(0,0,0,.025),
+    inset 0 1px 0 rgba(255,255,255,.95);
+
+  overflow: hidden;
+
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.favourite-item:hover {
+  border-color: #dcdcdc;
+
+  box-shadow:
+    0 7px 20px rgba(0,0,0,.045);
+}
+
+
+/********* clickable row *********/
+
+.favourite-item-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  flex: 1;
+  min-width: 0;
+
+  padding: 12px;
+
+  color: inherit;
+  text-decoration: none;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/********* information *********/
+
+.favourite-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  flex: 1;
+  min-width: 0;
+}
+
+.favourite-item-info strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: var(--favourites-text);
+
+  font-family: "BykerM", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favourite-item-info span {
+  display: block;
+
+  overflow: hidden;
+
+  color: var(--favourites-secondary);
+
+  font-size: 13px;
+  line-height: 1.25;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favourite-item-info small {
+  color: var(--favourites-muted);
+
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+
+/********* media *********/
+
+.favourite-item-avatar,
+.favourite-item-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 48px;
+
+  width: 48px;
+  height: 48px;
+
+  overflow: hidden;
+
+  border-radius: 13px;
+}
+
+.favourite-item-avatar {
+  background: #f3f3f3;
+}
+
+.favourite-item-avatar img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+/********* match icon *********/
+
+.favourite-match-icon {
+  background: #fff2f2;
+  color: var(--favourites-primary);
+}
+
+.favourite-match-icon span {
+  position: relative;
+
+  width: 25px;
+  height: 18px;
+
+  border-top: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+}
+
+.favourite-match-icon span::before,
+.favourite-match-icon span::after {
+  content: "";
+
+  position: absolute;
+  top: 7px;
+
+  width: 8px;
+  height: 2px;
+
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.favourite-match-icon span::before {
+  left: 0;
+}
+
+.favourite-match-icon span::after {
+  right: 0;
+}
+
+
+/********* league icon *********/
+
+.favourite-league-icon {
+  background: #f7f4ff;
+  color: #745ac6;
+}
+
+.favourite-league-icon span {
+  width: 21px;
+  height: 19px;
+
+  background: currentColor;
+
+  clip-path: polygon(
+    0 14%,
+    25% 26%,
+    50% 9%,
+    75% 26%,
+    100% 14%,
+    87% 100%,
+    13% 100%
+  );
+}
+
+
+/********* team icon *********/
+
+.favourite-team-icon {
+  background: #f3f7ff;
+  color: #4b6fa8;
+}
+
+.favourite-team-icon span {
+  position: relative;
+
+  width: 21px;
+  height: 21px;
+
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.favourite-team-icon span::before {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 8px;
+  height: 2px;
+
+  border-radius: 2px;
+  background: currentColor;
+
+  transform: translate(-50%, -50%);
+}
+
+
+/********* remove button *********/
+
+.favourite-remove-btn {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 45px;
+
+  width: 45px;
+
+  border: 0;
+  border-left: 1px solid rgba(235,235,235,.8);
+
+  background: transparent;
+  color: #aaa;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color .18s ease,
+    color .18s ease;
+}
+
+.favourite-remove-btn::before,
+.favourite-remove-btn::after {
+  content: "";
+
+  position: absolute;
+
+  width: 15px;
+  height: 1.5px;
+
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.favourite-remove-btn::before {
+  transform: rotate(45deg);
+}
+
+.favourite-remove-btn::after {
+  transform: rotate(-45deg);
+}
+
+.favourite-remove-btn:hover {
+  background: #fafafa;
+  color: var(--favourites-primary);
+}
+
+.favourite-remove-btn:active {
+  background: #fff3f3;
+  color: var(--favourites-primary);
+}
+
+
+/********* empty *********/
+
+.favourites-empty {
+  padding: 68px 22px 52px;
+  text-align: center;
+}
+
+.favourites-empty-icon {
+  display: grid;
+  place-items: center;
+
+  width: 64px;
+  height: 64px;
+
+  margin: 0 auto 18px;
+
+  border: 1px solid rgba(213,0,0,.08);
+  border-radius: 19px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff5f5,
+      #fff
+    );
+
+  color: var(--favourites-primary);
+}
+
+.favourites-empty-icon::before {
+  content: "";
+
+  width: 25px;
+  height: 23px;
+
+  background: currentColor;
+
+  clip-path: polygon(
+    50% 95%,
+    42% 87%,
+    12% 58%,
+    5% 48%,
+    5% 35%,
+    11% 22%,
+    22% 13%,
+    35% 11%,
+    50% 20%,
+    65% 11%,
+    78% 13%,
+    89% 22%,
+    95% 35%,
+    95% 48%,
+    88% 58%,
+    58% 87%
+  );
+}
+
+.favourites-empty h2 {
+  margin: 0;
+
+  font-family: "BykerM", sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.favourites-empty p {
+  width: min(100%, 360px);
+
+  margin: 8px auto 0;
+
+  color: var(--favourites-muted);
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.favourites-empty[hidden] {
+  display: none;
+}
+
+
+/********* mobile *********/
+
+@media (max-width: 420px) {
+  .favourites-content {
+    padding-inline: 12px;
+  }
+
+  .favourites-tab {
+    min-height: 37px;
+    padding-inline: 15px;
+    font-size: 11.5px;
+  }
+
+  .favourite-item {
+    min-height: 75px;
+  }
+
+  .favourite-item-link {
+    gap: 11px;
+    padding: 11px;
+  }
+
+  .favourite-item-avatar,
+  .favourite-item-icon {
+    flex-basis: 45px;
+    width: 45px;
+    height: 45px;
+  }
+
+  .favourite-item-info strong {
+    font-size: 14px;
+  }
+
+  .favourite-item-info span {
+    font-size: 12px;
+  }
+
+  .favourite-item-info small {
+    font-size: 10px;
+  }
+
+  .favourite-remove-btn {
+    flex-basis: 42px;
+    width: 42px;
+  }
+}
+
+@font-face {
+  font-family: "BykerR";
+  src: url("/assets/fonts/Byker-Regular.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BykerM";
+  src: url("/assets/fonts/Byker-Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

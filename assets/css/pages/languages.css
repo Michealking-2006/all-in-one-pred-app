@@ -1,1 +1,402 @@
-/* Languages page styles. Page-owned CSS. */
+/* language page. */
+/* Generated from assets/css/pages.css. */
+/* Run: node scripts/extract-page-css.js */
+/********* language page *********/
+
+.language-page {
+  --language-primary: var(--app-primary-color, #d50000);
+  --language-text: #171717;
+  --language-muted: #747474;
+  --language-border: #e8e8e8;
+  --language-soft: #fafafa;
+
+  min-height: 100%;
+  padding-top: 60px;
+  padding-bottom: 36px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(213, 0, 0, .035),
+      transparent 24%
+    ),
+    #fff;
+
+  color: var(--language-text);
+  font-family: "BykerR", sans-serif;
+}
+
+/********* header *********/
+
+.language-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 40;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 60px;
+  padding: 0 16px;
+
+  background: rgba(255, 255, 255, .88);
+  border-bottom: 1px solid rgba(225, 225, 225, .72);
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .9),
+    0 5px 18px rgba(0, 0, 0, .035);
+
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+.language-header h1 {
+  position: absolute;
+  left: 50%;
+
+  margin: 0;
+
+  color: var(--language-text);
+
+  font-family: "BykerM", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+
+  white-space: nowrap;
+
+  transform: translateX(-50%);
+}
+
+/********* back button *********/
+
+.language-back-btn {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--language-text);
+
+  text-decoration: none;
+  cursor: pointer;
+
+  transform: translateY(-50%);
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color .18s ease,
+    transform .18s ease;
+}
+
+.language-back-btn:active {
+  background: #f2f2f2;
+  transform: translateY(-50%) scale(.93);
+}
+
+.language-back-btn::before {
+  content: "";
+
+  display: block;
+
+  width: 20px;
+  height: 20px;
+
+  background: currentColor;
+
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.596t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m8.82 12l7.715 7.715q.22.222.218.53q-.003.307-.224.528t-.529.221q-.308 0-.529-.22L7.83 13.136q-.242-.243-.354-.54q-.112-.298-.112-.597t.112-.596q.112-.298.354-.54l7.64-7.643q.221-.221.532-.218q.31-.003.532.224t.22.529q0 .307-.22.529L8.819 12Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/********* content *********/
+
+.language-content {
+  width: min(100%, 620px);
+  margin: 0 auto;
+  padding: 26px 15px 40px;
+}
+
+/********* intro *********/
+
+.language-intro {
+  margin-bottom: 22px;
+}
+
+.language-intro h2 {
+  margin: 0;
+
+  font-family: "BykerM", sans-serif;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+
+.language-intro p {
+  max-width: 500px;
+  margin: 7px 0 0;
+
+  color: var(--language-muted);
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/********* language list *********/
+
+.language-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  overflow: visible;
+
+  border: 0;
+  background: transparent;
+}
+
+/********* language option *********/
+
+.language-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 70px;
+  padding: 13px 15px;
+
+  border: 1px solid var(--language-border);
+  border-radius: 14px;
+
+  background: #fff;
+  color: var(--language-text);
+
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, .025),
+    inset 0 1px 0 rgba(255, 255, 255, .9);
+
+  text-align: left;
+  font: inherit;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    border-color .18s ease,
+    background-color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease;
+}
+
+.language-option:hover {
+  border-color: #ddd;
+
+  box-shadow:
+    0 6px 17px rgba(0, 0, 0, .045);
+}
+
+.language-option:active {
+  background: var(--language-soft);
+  transform: scale(.99);
+}
+
+.language-option:focus-visible {
+  outline: 2px solid var(--language-primary);
+  outline-offset: 2px;
+}
+
+/********* language information *********/
+
+.language-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  min-width: 0;
+}
+
+.language-option-name {
+  color: var(--language-text);
+
+  font-family: "BykerM", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.language-option-native {
+  color: var(--language-muted);
+
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/********* selected option *********/
+
+.language-option.is-selected {
+  border-color: rgba(213, 0, 0, .32);
+
+  background:
+    linear-gradient(
+      100deg,
+      #fff8f8,
+      #fff
+    );
+
+  box-shadow:
+    0 5px 18px rgba(213, 0, 0, .055),
+    0 0 0 2px rgba(213, 0, 0, .035);
+}
+
+.language-option.is-selected
+.language-option-name {
+  color: var(--language-primary);
+}
+
+/********* check *********/
+
+.language-option-check {
+  display: block;
+
+  flex: 0 0 24px;
+
+  width: 24px;
+  height: 24px;
+
+  margin-left: 16px;
+
+  border: 1.5px solid #d5d5d5;
+  border-radius: 50%;
+
+  background: #fff;
+}
+
+.language-option.is-selected
+.language-option-check {
+  border-color: var(--language-primary);
+
+  background-color: var(--language-primary);
+
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' d='m5 12 4.2 4L19 6.8'/%3E%3C/svg%3E");
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 14px;
+}
+
+/********* mobile *********/
+
+@media (max-width: 420px) {
+  .language-content {
+    padding: 22px 13px 34px;
+  }
+
+  .language-intro {
+    margin-bottom: 19px;
+  }
+
+  .language-intro h2 {
+    font-size: 20px;
+  }
+
+  .language-intro p {
+    font-size: 12px;
+  }
+
+  .language-list {
+    gap: 8px;
+  }
+
+  .language-option {
+    min-height: 67px;
+    padding: 12px 14px;
+  }
+
+  .language-option-name {
+    font-size: 14px;
+  }
+
+  .language-option-native {
+    font-size: 11px;
+  }
+
+  .language-option-check {
+    flex-basis: 23px;
+    width: 23px;
+    height: 23px;
+    margin-left: 12px;
+  }
+}
+
+/********* reduced motion *********/
+
+@media (prefers-reduced-motion: reduce) {
+  .language-back-btn,
+  .language-option {
+    transition: none;
+  }
+}
+
+
+@font-face {
+  font-family: "BykerR";
+  src: url("/assets/fonts/Byker-Regular.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BykerM";
+  src: url("/assets/fonts/Byker-Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+
+
+@font-face {
+  font-family: "BykerR";
+  src: url("/assets/fonts/Byker-Regular.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BykerM";
+  src: url("/assets/fonts/Byker-Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
