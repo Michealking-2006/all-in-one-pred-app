@@ -1,8 +1,7 @@
 /* =========================================================
    SCOUTWAVE — GLOBAL CSS HARDENING LAYER
    Loaded after the existing stylesheets.
-   This layer fixes cross-file conflicts without rewriting
-   page-specific styling.
+   Cross-file fixes only; page-specific styling stays local.
    ========================================================= */
 
 :root {
@@ -18,9 +17,18 @@
   --app-radius-lg: 18px;
   --app-shadow-sm: 0 3px 12px rgba(0, 0, 0, .035);
   --app-shadow-md: 0 8px 24px rgba(0, 0, 0, .06);
+
+  /* index.css previously defined this as 20%, while the actual
+     bottom navigation is 70px tall in the PWA shell. */
+  --bottom-nav-height: 70px;
 }
 
-/* Predictable sizing and page overflow. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
@@ -70,27 +78,23 @@ img {
   display: block;
 }
 
-/* Keep keyboard navigation visible without imposing outlines on taps. */
 :where(a, button, input, select, textarea):focus-visible {
   outline: 2px solid var(--app-primary-color);
   outline-offset: 2px;
 }
 
-/* Normalize hidden UI states so they cannot occupy layout space. */
 [hidden] {
   display: none !important;
 }
 
-/* Shared safe-area helpers. */
 #main-page {
-  padding-bottom: calc(var(--bottom-nav-height, 70px) + env(safe-area-inset-bottom) + 12px);
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 12px);
 }
 
 .bottom-navigation-wrapper {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Prevent fixed page headers from creating horizontal overflow. */
 .app-top-nav-menu-layout,
 .language-header,
 .change-password-header,
@@ -102,17 +106,32 @@ img {
   max-width: 100vw;
 }
 
-/* Consistent disabled interaction state. */
 :where(button, input, select, textarea):disabled {
   cursor: not-allowed;
 }
 
-/* Do not let long dynamic names break cards or navigation. */
-:where(h1, h2, h3, h4, h5, h6, p, span, strong, a) {
+/* Only constrain text where it is likely to be dynamic. Avoid applying
+   overflow-wrap globally because it can damage icon labels and navigation. */
+.entity-heading h1,
+.entity-heading p,
+.entity-detail-row strong,
+.coins-user-info,
+.coins-user-info strong,
+.news-card h3,
+.news-card p,
+.news-featured-content h2,
+.favourites-empty p,
+.app-profile-username,
+.app-profile-member-since,
+.edit-profile-danger-info,
+.language-option-name,
+.language-option-native,
+.premium-plan-info,
+.premium-plan-price {
   overflow-wrap: anywhere;
+  min-width: 0;
 }
 
-/* Remove accidental body-level horizontal scroll caused by animations. */
 .premium-page,
 .coins-page,
 .news-page,
@@ -126,10 +145,41 @@ img {
   overflow-x: hidden;
 }
 
-/* Mobile stability. */
+/* The app is intentionally light-only. Legacy dark-theme rules in index.css
+   must not override the current visual system. */
+body.dark-theme,
+body.dark-theme .app-main-profile-sec,
+body.dark-theme .menu-card,
+body.dark-theme .setting-row,
+body.dark-theme .app-index-search-box {
+  background: #fff;
+  color: var(--app-text);
+}
+
+body.dark-theme .date-circle {
+  background: rgba(255, 255, 255, .15);
+  color: #fff;
+}
+
+body.dark-theme .date-card .day-name {
+  color: rgba(255, 255, 255, .75);
+}
+
+body.dark-theme .date-card.active .date-circle {
+  background: #fff;
+  color: var(--app-primary-color);
+}
+
+body.dark-theme .close-index-search-btn svg,
+body.dark-theme .remove-search-btn svg,
+body.dark-theme .recent-searches-icon {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
 @media (max-width: 480px) {
   #main-page {
-    padding-bottom: calc(var(--bottom-nav-height, 70px) + env(safe-area-inset-bottom) + 8px);
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 8px);
   }
 }
 
