@@ -13,36 +13,14 @@ function slugFromPath(path = location.pathname) {
   return parts.length >= 2 ? normalizeSlug(parts[1]) : '';
 }
 
-function mapEntryToId(entry) {
-  if (typeof entry === 'number') return entry;
-  if (typeof entry === 'string' && /^\d+$/.test(entry)) return Number(entry);
-  if (entry && typeof entry === 'object') return entry.id ?? entry.leagueId ?? entry.apiFootballId ?? null;
-  return null;
-}
-
-async function loadLeagueMap() {
-  if (cache.has('league-map')) return cache.get('league-map');
-  const promise = fetch('/assets/data/leagues.json', { headers: { Accept: 'application/json' } })
-    .then((r) => { if (!r.ok) throw new Error(`Unable to load leagues (${r.status})`); return r.json(); })
-    .then((data) => {
-      const map = new Map();
-      if (Array.isArray(data)) {
-        for (const item of data) {
-          const slug = normalizeSlug(item?.slug || item?.key || item?.name);
-          const id = mapEntryToId(item);
-          if (slug && id) map.set(slug, id);
-        }
-      } else if (data && typeof data === 'object') {
-        for (const [key, value] of Object.entries(data)) {
-          const id = mapEntryToId(value);
-          if (id) map.set(normalizeSlug(key), id);
-          if (value && typeof value === 'object' && value.slug && id) map.set(normalizeSlug(value.slug), id);
-        }
-      }
-      return map;
-    });
-  cache.set('league-map', promise);
-  return promise;
+async function footballLookup(type, slug) {
+  const url = new URL('/api/entities/resolve', location.origin);
+  url.searchParams.set('type', type);
+  url.searchParams.set('slug', slug);
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Entity lookup failed');
+  return data;
 }
 
 export async function resolveEntity({ type, slug = slugFromPath() }) {
@@ -51,14 +29,10 @@ export async function resolveEntity({ type, slug = slugFromPath() }) {
   if (!['league', 'club', 'player'].includes(normalizedType)) throw new Error('Unsupported entity type');
   if (!normalizedSlug) throw new Error('Entity slug is required');
 
-  if (normalizedType === 'league') {
-    const map = await loadLeagueMap();
-    const id = map.get(normalizedSlug);
-    if (!id) throw new Error('League not found');
-    return { type: normalizedType, slug: normalizedSlug, id };
-  }
-
-  return { type: normalizedType, slug: normalizedSlug, id: null };
+  const key = `${normalizedType}:${normalizedSlug}`;
+  if (!cache.has(key)) cache.set(key, footballLookup(normalizedType, normalizedSlug));
+  try { return await cache.get(key); }
+  catch (error) { cache.delete(key); throw error; }
 }
 
 export { normalizeSlug, slugFromPath };
