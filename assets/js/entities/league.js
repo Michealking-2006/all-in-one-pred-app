@@ -1,37 +1,14 @@
+import { resolveEntity } from './resolver.js';
+
 const state = { controller: null, mounted: false };
 
 const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[c]));
-
-function slugFromLocation() {
-  return location.pathname.split('/').filter(Boolean).pop() || '';
-}
-
-async function resolveLeagueId(slug) {
-  const map = window.LEAGUES || window.leaguesMap;
-  if (map) {
-    const value = map[slug];
-    if (typeof value === 'number') return value;
-    if (value && typeof value === 'object') return value.id ?? value.leagueId ?? null;
-  }
-
-  // Keep the resolver data-driven. If the canonical league JSON is present,
-  // load it lazily instead of duplicating the league catalogue in this module.
-  try {
-    const response = await fetch('/assets/data/leagues.json', { headers: { Accept: 'application/json' } });
-    if (!response.ok) return null;
-    const data = await response.json();
-    const entries = Array.isArray(data) ? data : Object.entries(data).map(([key, value]) => ({ slug: key, ...(value && typeof value === 'object' ? value : { id: value }) }));
-    const match = entries.find(item => (item.slug || item.idSlug || item.key) === slug);
-    if (match) return match.id ?? match.leagueId ?? match.apiFootballId ?? null;
-  } catch {}
-  return null;
-}
 
 function renderStandings(rows) {
   if (!rows.length) return '<p class="entity-state">Standings are not available for this season.</p>';
   return `<div class="league-standings-table" role="table" aria-label="League standings">
     <div class="league-standing-row league-standing-head" role="row"><span>#</span><span>Team</span><span>MP</span><span>W</span><span>D</span><span>L</span><span>Pts</span></div>
-    ${rows.map((item, i) => { const t=item.team||{}, f=item.all||{}; return `<a class="league-standing-row" href="/club/${encodeURIComponent(t.id ?? '')}" role="row"><span>${esc(item.rank ?? i+1)}</span><span class="league-team"><img src="${esc(t.logo||'')}" alt="" loading="lazy"><strong>${esc(t.name||'Unknown')}</strong></span><span>${esc(f.played??0)}</span><span>${esc(f.win??0)}</span><span>${esc(f.draw??0)}</span><span>${esc(f.lose??0)}</span><strong>${esc(item.points??0)}</strong></a>`; }).join('')}
+    ${rows.map((item, i) => { const t=item.team||{}, f=item.all||{}; const id=t.id; return `<a class="league-standing-row" href="${id ? `/club/${encodeURIComponent(id)}` : '#'}" ${id ? '' : 'aria-disabled="true"'} role="row"><span>${esc(item.rank ?? i+1)}</span><span class="league-team"><img src="${esc(t.logo||'')}" alt="" loading="lazy"><strong>${esc(t.name||'Unknown')}</strong></span><span>${esc(f.played??0)}</span><span>${esc(f.win??0)}</span><span>${esc(f.draw??0)}</span><span>${esc(f.lose??0)}</span><strong>${esc(item.points??0)}</strong></a>`; }).join('')}
   </div>`;
 }
 
@@ -42,7 +19,7 @@ function renderFixtures(fixtures) {
 
 function renderScorers(scorers) {
   if (!scorers.length) return '<p class="entity-state">Top scorers are not available.</p>';
-  return `<div class="league-scorers">${scorers.slice(0,10).map(item => { const p=item.player||{}, s=item.statistics?.[0]||{}; return `<a class="league-scorer" href="/player/${encodeURIComponent(p.id ?? '')}"><span>${esc(p.name||'Player')}</span><small>${esc(s.goals?.total??0)} goals</small></a>`; }).join('')}</div>`;
+  return `<div class="league-scorers">${scorers.slice(0,10).map(item => { const p=item.player||{}, s=item.statistics?.[0]||{}; const id=p.id; return `<a class="league-scorer" href="${id ? `/player/${encodeURIComponent(id)}` : '#'}" ${id ? '' : 'aria-disabled="true"'}><span>${esc(p.name||'Player')}</span><small>${esc(s.goals?.total??0)} goals</small></a>`; }).join('')}</div>`;
 }
 
 async function load(root, id, season) {
@@ -68,11 +45,14 @@ async function load(root, id, season) {
 
 export async function mountLeagueEntity(root, { id, slug, season } = {}) {
   if (!root || state.mounted) return () => {};
-  const resolvedSlug = slug || slugFromLocation();
-  const leagueId = id || await resolveLeagueId(resolvedSlug);
-  if (!leagueId) { root.innerHTML='<section class="entity-content"><p class="entity-state">League not found.</p></section>'; return () => {}; }
-  state.mounted=true;
-  const currentSeason = season || new Date().getUTCFullYear();
-  await load(root, leagueId, currentSeason);
+  let leagueId = id;
+  try {
+    if (!leagueId) leagueId = (await resolveEntity({ type:'league', slug })).id;
+    state.mounted=true;
+    await load(root, leagueId, season || new Date().getUTCFullYear());
+  } catch (error) {
+    state.mounted=false;
+    root.innerHTML=`<section class="entity-content"><p class="entity-state">${esc(error.message || 'League not found.')}</p></section>`;
+  }
   return () => { state.controller?.abort(); state.controller=null; state.mounted=false; root.replaceChildren(); };
 }
