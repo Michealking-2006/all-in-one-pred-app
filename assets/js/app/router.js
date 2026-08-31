@@ -1,6 +1,6 @@
 /********* router *********/
 
-const REQUIRED_CSS=["/assets/css/components.css","/assets/css/index.css"];
+const REQUIRED_CSS=["/assets/css/ui/components.css","/assets/css/index.css"];
 const HOME_ROUTE="/overview";
 const ROUTE_ALIASES={"/":HOME_ROUTE,"/home":HOME_ROUTE};
 const routes={
@@ -16,7 +16,7 @@ const pageRegistry=new Map();
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)],getMainPage=()=>$("#main-page"),getLoader=()=>$("#page-loader");
 const showLoader=()=>getLoader()?.classList.remove("hidden"),hideLoader=()=>getLoader()?.classList.add("hidden");
 function normalizePath(path){try{return new URL(path||HOME_ROUTE,location.origin).pathname.replace(/\/+$/,'')||HOME_ROUTE}catch{return HOME_ROUTE}}
-function isEntityPath(path){return /^\/[^/]+$/i.test(normalizePath(path))&&normalizePath(path)!==HOME_ROUTE&&normalizePath(path)!=="/404"&&normalizePath(path)!=="/leagues"&&normalizePath(path)!=="/overview"}
+function isEntityPath(path){const p=normalizePath(path);return /^\/[^/]+$/i.test(p)&&!routes[p]&&!ROUTE_ALIASES[p]}
 function resolveRoutePath(path){const p=ROUTE_ALIASES[normalizePath(path)]||normalizePath(path);if(isEntityPath(p))return p;if(routes[p])return p;const top=`/${p.split('/')[1]||'overview'}`;return routes[top]?top:"/404"}
 function resolveRoute(path){const p=resolveRoutePath(path);return isEntityPath(p)?{file:null,title:"Entity"}:routes[p]||routes["/404"]}
 function waitForStylesheets(){const links=$$('link[rel="stylesheet"]').filter(l=>{try{return REQUIRED_CSS.includes(new URL(l.href,location.origin).pathname)}catch{return false}});return Promise.all(links.map(l=>l.sheet?Promise.resolve():new Promise(r=>{l.addEventListener('load',r,{once:true});l.addEventListener('error',r,{once:true})})))}
