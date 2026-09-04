@@ -1,0 +1,133 @@
+/********* PWA *********/
+
+html.pwa-standalone {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.pwa-standalone body {
+  margin: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+/********* app containers *********/
+
+html.pwa-standalone #root,
+html.pwa-standalone #main-page {
+  width: 100%;
+}
+
+html.pwa-standalone #main-page.dragging {
+  transition: none;
+}
+
+/********* bottom navigation *********/
+
+html.pwa-standalone .bottom-navigation-wrapper {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+}
+
+html.pwa-standalone .bottom-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  
+  height: 70px;
+  padding-bottom: env(safe-area-inset-bottom);
+  
+  background: var(--nav-bg);
+  border-top: 1px solid #e5e7eb;
+}
+
+/********* pull to refresh *********/
+
+html.pwa-standalone .ptr-indicator {
+  --ptr-y: -80px;
+  
+  position: fixed;
+  top: 0;
+  left: 50%;
+  
+  z-index: 999;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 56px;
+  height: 56px;
+  
+  padding: 0;
+  
+  border-radius: 50%;
+  
+  background: var(--app-bg, #fff);
+  color: var(--app-primary-color, #d50000);
+  
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, .10),
+    0 2px 8px rgba(0, 0, 0, .06);
+  
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  
+  transform:
+    translate3d(-50%, var(--ptr-y), 0);
+  
+  will-change:
+    transform,
+    opacity;
+  
+  transition:
+    opacity .18s ease,
+    visibility .18s ease;
+}
+
+/********* visible *********/
+
+html.pwa-standalone .ptr-indicator.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/********* pulling *********/
+
+html.pwa-standalone .ptr-indicator.pulling {
+  transition: none;
+}
+
+/********* icon *********/
+
+html.pwa-standalone .ptr-indicator .ptr-icon {
+  display: block;
+  
+  width: 28px;
+  height: 28px;
+  
+  flex: 0 0 28px;
+  
+  color: currentColor;
+  
+  transform-origin: center;
+}
+
+/********* loading *********/
+
+html.pwa-standalone .ptr-indicator.loading .ptr-icon {
+  animation:
+    ptr-spin .75s linear infinite;
+}
+
+/********* spinner *********/
+
+@keyframes ptr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

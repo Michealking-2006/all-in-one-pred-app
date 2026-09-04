@@ -1,0 +1,53 @@
+<div class="vip-tips-page" id="vipTipsPage">
+
+  <header class="vip-tips-header">
+
+    <a
+      href="/"
+      class="vip-tips-back-btn"
+      data-back
+      aria-label="Back"
+    >
+      <span class="profile-icon profile-icon-back" aria-hidden="true"></span>
+    </a>
+
+    <h1>VIP Tips</h1>
+
+  </header>
+
+  <main
+    class="vip-tips-content"
+    id="vipTipsContent"
+    data-auth-required="lock"
+    data-auth-message="Log in to see VIP tips."
+  >
+
+    <div class="vip-tips-list" id="vipTipsList"></div>
+
+    <div class="vip-tips-empty" id="vipTipsEmpty" hidden>
+      <p>No VIP tips right now — check back soon.</p>
+    </div>
+
+    <div class="vip-tips-skeleton" id="vipTipsSkeleton">
+      <div class="vip-tip-card skeleton-card">
+        <div class="skeleton skeleton-text" style="width:60%"></div>
+        <div class="skeleton skeleton-text" style="width:40%"></div>
+      </div>
+      <div class="vip-tip-card skeleton-card">
+        <div class="skeleton skeleton-text" style="width:60%"></div>
+        <div class="skeleton skeleton-text" style="width:40%"></div>
+      </div>
+    </div>
+
+    <div class="vip-tips-upsell" id="vipTipsUpsell" hidden>
+      <div class="vip-tips-upsell-icon" aria-hidden="true">★</div>
+      <h2>Unlock VIP Tips</h2>
+      <p>Get premium picks with confidence ratings from our tipsters.</p>
+      <a href="/profile/premium" class="vip-tips-upsell-btn">Go Premium</a>
+    </div>
+
+  </main>
+
+</div>
+
+<app-script src="/assets/js/pages/vip-tips.js"></app-script>

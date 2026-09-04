@@ -1,0 +1,71 @@
+<div class="leagues-page" id="leaguesPage">
+
+  <header class="leagues-header">
+
+    <a
+      href="/"
+      class="leagues-back-btn"
+      data-back
+      aria-label="Back"
+    >
+      <span
+        class="profile-icon profile-icon-back"
+        aria-hidden="true"
+      ></span>
+    </a>
+
+    <h1>Leagues</h1>
+
+  </header>
+
+  <main class="leagues-content">
+
+    <div class="leagues-search-bar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21l-4.34-4.34M19 11a8 8 0 1 1-16 0a8 8 0 0 1 16 0"/>
+      </svg>
+      <input
+        class="js-search"
+        type="search"
+        inputmode="search"
+        placeholder="Search countries or leagues"
+        aria-label="Search countries or leagues"
+      >
+    </div>
+
+    <section class="leagues-popular" id="leaguesPopular" aria-label="Popular competitions" hidden>
+      <h2>Popular competitions</h2>
+      <div class="leagues-popular-scroll" id="leaguesPopularScroll"></div>
+    </section>
+
+    <h2 class="leagues-all-title">All countries</h2>
+
+    <div class="league-country-list" id="leagueCountryList">
+      <div class="league-wrap skeleton-card">
+        <div class="league-header-leagues-page">
+          <div class="skeleton skeleton-icon"></div>
+          <div class="skeleton skeleton-text"></div>
+        </div>
+      </div>
+      <div class="league-wrap skeleton-card">
+        <div class="league-header-leagues-page">
+          <div class="skeleton skeleton-icon"></div>
+          <div class="skeleton skeleton-text"></div>
+        </div>
+      </div>
+      <div class="league-wrap skeleton-card">
+        <div class="league-header-leagues-page">
+          <div class="skeleton skeleton-icon"></div>
+          <div class="skeleton skeleton-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="leagues-empty" id="leaguesEmpty" hidden>No leagues found.</p>
+    <p class="leagues-error" id="leaguesError" hidden>Couldn't load leagues. <button type="button" id="leaguesRetry">Retry</button></p>
+
+  </main>
+
+</div>
+
+<app-script src="/assets/js/pages/leagues.js"></app-script>
