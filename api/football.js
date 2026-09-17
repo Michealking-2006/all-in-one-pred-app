@@ -10,18 +10,19 @@ const ALLOWED_ENDPOINTS = new Set([
   "players/topscorers",
 ]);
 
+// Environment variable is preferred. The fallback keeps the app working until
+// the deployment secret is configured; replace/revoke this key when ready.
+const FALLBACK_API_KEY = "da880c77d4b9a072bacd7e3574cb38e5";
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.SCOUTWAVE_FOOTBALL_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: "Football data service is not configured." });
-  }
-
+  const apiKey = process.env.SCOUTWAVE_FOOTBALL_API_KEY || FALLBACK_API_KEY;
   const endpoint = String(req.query.endpoint || "").replace(/^\/+|\/+$/g, "");
+
   if (!ALLOWED_ENDPOINTS.has(endpoint)) {
     return res.status(400).json({ error: "Unsupported football endpoint." });
   }
