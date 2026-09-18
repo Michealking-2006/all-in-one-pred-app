@@ -284,28 +284,30 @@ function buildAllMode() {
 }
 
 export function SearchScreen({ onBack }) {
-  const container = h("div", { className: "screen" });
-  container.appendChild(PageHeader({ title: "Search", onBack }));
-
+  const container = h("main", { className: "screen search-screen" });
   const allMode = buildAllMode();
   const playerMode = buildPlayerSearchMode();
-  playerMode.style.display = "none";
-
   const allChip = chip("All", () => setMode("all"));
   const playersChip = chip("Players", () => setMode("players"));
-  container.appendChild(h("div", { style: { display: "flex", gap: "8px", padding: "0 18px 14px" } }, [allChip, playersChip]));
 
-  container.appendChild(allMode);
-  container.appendChild(playerMode);
+  container.append(
+    PageHeader({ title: "Search", onBack }),
+    h("div", { className: "search-hero" }, [
+      text("span", { className: "section-kicker" }, "EXPLORE"),
+      text("h2", {}, "Find a league, club or player"),
+      text("p", {}, "Search the football database instantly.")
+    ]),
+    h("div", { className: "search-tabs" }, [allChip, playersChip]),
+    allMode, playerMode
+  );
+  playerMode.style.display = "none";
 
   function setMode(mode) {
     setChipActive(allChip, mode === "all");
     setChipActive(playersChip, mode === "players");
-    allMode.style.display = mode === "all" ? "block" : "none";
-    playerMode.style.display = mode === "players" ? "block" : "none";
+    allMode.style.display = mode === "all" ? "" : "none";
+    playerMode.style.display = mode === "players" ? "" : "none";
   }
-
   setMode("all");
   return container;
 }
-
