@@ -62,7 +62,7 @@ export function MatchScreen({ match, matchTab, isVip, coins, isFavorite, onBack,
     panel = standingsPanel(match);
   }
 
-  return h("div", { className: "screen" }, [
+  return h("main", { className: "screen match-screen" }, [
     h("div", { style: { background: "var(--accent)", padding: "14px 18px 12px" } }, [
       h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } }, [
         h(
