@@ -10,9 +10,23 @@ const ALLOWED_ENDPOINTS = new Set([
   "players/topscorers",
 ]);
 
-// Environment variable is preferred. The fallback keeps the app working until
-// the deployment secret is configured; replace/revoke this key when ready.
-const FALLBACK_API_KEY = "da880c77d4b9a072bacd7e3574cb38e5";
+function providerErrorMessage(errors) {
+  if (!errors) return "The football data provider rejected the request.";
+  if (typeof errors === "string") return errors;
+  if (Array.isArray(errors)) {
+    return errors
+      .map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+      .filter(Boolean)
+      .join("; ");
+  }
+  return Object.entries(errors)
+    .map(([key, value]) => {
+      const message = Array.isArray(value) ? value.join(", ") : String(value);
+      return `${key}: ${message}`;
+    })
+    .filter(Boolean)
+    .join("; ");
+}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -20,9 +34,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.SCOUTWAVE_FOOTBALL_API_KEY || FALLBACK_API_KEY;
-  const endpoint = String(req.query.endpoint || "").replace(/^\/+|\/+$/g, "");
+  const apiKey = String(process.env.SCOUTWAVE_FOOTBALL_API_KEY || "").trim();
+  if (!apiKey) {
+    return res.status(500).json({
+      error: "Football data service is not configured.",
+      code: "MISSING_FOOTBALL_API_KEY",
+    });
+  }
 
+  const endpoint = String(req.query.endpoint || "").replace(/^\\/+|\\/+$/g, "");
   if (!ALLOWED_ENDPOINTS.has(endpoint)) {
     return res.status(400).json({ error: "Unsupported football endpoint." });
   }
@@ -38,6 +58,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(url, {
+      method: "GET",
       headers: {
         "x-apisports-key": apiKey,
         Accept: "application/json",
@@ -46,17 +67,20 @@ export default async function handler(req, res) {
 
     const data = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: "Football data request failed.",
-        details: data?.errors || undefined,
+    if (data?.errors && Object.keys(data.errors).length > 0) {
+      const message = providerErrorMessage(data.errors);
+      const isRateLimit = /rate|limit|quota|requests/i.test(message);
+      return res.status(isRateLimit ? 429 : response.ok ? 502 : response.status).json({
+        error: message || "Football data request failed.",
+        code: isRateLimit ? "FOOTBALL_API_RATE_LIMIT" : "FOOTBALL_API_PROVIDER_ERROR",
+        details: data.errors,
       });
     }
 
-    if (data?.errors && Object.keys(data.errors).length > 0) {
-      return res.status(502).json({
-        error: "Football data provider returned an error.",
-        details: data.errors,
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: "Football data request failed.",
+        code: "FOOTBALL_API_HTTP_ERROR",
       });
     }
 
@@ -64,6 +88,9 @@ export default async function handler(req, res) {
     return res.status(200).json(data?.response || []);
   } catch (error) {
     console.error("Football API proxy error:", error);
-    return res.status(502).json({ error: "Unable to reach the football data service." });
+    return res.status(502).json({
+      error: "Unable to reach the football data service.",
+      code: "FOOTBALL_API_NETWORK_ERROR",
+    });
   }
 }
