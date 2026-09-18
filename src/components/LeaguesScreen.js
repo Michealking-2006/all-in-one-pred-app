@@ -47,73 +47,62 @@ function fillSkeletons(target, count) {
 }
 
 export function LeaguesScreen() {
-  const container = h("div", { className: "screen" });
+  const container = h("main", { className: "screen leagues-screen" });
+  const searchInput = h("input", { type: "search", placeholder: "Search any league", "aria-label": "Search leagues" });
+  const popularSection = h("section", { className: "league-popular" });
+  const resultsSection = h("section", { className: "league-results" });
 
-  container.appendChild(text("div", { style: { padding: "16px 18px 12px", fontWeight: "700", fontSize: "18px" } }, "Leagues"));
-
-  const searchInput = h("input", { type: "text", placeholder: "Search leagues\u2026" });
-  container.appendChild(h("div", { style: { padding: "0 18px 14px" } }, [searchInput]));
-
-  const popularSection = h("div", {});
-  const resultsSection = h("div", {});
-  container.appendChild(popularSection);
-  container.appendChild(resultsSection);
+  container.append(
+    h("header", { className: "page-intro" }, [
+      text("span", { className: "section-kicker" }, "COMPETITIONS"),
+      h("div", { className: "page-intro-row" }, [
+        text("h1", {}, "Leagues"),
+        h("span", { className: "count-pill" }, "Global")
+      ]),
+      text("p", {}, "Follow standings, fixtures and scoring leaders.")
+    ]),
+    h("div", { className: "search-shell" }, [
+      h("i", { "data-lucide": "search", className: "search-icon" }),
+      searchInput
+    ]),
+    popularSection,
+    resultsSection
+  );
 
   function renderPopular(list) {
     popularSection.innerHTML = "";
-    if (list.length === 0) return;
-    popularSection.appendChild(text("div", { style: { padding: "4px 18px 8px", fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" } }, "Popular leagues"));
+    if (!list.length) return;
+    popularSection.appendChild(text("div", { className: "section-kicker league-section-kicker" }, "Popular"));
     list.forEach((entry) => popularSection.appendChild(leagueRow(entry)));
   }
 
-  function loadPopular() {
-    if (popularCache) {
+  if (popularCache) renderPopular(popularCache);
+  else {
+    fillSkeletons(popularSection, 5);
+    Promise.all(POPULAR_LEAGUE_IDS.map((id) => getLeagueById(id).catch(() => []))).then((results) => {
+      popularCache = results.flat();
       renderPopular(popularCache);
-      return;
-    }
-    fillSkeletons(popularSection, 6);
-    Promise.all(POPULAR_LEAGUE_IDS.map((id) => getLeagueById(id).catch(() => [])))
-      .then((results) => {
-        const flat = results.flat();
-        popularCache = flat;
-        renderPopular(flat);
-      })
-      .catch(() => {
-        popularSection.innerHTML = "";
-      });
+    });
   }
 
-  let debounceTimer = null;
+  let timer;
   searchInput.addEventListener("input", () => {
-    const query = searchInput.value.trim();
-    clearTimeout(debounceTimer);
-
-    if (!query) {
-      resultsSection.innerHTML = "";
-      popularSection.style.display = "block";
-      return;
-    }
-
+    clearTimeout(timer);
+    const q = searchInput.value.trim();
+    if (!q) { resultsSection.innerHTML = ""; popularSection.style.display = ""; return; }
     popularSection.style.display = "none";
-    debounceTimer = setTimeout(() => {
+    if (q.length < 2) return;
+    timer = setTimeout(() => {
       fillSkeletons(resultsSection, 4);
-      searchLeagues(query)
-        .then((results) => {
-          resultsSection.innerHTML = "";
-          if (results.length === 0) {
-            resultsSection.appendChild(text("div", { style: { padding: "30px 18px", fontSize: "13px", color: "var(--text-muted)", textAlign: "center" } }, `No leagues found for "${query}"`));
-            return;
-          }
-          results.forEach((entry) => resultsSection.appendChild(leagueRow(entry)));
-        })
-        .catch((err) => {
-          resultsSection.innerHTML = "";
-          resultsSection.appendChild(text("div", { style: { padding: "30px 18px", fontSize: "13px", color: "var(--danger)", textAlign: "center" } }, err.message || "Couldn't load results \u2014 check your connection."));
-        });
-    }, 350);
+      searchLeagues(q).then((results) => {
+        resultsSection.innerHTML = "";
+        if (!results.length) { resultsSection.appendChild(text("div", { className: "empty-state" }, "No leagues found.")); return; }
+        results.forEach((entry) => resultsSection.appendChild(leagueRow(entry)));
+      }).catch((err) => {
+        resultsSection.innerHTML = "";
+        resultsSection.appendChild(text("div", { className: "error-state" }, err.message || "Unable to load leagues."));
+      });
+    }, 300);
   });
-
-  loadPopular();
-
   return container;
 }
