@@ -1,7 +1,7 @@
 import { store } from "./store.js";
 
 const VALID_TABS = new Set([
-  "home","vip","leagues","profile","favorites","edit-profile","change-password",
+  "home","vip","leagues","profile","auth","favorites","edit-profile","change-password",
   "news","notifications","help-centre","report-issue","contact-us","privacy-policy",
   "terms-of-use","about","language","premium","coins","avatar","search"
 ]);
