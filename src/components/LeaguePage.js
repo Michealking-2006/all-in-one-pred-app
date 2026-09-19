@@ -40,15 +40,15 @@ function loadOverview(id) {
     const { league, country, seasons } = entry;
     const current = (seasons || []).find((s) => s.current);
     return h("div", {}, [
-      h("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "20px" } }, [
-        h("img", { src: league.logo, alt: "", style: { width: "64px", height: "64px", objectFit: "contain", marginBottom: "10px" } }),
-        text("div", { style: { fontWeight: "700", fontSize: "18px", marginBottom: "4px", textAlign: "center" } }, league.name),
+      h("section", { className: "entity-hero league-hero" }, [
+        h("img", { src: league.logo, alt: "", className: "entity-logo" }),
+        text("div", { className: "entity-title" }, league.name),
         text("div", { className: "mono eyebrow" }, `${(country?.name || "").toUpperCase()} \u00b7 ${(league.type || "").toUpperCase()}`),
       ]),
       current
-        ? h("div", { style: { background: "var(--surface)", borderRadius: "10px", padding: "14px", textAlign: "center" } }, [
-            text("div", { style: { fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" } }, "CURRENT SEASON"),
-            text("div", { className: "mono", style: { fontSize: "16px", fontWeight: "600" } }, String(current.year)),
+        ? h("div", { className: "card league-season-card" }, [
+            text("div", { className: "section-kicker" }, "CURRENT SEASON"),
+            text("div", { className: "mono", className: "mono stat-value" }, String(current.year)),
           ])
         : null,
     ]);
