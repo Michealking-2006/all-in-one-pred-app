@@ -199,12 +199,31 @@ function App(state) {
   ]);
 }
 
+let lastRenderError = null;
+
 function render() {
+  const root = document.getElementById("root");
+  if (!root) return;
   const state = store.getState();
   document.body.classList.toggle("theme-dark", state.darkTheme);
-  const root = document.getElementById("root");
-  root.innerHTML = "";
-  root.appendChild(App(state));
+  try {
+    root.innerHTML = "";
+    root.appendChild(App(state));
+    lastRenderError = null;
+  } catch (error) {
+    console.error("Scoutwave render error:", error);
+    if (lastRenderError === error) return;
+    lastRenderError = error;
+    root.innerHTML = "";
+    root.appendChild(h("main", { className: "screen app-error-screen" }, [
+      h("div", { className: "app-error-card card" }, [
+        h("div", { className: "app-error-icon" }, [h("i", { "data-lucide": "triangle-alert" })]),
+        h("h1", {}, "Something went wrong"),
+        h("p", {}, "This screen could not be displayed. Your saved favourites and account data are still safe."),
+        h("button", { className: "primary-button", onClick: () => window.location.reload() }, "Reload app")
+      ])
+    ]));
+  }
 }
 
 store.subscribe(render);
