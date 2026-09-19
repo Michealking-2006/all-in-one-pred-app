@@ -16,8 +16,8 @@ export function ProfileScreen({isVip,coins,favoritesCount,darkTheme,onToggleDark
   h("header",{className:"profile-hero"},[
    avatarSrc?SkeletonImage({src:avatarSrc,size:56,radius:"50%"}):h("div",{className:"profile-avatar"},"S"),
    h("div",{className:"profile-identity"},[
-    text("strong",{},"Scout"),
-    text("span",{className:"profile-plan "+(isVip?"vip":"")},isVip?"VIP member":"Free plan")
+    text("strong",{},authUser?.email ? authUser.email.split("@")[0] : "Scout"),
+    text("span",{className:"profile-plan "+(isVip?"vip":"")},isVip?"VIP member":authUser?"Signed in":"Guest")
    ]),
    h("button",{className:"icon-button profile-edit",onClick:()=>onNavigate("edit-profile"),"aria-label":"Edit profile"},[h("i",{"data-lucide":"pencil"})])
   ]),
