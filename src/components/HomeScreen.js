@@ -46,14 +46,9 @@ export function HomeScreen(props) {
     ]),
     DateStrip({ selectedOffset: props.selectedDayOffset, onSelectDay: props.onSelectDay }),
     h("div", { className: "home-content" }, [
-      h("div", { className: "section-heading compact" }, [
-        h("h2", {}, "Matches"),
-        text("span", { className: "muted-count" }, matches.length + " games"),
-      ]),
       ...groups(matches).map((g) => h("section", { className: "league-group" }, [
         h("div", { className: "league-group-header" }, [
           text("strong", {}, g.league),
-          text("span", { className: "mono" }, g.items.length),
         ]),
         ...g.items.map((m) => matchCard(m, props.favoriteMatchIds.includes(m.id), props)),
       ])),
