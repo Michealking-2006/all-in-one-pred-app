@@ -1,16 +1,21 @@
 const API_BASE = "https://v3.football.api-sports.io";
 
-// Paste your API-Football key between the quotes.
 const API_KEY = "c3e4c14be7c1b0cb011eefd4ab4ddeaf";
 
 const ALLOWED_ENDPOINTS = new Set([
   "leagues",
   "teams",
+  "teams/statistics",
   "venues",
   "players",
   "standings",
   "fixtures",
+  "fixtures/headtohead",
   "players/topscorers",
+  "players/topassists",
+  "players/topyellowcards",
+  "players/topredcards",
+  "predictions",
 ]);
 
 function providerErrorMessage(errors) {
@@ -31,7 +36,6 @@ export default async function handler(req, res) {
   }
 
   const apiKey = API_KEY.trim();
-
   if (!apiKey) {
     return res.status(500).json({
       error: "Add your Football API key to api/football.js.",
@@ -40,35 +44,23 @@ export default async function handler(req, res) {
   }
 
   const rawEndpoint = req.query?.endpoint;
-  const endpoint = String(Array.isArray(rawEndpoint) ? rawEndpoint[0] : rawEndpoint || "").replace(/^\/+|\/+$/g, "");
+  const endpoint = String(Array.isArray(rawEndpoint) ? rawEndpoint[0] : rawEndpoint || "")
+    .replace(/^\/+|\/+$/g, "");
 
   if (!ALLOWED_ENDPOINTS.has(endpoint)) {
-    return res.status(400).json({
-      error: "Unsupported football endpoint.",
-      code: "INVALID_ENDPOINT",
-    });
+    return res.status(400).json({ error: "Unsupported football endpoint.", code: "INVALID_ENDPOINT" });
   }
 
   const params = new URLSearchParams();
-
   for (const [key, value] of Object.entries(req.query || {})) {
     if (key === "endpoint" || value == null) continue;
-
-    for (const item of (Array.isArray(value) ? value : [value])) {
-      params.append(key, String(item));
-    }
+    for (const item of (Array.isArray(value) ? value : [value])) params.append(key, String(item));
   }
 
   try {
     const response = await fetch(
       `${API_BASE}/${endpoint}${params.toString() ? `?${params}` : ""}`,
-      {
-        method: "GET",
-        headers: {
-          "x-apisports-key": apiKey,
-          Accept: "application/json",
-        },
-      }
+      { headers: { "x-apisports-key": apiKey, Accept: "application/json" } }
     );
 
     const data = await response.json().catch(() => null);
@@ -76,7 +68,6 @@ export default async function handler(req, res) {
     if (data?.errors && Object.keys(data.errors).length) {
       const message = providerErrorMessage(data.errors);
       const rateLimited = /rate|limit|quota|requests/i.test(message);
-
       return res.status(rateLimited ? 429 : 502).json({
         error: message,
         code: rateLimited ? "FOOTBALL_API_RATE_LIMIT" : "FOOTBALL_API_PROVIDER_ERROR",
@@ -91,14 +82,10 @@ export default async function handler(req, res) {
       });
     }
 
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
-
-    return res.status(200).json(
-      Array.isArray(data?.response) ? data.response : []
-    );
+    res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=120");
+    return res.status(200).json(Array.isArray(data?.response) ? data.response : []);
   } catch (error) {
     console.error("Football API proxy error:", error);
-
     return res.status(502).json({
       error: "Unable to reach the football data service.",
       code: "FOOTBALL_API_NETWORK_ERROR",
