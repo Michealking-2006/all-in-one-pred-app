@@ -46,7 +46,7 @@ function toggleSwitch(isOn, onToggle) {
 
 // props: { isVip, coins, favoritesCount, darkTheme, onToggleDarkTheme, onOpenFavorites, onRequestUpgrade, onOpenCoins, currentLanguage, onNavigate, avatarSrc }
 export function ProfileScreen({ isVip, coins, favoritesCount, darkTheme, onToggleDarkTheme, onOpenFavorites, onRequestUpgrade, onOpenCoins, currentLanguage, onNavigate, avatarSrc }) {
-  return h("div", { className: "screen", style: { paddingTop: "8px" } }, [
+  return h("main", { className: "screen profile-screen" }, [
     h("div", { style: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 18px 22px" } }, [
       avatarSrc
         ? SkeletonImage({ src: avatarSrc, size: 48, radius: "50%" })
