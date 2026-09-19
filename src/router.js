@@ -5,52 +5,25 @@ const VALID_TABS = new Set([
   "news","notifications","help-centre","report-issue","contact-us","privacy-policy",
   "terms-of-use","about","language","premium","coins","avatar","search"
 ]);
-const ENTITY_ROUTES = new Set(["league","club","venue","player"]);
 
 function syncFromPath() {
   const url = new URL(window.location.href);
-  const raw = url.pathname.replace(/^\/+|\/+$/g, "");
-  const [path, queryString] = raw.split("?");
-  const parts = path.split("/").filter(Boolean);
+  const parts = url.pathname.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
   const current = store.getState();
-  const modal = new URLSearchParams(url.search || queryString || "").get("modal");
+  const modal = url.searchParams.get("modal");
 
   if (parts[0] === "match" && parts[1]) {
-    const matchId = Number(parts[1]);
-    if (Number.isInteger(matchId) && matchId > 0) {
-      store.setState({ openMatchId: matchId, openEntity: null, matchTab: matchId === current.openMatchId ? current.matchTab : "summary", modal });
+    const id = Number(parts[1]);
+    if (Number.isInteger(id) && id > 0) {
+      store.setState({ openMatchId: id, openEntity: null, matchTab: id === current.openMatchId ? current.matchTab : "summary", modal });
       return;
     }
   }
 
-  if (parts[0] === "league" && parts[1]) {
+  if (["league","club","venue","player"].includes(parts[0]) && parts[1]) {
     const id = parseInt(parts[1], 10);
     if (Number.isInteger(id) && id > 0) {
-      store.setState({ openEntity: { type: "league", id }, openMatchId: null, modal });
-      return;
-    }
-  }
-
-  if (parts[0] === "club" && parts[1]) {
-    const id = parseInt(parts[1], 10);
-    if (Number.isInteger(id) && id > 0) {
-      store.setState({ openEntity: { type: "club", id }, openMatchId: null, modal });
-      return;
-    }
-  }
-
-  if (parts[0] === "venue" && parts[1]) {
-    const id = parseInt(parts[1], 10);
-    if (Number.isInteger(id) && id > 0) {
-      store.setState({ openEntity: { type: "venue", id }, openMatchId: null, modal });
-      return;
-    }
-  }
-
-  if (parts[0] === "player" && parts[1]) {
-    const id = parseInt(parts[1], 10);
-    if (Number.isInteger(id) && id > 0) {
-      store.setState({ openEntity: { type: "player", id }, openMatchId: null, modal });
+      store.setState({ openEntity: { type: parts[0], id }, openMatchId: null, modal });
       return;
     }
   }
@@ -60,8 +33,12 @@ function syncFromPath() {
     return;
   }
 
-  const tab = VALID_TABS.has(parts[0]) ? parts[0] : "home";
-  store.setState({ tab, openMatchId: null, openEntity: null, modal });
+  store.setState({
+    tab: VALID_TABS.has(parts[0]) ? parts[0] : "home",
+    openMatchId: null,
+    openEntity: null,
+    modal,
+  });
 }
 
 export function navigate(path) {
@@ -73,12 +50,18 @@ export function navigate(path) {
 }
 
 export function openModal(name) {
-  const base = window.location.hash.split("?")[0].replace(/^#/, "") || "/home";
-  navigate(`${base}?modal=${encodeURIComponent(name)}`);
+  const url = new URL(window.location.href);
+  url.searchParams.set("modal", name);
+  const next = url.pathname + url.search;
+  window.history.pushState({}, "", next);
+  syncFromPath();
 }
 
 export function closeModal() {
-  window.history.back();
+  const url = new URL(window.location.href);
+  url.searchParams.delete("modal");
+  window.history.pushState({}, "", url.pathname + url.search);
+  syncFromPath();
 }
 
 export function initRouter() {
