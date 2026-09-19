@@ -25,11 +25,8 @@ export function emptyNode(message) {
 }
 
 // tabs: [{ id, label, load: () => Promise<Node> }]
-// Each tab's `load` is only called the first time it's activated, and its
-// result is cached, so switching back and forth never refetches. Multiple
-// tabs can share the same underlying fetch by memoizing that promise
-// themselves before passing separate `.then()` mappers as `load` (see
-// PlayerPage.js, where Overview and Statistics both read one API call).
+// Each activation loads fresh data. This app intentionally does not cache
+// page/tab responses, so live football information can refresh when revisited.
 export function createTabbedPage({ title, onBack, tabs, defaultTab = tabs[0].id }) {
   const container = h("main", { className: "screen detail-screen" });
   container.appendChild(PageHeader({ title, onBack }));
@@ -40,19 +37,14 @@ export function createTabbedPage({ title, onBack, tabs, defaultTab = tabs[0].id 
   container.appendChild(panel);
 
   let activeTab = defaultTab;
-  const cache = {};
+
 
   function renderActive() {
     panel.innerHTML = "";
-    if (cache[activeTab]) {
-      panel.appendChild(cache[activeTab]);
-      return;
-    }
     panel.appendChild(skeletonBlock());
     const tab = tabs.find((t) => t.id === activeTab);
     tab.load()
       .then((node) => {
-        cache[tab.id] = node;
         if (activeTab === tab.id) {
           panel.innerHTML = "";
           panel.appendChild(node);
