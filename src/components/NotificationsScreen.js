@@ -1,35 +1,34 @@
 import { h, text } from "../utils/h.js";
 import { PageHeader } from "./PageHeader.js";
 
-const PREF_LABELS = {
-  kickoff: "Match kickoff",
-  goals: "Goal alerts",
-  vipTips: "New VIP tips",
-  favourites: "Favourite team updates",
-  priceDrops: "Odds price drops",
-};
+const PREFS = [
+  ["kickoff","Match kickoff","Get notified when a followed match starts.","bell"],
+  ["goals","Goal alerts","Stay updated when the score changes.","trophy"],
+  ["vipTips","New VIP tips","Know when new premium signals are published.","sparkles"],
+  ["favourites","Favourite team updates","Updates from clubs you follow.","star"],
+  ["priceDrops","Odds price drops","Alerts for tracked market movement.","trending-down"]
+];
 
-function toggleSwitch(isOn, onToggle) {
-  return h(
-    "button",
-    {
-      "aria-pressed": isOn,
-      onClick: onToggle,
-      style: { width: "44px", height: "26px", borderRadius: "13px", border: "none", background: isOn ? "var(--accent)" : "var(--border)", position: "relative", padding: "0", flexShrink: "0" },
-    },
-    [h("span", { style: { position: "absolute", top: "3px", left: isOn ? "21px" : "3px", width: "20px", height: "20px", borderRadius: "50%", background: "#FFFFFF" } })]
-  );
+function toggleSwitch(on, callback, label) {
+ return h("button",{className:"settings-toggle "+(on?"on":""),"aria-label":label,"aria-pressed":on,onClick:callback},[
+  h("span",{className:"settings-toggle-knob"})
+ ]);
 }
 
-// props: { prefs, onTogglePref, onBack }
-export function NotificationsScreen({ prefs, onTogglePref, onBack }) {
-  return h("div", { className: "screen" }, [
-    PageHeader({ title: "Notifications", onBack }),
-    ...Object.keys(PREF_LABELS).map((key) =>
-      h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "0.5px solid var(--border-soft)" } }, [
-        text("span", { style: { fontSize: "14px" } }, PREF_LABELS[key]),
-        toggleSwitch(prefs[key], () => onTogglePref(key)),
-      ])
-    ),
-  ]);
+export function NotificationsScreen({prefs,onTogglePref,onBack}) {
+ return h("main",{className:"screen notifications-screen"},[
+  PageHeader({title:"Notifications",onBack}),
+  h("section",{className:"settings-intro"},[
+   text("span",{className:"section-kicker"},"ALERTS"),
+   text("h1",{},"Stay in the loop."),
+   text("p",{},"Choose the moments that deserve your attention.")
+  ]),
+  h("section",{className:"settings-list card"},PREFS.map(([key,title,desc,icon])=>
+   h("div",{className:"settings-row"},[
+    h("div",{className:"settings-icon"},[h("i",{"data-lucide":icon})]),
+    h("div",{className:"settings-copy"},[text("strong",{},title),text("span",{},desc)]),
+    toggleSwitch(!!prefs[key],()=>onTogglePref(key),title)
+   ])
+  ))
+ ]);
 }
