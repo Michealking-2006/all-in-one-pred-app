@@ -123,9 +123,9 @@ function App(state) {
       onToggleFavorite: () => actions.toggleFavorite(openMatch.id),
     });
   } else if (state.openEntity) {
-    const { type, id } = state.openEntity;
+    const { type, id, slug } = state.openEntity;
     if (type === "league") content = LeaguePage({ id, onBack: actions.closeSubpage });
-    else if (type === "league-slug") content = LeaguePage({ slug: id, onBack: actions.closeSubpage });
+    else if (type === "league-slug") content = LeaguePage({ slug, onBack: actions.closeSubpage });
     else if (type === "club") content = ClubPage({ id, onBack: actions.closeSubpage });
     else if (type === "venue") content = VenuePage({ id, onBack: actions.closeSubpage });
     else if (type === "player") content = PlayerPage({ id, onBack: actions.closeSubpage });
