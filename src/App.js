@@ -96,7 +96,12 @@ const actions = {
     store.setState({ language: lang });
     showToast(`Language set to ${lang}`);
   },
-  signOut: async () => {\n    const { error } = await supabase.auth.signOut();\n    if (error) showToast("Unable to sign out right now", "error");\n    else { store.setState({ authUser: null }); navigate("/"); }\n  },\n  setAvatar: (avatarId) => {
+  signOut: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) showToast("Unable to sign out right now", "error");
+    else { store.setState({ authUser: null }); navigate("/"); }
+  },
+  setAvatar: (avatarId) => {
     store.setState({ avatarId });
     showToast("Avatar updated", "success");
     window.history.back();
@@ -201,7 +206,7 @@ function App(state) {
 
   return h("div", { className: "app-shell" }, [
     content,
-    BottomNav({ active: navActive, onChange: actions.goTab }),
+    state.tab === "auth" ? null : BottomNav({ active: navActive, onChange: actions.goTab }),
   ]);
 }
 
