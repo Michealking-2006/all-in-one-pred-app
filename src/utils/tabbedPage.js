@@ -31,11 +31,11 @@ export function emptyNode(message) {
 // themselves before passing separate `.then()` mappers as `load` (see
 // PlayerPage.js, where Overview and Statistics both read one API call).
 export function createTabbedPage({ title, onBack, tabs, defaultTab = tabs[0].id }) {
-  const container = h("div", { className: "screen" });
+  const container = h("main", { className: "screen detail-screen" });
   container.appendChild(PageHeader({ title, onBack }));
 
-  const tabBar = h("div", { style: { display: "flex", overflowX: "auto", borderBottom: "0.5px solid var(--border)" } });
-  const panel = h("div", { style: { padding: "20px 18px" } });
+  const tabBar = h("nav", { className: "detail-tabs", "aria-label": "Section navigation" });
+  const panel = h("section", { className: "detail-panel" });
   container.appendChild(tabBar);
   container.appendChild(panel);
 
@@ -71,8 +71,7 @@ export function createTabbedPage({ title, onBack, tabs, defaultTab = tabs[0].id 
     activeTab = tabId;
     [...tabBar.children].forEach((btn, i) => {
       const isActive = tabs[i].id === tabId;
-      btn.style.color = isActive ? "var(--text)" : "var(--text-muted)";
-      btn.style.borderBottomColor = isActive ? "var(--accent)" : "transparent";
+      btn.classList.toggle("active", isActive);
     });
     renderActive();
   }
@@ -82,7 +81,7 @@ export function createTabbedPage({ title, onBack, tabs, defaultTab = tabs[0].id 
       "button",
       {
         onClick: () => setActive(tab.id),
-        style: { flex: "0 0 auto", whiteSpace: "nowrap", padding: "11px 16px", border: "none", background: "none", fontSize: "13px", fontWeight: "500", borderBottom: "2px solid transparent", color: "var(--text-muted)" },
+        className: "detail-tab",
       },
       tab.label
     );
