@@ -227,3 +227,11 @@ body.theme-dark .app-shell{background:var(--bg)}
 .squad-row:last-child{border-bottom:0}.fixture-list{display:grid;gap:0}.player-hero .entity-title{max-width:300px}
 .empty-state,.error-state{padding:34px 16px;text-align:center;color:var(--text-muted);font-size:12px}
 .error-state{color:var(--danger)}
+
+.app-error-screen{display:grid;place-items:center;padding:28px 20px;background:var(--bg)}
+.app-error-card{width:min(100%,360px);padding:28px 22px;text-align:center}
+.app-error-icon{width:46px;height:46px;margin:0 auto 14px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.app-error-card h1{margin:0 0 7px;font-size:20px;letter-spacing:-.03em}
+.app-error-card p{margin:0 0 18px;color:var(--text-muted);line-height:1.55;font-size:12px}
+.primary-button{width:100%;padding:12px 16px;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.primary-button:hover{background:var(--accent-strong)}
