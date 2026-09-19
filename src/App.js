@@ -233,4 +233,13 @@ function render() {
 }
 
 store.subscribe(render);
+
+supabase.auth.getUser()
+  .then(({ data }) => store.setState({ authUser: data?.user || null }))
+  .catch(() => {});
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  store.setState({ authUser: session?.user || null });
+});
+
 initRouter();
