@@ -1,7 +1,7 @@
 import { h, text } from "../utils/h.js";
 import { Skeleton } from "./Skeleton.js";
 import { searchLeagues, getLeagueById } from "../api/footballApi.js";
-import { buildSlug } from "../utils/slug.js";
+import { slugify } from "../utils/slug.js";
 import { navigate } from "../router.js";
 
 const POPULAR_LEAGUE_IDS = [39, 140, 135, 78, 61, 2];
@@ -9,7 +9,7 @@ let popularCache = null;
 
 function leagueRow(entry) {
   const { league, country } = entry;
-  return h("button", { className: "league-row", onClick: () => navigate("/league/" + buildSlug(league.id, league.name)), "aria-label": "Open " + league.name }, [
+  return h("button", { className: "league-row", onClick: () => navigate("/" + slugify(league.name)), "aria-label": "Open " + league.name }, [
     h("img", { src: league.logo, alt: league.name, className: "league-logo" }),
     h("span", { className: "league-row-copy" }, [text("strong", {}, league.name), text("small", {}, (country?.name || "").toUpperCase())]),
     h("i", { "data-lucide": "chevron-right", "aria-hidden": "true" }),
