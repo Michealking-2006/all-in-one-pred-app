@@ -191,6 +191,9 @@ function App(state) {
       currentLanguage: state.language,
       onNavigate: actions.goTo,
       avatarSrc,
+      authUser: state.authUser,
+      onOpenAuth: () => actions.goTo("auth"),
+      onSignOut: actions.signOut,
     });
   }
 
