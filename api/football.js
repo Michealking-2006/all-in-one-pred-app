@@ -38,9 +38,11 @@ export default async function handler(req, res) {
 
   const apiKey = getApiKey();
   if (!apiKey) {
+    console.error("Football API key missing. Expected SCOUTWAVE_FOOTBALL_API_KEY.");
     return res.status(500).json({
-      error: "Football data service is not configured.",
+      error: "Football API key is not available to the deployed API function.",
       code: "MISSING_FOOTBALL_API_KEY",
+      environment: process.env.VERCEL_ENV || "unknown",
     });
   }
 
@@ -68,6 +70,7 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json().catch(() => null);
+    console.log("Football provider response:", { endpoint, status: response.status, ok: response.ok, errors: data?.errors || null, resultCount: Array.isArray(data?.response) ? data.response.length : null });
 
     if (data?.errors && Object.keys(data.errors).length) {
       const message = providerErrorMessage(data.errors);
