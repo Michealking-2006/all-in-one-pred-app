@@ -11,7 +11,7 @@ function row({icon,label,trailing,onClick,showChevron=true}) {
 function toggle(isOn,onToggle){
  return h("button",{className:"settings-toggle "+(isOn?"on":""),"aria-label":"Toggle dark theme","aria-pressed":isOn,onClick:onToggle},[h("span",{className:"settings-toggle-knob"})]);
 }
-export function ProfileScreen({isVip,coins,favoritesCount,darkTheme,onToggleDarkTheme,onOpenFavorites,onRequestUpgrade,onOpenCoins,currentLanguage,onNavigate,avatarSrc}){
+export function ProfileScreen({isVip,coins,favoritesCount,darkTheme,onToggleDarkTheme,onOpenFavorites,onRequestUpgrade,onOpenCoins,currentLanguage,onNavigate,avatarSrc,authUser,onOpenAuth,onSignOut}){
  return h("main",{className:"screen profile-screen"},[
   h("header",{className:"profile-hero"},[
    avatarSrc?SkeletonImage({src:avatarSrc,size:56,radius:"50%"}):h("div",{className:"profile-avatar"},"S"),
@@ -56,6 +56,6 @@ export function ProfileScreen({isVip,coins,favoritesCount,darkTheme,onToggleDark
    row({icon:"info",label:"About",onClick:()=>onNavigate("about")}),
    row({icon:"globe",label:"Language",trailing:text("span",{className:"profile-trailing"},currentLanguage),onClick:()=>onNavigate("language")})
   ]),
-  h("button",{className:"profile-login"},[text("span",{},"Log in"),h("i",{"data-lucide":"arrow-right"})])
+  h("button",{className:"profile-login",onClick:authUser?onSignOut:onOpenAuth},[text("span",{},authUser?"Sign out":"Log in"),h("i",{"data-lucide":"arrow-right"})])
  ]);
 }
