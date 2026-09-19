@@ -44,6 +44,6 @@ function lineupPanel(match){return h("section",{className:"match-panel"},[lineup
 function standingsPanel(match){
  return h("section",{className:"match-panel"},[text("h2",{className:"panel-title"},match.standings.leagueName),h("div",{className:"standings-table"},[
   h("div",{className:"standings-row standings-head"},[text("span",{},"#"),text("span",{},"Team"),text("span",{},"P"),text("span",{},"Pts")]),
-  ...match.standings.rows.map(row=>h("div",{className:"standings-row "+(match.standings.highlight.includes(row.team)?"highlight":""},[text("span",{className:"mono"},row.pos),text("strong",{},row.team),text("span",{className:"mono"},row.played),text("strong",{className:"mono"},row.points)]))
+  ...match.standings.rows.map(row=>h("div",{className:"standings-row "+(match.standings.highlight.includes(row.team)?"highlight":"")},[text("span",{className:"mono"},row.pos),text("strong",{},row.team),text("span",{className:"mono"},row.played),text("strong",{className:"mono"},row.points)]))
  ] )]);
 }
