@@ -61,7 +61,7 @@ function createStore(initialState) {
 }
 
 export const store = createStore({
-  tab: "home",
+  tab: "home",\n  authUser: null,
   openMatchId: null,
   matchTab: "summary",
   isVip: false,
