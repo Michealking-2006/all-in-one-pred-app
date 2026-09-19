@@ -1,39 +1,19 @@
 import { h, text } from "../utils/h.js";
 import { matches, trackRecord } from "../data/mockData.js";
-
-// props: { isVip, isUnlocked } — isUnlocked(matchId) checks VIP OR a coin-unlocked match
 export function VipTipsScreen({ isVip, isUnlocked }) {
-  return h("div", { className: "screen", style: { padding: "18px" } }, [
-    text("div", { style: { fontWeight: "700", fontSize: "18px", marginBottom: "2px" } }, "VIP tips"),
-    h("div", { style: { display: "flex", alignItems: "baseline", gap: "6px", marginBottom: "18px" } }, [
-      text("span", { style: { fontSize: "13px", color: "var(--text-muted)" } }, "Last 30 tips:"),
-      text("span", { className: "mono", style: { fontSize: "13px", fontWeight: "700", color: "var(--accent)" } }, `${trackRecord.overall}% hit rate`),
-    ]),
-    h(
-      "div",
-      { style: { display: "flex", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)", marginBottom: "20px" } },
-      trackRecord.byMarket.map((m, i) =>
-        h(
-          "div",
-          { style: { flex: "1", padding: "12px 4px", textAlign: "center", borderRight: i < trackRecord.byMarket.length - 1 ? "0.5px solid var(--border)" : "none" } },
-          [
-            text("div", { style: { fontSize: "11px", color: "var(--text-muted)", marginBottom: "2px" } }, m.label),
-            text("div", { className: "mono", style: { fontSize: "17px", fontWeight: "700", color: m.pct >= 65 ? "var(--accent)" : "var(--danger)" } }, `${m.pct}%`),
-          ]
-        )
-      )
-    ),
-    ...matches.map((m) =>
-      h("div", { style: { borderBottom: "0.5px solid var(--border-soft)", padding: "13px 0" } }, [
-        text("div", { style: { fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" } }, m.league),
-        text("div", { style: { fontSize: "13px", marginBottom: "8px" } }, `${m.home} vs ${m.away}`),
-        isUnlocked(m.id)
-          ? h("div", { style: { display: "flex", alignItems: "baseline", gap: "8px" } }, [
-              text("span", { style: { fontWeight: "700", fontSize: "14px", color: "var(--accent)" } }, m.winner),
-              text("span", { className: "mono", style: { fontSize: "12px", color: "var(--text-muted)" } }, `${m.confidence}% confidence`),
-            ])
-          : h("div", { style: { filter: "blur(5px)" } }, [text("span", { style: { fontWeight: "700", fontSize: "14px" } }, `${m.winner} \u2014 ${m.confidence}% confidence`)]),
-      ])
-    ),
-  ]);
+ return h("main",{className:"screen vip-screen"},[
+  h("section",{className:"vip-hero"},[
+   text("span",{className:"section-kicker"},"SCOUTWAVE PREMIUM"),
+   text("h1",{},"Sharper signals. Less noise."),
+   text("p",{},"Premium match intelligence, confidence levels and market signals."),
+   h("div",{className:"vip-record"},[text("strong",{className:"mono"},trackRecord.overall+"%"),text("span",{},"30-TIP HIT RATE")])
+  ]),
+  h("div",{className:"vip-market-grid"},trackRecord.byMarket.map(m=>h("div",{className:"card vip-market"},[text("span",{className:"section-kicker"},m.label),text("strong",{className:"mono"},m.pct+"%")]))),
+  h("div",{className:"section-heading vip-heading"},[h("div",{},[text("span",{className:"section-kicker"},"PREMIUM FEED"),text("h2",{},"Today's signals")]),text("span",{className:"muted-count"},matches.length+" picks")]),
+  h("div",{className:"vip-list"},matches.map(m=>h("article",{className:"vip-card "+(isUnlocked(m.id)?"unlocked":"locked")},[
+   h("div",{className:"vip-card-top"},[text("span",{className:"eyebrow"},m.league),text("span",{className:"badge badge-muted"},m.confidence+"%")]),
+   text("strong",{className:"vip-match"},m.home+" vs "+m.away),
+   isUnlocked(m.id)?h("div",{className:"vip-pick"},[text("span",{className:"eyebrow"},"SIGNAL"),text("strong",{},m.winner),text("span",{className:"confidence"},m.confidence+"% confidence")]):h("div",{className:"vip-lock"},[h("i",{"data-lucide":"lock"}),text("span",{},"Premium signal locked")])
+  ])))
+ ]);
 }
