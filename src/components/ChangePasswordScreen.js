@@ -1,22 +1,12 @@
-import { h } from "../utils/h.js";
-import { PageHeader, formField } from "./PageHeader.js";
-
-// props: { onBack }
-export function ChangePasswordScreen({ onBack }) {
-  return h("div", { className: "screen" }, [
-    PageHeader({ title: "Change password", onBack }),
-    h("div", { style: { padding: "20px 18px" } }, [
-      formField("Current password", { type: "password" }),
-      formField("New password", { type: "password" }),
-      formField("Confirm new password", { type: "password" }),
-      h(
-        "button",
-        {
-          onClick: onBack,
-          style: { width: "100%", background: "var(--primary)", color: "#FFFFFF", border: "none", padding: "13px", borderRadius: "8px", fontWeight: "700", fontSize: "14px", marginTop: "6px" },
-        },
-        "Update password"
-      ),
-    ]),
-  ]);
+import { h, text } from "../utils/h.js";
+import { PageHeader } from "./PageHeader.js";
+export function ChangePasswordScreen({onBack}){
+ return h("main",{className:"screen account-form-screen"},[
+  PageHeader({title:"Change password",onBack}),
+  h("section",{className:"form-card card"},[
+   field("Current password","password"),field("New password","password"),field("Confirm new password","password"),
+   h("button",{className:"primary-button",onClick:onBack},"Update password")
+  ])
+ ]);
 }
+function field(label,type){return h("label",{className:"form-field"},[text("span",{className:"form-field-label"},label),h("input",{type,autocomplete:"off"})]);}
