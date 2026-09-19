@@ -1,7 +1,7 @@
 import { h, text } from "../utils/h.js";
 import { createTabbedPage, emptyNode } from "../utils/tabbedPage.js";
 import { getLeagueById, getStandings, getUpcomingFixtures, getTopScorers } from "../api/footballApi.js";
-import { buildSlug } from "../utils/slug.js";
+import { buildSlug } from "../utils/slug.js";\nimport { searchLeagues } from "../api/footballApi.js";
 import { navigate } from "../router.js";
 
 const seasonCache = new Map();
