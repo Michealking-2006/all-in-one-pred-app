@@ -221,3 +221,9 @@ body.theme-dark .app-shell{background:var(--bg)}
 .vip-lock svg{width:16px}
 .profile-screen{padding-top:10px}
 .profile-screen .profile-group{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+.info-card{margin:12px 0 0;padding:16px}.info-card-title{display:block;margin-top:5px;font-size:14px}.info-card-meta{margin-top:4px;color:var(--text-muted);font-size:12px}
+.squad-list{overflow:hidden}.squad-row{width:100%;background:var(--surface);border:0;border-bottom:1px solid var(--border-soft);text-align:left;cursor:pointer}
+.squad-row:last-child{border-bottom:0}.fixture-list{display:grid;gap:0}.player-hero .entity-title{max-width:300px}
+.empty-state,.error-state{padding:34px 16px;text-align:center;color:var(--text-muted);font-size:12px}
+.error-state{color:var(--danger)}
