@@ -125,6 +125,7 @@ function App(state) {
   } else if (state.openEntity) {
     const { type, id } = state.openEntity;
     if (type === "league") content = LeaguePage({ id, onBack: actions.closeSubpage });
+    else if (type === "league-slug") content = LeaguePage({ slug: id, onBack: actions.closeSubpage });
     else if (type === "club") content = ClubPage({ id, onBack: actions.closeSubpage });
     else if (type === "venue") content = VenuePage({ id, onBack: actions.closeSubpage });
     else if (type === "player") content = PlayerPage({ id, onBack: actions.closeSubpage });
