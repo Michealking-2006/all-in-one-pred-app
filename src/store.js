@@ -1,7 +1,7 @@
 const STORAGE_KEY = "scoutwave.app.state.v2";
 const PERSISTED_KEYS = [
   "isVip", "coins", "unlockedMatchIds", "favoriteMatchIds",
-  "selectedDayOffset", "language", "avatarId", "notificationPrefs"
+  "selectedDayOffset", "language", "avatarId", "notificationPrefs", "darkTheme"
 ];
 
 function readPersisted() {
@@ -10,7 +10,21 @@ function readPersisted() {
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return {};
-    return parsed;
+
+    const safe = {};
+    if (typeof parsed.isVip === "boolean") safe.isVip = parsed.isVip;
+    if (Number.isFinite(parsed.coins)) safe.coins = Math.max(0, Math.floor(parsed.coins));
+    for (const key of ["unlockedMatchIds", "favoriteMatchIds"]) {
+      if (Array.isArray(parsed[key])) safe[key] = parsed[key].filter((id) => Number.isInteger(id) && id > 0);
+    }
+    if (Number.isInteger(parsed.selectedDayOffset)) safe.selectedDayOffset = Math.max(-7, Math.min(7, parsed.selectedDayOffset));
+    if (typeof parsed.language === "string" && parsed.language.trim()) safe.language = parsed.language;
+    if (typeof parsed.avatarId === "string" || parsed.avatarId === null) safe.avatarId = parsed.avatarId;
+    if (typeof parsed.darkTheme === "boolean") safe.darkTheme = parsed.darkTheme;
+    if (parsed.notificationPrefs && typeof parsed.notificationPrefs === "object") {
+      safe.notificationPrefs = { ...parsed.notificationPrefs };
+    }
+    return safe;
   } catch {
     return {};
   }
