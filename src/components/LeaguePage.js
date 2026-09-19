@@ -48,7 +48,7 @@ function loadOverview(id) {
       current
         ? h("div", { className: "card league-season-card" }, [
             text("div", { className: "section-kicker" }, "CURRENT SEASON"),
-            text("div", { className: "mono", className: "mono stat-value" }, String(current.year)),
+            text("div", { className: "mono stat-value" }, String(current.year)),
           ])
         : null,
     ]);
