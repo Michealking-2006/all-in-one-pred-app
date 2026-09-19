@@ -13,14 +13,14 @@ function syncFromPath() {
   const modal = url.searchParams.get("modal");
   if (parts[0] === "auth") {
     const mode = ["signup","reset","login"].includes(parts[1]) ? parts[1] : "login";
-    store.setState({ tab: "auth", authMode: mode, openMatchId: null, openEntity: null, modal });
+    store.setState({ tab: "auth", authMode: mode, openMatchId: null, openFixtureId: null, openEntity: null, modal });
     return;
   }
 
   if (parts[0] === "match" && parts[1]) {
     const id = Number(parts[1]);
     if (Number.isInteger(id) && id > 0) {
-      store.setState({ openMatchId: id, openEntity: null, matchTab: id === current.openMatchId ? current.matchTab : "summary", modal });
+      store.setState({ openMatchId: null, openFixtureId: id, openEntity: null, matchTab: id === current.openMatchId ? current.matchTab : "summary", modal });
       return;
     }
   }
@@ -28,7 +28,7 @@ function syncFromPath() {
   if (["league","club","venue","player"].includes(parts[0]) && parts[1]) {
     const id = parseInt(parts[1], 10);
     if (Number.isInteger(id) && id > 0) {
-      store.setState({ openEntity: { type: parts[0], id }, openMatchId: null, modal });
+      store.setState({ openEntity: { type: parts[0], id }, openMatchId: null, openFixtureId: null, modal });
       return;
     }
   }
