@@ -344,3 +344,50 @@ button:disabled{cursor:not-allowed}
 .home-header{padding:13px 16px 10px}.brand-lockup strong{font-size:15px}.brand-lockup span{display:none}.home-content{padding-top:2px}.section-heading.compact{align-items:center;padding:13px 2px 9px}.section-heading.compact h2{margin:0;font-size:16px}.league-group-header{padding:3px 2px 7px}.league-group-header .mono{font-size:8px}.match-pick .eyebrow{display:none}
 
 .polished-match-card{min-height:76px;padding:10px 9px;border-radius:16px;gap:10px;background:linear-gradient(180deg,#fff 0%,#fcfcfd 100%)}.polished-match-card:hover{transform:translateY(-1px)}.match-status-column{width:43px;flex:0 0 43px;display:flex;align-items:center;justify-content:center}.live-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 7px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font:700 9px var(--font-mono)}.live-pill .live-dot{width:5px;height:5px;border-radius:50%;background:currentColor}.polished-match-card .match-main{padding:2px 0}.polished-match-card .team-name{font-size:12px;font-weight:650}.polished-match-card .match-score{font-size:13px}.match-prediction{width:62px;flex:0 0 62px;display:grid;justify-items:end;gap:4px}.prediction-chip{max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 7px;border-radius:7px;background:var(--surface-2);color:var(--text-dim);font-size:8px;font-weight:700}.match-card-live .prediction-chip{background:var(--accent-soft);color:var(--accent)}.prediction-confidence{font-size:8px;color:var(--text-muted)}.league-header{display:flex;align-items:center;gap:8px;padding:3px 2px 9px}.league-accent{width:4px;height:18px;border-radius:4px;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}.league-header strong{font-size:12px;letter-spacing:-.01em}.league-line{height:1px;flex:1;background:var(--border-soft)}.league-count{font-size:8px;color:var(--text-muted);padding-left:3px}.home-content{padding:9px 16px 20px}.league-group{margin-bottom:18px}.league-group:last-child{margin-bottom:0}.home-header{box-shadow:0 1px 0 rgba(16,24,40,.02)}.date-strip{box-shadow:0 3px 10px rgba(16,24,40,.035);position:relative;z-index:2}
+
+/* iOS-native visual refinement */
+:root{--font-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;--font-mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;--ios-group:#f2f2f7;--ios-separator:rgba(60,60,67,.16)}
+html,body{background:var(--ios-group)}
+body{-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.app-shell{background:var(--ios-group);box-shadow:none}
+.screen{background:var(--ios-group);padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+.home-screen{overscroll-behavior-y:contain}
+.home-header{height:58px;min-height:58px;padding:8px 16px;background:rgba(255,255,255,.88);border-bottom:1px solid var(--ios-separator);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);position:sticky;top:0;z-index:20}
+.brand-lockup{gap:8px}.brand-mark{width:29px;height:29px;border-radius:8px;box-shadow:none;font-size:13px}.brand-lockup strong{font-size:17px;font-weight:700;letter-spacing:-.02em}
+.header-actions{gap:6px}.header-icon{width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:#3c3c43}.header-icon:active{background:#e5e5ea;transform:none;opacity:1}.header-icon svg{width:20px;height:20px}
+.date-strip{grid-template-columns:repeat(7,1fr);gap:2px;padding:7px 12px 9px;background:rgba(255,255,255,.94);border:0;box-shadow:none;border-bottom:1px solid var(--ios-separator);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
+.date-strip-day{min-height:52px;padding:5px 2px;border-radius:12px;color:#6c6c70;background:transparent;gap:3px}
+.date-strip-label{font-size:10px;font-weight:600}.date-strip-number{font-size:17px;font-weight:600;letter-spacing:-.03em}
+.date-strip-day.active{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(213,0,0,.18)}.date-strip-day.active .date-strip-label{color:rgba(255,255,255,.86)}
+.home-content{padding:18px 16px 22px}
+.league-group{margin:0 0 18px}
+.league-header{height:28px;padding:0 4px 7px;gap:7px}
+.league-accent{width:5px;height:5px;border-radius:50%;box-shadow:none}
+.league-header strong{font-size:13px;font-weight:600;letter-spacing:-.01em;color:#3c3c43}
+.league-line{background:transparent}.league-count{font-size:11px;color:#8e8e93}
+.league-group{background:#fff;border-radius:14px;overflow:hidden;border:0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.league-header{padding:11px 13px 8px;height:auto;background:#fff}
+.league-header .league-accent{width:5px;height:5px;flex:0 0 5px}
+.polished-match-card{min-height:64px;margin:0;padding:10px 10px 10px 12px;border:0;border-top:1px solid var(--ios-separator);border-radius:0;background:#fff;box-shadow:none;gap:10px}
+.polished-match-card:first-of-type{border-top:1px solid var(--ios-separator)}
+.polished-match-card:hover{transform:none;box-shadow:none}
+.match-card-live{border-color:var(--ios-separator);box-shadow:none}
+.match-card-live:before{width:2px;border-radius:0;align-self:stretch}
+.match-status-column{width:39px;flex-basis:39px}
+.match-time{width:auto;flex-basis:auto;font-size:11px;color:#8e8e93}
+.live-pill{padding:4px 6px;border-radius:6px;font-size:9px}
+.polished-match-card .team-name{font-size:15px;font-weight:500;letter-spacing:-.01em;color:#1c1c1e}
+.polished-match-card .match-team-line+.match-team-line{margin-top:3px}
+.polished-match-card .match-score{font-size:14px;color:#1c1c1e}
+.match-prediction{width:54px;flex-basis:54px;gap:2px}
+.prediction-chip{max-width:54px;padding:0;background:transparent;color:#6c6c70;font-size:10px;font-weight:500}
+.match-card-live .prediction-chip{background:transparent;color:var(--accent)}
+.prediction-confidence{font-size:9px;color:#8e8e93}
+.favorite-button{width:30px;height:30px;flex-basis:30px;background:transparent;color:#8e8e93;border-radius:50%}
+.favorite-button.selected{background:transparent;color:var(--accent)}
+.favorite-button svg{width:18px;height:18px}
+.bottom-nav{height:83px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:0;background:rgba(249,249,249,.94);border-top:1px solid var(--ios-separator);box-shadow:0 -1px 8px rgba(0,0,0,.035);backdrop-filter:saturate(180%) blur(22px);-webkit-backdrop-filter:saturate(180%) blur(22px)}
+.bottom-nav-item{gap:3px;border-radius:10px;font-size:10px;font-weight:500;color:#6c6c70}
+.bottom-nav-item.active{background:transparent;color:var(--accent)}
+.bottom-nav-item.active:before{display:none}.bottom-nav-item i{width:22px;height:22px}
+@media(max-width:390px){.home-content{padding-inline:12px}.league-group{border-radius:13px}.polished-match-card{padding-left:10px;gap:8px}.polished-match-card .team-name{font-size:14px}.match-prediction{width:48px;flex-basis:48px}.prediction-chip{max-width:48px}}
