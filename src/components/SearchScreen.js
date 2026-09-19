@@ -6,9 +6,9 @@ import { buildSlug } from "../utils/slug.js";
 import { navigate } from "../router.js";
 
 function skeletonRow() {
-  return h("div", { style: { display: "flex", alignItems: "center", gap: "12px", padding: "12px 18px" } }, [
-    Skeleton({ style: { width: "32px", height: "32px", borderRadius: "6px" } }),
-    Skeleton({ style: { flex: "1", height: "12px", borderRadius: "4px" } }),
+  return h("div", { className: "search-skeleton-row" }, [
+    Skeleton({ className: "search-skeleton-image" }),
+    Skeleton({ className: "search-skeleton-line" }),
   ]);
 }
 
@@ -18,16 +18,17 @@ function resultRow({ image, title, subtitle, route }) {
     {
       role: "button",
       tabindex: "0",
+      onKeydown: (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); navigate(route); } },
       onClick: () => navigate(route),
       style: { display: "flex", alignItems: "center", gap: "12px", padding: "12px 18px", borderBottom: "0.5px solid var(--border-soft)" },
     },
     [
       image
-        ? h("img", { src: image, alt: "", style: { width: "32px", height: "32px", objectFit: "contain", borderRadius: "6px", flexShrink: "0" } })
+        ? h("img", { src: image, alt: "", className: "search-result-image" })
         : h("div", { className: "skeleton", style: { width: "32px", height: "32px", borderRadius: "6px", flexShrink: "0" } }),
-      h("div", { style: { flex: "1", minWidth: "0" } }, [
-        text("div", { style: { fontSize: "14px", fontWeight: "500" } }, title),
-        subtitle ? text("div", { className: "mono eyebrow", style: { marginTop: "2px" } }, subtitle.toUpperCase()) : null,
+      h("div", { className: "search-result-copy" }, [
+        text("div", { className: "search-result-title" }, title),
+        subtitle ? text("div", { className: "mono eyebrow", className: "mono eyebrow search-result-subtitle" }, subtitle.toUpperCase()) : null,
       ]),
     ]
   );
@@ -103,7 +104,7 @@ function section(container, { label, run, mapResult }) {
 // alongside `search` — a bare free-text lookup isn't supported), so this is
 // a two-step flow: pick a league, then search players within it.
 function buildPlayerSearchMode() {
-  const wrap = h("div", { style: { padding: "0 18px" } });
+  const wrap = h("div", { className: "player-search-wrap" });
 
   const leagueStep = h("div", {});
   const playerStep = h("div", { style: { display: "none" } });
