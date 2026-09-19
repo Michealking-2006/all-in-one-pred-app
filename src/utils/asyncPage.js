@@ -2,38 +2,32 @@ import { h, text } from "./h.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { Skeleton } from "../components/Skeleton.js";
 
-// Deliberately imperative, not store-driven — a detail page only needs to
-// repaint itself once when its single fetch resolves. Routing that through
-// the global store would trigger a full app re-render for no benefit, the
-// same reasoning documented in toast.js and LeaguesScreen.js.
 export function createAsyncPage({ title, onBack, fetchData, renderBody, notFoundMessage = "Not found." }) {
-  const container = h("div", { className: "screen" });
+  const container = h("div", { className: "screen async-detail-screen" });
   container.appendChild(PageHeader({ title, onBack }));
 
-  const body = h("div", { style: { padding: "24px 18px" } });
+  const body = h("div", { className: "async-page-body" });
   container.appendChild(body);
+  body.appendChild(h("div", { className: "async-loading-state" }, [
+    Skeleton({ style: { width: "64px", height: "64px", borderRadius: "12px" } }),
+    Skeleton({ style: { width: "150px", height: "16px", borderRadius: "4px" } }),
+    Skeleton({ style: { width: "100px", height: "11px", borderRadius: "4px" } }),
+  ]));
 
-  body.appendChild(
-    h("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" } }, [
-      Skeleton({ style: { width: "64px", height: "64px", borderRadius: "12px" } }),
-      Skeleton({ style: { width: "150px", height: "16px", borderRadius: "4px" } }),
-      Skeleton({ style: { width: "100px", height: "11px", borderRadius: "4px" } }),
-    ])
-  );
-
-  fetchData()
-    .then((result) => {
-      body.innerHTML = "";
-      if (!result) {
-        body.appendChild(text("div", { style: { textAlign: "center", color: "var(--text-muted)", fontSize: "13px", padding: "30px 0" } }, notFoundMessage));
-        return;
-      }
-      renderBody(body, result);
-    })
-    .catch((err) => {
-      body.innerHTML = "";
-      body.appendChild(text("div", { style: { textAlign: "center", color: "var(--danger)", fontSize: "13px", padding: "30px 0" } }, err.message || "Couldn't load \u2014 check your connection."));
-    });
+  let settled = false;
+  fetchData().then((result) => {
+    settled = true;
+    body.innerHTML = "";
+    if (!result) {
+      body.appendChild(text("div", { className: "async-empty-state" }, notFoundMessage));
+      return;
+    }
+    renderBody(body, result);
+  }).catch((err) => {
+    settled = true;
+    body.innerHTML = "";
+    body.appendChild(text("div", { className: "async-error-state" }, err.message || "Couldn't load — check your connection."));
+  });
 
   return container;
 }
