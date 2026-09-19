@@ -1,102 +1,27 @@
 import { h, text } from "../utils/h.js";
 import { UNLOCK_COST } from "../store.js";
-
-// props: { match, isUnlocked, coins, onRequestUpgrade, onUnlockWithCoins }
 export function PredictionsPanel({ match, isUnlocked, coins, onRequestUpgrade, onUnlockWithCoins }) {
-  const voteRow = h(
-    "div",
-    { style: { display: "flex", borderTop: "0.5px solid var(--border)", borderBottom: "0.5px solid var(--border)" } },
-    [
-      ["Home", match.votes.h],
-      ["Draw", match.votes.d],
-      ["Away", match.votes.a],
-    ].map(([label, pct], i) =>
-      h(
-        "div",
-        {
-          style: {
-            flex: "1",
-            padding: "9px 0",
-            textAlign: "center",
-            borderRight: i < 2 ? "0.5px solid var(--border)" : "none",
-          },
-        },
-        [
-          text("div", { style: { fontSize: "11px", color: "var(--text-muted)" } }, label),
-          text("div", { className: "mono", style: { fontWeight: "600" } }, `${pct}%`),
-        ]
-      )
-    )
-  );
-
-  const canAffordCoins = coins >= UNLOCK_COST;
-
-  const winnerBody = isUnlocked
-    ? [
-        text("div", { style: { fontSize: "18px", fontWeight: "700", color: "var(--accent)" } }, match.winner),
-        text("div", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" } }, `${match.confidence}% confidence`),
-      ]
-    : [
-        text("div", { style: { filter: "blur(5px)", fontSize: "18px", fontWeight: "700" } }, match.winner),
-        h("div", { style: { marginTop: "10px", display: "flex", gap: "8px", flexWrap: "wrap" } }, [
-          h(
-            "button",
-            {
-              onClick: onRequestUpgrade,
-              style: {
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                border: "none",
-                background: "var(--accent-bg)",
-                color: "var(--accent)",
-                padding: "7px 12px",
-                borderRadius: "6px",
-                fontSize: "12px",
-                fontWeight: "600",
-              },
-            },
-            [
-              h("i", { "data-lucide": "lock", "aria-hidden": "true", style: { width: "13px", height: "13px" } }),
-              text("span", {}, "Unlock with VIP"),
-            ]
-          ),
-          h(
-            "button",
-            {
-              onClick: canAffordCoins ? onUnlockWithCoins : null,
-              disabled: !canAffordCoins,
-              style: {
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                border: "0.5px solid var(--border)",
-                background: "none",
-                color: canAffordCoins ? "var(--text)" : "var(--text-muted)",
-                padding: "7px 12px",
-                borderRadius: "6px",
-                fontSize: "12px",
-                fontWeight: "600",
-                opacity: canAffordCoins ? "1" : "0.5",
-              },
-            },
-            [
-              h("i", { "data-lucide": "coins", "aria-hidden": "true", style: { width: "13px", height: "13px" } }),
-              text("span", {}, `Unlock for ${UNLOCK_COST} coins`),
-            ]
-          ),
-        ]),
-      ];
-
-  return h("div", { style: { padding: "18px" } }, [
-    h("div", { style: { marginBottom: "18px" } }, [
-      text("div", { style: { fontSize: "13px", fontWeight: "600", color: "var(--text-dim)", marginBottom: "8px" } }, "Community vote"),
-      voteRow,
+  const canAfford = coins >= UNLOCK_COST;
+  return h("section", { className: "prediction-panel" }, [
+    h("div", { className: "prediction-card card" }, [
+      h("div", { className: "prediction-card-heading" }, [text("div", { className: "section-kicker" }, "COMMUNITY VOTE"), text("span", { className: "prediction-total mono" }, "100%")]),
+      h("div", { className: "vote-grid" }, [vote("HOME", match.votes.h), vote("DRAW", match.votes.d), vote("AWAY", match.votes.a)]),
     ]),
-    h("div", { className: "shadow-sm", style: { border: "0.5px solid var(--border)", borderRadius: "8px", padding: "16px", position: "relative" } }, [
-      text("span", { style: { position: "absolute", top: "14px", right: "14px", color: "var(--accent)", fontSize: "11px", fontWeight: "700" } }, "VIP"),
-      text("div", { style: { fontSize: "13px", fontWeight: "600", color: "var(--text-dim)", marginBottom: "8px" } }, "Predicted winner"),
-      ...winnerBody,
+    h("div", { className: "prediction-card card " + (isUnlocked ? "unlocked" : "locked") }, [
+      h("div", { className: "prediction-card-heading" }, [text("div", { className: "section-kicker" }, "PREDICTED WINNER"), h("span", { className: "vip-badge" }, [h("i", { "data-lucide": "gem" }), text("span", {}, "VIP")])]),
+      isUnlocked
+        ? h("div", { className: "prediction-result" }, [text("strong", {}, match.winner), text("span", { className: "confidence" }, match.confidence + "% confidence")])
+        : h("div", { className: "prediction-locked" }, [
+            text("strong", { className: "prediction-blurred" }, match.winner),
+            text("p", {}, "Unlock the full signal to reveal the predicted winner."),
+            h("div", { className: "prediction-actions" }, [
+              h("button", { className: "primary-button", onClick: onRequestUpgrade }, [h("i", { "data-lucide": "gem" }), text("span", {}, "Unlock with VIP")]),
+              h("button", { className: "secondary-button", disabled: !canAfford, onClick: canAfford ? onUnlockWithCoins : null }, [h("i", { "data-lucide": "coins" }), text("span", {}, "Use " + UNLOCK_COST + " coins")]),
+            ]),
+          ]),
     ]),
   ]);
+}
+function vote(label, pct) {
+  return h("div", { className: "vote-cell" }, [text("span", {}, label), text("strong", { className: "mono" }, pct + "%"), h("div", { className: "vote-track" }, [h("span", { style: { width: pct + "%" } })])]);
 }
