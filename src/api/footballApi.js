@@ -1,58 +1,47 @@
-import { FOOTBALL_API_KEY } from "./config.js";
-
-const BASE_URL = "https://v3.football.api-sports.io";
+const BASE_URL = "/api/football";
 const REQUEST_TIMEOUT_MS = 12000;
 
 async function fetchFootball(endpoint, params = {}) {
-  const query = new URLSearchParams();
+  const query = new URLSearchParams({ endpoint });
 
   for (const [key, value] of Object.entries(params)) {
     if (value == null || value === "") continue;
     query.set(key, String(value));
   }
 
-  const url = `${BASE_URL}/${endpoint}${query.toString() ? `?${query.toString()}` : ""}`;
-
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const res = await fetch(url, {
+    const res = await fetch(`${BASE_URL}?${query.toString()}`, {
       method: "GET",
-      headers: {
-        "x-apisports-key": FOOTBALL_API_KEY,
-      },
+      headers: { Accept: "application/json" },
       signal: controller.signal,
     });
 
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
-      const providerErrors = data?.errors;
-      const providerMessage =
-        typeof providerErrors === "string"
-          ? providerErrors
-          : providerErrors && typeof providerErrors === "object"
-            ? Object.values(providerErrors).flat().join("; ")
-            : "";
+      const message =
+        data?.error ||
+        data?.details ||
+        `Football data request failed (${res.status})`;
 
       throw new Error(
-        providerMessage ||
-        data?.message ||
-        `Football data request failed (${res.status})`
+        typeof message === "string"
+          ? message
+          : "Football data request failed."
       );
     }
 
-    if (data?.errors && Object.keys(data.errors).length) {
-      const message = Object.values(data.errors).flat().join("; ");
-      throw new Error(message || "Football API returned an error.");
+    if (!Array.isArray(data)) {
+      throw new Error(
+        data?.error ||
+        "Football data service returned an invalid response."
+      );
     }
 
-    if (!Array.isArray(data?.response)) {
-      throw new Error("Football API returned an invalid response.");
-    }
-
-    return data.response;
+    return data;
   } catch (error) {
     if (error?.name === "AbortError") {
       throw new Error("Football data request timed out. Please try again.");
