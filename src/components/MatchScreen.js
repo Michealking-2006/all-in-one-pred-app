@@ -3,7 +3,8 @@ import { OddsTable } from "./OddsTable.js";
 import { PredictionsPanel } from "./PredictionsPanel.js";
 const TABS=["summary","predictions","odds","lineup","standings"];
 export function MatchScreen({match,matchTab,isVip,coins,isFavorite,onBack,onTabChange,onRequestUpgrade,onUnlockWithCoins,onToggleFavorite}){
- const active=matchTab||"summary";
+ if (!match) return h("main",{className:"screen match-screen match-missing"},[h("div",{className:"card match-missing-card"},[h("i",{"data-lucide":"circle-alert"}),text("strong",{},"Match unavailable"),text("span",{},"This match could not be loaded."),h("button",{className:"primary-button",onClick:onBack},"Go back")])]);
+ const active=TABS.includes(matchTab)?matchTab:"summary";
  return h("main",{className:"screen match-screen"},[
   h("header",{className:"match-header"},[
    h("button",{className:"match-header-button","aria-label":"Back",onClick:onBack},[h("i",{"data-lucide":"arrow-left"})]),
@@ -29,14 +30,14 @@ function renderPanel(tab,match,props){
  if(tab==="lineup")return lineupPanel(match);
  if(tab==="standings")return standingsPanel(match);
  return h("section",{className:"match-panel"},[
-  h("div",{className:"match-panel-block card"},[text("span",{className:"section-kicker"},"HEAD TO HEAD"),text("p",{className:"match-copy"},match.h2h)]),
+  h("div",{className:"match-panel-block card"},[text("span",{className:"section-kicker"},"HEAD TO HEAD"),text("p",{className:"match-copy"},match.h2h || "Head-to-head data is unavailable.")]),
   h("div",{className:"match-panel-block card"},[
    text("span",{className:"section-kicker"},"RECENT FORM"),
-   formRow(match.home,match.form.home),formRow(match.away,match.form.away)
+   formRow(match.home,match.form?.home),formRow(match.away,match.form?.away)
   ])
  ]);
 }
-function formRow(team,form){return h("div",{className:"form-row"},[text("strong",{},team),h("div",{className:"form-badges"},form.map(v=>h("span",{className:"form-badge form-"+String(v).toLowerCase()},v)))]);}
+function formRow(team,form){return h("div",{className:"form-row"},[text("strong",{},team),h("div",{className:"form-badges"},form.length?form.map(v=>h("span",{className:"form-badge form-"+String(v).toLowerCase()},v)):text("span",{className:"muted-copy"},"No form data"))]);}
 function playerRow(p){return h("div",{className:"lineup-row"},[text("span",{className:"lineup-number mono"},p.no),text("strong",{className:"lineup-name"},p.name),text("span",{className:"lineup-pos"},p.pos)]);}
 function lineupTeam(name,formation,players){return h("div",{className:"lineup-team card"},[h("div",{className:"lineup-team-head"},[text("strong",{},name),text("span",{className:"mono"},formation)]),...players.map(playerRow)]);}
 function lineupPanel(match){return h("section",{className:"match-panel"},[lineupTeam(match.home,match.lineup.formation.home,match.lineup.home),lineupTeam(match.away,match.lineup.formation.away,match.lineup.away)]);}
