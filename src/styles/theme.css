@@ -340,3 +340,5 @@ button:disabled{cursor:not-allowed}
 .squad-list{overflow:hidden;padding:0}.squad-row{width:100%;border:0;border-bottom:1px solid var(--border-soft);background:var(--surface);text-align:left}.squad-row:last-child{border-bottom:0}
 
 .match-missing{display:flex;align-items:center;justify-content:center;min-height:60vh;padding:20px}.match-missing-card{display:grid;justify-items:center;gap:8px;text-align:center;padding:24px;max-width:300px}.match-missing-card svg{width:25px;color:var(--accent)}.match-missing-card strong{font-size:14px}.match-missing-card span{font-size:10px;color:var(--text-muted)}.match-missing-card .primary-button{margin-top:6px}.muted-copy{font-size:10px;color:var(--text-muted)}
+
+.home-header{padding:13px 16px 10px}.brand-lockup strong{font-size:15px}.brand-lockup span{display:none}.home-content{padding-top:2px}.section-heading.compact{align-items:center;padding:13px 2px 9px}.section-heading.compact h2{margin:0;font-size:16px}.league-group-header{padding:3px 2px 7px}.league-group-header .mono{font-size:8px}.match-pick .eyebrow{display:none}
