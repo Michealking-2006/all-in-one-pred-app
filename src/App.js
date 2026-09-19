@@ -30,6 +30,8 @@ import { ClubPage } from "./components/ClubPage.js";
 import { VenuePage } from "./components/VenuePage.js";
 import { PlayerPage } from "./components/PlayerPage.js";
 import { SearchScreen } from "./components/SearchScreen.js";
+import { AuthScreen } from "./components/AuthScreen.js";
+import { supabase } from "./api/supabase.js";
 
 // Every sub-page reached from Profile (not a bottom-nav destination itself)
 // still counts as "Profile" for the purpose of which nav icon lights up.
@@ -94,7 +96,7 @@ const actions = {
     store.setState({ language: lang });
     showToast(`Language set to ${lang}`);
   },
-  setAvatar: (avatarId) => {
+  signOut: async () => {\n    const { error } = await supabase.auth.signOut();\n    if (error) showToast("Unable to sign out right now", "error");\n    else { store.setState({ authUser: null }); navigate("/"); }\n  },\n  setAvatar: (avatarId) => {
     store.setState({ avatarId });
     showToast("Avatar updated", "success");
     window.history.back();
@@ -129,7 +131,7 @@ function App(state) {
     else if (type === "club") content = ClubPage({ id, onBack: actions.closeSubpage });
     else if (type === "venue") content = VenuePage({ id, onBack: actions.closeSubpage });
     else if (type === "player") content = PlayerPage({ id, onBack: actions.closeSubpage });
-  } else if (state.tab === "home") {
+  } else if (state.tab === "auth") {\n    content = AuthScreen({ mode: "login" });\n  } else if (state.tab === "home") {
     content = HomeScreen({
       onOpenMatch: actions.openMatch,
       favoriteMatchIds: state.favoriteMatchIds,
