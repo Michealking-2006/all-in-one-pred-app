@@ -44,7 +44,8 @@ export default async function handler(req, res) {
     });
   }
 
-  const endpoint = String(req.query?.endpoint || "").replace(/^\/+|\/+$/g, "");
+  const rawEndpoint = req.query?.endpoint;
+  const endpoint = String(Array.isArray(rawEndpoint) ? rawEndpoint[0] : rawEndpoint || "").replace(/^\/+|\/+$/g, "");
   if (!ALLOWED_ENDPOINTS.has(endpoint)) {
     return res.status(400).json({ error: "Unsupported football endpoint.", code: "INVALID_ENDPOINT" });
   }
