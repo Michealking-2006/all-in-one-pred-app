@@ -1,21 +1,41 @@
 import { h, text } from "../utils/h.js";
 import { createTabbedPage, emptyNode } from "../utils/tabbedPage.js";
-import { getLeagueById, getStandings, getUpcomingFixtures, getTopScorers } from "../api/footballApi.js";
-import { buildSlug } from "../utils/slug.js";\nimport { searchLeagues } from "../api/footballApi.js";
+import { getLeagueById, getStandings, getUpcomingFixtures, getTopScorers, searchLeagues } from "../api/footballApi.js";
+import { buildSlug, slugify } from "../utils/slug.js";
 import { navigate } from "../router.js";
 
-const seasonCache = new Map();
 function resolveSeason(id) {
-  if (!seasonCache.has(id)) {
-    seasonCache.set(id, getLeagueById(id).then((rows) => {
-      const current = rows[0]?.seasons?.find((season) => season.current);
-      return current?.year || new Date().getFullYear();
-    }));
-  }
-  return seasonCache.get(id);
+  return getLeagueById(id).then((rows) => {
+    const current = rows[0]?.seasons?.find((season) => season.current);
+    return current?.year || new Date().getFullYear();
+  });
 }
 
-export function LeaguePage({ id, onBack }) {
+function resolveLeagueId(slug) {
+  return searchLeagues(slug).then((rows) => {
+    const wanted = slugify(slug);
+    const exact = rows.find((row) => slugify(row.league?.name || "") === wanted);
+    return exact?.league?.id || rows[0]?.league?.id || null;
+  });
+}
+
+export function LeaguePage({ id, slug, onBack }) {
+  if (id) return createLeaguePage(id, onBack);
+  const page = h("main", { className: "screen league-page resolving-page" }, [
+    text("span", { className: "section-kicker" }, "COMPETITION"),
+    text("h1", {}, "Loading league…"),
+  ]);
+  resolveLeagueId(slug).then((leagueId) => {
+    if (!leagueId) {
+      page.replaceWith(emptyNode("League not found."));
+      return;
+    }
+    page.replaceWith(createLeaguePage(leagueId, onBack));
+  }).catch(() => page.replaceWith(emptyNode("Unable to load league.")));
+  return page;
+}
+
+function createLeaguePage(id, onBack) {
   return createTabbedPage({
     title: "League",
     onBack,
