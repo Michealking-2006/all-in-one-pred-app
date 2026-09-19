@@ -3,7 +3,6 @@ const REQUEST_TIMEOUT_MS = 12000;
 
 async function fetchFootball(endpoint, params = {}) {
   const query = new URLSearchParams({ endpoint });
-
   for (const [key, value] of Object.entries(params)) {
     if (value == null || value === "") continue;
     query.set(key, String(value));
@@ -14,98 +13,41 @@ async function fetchFootball(endpoint, params = {}) {
 
   try {
     const res = await fetch(`${BASE_URL}?${query.toString()}`, {
-      method: "GET",
       headers: { Accept: "application/json" },
       signal: controller.signal,
     });
-
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
-      const message =
-        data?.error ||
-        data?.details ||
-        `Football data request failed (${res.status})`;
-
-      throw new Error(
-        typeof message === "string"
-          ? message
-          : "Football data request failed."
-      );
+      const message = data?.error || data?.details || `Football data request failed (${res.status})`;
+      throw new Error(typeof message === "string" ? message : "Football data request failed.");
     }
-
-    if (!Array.isArray(data)) {
-      throw new Error(
-        data?.error ||
-        "Football data service returned an invalid response."
-      );
-    }
-
+    if (!Array.isArray(data)) throw new Error(data?.error || "Football data service returned an invalid response.");
     return data;
   } catch (error) {
-    if (error?.name === "AbortError") {
-      throw new Error("Football data request timed out. Please try again.");
-    }
-
+    if (error?.name === "AbortError") throw new Error("Football data request timed out. Please try again.");
     throw error;
   } finally {
     window.clearTimeout(timeout);
   }
 }
 
-export function searchLeagues(query) {
-  return fetchFootball("leagues", { search: query });
-}
-
-export function searchTeams(query) {
-  return fetchFootball("teams", { search: query });
-}
-
-export function searchPlayers(query, extraParams = {}) {
-  return fetchFootball("players", { search: query, ...extraParams });
-}
-
-export function searchVenues(query) {
-  return fetchFootball("venues", { search: query });
-}
-
-export function getLeagueById(id) {
-  return fetchFootball("leagues", { id });
-}
-
-export function getTeamById(id) {
-  return fetchFootball("teams", { id });
-}
-
-export function getVenueById(id) {
-  return fetchFootball("venues", { id });
-}
-
-export function getPlayerById(id, season = new Date().getFullYear()) {
-  return fetchFootball("players", { id, season });
-}
-
-export function getStandings(leagueId, season) {
-  return fetchFootball("standings", { league: leagueId, season });
-}
-
-export function getUpcomingFixtures(leagueId, season, count = 5) {
-  return fetchFootball("fixtures", { league: leagueId, season, next: count });
-}
-
-export function getTopScorers(leagueId, season) {
-  return fetchFootball("players/topscorers", { league: leagueId, season });
-}
-
-export function getTeamSquad(teamId, season = new Date().getFullYear()) {
-  return fetchFootball("players", { team: teamId, season });
-}
-
-export function getTeamFixtures(teamId, { last, next } = { last: 5 }) {
-  const params = { team: teamId };
-
-  if (last) params.last = last;
-  if (next) params.next = next;
-
-  return fetchFootball("fixtures", params);
-}
+export const searchLeagues = (query) => fetchFootball("leagues", { search: query });
+export const searchTeams = (query) => fetchFootball("teams", { search: query });
+export const searchPlayers = (query, extraParams = {}) => fetchFootball("players", { search: query, ...extraParams });
+export const searchVenues = (query) => fetchFootball("venues", { search: query });
+export const getLeagueById = (id) => fetchFootball("leagues", { id });
+export const getTeamById = (id) => fetchFootball("teams", { id });
+export const getVenueById = (id) => fetchFootball("venues", { id });
+export const getPlayerById = (id, season = new Date().getFullYear()) => fetchFootball("players", { id, season });
+export const getStandings = (leagueId, season, teamId = null) => fetchFootball("standings", { league: leagueId, season, ...(teamId ? { team: teamId } : {}) });
+export const getUpcomingFixtures = (leagueId, season, count = 8) => fetchFootball("fixtures", { league: leagueId, season, next: count });
+export const getTeamFixtures = (teamId, options = {}) => fetchFootball("fixtures", { team: teamId, ...options });
+export const getTopScorers = (leagueId, season) => fetchFootball("players/topscorers", { league: leagueId, season });
+export const getTopAssists = (leagueId, season) => fetchFootball("players/topassists", { league: leagueId, season });
+export const getTopYellowCards = (leagueId, season) => fetchFootball("players/topyellowcards", { league: leagueId, season });
+export const getTopRedCards = (leagueId, season) => fetchFootball("players/topredcards", { league: leagueId, season });
+export const getTeamStatistics = (team, league, season) => fetchFootball("teams/statistics", { team, league, season });
+export const getHeadToHead = (home, away, last = 5) => fetchFootball("fixtures/headtohead", { h2h: `${home}-${away}`, last });
+export const getPrediction = (fixture) => fetchFootball("predictions", { fixture });
+export const getTeamLeagues = (team) => fetchFootball("leagues", { team, current: true });
