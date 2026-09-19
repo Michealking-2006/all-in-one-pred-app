@@ -82,7 +82,7 @@ function loadFixtures(id) {
       const status = fixture.fixture.status?.short;
       const live = ["1H","HT","2H","ET","BT","P","LIVE"].includes(status);
       const score = fixture.goals?.home != null ? `${fixture.goals.home}–${fixture.goals.away}` : "VS";
-      return h("article", { className: "fixture-card" }, [
+      return h("button", { className: "fixture-card", onClick: () => navigate("/match/" + fixture.fixture.id), "aria-label": "Open match" }, [
         h("div", { className: "fixture-meta" }, [text("span", { className: "eyebrow" }, date.toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" }).toUpperCase()), text("span", { className: "fixture-time mono" }, live ? "LIVE" : score === "VS" ? date.toLocaleTimeString(undefined, {hour:"2-digit",minute:"2-digit"}) : status === "FT" ? "FULL TIME" : status || "")]),
         h("div", { className: "fixture-teams" }, [
           h("div", { className: "fixture-team" }, [h("img", { src: fixture.teams.home.logo, alt:"", className:"fixture-logo" }), text("span", {}, fixture.teams.home.name)]),
