@@ -34,9 +34,9 @@ function renderOverview(entry) {
   const current = (statistics || [])[0];
 
   const nodes = [
-    h("section", { className: "entity-hero" }, [
+    h("section", { className: "entity-hero player-hero" }, [
       SkeletonImage({ src: player.photo, size: 80, radius: "50%" }),
-      text("div", { style: { fontWeight: "700", fontSize: "18px", margin: "12px 0 4px", textAlign: "center" } }, player.name),
+      text("h1", { className: "entity-title" }, player.name),
       text("div", { className: "mono eyebrow" }, `${(player.nationality || "").toUpperCase()}${player.age ? ` \u00b7 AGE ${player.age}` : ""}`),
     ]),
   ];
