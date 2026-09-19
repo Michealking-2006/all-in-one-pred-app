@@ -2,7 +2,7 @@ import { h, text } from "../utils/h.js";
 import { SkeletonImage } from "./Skeleton.js";
 
 function row({icon,label,trailing,onClick,showChevron=true}) {
- return h("button",{className:"profile-row",onClick,disabled:!onClick},[
+ return h(onClick ? "button" : "div",{className:"profile-row",onClick},[
   h("span",{className:"profile-row-icon"},[h("i",{"data-lucide":icon,"aria-hidden":"true"})]),
   text("span",{className:"profile-row-label"},label),
   trailing || (showChevron?h("i",{className:"profile-chevron","data-lucide":"chevron-right","aria-hidden":"true"}):null)
