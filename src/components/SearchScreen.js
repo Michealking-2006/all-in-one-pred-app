@@ -7,8 +7,8 @@ import { navigate } from "../router.js";
 
 function skeletonRow() {
   return h("div", { className: "search-skeleton-row" }, [
-    Skeleton({ className: "search-skeleton-image" }),
-    Skeleton({ className: "search-skeleton-line" }),
+    Skeleton({ style: { width: "32px", height: "32px", borderRadius: "6px" } }),
+    Skeleton({ style: { flex: "1", height: "12px", borderRadius: "4px" } }),
   ]);
 }
 
@@ -28,7 +28,7 @@ function resultRow({ image, title, subtitle, route }) {
         : h("div", { className: "skeleton", style: { width: "32px", height: "32px", borderRadius: "6px", flexShrink: "0" } }),
       h("div", { className: "search-result-copy" }, [
         text("div", { className: "search-result-title" }, title),
-        subtitle ? text("div", { className: "mono eyebrow", className: "mono eyebrow search-result-subtitle" }, subtitle.toUpperCase()) : null,
+        subtitle ? text("div", { className: "mono eyebrow search-result-subtitle" }, subtitle.toUpperCase()) : null,
       ]),
     ]
   );
