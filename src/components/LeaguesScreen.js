@@ -5,7 +5,6 @@ import { slugify } from "../utils/slug.js";
 import { navigate } from "../router.js";
 
 const POPULAR_LEAGUE_IDS = [39, 140, 135, 78, 61, 2];
-let popularCache = null;
 
 function leagueRow(entry) {
   const { league, country } = entry;
@@ -36,14 +35,16 @@ export function LeaguesScreen() {
     if (!list.length) popular.appendChild(text("div", { className: "empty-state" }, "Popular leagues are unavailable right now."));
     else list.forEach((entry) => popular.appendChild(leagueRow(entry)));
   }
-  if (popularCache) renderPopular(popularCache);
-  else {
-    fillSkeletons(popular, 6);
-    Promise.all(POPULAR_LEAGUE_IDS.map((id) => getLeagueById(id).catch(() => null))).then((rows) => {
-      popularCache = rows.flatMap((row) => Array.isArray(row) ? row : []);
-      renderPopular(popularCache);
+  fillSkeletons(popular, 6);
+  Promise.all(POPULAR_LEAGUE_IDS.map((id) => getLeagueById(id)))
+    .then((rows) => {
+      const found = rows.flatMap((row) => Array.isArray(row) ? row : []);
+      renderPopular(found);
+    })
+    .catch((err) => {
+      popular.innerHTML = "";
+      popular.appendChild(text("div", { className: "error-state" }, err.message || "Unable to load football data."));
     });
-  }
   let timer = 0;
   input.addEventListener("input", () => {
     clearTimeout(timer);
