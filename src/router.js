@@ -11,6 +11,11 @@ function syncFromPath() {
   const parts = url.pathname.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
   const current = store.getState();
   const modal = url.searchParams.get("modal");
+  if (parts[0] === "auth") {
+    const mode = ["signup","reset","login"].includes(parts[1]) ? parts[1] : "login";
+    store.setState({ tab: "auth", authMode: mode, openMatchId: null, openEntity: null, modal });
+    return;
+  }
 
   if (parts[0] === "match" && parts[1]) {
     const id = Number(parts[1]);
