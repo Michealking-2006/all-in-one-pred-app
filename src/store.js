@@ -65,6 +65,7 @@ export const store = createStore({
   authUser: null,
   authMode: "login",
   openMatchId: null,
+  openFixtureId: null,
   matchTab: "summary",
   isVip: false,
   modal: null,
