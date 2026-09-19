@@ -1,14 +1,42 @@
-// Minimal store: getState/setState/subscribe. Any setState triggers every
-// subscriber (App's render function subscribes once at boot), the same
-// mental model as React re-rendering on state change — just manual.
+const STORAGE_KEY = "scoutwave.app.state.v2";
+const PERSISTED_KEYS = [
+  "isVip", "coins", "unlockedMatchIds", "favoriteMatchIds",
+  "selectedDayOffset", "language", "avatarId", "notificationPrefs"
+];
+
+function readPersisted() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+function persist(state) {
+  try {
+    const snapshot = {};
+    for (const key of PERSISTED_KEYS) snapshot[key] = state[key];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // Storage can be unavailable in private/restricted browser contexts.
+  }
+}
+
 function createStore(initialState) {
-  let state = initialState;
+  let state = { ...initialState, ...readPersisted() };
   const listeners = new Set();
 
   return {
     getState: () => state,
     setState(partial) {
-      state = { ...state, ...(typeof partial === "function" ? partial(state) : partial) };
+      const next = typeof partial === "function" ? partial(state) : partial;
+      if (!next || typeof next !== "object") return;
+      state = { ...state, ...next };
+      persist(state);
       listeners.forEach((fn) => fn(state));
     },
     subscribe(fn) {
@@ -23,15 +51,15 @@ export const store = createStore({
   openMatchId: null,
   matchTab: "summary",
   isVip: false,
-  modal: null, // e.g. "paywall" — any future sheet/popup sets its own name here
+  modal: null,
   coins: 8,
-  unlockedMatchIds: [], // match ids paid for one-off with coins, independent of VIP status
+  unlockedMatchIds: [],
   favoriteMatchIds: [],
-  selectedDayOffset: 0, // days from today, shown in the date strip
+  selectedDayOffset: 0,
   darkTheme: false,
   language: "English",
   avatarId: null,
-  openEntity: null, // { type: "league" | "club" | "venue" | "player", id }
+  openEntity: null,
   notificationPrefs: {
     kickoff: true,
     goals: true,
