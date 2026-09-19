@@ -271,3 +271,9 @@ body.theme-dark .app-shell{background:var(--bg)}
 .profile-row-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--surface-2);color:var(--text-muted);flex:0 0 34px}.profile-row-icon svg{width:17px}
 .profile-row-label{flex:1;font-size:12px;font-weight:600}.profile-trailing{font-size:11px;color:var(--text-muted)}.profile-row .settings-toggle{flex:0 0 44px}
 .profile-login{width:calc(100% - 32px);margin:24px 16px 26px;padding:13px 16px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:13px;background:var(--text);color:#fff;font-weight:700}.profile-login svg{width:16px}
+
+.form-field{display:block;margin-bottom:16px}.form-field-label{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em}
+.back-button{flex:0 0 36px}.page-header-title{flex:1;margin:0}
+.profile-row:not(button){cursor:default}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(hover:hover){.bottom-nav-item:hover:not(.active){background:var(--surface-2);color:var(--text)}.profile-row:hover,.settings-row:hover{background:#fafbfc}.premium-row:hover{background:rgba(255,255,255,.35)}}
