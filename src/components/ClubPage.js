@@ -48,7 +48,7 @@ function loadMatches(id){
  return getTeamFixtures(id,{last:8,next:8}).then(fs=>fs.length?h("div",{className:"fixture-list"},fs.map(f=>{
   const d=new Date(f.fixture.date), home=f.teams.home.id===id, status=f.fixture.status?.short;
   const score=f.goals?.home!=null?`${f.goals.home}–${f.goals.away}`:"VS";
-  return h("article",{className:"fixture-card"},[
+  return h("button",{className:"fixture-card",onClick:()=>navigate("/match/"+f.fixture.id),"aria-label":"Open match"},[
    h("div",{className:"fixture-meta"},[text("span",{className:"eyebrow"},d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}).toUpperCase()),text("span",{className:"fixture-time mono"},status||"")]),
    h("div",{className:"fixture-teams"},[
     h("div",{className:"fixture-team"},[h("img",{className:"fixture-logo",src:f.teams.home.logo,alt:""}),text("span",{},f.teams.home.name)]),
