@@ -131,7 +131,7 @@ function App(state) {
     else if (type === "club") content = ClubPage({ id, onBack: actions.closeSubpage });
     else if (type === "venue") content = VenuePage({ id, onBack: actions.closeSubpage });
     else if (type === "player") content = PlayerPage({ id, onBack: actions.closeSubpage });
-  } else if (state.tab === "auth") {\n    content = AuthScreen({ mode: "login" });\n  } else if (state.tab === "home") {
+  } else if (state.tab === "auth") {\n    content = AuthScreen({ mode: state.authMode || "login" });\n  } else if (state.tab === "home") {
     content = HomeScreen({
       onOpenMatch: actions.openMatch,
       favoriteMatchIds: state.favoriteMatchIds,
