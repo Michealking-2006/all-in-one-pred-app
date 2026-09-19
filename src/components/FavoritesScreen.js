@@ -1,55 +1,28 @@
 import { h, text } from "../utils/h.js";
 import { matches } from "../data/mockData.js";
+import { PageHeader } from "./PageHeader.js";
 
-// props: { favoriteMatchIds, onToggleFavorite, onOpenMatch, onBack }
 export function FavoritesScreen({ favoriteMatchIds, onToggleFavorite, onOpenMatch, onBack }) {
-  const favorited = matches.filter((m) => favoriteMatchIds.includes(m.id));
-
-  return h("div", { className: "screen" }, [
-    h("div", { style: { padding: "14px 18px", display: "flex", alignItems: "center", gap: "10px" } }, [
-      h(
-        "button",
-        { "aria-label": "Back", onClick: onBack, style: { border: "none", background: "none", color: "var(--text)", padding: "2px" } },
-        [h("i", { "data-lucide": "arrow-left", "aria-hidden": "true", style: { width: "18px", height: "18px" } })]
-      ),
-      text("span", { style: { fontWeight: "700", fontSize: "16px" } }, "My favourites"),
-    ]),
-    favorited.length === 0
-      ? text("div", { style: { padding: "40px 18px", textAlign: "center", color: "var(--text-muted)", fontSize: "13px" } }, "No favourites yet — tap the star on any match to add it here.")
-      : h(
-          "div",
-          {},
-          favorited.map((m) =>
-            h("div", { style: { padding: "12px 18px", borderBottom: "0.5px solid var(--border-soft)", display: "flex", alignItems: "center", gap: "10px" } }, [
-              h(
-                "div",
-                { role: "button", tabindex: "0", onClick: () => onOpenMatch(m.id), style: { flex: "1" } },
-                [
-                  text("div", { style: { fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px" } }, `${m.league} \u2014 ${m.time === "FT" ? "full time" : m.time}`),
-                  h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, [
-                    h("div", { style: { fontSize: "14px", lineHeight: "1.5" } }, [text("span", {}, m.home), h("br"), text("span", {}, m.away)]),
-                    h("div", { className: "mono", style: { fontSize: "18px", fontWeight: "600", textAlign: "right", lineHeight: "1.4" } }, [
-                      text("span", {}, m.scoreH),
-                      h("br"),
-                      text("span", {}, m.scoreA),
-                    ]),
-                  ]),
-                ]
-              ),
-              h(
-                "button",
-                {
-                  "aria-label": "Remove from favorites",
-                  onClick: (e) => {
-                    e.stopPropagation();
-                    onToggleFavorite(m.id);
-                  },
-                  style: { border: "none", background: "none", padding: "4px", color: "var(--accent)" },
-                },
-                [h("i", { "data-lucide": "star", "aria-hidden": "true", style: { width: "18px", height: "18px" }, fill: "currentColor" })]
-              ),
-            ])
-          )
-        ),
-  ]);
+ const favorited=matches.filter(m=>favoriteMatchIds.includes(m.id));
+ return h("main",{className:"screen favorites-screen"},[
+  PageHeader({title:"My favourites",onBack}),
+  h("section",{className:"favorites-intro"},[
+   text("span",{className:"section-kicker"},"YOUR WATCHLIST"),
+   text("h1",{},"Matches you follow."),
+   text("p",{},"Your saved games stay one tap away.")
+  ]),
+  favorited.length===0
+   ? h("section",{className:"empty-card card"},[h("div",{className:"empty-icon"},[h("i",{"data-lucide":"star"})]),text("strong",{},"No favourites yet"),text("p",{},"Tap the star on any match to keep it here.")])
+   : h("section",{className:"favorites-list"},favorited.map(m=>h("article",{className:"favorite-card"},[
+      h("button",{className:"favorite-card-main",onClick:()=>onOpenMatch(m.id)},[
+       h("div",{className:"favorite-card-meta"},[text("span",{className:"eyebrow"},m.league),text("span",{className:"badge "+(m.status==="live"?"badge-live":"badge-muted")},m.status==="live"?m.minute+"'":m.time)]),
+       h("div",{className:"favorite-match"},[
+        h("div",{className:"favorite-team-stack"},[text("strong",{},m.home),text("strong",{},m.away)]),
+        h("div",{className:"favorite-score mono"},[text("span",{},m.scoreH),text("span",{},m.scoreA)])
+       ]),
+       h("div",{className:"favorite-signal"},[text("span",{className:"section-kicker"},"SIGNAL"),text("strong",{},m.winner),text("span",{className:"confidence"},m.confidence+"%")])
+      ]),
+      h("button",{className:"favorite-remove",onClick:()=>onToggleFavorite(m.id),"aria-label":"Remove from favourites"},[h("i",{"data-lucide":"star",fill:"currentColor"})])
+   ])))
+ ]);
 }
