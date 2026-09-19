@@ -116,7 +116,9 @@ function App(state) {
   const avatarSrc = getAvatarSrc(state.avatarId);
 
   let content;
-  if (openMatch) {
+  if (state.openFixtureId) {
+    content = MatchScreen({ fixtureId: state.openFixtureId, matchTab: state.matchTab, onBack: actions.closeMatch, isFavorite: false, onToggleFavorite: () => {} });
+  } else if (openMatch) {
     content = MatchScreen({
       match: openMatch,
       matchTab: state.matchTab,
