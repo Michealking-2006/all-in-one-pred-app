@@ -36,9 +36,11 @@ export function LeaguesScreen() {
     else list.forEach((entry) => popular.appendChild(leagueRow(entry)));
   }
   fillSkeletons(popular, 6);
-  Promise.all(POPULAR_LEAGUE_IDS.map((id) => getLeagueById(id)))
-    .then((rows) => {
-      const found = rows.flatMap((row) => Array.isArray(row) ? row : []);
+  Promise.allSettled(POPULAR_LEAGUE_IDS.map((id) => getLeagueById(id)))
+    .then((results) => {
+      const found = results
+        .filter((result) => result.status === "fulfilled")
+        .flatMap((result) => Array.isArray(result.value) ? result.value : []);
       renderPopular(found);
     })
     .catch((err) => {
