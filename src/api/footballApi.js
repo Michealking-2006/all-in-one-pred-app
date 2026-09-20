@@ -51,3 +51,5 @@ export const getTeamStatistics = (team, league, season) => fetchFootball("teams/
 export const getHeadToHead = (home, away, last = 5) => fetchFootball("fixtures/headtohead", { h2h: `${home}-${away}`, last });
 export const getPrediction = (fixture) => fetchFootball("predictions", { fixture });
 export const getTeamLeagues = (team) => fetchFootball("leagues", { team, current: true });
+
+export function getFixturesByDate(date) { return fetchFootball("fixtures", { date }); }
