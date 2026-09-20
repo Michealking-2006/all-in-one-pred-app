@@ -20,7 +20,7 @@ function syncFromPath() {
   if (parts[0] === "match" && parts[1]) {
     const id = Number(parts[1]);
     if (Number.isInteger(id) && id > 0) {
-      store.setState({ openMatchId: null, openFixtureId: id, openEntity: null, matchTab: id === current.openMatchId ? current.matchTab : "summary", modal });
+      store.setState({ openMatchId: null, openFixtureId: id, openEntity: null, matchTab: id === current.openFixtureId ? current.matchTab : "summary", modal });
       return;
     }
   }
@@ -34,13 +34,14 @@ function syncFromPath() {
   }
 
   if (parts.length === 1 && parts[0] && !VALID_TABS.has(parts[0])) {
-    store.setState({ openEntity: { type: "league-slug", slug: parts[0] }, openMatchId: null, modal });
+    store.setState({ tab: "home", openEntity: { type: "league-slug", slug: parts[0] }, openMatchId: null, openFixtureId: null, modal });
     return;
   }
 
   store.setState({
     tab: VALID_TABS.has(parts[0]) ? parts[0] : "home",
     openMatchId: null,
+    openFixtureId: null,
     openEntity: null,
     modal,
   });
