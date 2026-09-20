@@ -4,6 +4,27 @@ const SESSION_KEY = "scoutwave.supabase.session.v1";
 
 const listeners = new Set();
 
+function consumeOAuthSession() {
+  const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+  if (!hash) return false;
+  const params = new URLSearchParams(hash);
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  if (!accessToken) return false;
+  const expiresIn = Number(params.get("expires_in") || 3600);
+  const session = {
+    access_token: accessToken,
+    refresh_token: refreshToken || "",
+    token_type: params.get("token_type") || "bearer",
+    expires_in: expiresIn,
+    expires_at: Math.floor(Date.now() / 1000) + expiresIn,
+  };
+  writeSession(session);
+  emit("SIGNED_IN", session);
+  history.replaceState(history.state, document.title, window.location.pathname + window.location.search);
+  return true;
+}
+
 function readSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -96,10 +117,24 @@ async function currentUser() {
   }
 }
 
+export async function initializeAuth() {
+  return consumeOAuthSession();
+}
+
 export const supabase = {
   auth: {
     async getUser() {
       return { data: { user: await currentUser() }, error: null };
+    },
+
+    async signInWithOAuth({ provider, options = {} }) {
+      if (provider !== "google") return { data: null, error: new Error("This sign-in provider is not available.") };
+      const redirectTo = options.redirectTo || window.location.origin + "/auth";
+      const url = new URL(SUPABASE_URL + "/auth/v1/authorize");
+      url.searchParams.set("provider", "google");
+      url.searchParams.set("redirect_to", redirectTo);
+      window.location.assign(url.toString());
+      return { data: { url: url.toString(), provider: "google" }, error: null };
     },
 
     async signInWithPassword({ email, password }) {
