@@ -158,7 +158,7 @@ function renderRealSummary(fixture) {
     card.appendChild(renderH2H(rows, home.id, away.id));
   });
 
-  return withMatchScoreboard(root, fixture);
+  return withMatchScoreboard(root, fixture, onBack, isFavorite, onToggleFavorite);
 }
 
 function renderH2H(rows, homeId, awayId) {
@@ -307,14 +307,14 @@ function scoreboard({ league, status, home, away, homeScore, awayScore, live }) 
   ]);
 }
 
-function withMatchScoreboard(body, fixture) {
+function withMatchScoreboard(body, fixture, onBack, isFavorite, onToggleFavorite) {
   const teams = fixture.teams || {};
   const goals = fixture.goals || {};
   const status = fixture.fixture?.status || {};
   const score = fixture.score?.fulltime || {};
   const live = ["1H", "HT", "2H", "ET", "BT", "P", "LIVE"].includes(status.short);
   const shell = h("main", { className: "screen match-screen" }, [
-    matchHeader(() => history.back(), false, () => {}, "Match"),
+    matchHeader(onBack, isFavorite, onToggleFavorite, "Match"),
     scoreboard({
       league: fixture.league?.name,
       status: live ? (status.elapsed ?? "") + "' LIVE" : status.long || status.short || "Scheduled",
