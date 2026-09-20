@@ -1,7 +1,7 @@
 import { h, text } from "../utils/h.js";
 import { OddsTable } from "./OddsTable.js";
 import { PredictionsPanel } from "./PredictionsPanel.js";
-import { getFixtureById, getPredictions, getHeadToHead, getFixtureEvents, getFixtureLineups, getFixtureStatistics } from "../api/footballApi.js";
+import { getFixtureById, getPrediction, getHeadToHead, getFixtureEvents, getFixtureLineups, getFixtureStatistics } from "../api/footballApi.js";
 import { createTabbedPage, emptyNode, skeletonBlock } from "../utils/tabbedPage.js";
 
 const TABS = ["summary", "events", "lineups", "stats", "prediction"];
@@ -99,7 +99,7 @@ function loadRealTab(tab, fixture) {
   if (!fixture) return emptyNode("This match is no longer available from the football data provider.");
 
   if (tab === "prediction") {
-    return getPredictions(fixture.fixture.id)
+    return getPrediction(fixture.fixture.id)
       .then((rows) => renderPrediction(fixture, rows[0] || null));
   }
 
