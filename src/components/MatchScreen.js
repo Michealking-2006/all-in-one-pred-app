@@ -89,13 +89,13 @@ function RealMatchPage({ fixtureId, defaultTab, onBack, isFavorite, onToggleFavo
     tabs: TABS.map((id) => ({
       id,
       label: id === "prediction" ? "Prediction" : id.charAt(0).toUpperCase() + id.slice(1),
-      load: () => fixturePromise.then((fixture) => loadRealTab(id, fixture)),
+      load: () => fixturePromise.then((fixture) => loadRealTab(id, fixture, { onBack, isFavorite, onToggleFavorite })),
     })),
     beforeTabs: null,
   });
 }
 
-function loadRealTab(tab, fixture) {
+function loadRealTab(tab, fixture, controls = {}) {
   if (!fixture) return emptyNode("This match is no longer available from the football data provider.");
 
   if (tab === "prediction") {
@@ -112,10 +112,10 @@ function loadRealTab(tab, fixture) {
   if (tab === "stats") {
     return getFixtureStatistics(fixture.fixture.id).then((rows) => renderStats(rows)).catch(() => emptyNode("Match statistics are unavailable right now."));
   }
-  return renderRealSummary(fixture);
+  return renderRealSummary(fixture, controls);
 }
 
-function renderRealSummary(fixture) {
+function renderRealSummary(fixture, controls = {}) {
   const fixtureInfo = fixture.fixture || {};
   const league = fixture.league || {};
   const teams = fixture.teams || {};
@@ -158,7 +158,7 @@ function renderRealSummary(fixture) {
     card.appendChild(renderH2H(rows, home.id, away.id));
   });
 
-  return withMatchScoreboard(root, fixture, onBack, isFavorite, onToggleFavorite);
+  return withMatchScoreboard(root, fixture, controls.onBack, controls.isFavorite, controls.onToggleFavorite);
 }
 
 function renderH2H(rows, homeId, awayId) {
