@@ -43,6 +43,7 @@ export const getPlayerById = (id, season = new Date().getFullYear()) => fetchFoo
 export const getStandings = (leagueId, season, teamId = null) => fetchFootball("standings", { league: leagueId, season, ...(teamId ? { team: teamId } : {}) });
 export const getUpcomingFixtures = (leagueId, season, count = 8) => fetchFootball("fixtures", { league: leagueId, season, next: count });
 export const getTeamFixtures = (teamId, options = {}) => fetchFootball("fixtures", { team: teamId, ...options });
+export const getTeamSquad = (teamId) => fetchFootball("players/squads", { team: teamId });
 export const getTopScorers = (leagueId, season) => fetchFootball("players/topscorers", { league: leagueId, season });
 export const getTopAssists = (leagueId, season) => fetchFootball("players/topassists", { league: leagueId, season });
 export const getTopYellowCards = (leagueId, season) => fetchFootball("players/topyellowcards", { league: leagueId, season });
