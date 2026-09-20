@@ -52,7 +52,7 @@ function matchRow(match, favourite, props) {
   ]);
 }
 
-function leagueSection(group) {
+function leagueSection(group, props) {
   return h("section", { className: "ios-league-section" }, [
     h("header", { className: "ios-league-header" }, [
       h("div", { className: "ios-league-title" }, [
@@ -62,7 +62,7 @@ function leagueSection(group) {
       text("span", { className: "mono ios-league-count" }, String(group.items.length)),
     ]),
     h("div", { className: "ios-match-list" },
-      group.items.map((match) => matchRow(match, false, {}))
+      group.items.map((match) => matchRow(match, (props.favoriteMatchIds || []).includes(match.id), props))
     ),
   ]);
 }
