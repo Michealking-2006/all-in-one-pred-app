@@ -6,32 +6,52 @@ import { matches } from "./data/mockData.js";
 import { getAvatarSrc } from "./data/avatars.js";
 import { BottomNav } from "./components/BottomNav.js";
 import { HomeScreen } from "./components/HomeScreen.js";
-import { LeaguesScreen } from "./components/LeaguesScreen.js";
-import { MatchScreen } from "./components/MatchScreen.js";
-import { VipTipsScreen } from "./components/VipTipsScreen.js";
-import { ProfileScreen } from "./components/ProfileScreen.js";
-import { FavoritesScreen } from "./components/FavoritesScreen.js";
-import { EditProfileScreen } from "./components/EditProfileScreen.js";
-import { ChangePasswordScreen } from "./components/ChangePasswordScreen.js";
-import { NewsScreen } from "./components/NewsScreen.js";
-import { NotificationsScreen } from "./components/NotificationsScreen.js";
-import { HelpCentreScreen } from "./components/HelpCentreScreen.js";
-import { ReportIssueScreen } from "./components/ReportIssueScreen.js";
-import { ContactUsScreen } from "./components/ContactUsScreen.js";
-import { PrivacyPolicyScreen } from "./components/PrivacyPolicyScreen.js";
-import { TermsOfUseScreen } from "./components/TermsOfUseScreen.js";
-import { AboutScreen } from "./components/AboutScreen.js";
-import { LanguageScreen } from "./components/LanguageScreen.js";
-import { PremiumScreen } from "./components/PremiumScreen.js";
-import { CoinsScreen } from "./components/CoinsScreen.js";
-import { AvatarPickerScreen } from "./components/AvatarPickerScreen.js";
-import { LeaguePage } from "./components/LeaguePage.js";
-import { ClubPage } from "./components/ClubPage.js";
-import { VenuePage } from "./components/VenuePage.js";
-import { PlayerPage } from "./components/PlayerPage.js";
-import { SearchScreen } from "./components/SearchScreen.js";
-import { AuthScreen } from "./components/AuthScreen.js";
-import { supabase } from "./api/supabase.js";
+
+const lazyModules = new Map();
+const lazyPromises = new Map();
+const lazyErrors = new Map();
+
+function lazyScreen(key, loader, props = {}) {
+  const loaded = lazyModules.get(key);
+  if (loaded) return loaded(props);
+
+  const error = lazyErrors.get(key);
+  if (error) {
+    return h("main", { className: "screen app-error-screen" }, [
+      h("div", { className: "app-error-card card" }, [
+        h("h1", {}, "This screen could not load"),
+        h("p", {}, "A page module failed to load. Return to Games and continue using the app."),
+        h("button", { className: "primary-button", onClick: () => navigate("/") }, "Back to Games"),
+      ]),
+    ]);
+  }
+
+  if (!lazyPromises.has(key)) {
+    const promise = loader()
+      .then((module) => {
+        const component = module[key];
+        if (typeof component !== "function") throw new Error("Missing screen export: " + key);
+        lazyModules.set(key, component);
+        return component;
+      })
+      .catch((loadError) => {
+        lazyErrors.set(key, loadError);
+        lazyPromises.delete(key);
+        console.error("Scoutwave screen load error:", key, loadError);
+        return null;
+      });
+
+    lazyPromises.set(key, promise);
+    promise.then(() => render());
+  }
+
+  return h("main", { className: "screen detail-screen" }, [
+    h("div", { className: "detail-panel" }, [
+      h("div", { className: "skeleton", style: { width: "45%", height: "18px", marginBottom: "12px", borderRadius: "6px" } }),
+      h("div", { className: "skeleton", style: { width: "100%", height: "110px", borderRadius: "14px" } }),
+    ]),
+  ]);
+}
 
 // Every sub-page reached from Profile (not a bottom-nav destination itself)
 // still counts as "Profile" for the purpose of which nav icon lights up.
@@ -117,9 +137,9 @@ function App(state) {
 
   let content;
   if (state.openFixtureId) {
-    content = MatchScreen({ fixtureId: state.openFixtureId, matchTab: state.matchTab, onBack: actions.closeMatch, isFavorite: state.favoriteMatchIds.includes(state.openFixtureId), onToggleFavorite: () => actions.toggleFavorite(state.openFixtureId) });
+    content = lazyScreen("MatchScreen", () => import("./components/MatchScreen.js"), { fixtureId: state.openFixtureId, matchTab: state.matchTab, onBack: actions.closeMatch, isFavorite: state.favoriteMatchIds.includes(state.openFixtureId), onToggleFavorite: () => actions.toggleFavorite(state.openFixtureId) });
   } else if (openMatch) {
-    content = MatchScreen({
+    content = lazyScreen("MatchScreen", () => import("./components/MatchScreen.js"), {
       match: openMatch,
       matchTab: state.matchTab,
       isVip: isUnlocked(openMatch.id),
@@ -133,13 +153,13 @@ function App(state) {
     });
   } else if (state.openEntity) {
     const { type, id, slug } = state.openEntity;
-    if (type === "league") content = LeaguePage({ id, onBack: actions.closeSubpage });
-    else if (type === "league-slug") content = LeaguePage({ slug, onBack: actions.closeSubpage });
-    else if (type === "club") content = ClubPage({ id, onBack: actions.closeSubpage });
-    else if (type === "venue") content = VenuePage({ id, onBack: actions.closeSubpage });
-    else if (type === "player") content = PlayerPage({ id, onBack: actions.closeSubpage });
+    if (type === "league") content = lazyScreen("LeaguePage", () => import("./components/LeaguePage.js"), { id, onBack: actions.closeSubpage });
+    else if (type === "league-slug") content = lazyScreen("LeaguePage", () => import("./components/LeaguePage.js"), { slug, onBack: actions.closeSubpage });
+    else if (type === "club") content = lazyScreen("ClubPage", () => import("./components/ClubPage.js"), { id, onBack: actions.closeSubpage });
+    else if (type === "venue") content = lazyScreen("VenuePage", () => import("./components/VenuePage.js"), { id, onBack: actions.closeSubpage });
+    else if (type === "player") content = lazyScreen("PlayerPage", () => import("./components/PlayerPage.js"), { id, onBack: actions.closeSubpage });
   } else if (state.tab === "auth") {
-    content = AuthScreen({ mode: state.authMode || "login" });
+    content = lazyScreen("AuthScreen", () => import("./components/AuthScreen.js"), { mode: state.authMode || "login" });
   } else if (state.tab === "home") {
     content = HomeScreen({
       onOpenMatch: actions.openMatch,
@@ -152,43 +172,43 @@ function App(state) {
       onOpenVip: () => actions.goTab("vip"),
     });
   } else if (state.tab === "leagues") {
-    content = LeaguesScreen();
+    content = lazyScreen("LeaguesScreen", () => import("./components/LeaguesScreen.js"));
   } else if (state.tab === "search") {
-    content = SearchScreen({ onBack: actions.closeSubpage });
+    content = lazyScreen("SearchScreen", () => import("./components/SearchScreen.js"), { onBack: actions.closeSubpage });
   } else if (state.tab === "vip") {
-    content = VipTipsScreen({ isVip: state.isVip, isUnlocked });
+    content = lazyScreen("VipTipsScreen", () => import("./components/VipTipsScreen.js"), { isVip: state.isVip, isUnlocked });
   } else if (state.tab === "favorites") {
-    content = FavoritesScreen({ favoriteMatchIds: state.favoriteMatchIds, onToggleFavorite: actions.toggleFavorite, onOpenMatch: actions.openMatch, onBack });
+    content = lazyScreen("FavoritesScreen", () => import("./components/FavoritesScreen.js"), { favoriteMatchIds: state.favoriteMatchIds, onToggleFavorite: actions.toggleFavorite, onOpenMatch: actions.openMatch, onBack });
   } else if (state.tab === "edit-profile") {
-    content = EditProfileScreen({ onBack, avatarSrc, onChooseAvatar: actions.openAvatarPicker });
+    content = lazyScreen("EditProfileScreen", () => import("./components/EditProfileScreen.js"), { onBack, avatarSrc, onChooseAvatar: actions.openAvatarPicker });
   } else if (state.tab === "avatar") {
-    content = AvatarPickerScreen({ current: state.avatarId, onSelect: actions.setAvatar, onBack });
+    content = lazyScreen("AvatarPickerScreen", () => import("./components/AvatarPickerScreen.js"), { current: state.avatarId, onSelect: actions.setAvatar, onBack });
   } else if (state.tab === "change-password") {
-    content = ChangePasswordScreen({ onBack });
+    content = lazyScreen("ChangePasswordScreen", () => import("./components/ChangePasswordScreen.js"), { onBack });
   } else if (state.tab === "news") {
-    content = NewsScreen({ onBack });
+    content = lazyScreen("NewsScreen", () => import("./components/NewsScreen.js"), { onBack });
   } else if (state.tab === "notifications") {
-    content = NotificationsScreen({ prefs: state.notificationPrefs, onTogglePref: actions.toggleNotificationPref, onBack });
+    content = lazyScreen("NotificationsScreen", () => import("./components/NotificationsScreen.js"), { prefs: state.notificationPrefs, onTogglePref: actions.toggleNotificationPref, onBack });
   } else if (state.tab === "help-centre") {
-    content = HelpCentreScreen({ onBack });
+    content = lazyScreen("HelpCentreScreen", () => import("./components/HelpCentreScreen.js"), { onBack });
   } else if (state.tab === "report-issue") {
-    content = ReportIssueScreen({ onBack });
+    content = lazyScreen("ReportIssueScreen", () => import("./components/ReportIssueScreen.js"), { onBack });
   } else if (state.tab === "contact-us") {
-    content = ContactUsScreen({ onBack });
+    content = lazyScreen("ContactUsScreen", () => import("./components/ContactUsScreen.js"), { onBack });
   } else if (state.tab === "privacy-policy") {
-    content = PrivacyPolicyScreen({ onBack });
+    content = lazyScreen("PrivacyPolicyScreen", () => import("./components/PrivacyPolicyScreen.js"), { onBack });
   } else if (state.tab === "terms-of-use") {
-    content = TermsOfUseScreen({ onBack });
+    content = lazyScreen("TermsOfUseScreen", () => import("./components/TermsOfUseScreen.js"), { onBack });
   } else if (state.tab === "about") {
-    content = AboutScreen({ onBack });
+    content = lazyScreen("AboutScreen", () => import("./components/AboutScreen.js"), { onBack });
   } else if (state.tab === "language") {
-    content = LanguageScreen({ current: state.language, onSelect: actions.setLanguage, onBack });
+    content = lazyScreen("LanguageScreen", () => import("./components/LanguageScreen.js"), { current: state.language, onSelect: actions.setLanguage, onBack });
   } else if (state.tab === "premium") {
-    content = PremiumScreen({ isVip: state.isVip, onSubscribe: actions.subscribe, onBack });
+    content = lazyScreen("PremiumScreen", () => import("./components/PremiumScreen.js"), { isVip: state.isVip, onSubscribe: actions.subscribe, onBack });
   } else if (state.tab === "coins") {
-    content = CoinsScreen({ coins: state.coins, onBuy: actions.buyCoins, onBack });
+    content = lazyScreen("CoinsScreen", () => import("./components/CoinsScreen.js"), { coins: state.coins, onBuy: actions.buyCoins, onBack });
   } else {
-    content = ProfileScreen({
+    content = lazyScreen("ProfileScreen", () => import("./components/ProfileScreen.js"), {
       isVip: state.isVip,
       coins: state.coins,
       favoritesCount: state.favoriteMatchIds.length,
