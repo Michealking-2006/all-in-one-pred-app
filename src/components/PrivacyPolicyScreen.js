@@ -1,3 +1,0 @@
-import { h, text } from "../utils/h.js";
-import { PageHeader } from "./PageHeader.js";
-export function PrivacyPolicyScreen({onBack}){return h("main",{className:"screen info-screen"},[PageHeader({title:"Privacy policy",onBack}),h("article",{className:"legal-copy card"},[text("span",{className:"section-kicker"},"LEGAL"),text("h1",{},"Privacy policy"),text("p",{},"This product is currently a prototype. The final privacy policy should be published here before production launch and should accurately describe the data Scoutwave collects, why it is collected, retention, sharing, user rights and contact details."),text("p",{},"Do not rely on this prototype page as the final legal policy. Replace it with the reviewed policy applicable to your operating company and users.")])]);}

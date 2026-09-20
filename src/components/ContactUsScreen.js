@@ -1,4 +1,0 @@
-import { h, text } from "../utils/h.js";
-import { PageHeader } from "./PageHeader.js";
-const CONTACTS=[["mail","Email","support@scoutwave.app","mailto:support@scoutwave.app"],["phone","Phone","+1 (555) 010-2938","tel:+15550102938"],["twitter","X (Twitter)","@scoutwave","#"],["instagram","Instagram","@scoutwave","#"]];
-export function ContactUsScreen({onBack}){return h("main",{className:"screen info-screen"},[PageHeader({title:"Contact us",onBack}),h("section",{className:"contact-list card"},CONTACTS.map(([icon,label,value,href])=>h("a",{className:"contact-row",href},[h("span",{className:"contact-icon"},[h("i",{"data-lucide":icon})]),h("span",{className:"contact-copy"},[text("small",{},label),text("strong",{},value)]),h("i",{className:"profile-chevron","data-lucide":"arrow-up-right"})]))) ]);}
