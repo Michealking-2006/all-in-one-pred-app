@@ -6,7 +6,7 @@ import { matches } from "./data/mockData.js";
 import { getAvatarSrc } from "./data/avatars.js";
 import { BottomNav } from "./components/BottomNav.js";
 import { HomeScreen } from "./components/HomeScreen.js";
-import { supabase } from "./api/supabase.js";
+import { supabase, initializeAuth } from "./api/supabase.js";
 
 const lazyModules = new Map();
 const lazyPromises = new Map();
@@ -264,7 +264,7 @@ function render() {
 
 store.subscribe(render);
 
-supabase.auth.getUser()
+initializeAuth().then(() => supabase.auth.getUser())
   .then(({ data }) => store.setState({ authUser: data?.user || null }))
   .catch(() => {});
 
