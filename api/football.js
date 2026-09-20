@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = API_KEY.trim();
+  const apiKey = String(API_KEY || "").trim();
   if (!apiKey) {
     return res.status(500).json({
       error: "Add your Football API key to api/football.js.",
