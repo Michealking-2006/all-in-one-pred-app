@@ -59,7 +59,7 @@ function loadMatches(id){
  })):emptyNode("No recent or upcoming fixtures are available."));
 }
 function loadSquad(id){
- return resolveContext(id).then(({season})=>getTeamSquad(id,season)).then(players=>players.length?h("div",{className:"card squad-list"},players.map(e=>{
+ return resolveContext(id).then(({season})=>getTeamSquad(id)).then(players=>players.length?h("div",{className:"card squad-list"},players.map(e=>{
   const p=e.player,s=e.statistics?.[0];
   return h("button",{className:"result-row squad-row",onClick:()=>navigate("/player/"+buildSlug(p.id,p.name)), "aria-label":"Open "+p.name},[
    h("img",{className:"scorer-photo",src:p.photo,alt:""}),h("div",{className:"scorer-main"},[
