@@ -1,6 +1,7 @@
 const API_BASE = "https://v3.football.api-sports.io";
 
-const API_KEY = "c3e4c14be7c1b0cb011eefd4ab4ddeaf";
+// Paste your Football API key between the quotes before deploying.
+const API_KEY = "";
 
 const ALLOWED_ENDPOINTS = new Set([
   "leagues",
