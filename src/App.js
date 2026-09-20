@@ -117,7 +117,7 @@ function App(state) {
 
   let content;
   if (state.openFixtureId) {
-    content = MatchScreen({ fixtureId: state.openFixtureId, matchTab: state.matchTab, onBack: actions.closeMatch, isFavorite: false, onToggleFavorite: () => {} });
+    content = MatchScreen({ fixtureId: state.openFixtureId, matchTab: state.matchTab, onBack: actions.closeMatch, isFavorite: state.favoriteMatchIds.includes(state.openFixtureId), onToggleFavorite: () => actions.toggleFavorite(state.openFixtureId) });
   } else if (openMatch) {
     content = MatchScreen({
       match: openMatch,
