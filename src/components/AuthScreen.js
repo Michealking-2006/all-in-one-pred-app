@@ -9,17 +9,40 @@ export function AuthScreen({ mode = "login" } = {}) {
   const title = text("h1", {}, "");
   const subtitle = text("p", { className: "auth-subtitle" }, "");
   const form = h("form", { className: "auth-form" });
+  const googleButton = h("button", { type: "button", className: "google-auth-button" }, [
+    h("span", { className: "google-auth-mark", "aria-hidden": "true" }, "G"),
+    h("span", {}, "Continue with Google")
+  ]);
+  const divider = h("div", { className: "auth-divider", "aria-hidden": "true" }, [h("span", {}, "or")]);
   const email = h("input", { type: "email", autocomplete: "email", placeholder: "Email address", required: true });
   const password = h("input", { type: "password", autocomplete: "current-password", placeholder: "Password", minlength: "8" });
   const submit = h("button", { className: "primary-button auth-submit", type: "submit" });
   const message = h("div", { className: "auth-message", role: "status", "aria-live": "polite" });
   const footer = h("div", { className: "auth-footer" });
 
+  googleButton.addEventListener("click", async () => {
+    googleButton.disabled = true;
+    message.textContent = "";
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin + "/auth" },
+      });
+      if (error) throw error;
+    } catch (error) {
+      message.textContent = authErrorMessage(error);
+      message.classList.add("is-error");
+      googleButton.disabled = false;
+    }
+  });
+
   function renderMode() {
     title.textContent = currentMode === "signup" ? "Create your account" : currentMode === "reset" ? "Reset your password" : "Welcome back";
     subtitle.textContent = currentMode === "signup" ? "Save favourites, follow clubs and keep your football profile with you." : currentMode === "reset" ? "Enter your email and we'll send you a password reset link." : "Sign in to save your favourites and personalize Scoutwave.";
     submit.textContent = currentMode === "signup" ? "Create account" : currentMode === "reset" ? "Send reset link" : "Sign in";
     password.style.display = currentMode === "reset" ? "none" : "";
+    googleButton.style.display = currentMode === "reset" ? "none" : "";
+    divider.style.display = currentMode === "reset" ? "none" : "";
     password.required = currentMode !== "reset";
     footer.innerHTML = "";
     if (currentMode === "login") {
@@ -61,7 +84,7 @@ export function AuthScreen({ mode = "login" } = {}) {
     } finally { submit.disabled = false; }
   });
 
-  card.append(title, subtitle, form, message, footer);
+  card.append(title, subtitle, googleButton, divider, form, message, footer);
   form.append(email, password, submit);
   container.appendChild(card);
   renderMode();
