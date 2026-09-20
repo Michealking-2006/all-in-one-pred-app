@@ -68,7 +68,6 @@ function leagueSection(group, props) {
 }
 
 export function HomeScreen(props) {
-  const [day, setDay] = window.__homeLiveState || [];
   const offset = props.selectedDayOffset || 0;
   const target = new Date();
   target.setDate(target.getDate() + offset);
