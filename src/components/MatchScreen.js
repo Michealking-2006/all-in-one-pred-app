@@ -1,7 +1,7 @@
 import { h, text } from "../utils/h.js";
 import { OddsTable } from "./OddsTable.js";
 import { PredictionsPanel } from "./PredictionsPanel.js";
-import { getFixtureById, getPredictions, getHeadToHead } from "../api/footballApi.js";
+import { getFixtureById, getPredictions, getHeadToHead, getFixtureEvents, getFixtureLineups, getFixtureStatistics } from "../api/footballApi.js";
 import { createTabbedPage, emptyNode, skeletonBlock } from "../utils/tabbedPage.js";
 
 const TABS = ["summary", "events", "lineups", "stats", "prediction"];
@@ -103,9 +103,15 @@ function loadRealTab(tab, fixture) {
       .then((rows) => renderPrediction(fixture, rows[0] || null));
   }
 
-  if (tab === "events") return renderEvents(fixture);
-  if (tab === "lineups") return renderLineups(fixture);
-  if (tab === "stats") return renderStats(fixture);
+  if (tab === "events") {
+    return getFixtureEvents(fixture.fixture.id).then((rows) => renderEvents(rows)).catch(() => emptyNode("Match events are unavailable right now."));
+  }
+  if (tab === "lineups") {
+    return getFixtureLineups(fixture.fixture.id).then((rows) => renderLineups(rows)).catch(() => emptyNode("Lineups are unavailable right now."));
+  }
+  if (tab === "stats") {
+    return getFixtureStatistics(fixture.fixture.id).then((rows) => renderStats(rows)).catch(() => emptyNode("Match statistics are unavailable right now."));
+  }
   return renderRealSummary(fixture);
 }
 
@@ -183,8 +189,8 @@ function winnerOf(fixture, teamId) {
   return fixture.teams?.home?.winner ? "home" : null;
 }
 
-function renderEvents(fixture) {
-  const events = Array.isArray(fixture.events) ? fixture.events : [];
+function renderEvents(rows) {
+  const events = Array.isArray(rows) ? rows : [];
   if (!events.length) return emptyNode("No match events are available yet.");
   return h("section", { className: "match-events" }, events.map((event) => {
     const type = event.type || "";
@@ -205,10 +211,10 @@ function renderEvents(fixture) {
   }));
 }
 
-function renderLineups(fixture) {
-  const lineups = Array.isArray(fixture.lineups) ? fixture.lineups : [];
-  if (!lineups.length) return emptyNode("Lineups are not available for this match yet.");
-  return h("section", { className: "match-lineups" }, lineups.map((entry) => {
+function renderLineups(lineups) {
+  const items = Array.isArray(lineups) ? lineups : [];
+  if (!items.length) return emptyNode("Lineups are not available for this match yet.");
+  return h("section", { className: "match-lineups" }, items.map((entry) => {
     const startXI = (entry.startXI || []).map((item) => item.player || item);
     const subs = (entry.substitutes || []).map((item) => item.player || item);
     return h("article", { className: "card lineup-card" }, [
@@ -232,8 +238,8 @@ function lineupRow(player) {
   ]);
 }
 
-function renderStats(fixture) {
-  const stats = Array.isArray(fixture.statistics) ? fixture.statistics : [];
+function renderStats(rows) {
+  const stats = Array.isArray(rows) ? rows : [];
   if (!stats.length) return emptyNode("Detailed match statistics are not available yet.");
   return h("section", { className: "match-stats" }, stats.map((entry) => {
     const values = new Map((entry.statistics || []).map((s) => [s.type, s.value]));
