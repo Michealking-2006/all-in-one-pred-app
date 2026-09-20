@@ -8,6 +8,7 @@ const ALLOWED_ENDPOINTS = new Set([
   "teams/statistics",
   "venues",
   "players",
+  "players/squads",
   "players/topscorers",
   "players/topassists",
   "players/topyellowcards",
