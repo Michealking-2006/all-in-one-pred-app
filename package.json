@@ -1,0 +1,10 @@
+{
+  "name": "scoutwave-app-vanilla",
+  "private": true,
+  "version": "0.5.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "dev:static": "npx serve -s . -l 5173"
+  }
+}
