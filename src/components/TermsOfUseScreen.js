@@ -1,0 +1,3 @@
+import { h, text } from "../utils/h.js";
+import { PageHeader } from "./PageHeader.js";
+export function TermsOfUseScreen({onBack}){return h("main",{className:"screen info-screen"},[PageHeader({title:"Terms of use",onBack}),h("article",{className:"legal-copy card"},[text("span",{className:"section-kicker"},"Legal"),text("h1",{},"Terms of use"),text("p",{},"This product is currently a prototype. Final terms should be reviewed and published before production launch, including account rules, subscriptions, coins, acceptable use, disclaimers, refunds, termination and governing law."),text("p",{},"Predictions and statistics should be presented as informational product content and not as guarantees of outcomes.")])]);}
