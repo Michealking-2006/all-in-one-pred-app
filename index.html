@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Scoutwave: Live Football Scores, Predictions &amp; Football Data</title>
+    <meta name="description" content="Live football scores, fixtures, league tables, lineups, match stats, odds and football data from every major competition. Scoutwave is your livescore hub for the Premier League, La Liga, Serie A, Champions League and more." />
+    <meta name="keywords" content="livescore, live football scores, football live score, soccer scores, football predictions, football data, football fixtures, league tables, match stats, lineups, football odds, Premier League, Champions League" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="application-name" content="Scoutwave" />
+    <meta name="theme-color" content="#f2f2f7" />
+    <meta property="og:site_name" content="Scoutwave" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Scoutwave: Live Football Scores, Predictions &amp; Football Data" />
+    <meta property="og:description" content="Live football scores, fixtures, league tables, lineups, match stats and odds from every major competition." />
+    <meta property="og:image" content="/icons/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Scoutwave: Live Football Scores, Predictions &amp; Football Data" />
+    <meta name="twitter:description" content="Live football scores, fixtures, league tables, lineups, match stats and odds from every major competition." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Scoutwave","applicationCategory":"SportsApplication","operatingSystem":"Any","description":"Live football scores, predictions and football data.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script>
+      // Set html[data-theme] before first paint, straight from localStorage,
+      // so there is never a flash of the wrong theme. src/theme.js (loaded
+      // with the app) takes over afterwards for live updates.
+      (function () {
+        try {
+          var raw = localStorage.getItem("scoutwave.app.state.v2");
+          var pref = "system";
+          if (raw) {
+            var saved = JSON.parse(raw);
+            if (saved && (saved.theme === "light" || saved.theme === "dark" || saved.theme === "system")) pref = saved.theme;
+          }
+          var dark = pref === "dark" || (pref === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+          // Club colours: set the accent right away so there is no flash of red; src/clubTheme.js refines it.
+          if (saved && saved.clubTheme && /^#[0-9a-f]{6}$/i.test(saved.clubTheme.primary || "")) document.documentElement.style.setProperty("--accent", saved.clubTheme.primary);
+          document.documentElement.dataset.themePref = pref;
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Scoutwave" />
+    <link rel="preconnect" href="https://media.api-sports.io" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" />
+    <link rel="stylesheet" href="/src/styles/theme.css" />
+  </head>
+  <body>
+    <div id="root">
+      <main id="boot-fallback" style="min-height:100dvh;display:grid;place-items:center;padding:24px;background:#fff;font-family:Arial,sans-serif;color:#111">
+        <section style="width:min(100%,360px);text-align:center">
+          <h1 style="font-size:20px;margin:0 0 8px">Scoutwave: live football scores, predictions and football data</h1>
+          <p style="margin:0 0 12px;color:#555;font-size:14px">Live scores, fixtures, league tables, lineups, match stats and odds from every major competition.</p>
+          <nav style="margin:0 0 12px;font-size:14px"><a href="/leagues">Leagues</a> · <a href="/news">News</a> · <a href="/vip">Predictions</a></nav>
+          <span id="boot-fallback-message" style="display:block;color:#777;font-size:13px">Loading Scoutwave…</span>
+        </section>
+      </main>
+    </div>
+    <div id="toast-root"></div>
+    <div id="pull-refresh-root"></div>
+    <div id="share-sheet-root"></div>
+    <noscript>Scoutwave shows live football scores, fixtures, league tables, lineups and match stats. Please enable JavaScript to use the app.</noscript>
+
+    <script>
+      // Startup safety net only. Once the app has rendered (window.__scoutwaveBooted),
+      // a stray error or rejected request must NOT replace the whole UI with a
+      // fatal screen — it is logged and the app keeps working.
+      (function () {
+        function showBootError(message) {
+          if (window.__scoutwaveBooted) {
+            console.error("Scoutwave runtime error:", message);
+            return;
+          }
+          var root = document.getElementById("root");
+          if (!root) return;
+          var safe = String(message || "The app could not be loaded.");
+          root.innerHTML =
+            '<main style="min-height:100dvh;display:grid;place-items:center;padding:24px;background:#fff;font-family:Arial,sans-serif;color:#111">' +
+              '<section style="width:min(100%,380px);text-align:center">' +
+                '<strong style="display:block;font-size:20px;margin-bottom:8px">Scoutwave could not start</strong>' +
+                '<span style="display:block;color:#777;font-size:13px;line-height:1.5">Please reload the app. If the problem continues, the loading system has reported a JavaScript error.</span>' +
+                '<button onclick="location.reload()" style="margin-top:18px;border:0;border-radius:12px;padding:12px 18px;background:#d50000;color:#fff;font-weight:700">Reload</button>' +
+              '</section>' +
+            '</main>';
+          console.error("Scoutwave boot error:", safe);
+        }
+        window.__scoutwaveBootError = showBootError;
+        window.addEventListener("error", function (event) {
+          if (event && event.error) showBootError(event.error.message || event.message);
+        });
+        window.addEventListener("unhandledrejection", function (event) {
+          var reason = event && event.reason;
+          showBootError(reason && reason.message ? reason.message : reason);
+        });
+      })();
+    </script>
+
+    <!-- modulepreload:start (generated by scripts/build-shell.mjs) -->
+    <link rel="modulepreload" href="/src/App.js" />
+    <link rel="modulepreload" href="/src/api/footballApi.js" />
+    <link rel="modulepreload" href="/src/api/newsApi.js" />
+    <link rel="modulepreload" href="/src/api/supabase.js" />
+    <link rel="modulepreload" href="/src/clubTheme.js" />
+    <link rel="modulepreload" href="/src/components/BottomNav.js" />
+    <link rel="modulepreload" href="/src/components/DateStrip.js" />
+    <link rel="modulepreload" href="/src/components/HomeScreen.js" />
+    <link rel="modulepreload" href="/src/components/MatchRow.js" />
+    <link rel="modulepreload" href="/src/components/Skeleton.js" />
+    <link rel="modulepreload" href="/src/data/avatars.js" />
+    <link rel="modulepreload" href="/src/liveAlerts.js" />
+    <link rel="modulepreload" href="/src/predictions/model.js" />
+    <link rel="modulepreload" href="/src/predictions/tracker.js" />
+    <link rel="modulepreload" href="/src/pullToRefresh.js" />
+    <link rel="modulepreload" href="/src/pwaMode.js" />
+    <link rel="modulepreload" href="/src/router.js" />
+    <link rel="modulepreload" href="/src/seo.js" />
+    <link rel="modulepreload" href="/src/seoCore.js" />
+    <link rel="modulepreload" href="/src/store.js" />
+    <link rel="modulepreload" href="/src/theme.js" />
+    <link rel="modulepreload" href="/src/themeFx.js" />
+    <link rel="modulepreload" href="/src/toast.js" />
+    <link rel="modulepreload" href="/src/utils/fixtures.js" />
+    <link rel="modulepreload" href="/src/utils/h.js" />
+    <link rel="modulepreload" href="/src/utils/icons.js" />
+    <link rel="modulepreload" href="/src/utils/navbar.js" />
+    <link rel="modulepreload" href="/src/utils/ui.js" />
+    <!-- modulepreload:end -->
+    <script type="module" src="/src/App.js"></script>
+  </body>
+</html>
