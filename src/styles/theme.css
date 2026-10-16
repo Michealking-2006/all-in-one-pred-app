@@ -1575,3 +1575,41 @@ html[data-fx] .sk{background:linear-gradient(90deg,rgba(255,255,255,.12),var(--f
 .pred-accuracy{margin:0 16px 12px;padding:14px 16px;display:grid;gap:10px}
 .pred-accuracy .pred-stats{grid-template-columns:repeat(3,1fr)}
 :root[data-fx][data-theme="light"]{--text-muted:#5d5d64}
+
+/* ==========================================================================
+   Themed weather (v0.16): fire drops, rain, popping bubbles, snow
+   ========================================================================== */
+.fx-ambient{position:absolute;inset:0;overflow:hidden}
+.fx-free{will-change:transform,opacity}
+
+/* Fire: a falling drop of flame with a short glowing tail */
+.fx-firedrop{border-radius:50% 50% 50% 50% / 64% 64% 36% 36%;
+  background:radial-gradient(circle at 50% 70%,#fff3b0 0,#ffb13a 38%,#ff5a14 72%,#d92b0a 100%);
+  box-shadow:0 0 12px 3px rgba(255,120,20,.85),0 0 28px 8px rgba(255,60,0,.4);
+  animation:fx-firedrop var(--d,1.6s) cubic-bezier(.45,.02,.9,.6) forwards}
+.fx-firedrop::after{content:"";position:absolute;left:50%;bottom:92%;width:62%;height:230%;transform:translateX(-50%);border-radius:50% 50% 0 0;background:linear-gradient(to top,rgba(255,150,30,.75),rgba(255,70,0,.25) 55%,transparent)}
+@keyframes fx-firedrop{0%{transform:translate(-50%,0) scale(.6);opacity:0}10%{opacity:1;transform:translate(-50%,calc(var(--travel,300px) * .05)) scale(1)}85%{opacity:1}100%{transform:translate(calc(-50% + var(--dx,0px)),var(--travel,300px)) scale(.7);opacity:0}}
+
+/* Water: light rain streaks */
+.fx-rain{width:1.6px;border-radius:2px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(120,200,255,.85));box-shadow:0 0 3px rgba(60,160,255,.5);transform-origin:top;animation:fx-rain var(--d,1s) linear forwards}
+:root[data-theme="light"] .fx-rain{background:linear-gradient(to bottom,rgba(10,111,224,0),rgba(10,111,224,.7))}
+@keyframes fx-rain{0%{transform:translate(-50%,0) rotate(8deg);opacity:0}12%{opacity:.9}100%{transform:translate(calc(-50% + var(--dx,-12px)),var(--travel,600px)) rotate(8deg);opacity:.85}}
+.fx-splash{border-width:1.5px;width:10px;height:6px;border-radius:50%;animation-name:fx-splash}
+@keyframes fx-splash{0%{transform:translate(-50%,-50%) scale(.3);opacity:.9}100%{transform:translate(-50%,-50%) scale(3.2,2);opacity:0}}
+
+/* Bubbles: appear, wobble up a little, pop */
+.fx-popper{animation:fx-bubble-pop var(--d,2.4s) ease-in-out forwards}
+@keyframes fx-bubble-pop{0%{transform:translate(-50%,0) scale(.15);opacity:0}14%{transform:translate(-50%,calc(var(--travel,-40px) * .15)) scale(1);opacity:1}50%{transform:translate(calc(-50% + var(--dx,0px)),calc(var(--travel,-40px) * .55)) scale(1.04)}88%{transform:translate(calc(-50% - var(--dx,0px) * .5),calc(var(--travel,-40px) * .95)) scale(1.1);opacity:1}100%{transform:translate(-50%,var(--travel,-40px)) scale(1.35);opacity:0}}
+.fx-popring{border-radius:50%;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(200,140,255,.5),0 0 10px rgba(255,255,255,.6);animation:fx-popring var(--d,.45s) ease-out forwards}
+@keyframes fx-popring{0%{transform:translate(-50%,-50%) scale(.7);opacity:.95}100%{transform:translate(-50%,-50%) scale(1.8);opacity:0}}
+.fx-speck{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,rgba(190,140,255,.9));box-shadow:0 0 5px rgba(255,255,255,.8);animation:fx-speck var(--d,.55s) ease-out forwards}
+@keyframes fx-speck{0%{transform:translate(-50%,-50%);opacity:1}100%{transform:translate(calc(-50% + var(--sx,0px)),calc(-50% + var(--sy,0px))) scale(.3);opacity:0}}
+
+/* Ice: snow */
+.fx-snow{animation:fx-snowfall var(--d,9s) linear forwards}
+.fx-snowball{border-radius:50%;background:radial-gradient(circle,#fff 0 38%,#cdeeff 68%,rgba(120,200,255,.55) 100%);box-shadow:0 0 5px rgba(90,180,240,.85)}
+.fx-crystal{background:linear-gradient(135deg,#fff,#7fcdf5);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+@keyframes fx-snowfall{0%{transform:translate(-50%,0) rotate(0);opacity:0}6%{opacity:.95}25%{transform:translate(calc(-50% + var(--dx,0px) * .6),calc(var(--travel,700px) * .25)) rotate(70deg)}50%{transform:translate(calc(-50% - var(--dx,0px) * .4),calc(var(--travel,700px) * .5)) rotate(150deg)}75%{transform:translate(calc(-50% + var(--dx,0px) * .5),calc(var(--travel,700px) * .75)) rotate(230deg)}94%{opacity:.9}100%{transform:translate(calc(-50% + var(--dx,0px) * .2),var(--travel,700px)) rotate(320deg);opacity:0}}
+/* The overlay's ambient particles may sit on light or dark pages: keep them visible but gentle */
+.fx-ambient .fx-p{opacity:.9}
+.fx-free.fx-splash{animation-name:fx-splash}

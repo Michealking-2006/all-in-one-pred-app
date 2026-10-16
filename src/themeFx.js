@@ -42,12 +42,13 @@ function ensureLayers() {
   backdrop.id = "fx-backdrop";
   backdrop.setAttribute("aria-hidden", "true");
   for (let i = 0; i < 2; i++) { const orb = document.createElement("span"); orb.className = "fx-orb"; backdrop.appendChild(orb); }
-  ambient = document.createElement("div");
-  ambient.className = "fx-ambient";
-  backdrop.appendChild(ambient);
   overlay = document.createElement("div");
   overlay.id = "fx-overlay";
   overlay.setAttribute("aria-hidden", "true");
+  // The weather falls over the content (pointer-events are off, so it never gets in the way).
+  ambient = document.createElement("div");
+  ambient.className = "fx-ambient";
+  overlay.appendChild(ambient);
   document.body.prepend(backdrop);
   document.body.appendChild(overlay);
 
@@ -58,11 +59,23 @@ function ensureLayers() {
     tapBurst(overlay, theme, event.clientX, event.clientY);
   }, { passive: true, capture: true });
 
-  window.setInterval(() => {
-    if (document.hidden) return;
+  // Each theme has its own pace: bubbles are occasional, rain is light, snow and fire drops are steady.
+  const PACE = { fire: 190, water: 210, bubbles: 520, ice: 190 };
+  let timer = null, pacedTheme = null;
+  const schedule = () => {
     const theme = currentFxTheme();
-    if (theme) ambientDrift(ambient, theme);
-  }, 1100);
+    if (theme === pacedTheme && timer) return;
+    window.clearInterval(timer);
+    timer = null;
+    pacedTheme = theme;
+    if (!theme) return;
+    timer = window.setInterval(() => {
+      if (document.hidden) return;
+      ambientDrift(ambient, pacedTheme);
+    }, PACE[theme] || 400);
+  };
+  schedule();
+  new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ["data-fx"] });
 }
 
 export function initThemeFx() {
@@ -121,31 +134,91 @@ function place(layer, el, lifeMs) {
   setTimeout(() => el.remove(), lifeMs);
 }
 
-// A small burst where the finger lands, on any element of the app.
-export function tapBurst(layer, theme, x, y) {
-  if (!layer?.isConnected || reducedMotion() || layer.childElementCount >= MAX_PARTICLES) return;
-  const burst = {
-    bubbles: () => Array.from({ length: 4 }, () => freeParticle("fx-bubble", x + rand(-12, 12), y + rand(-6, 6), rand(7, 18), rand(-24, 24), rand(1.2, 2.2), -rand(60, 130))),
-    fire: () => Array.from({ length: 6 }, () => freeParticle("fx-ember", x + rand(-8, 8), y, rand(3, 7), rand(-20, 20), rand(0.8, 1.5), -rand(50, 110))),
-    ice: () => Array.from({ length: 5 }, () => freeParticle("fx-flake", x + rand(-14, 14), y + rand(-14, 0), rand(6, 11), rand(-18, 18), rand(1.2, 2.2), rand(40, 90))),
-    water: () => [freeParticle("fx-ripple", x, y, 0, 0, 1.1), ...Array.from({ length: 3 }, () => freeParticle("fx-drop", x + rand(-6, 6), y, rand(4, 7), rand(-22, 22), rand(0.8, 1.3), -rand(28, 54)))],
-  }[theme];
-  burst?.().forEach((el) => place(layer, el, 3000));
+// ---------------------------------------------------------------------------
+// Themed weather. Each theme has its own "weather" that runs by itself across
+// the whole app (no tapping needed), and the same particles burst where a
+// finger lands:
+//   fire    - drops of fire fall, embers rise
+//   water   - a light rain with small splashes
+//   bubbles - bubbles appear all over and pop
+//   ice     - snow: ice crystals and flakes drift down
+// ---------------------------------------------------------------------------
+const MAX_AMBIENT = 64;
+
+function add(layer, el, lifeMs) {
+  layer.appendChild(el);
+  el.addEventListener("animationend", () => el.remove(), { once: true });
+  setTimeout(() => el.remove(), lifeMs);
+  return el;
 }
 
-// Slow ambient life across the whole screen: bubbles rising, embers drifting up,
-// crystals falling, ripples on the surface.
+const fireDrop = (x, y, travel, size = rand(9, 17), dur = rand(1.2, 2.3)) => freeParticle("fx-firedrop", x, y, size, rand(-14, 14), dur, travel);
+const ember = (x, y, travel) => freeParticle("fx-ember", x, y, rand(2.5, 6), rand(-40, 40), rand(4.5, 8), travel);
+const raindrop = (x, y, travel, dur) => {
+  const el = freeParticle("fx-rain", x, y, 0, rand(-18, -8), dur, travel);
+  el.style.height = rand(14, 28).toFixed(0) + "px";
+  return el;
+};
+const splash = (x, y) => freeParticle("fx-ripple fx-splash", x, y, 0, 0, rand(0.7, 1.1));
+const snow = (x, y, travel, crystal) => freeParticle(crystal ? "fx-snow fx-crystal" : "fx-snow fx-snowball", x, y, crystal ? rand(7, 14) : rand(3, 9), rand(-46, 46), rand(7, 13), travel);
+
+// A bubble that appears, floats a little, then pops with a ring and spray.
+function poppingBubble(layer, x, y, size = rand(14, 40), dur = rand(1.8, 3.2)) {
+  const el = freeParticle("fx-bubble fx-popper", x, y, size, rand(-12, 12), dur, -rand(24, 70));
+  add(layer, el, dur * 1000 + 800);
+  setTimeout(() => {
+    if (!layer.isConnected || reducedMotion()) return;
+    const ring = freeParticle("fx-popring", x + rand(-6, 6), y - rand(10, 30), size, 0, 0.45);
+    add(layer, ring, 1200);
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6 + rand(-0.3, 0.3);
+      const speck = freeParticle("fx-speck", x, y - 18, rand(2, 4), 0, rand(0.4, 0.7), 0);
+      speck.style.setProperty("--sx", (Math.cos(angle) * (size * 0.9 + rand(4, 14))).toFixed(0) + "px");
+      speck.style.setProperty("--sy", (Math.sin(angle) * (size * 0.9 + rand(4, 14))).toFixed(0) + "px");
+      add(layer, speck, 1200);
+    }
+  }, dur * 1000 * 0.93);
+}
+
+// A small burst where the finger lands, on any element of the app.
+export function tapBurst(layer, theme, x, y) {
+  if (!layer?.isConnected || reducedMotion() || layer.childElementCount >= MAX_AMBIENT + 24) return;
+  if (theme === "fire") {
+    for (let i = 0; i < 4; i++) add(layer, fireDrop(x + rand(-14, 14), y - rand(0, 10), rand(40, 110), rand(7, 12), rand(0.6, 1.2)), 2500);
+    for (let i = 0; i < 4; i++) add(layer, freeParticle("fx-ember", x + rand(-8, 8), y, rand(3, 6), rand(-24, 24), rand(0.8, 1.4), -rand(50, 110)), 2500);
+  } else if (theme === "water") {
+    add(layer, freeParticle("fx-ripple", x, y, 0, 0, 1.1), 2500);
+    for (let i = 0; i < 4; i++) add(layer, freeParticle("fx-drop", x + rand(-6, 6), y, rand(4, 7), rand(-24, 24), rand(0.8, 1.3), -rand(28, 60)), 2500);
+  } else if (theme === "bubbles") {
+    for (let i = 0; i < 3; i++) poppingBubble(layer, x + rand(-26, 26), y + rand(-10, 18), rand(12, 26), rand(0.8, 1.5));
+  } else if (theme === "ice") {
+    for (let i = 0; i < 7; i++) add(layer, snow(x + rand(-18, 18), y + rand(-18, 4), rand(40, 100), i % 2 === 0), 3000);
+  }
+}
+
+// One tick of the whole-screen weather. `strength` is how many particles to try.
 export function ambientDrift(layer, theme) {
-  if (!layer?.isConnected || reducedMotion() || layer.childElementCount >= 18) return;
+  if (!layer?.isConnected || reducedMotion() || layer.childElementCount >= MAX_AMBIENT) return;
   const w = window.innerWidth, h = window.innerHeight;
-  const x = rand(0.04, 0.96) * w;
-  const el = {
-    bubbles: () => freeParticle("fx-bubble", x, h + 10, rand(8, 26), rand(-30, 30), rand(7, 13), -rand(0.45, 0.9) * h),
-    fire: () => freeParticle("fx-ember", x, h + 6, rand(2.5, 6), rand(-40, 40), rand(5, 9), -rand(0.4, 0.85) * h),
-    ice: () => freeParticle("fx-flake", x, -12, rand(6, 13), rand(-36, 36), rand(7, 12), rand(0.5, 0.95) * h),
-    water: () => freeParticle("fx-ripple", x, rand(0.15, 0.9) * h, 0, 0, rand(2.2, 3.4)),
-  }[theme]?.();
-  if (el) place(layer, el, 15000);
+  const x = rand(0.02, 0.98) * w;
+  if (theme === "fire") {
+    // Drops of fire fall from the top; a few embers rise from the bottom.
+    add(layer, fireDrop(x, -16, h * rand(0.35, 1.05)), 4000);
+    if (Math.random() < 0.3) add(layer, ember(rand(0.05, 0.95) * w, h + 6, -h * rand(0.35, 0.8)), 10000);
+  } else if (theme === "water") {
+    // A light rain: thin streaks, some of which end in a small splash.
+    const travel = h * rand(0.3, 1.02);
+    const dur = rand(0.8, 1.3);
+    add(layer, raindrop(x, -30, travel, dur), 2500);
+    if (Math.random() < 0.5) setTimeout(() => { if (layer.isConnected) add(layer, splash(x - 10, travel - 30), 1800); }, dur * 1000 * 0.92);
+  } else if (theme === "bubbles") {
+    // Bubbles appear all over the screen and pop.
+    poppingBubble(layer, rand(0.06, 0.94) * w, rand(0.12, 0.92) * h);
+    if (Math.random() < 0.35) add(layer, freeParticle("fx-bubble", rand(0.05, 0.95) * w, h + 10, rand(8, 22), rand(-30, 30), rand(7, 12), -rand(0.4, 0.85) * h), 14000);
+  } else if (theme === "ice") {
+    // Snow: crystals and soft flakes drifting down.
+    add(layer, snow(x, -14, h * rand(0.6, 1.05), Math.random() < 0.4), 14000);
+  }
 }
 
 export function spawn(layer, theme, x, strong = false) {

@@ -1,3 +1,11 @@
+# Changes in 0.16.0 — advanced themes have their own weather, all over the app
+
+Each advanced theme now runs its own animation across every screen, by itself (no tapping needed), falling over the content without ever blocking taps. Tapping still adds a burst in the same style.
+- **Fire:** drops of fire fall from the top with a glowing tail, and a few embers rise from the bottom. Tapping splashes fire drops and embers.
+- **Water:** a light rain of thin streaks, some ending in a small splash ripple. Tapping makes a ripple and droplets.
+- **Bubbles:** bubbles appear all over the screen, float a little and **pop** with a ring and a spray of specks, plus the odd bubble drifting up. Tapping pops a few bubbles.
+- **Ice:** snow: ice crystals and soft flakes drift down with a gentle sway and spin. Tapping scatters flakes.
+- Each theme has its own pace, the number of particles is capped (so it stays light on the phone), it pauses when the app is in the background, and it is off for people who prefer reduced motion (the colours remain).
 # Changes in 0.15.0 — polish pass and the prediction engine (built, switched off)
 
 ## Polish (found with an automated design audit of 29 screens in light and dark, plus all four themes)
