@@ -1,9 +1,13 @@
-// Feature flags. Defaults live here; anyone can switch a flag on a single
-// device without a deploy:
+// Feature flags. Order of precedence: this device's override, then the flag set
+// from the admin dashboard (/mingt-t), then the default below. A single device can be
+// switched without a deploy:
 //   open the app with  ?flag=predictions:on   (or :off), or
 //   localStorage.setItem("scoutwave.flag.predictions", "on")
+import { remoteFlag } from "./remoteConfig.js";
+
 export const FEATURE_DEFAULTS = {
-  predictions: false, // Scoutwave's own prediction model (never API-Football's)
+  predictions: false,     // Scoutwave's own prediction model (never API-Football's)
+  advancedThemes: true,   // kill switch for the animated themes (Fire, Water, Ice, Bubbles)
 };
 
 const keyOf = (name) => "scoutwave.flag." + name;
@@ -28,5 +32,7 @@ export function isFeatureOn(name) {
   const saved = storage()?.getItem(keyOf(name));
   if (saved === "on") return true;
   if (saved === "off") return false;
+  const remote = remoteFlag(name); // set from the admin dashboard
+  if (typeof remote === "boolean") return remote;
   return !!FEATURE_DEFAULTS[name];
 }

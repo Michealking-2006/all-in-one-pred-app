@@ -2,6 +2,9 @@
 // sliding lens and themed particles that follow your finger. Everything here is
 // presentation only; unlock rules live in fxEntitled().
 import { store, FX_THEME_IDS } from "./store.js";
+import { isLowEnd } from "./perf.js";
+import { isFeatureOn } from "./features.js";
+import { fxPriceOverride, REMOTE_EVENT } from "./remoteConfig.js";
 
 export const FX_THEMES = [
   { id: "fire", name: "Fire", icon: "flame", price: 50, blurb: "Embers drift up from a molten glass bar." },
@@ -9,6 +12,9 @@ export const FX_THEMES = [
   { id: "ice", name: "Ice", icon: "snowflake", price: 40, blurb: "Frosted glass with a cold shimmer and falling crystals." },
   { id: "bubbles", name: "Bubbles", icon: "bubbles", price: 30, blurb: "Iridescent bubbles float up as you glide across the bar." },
 ];
+
+// The coin price, unless the admin dashboard has changed it.
+export const fxPriceOf = (theme) => (theme?.vip ? null : fxPriceOverride(theme?.id) ?? theme?.price);
 
 export const fxThemeById = (id) => FX_THEMES.find((t) => t.id === id) || null;
 
@@ -22,6 +28,7 @@ export function fxEntitled(state, id) {
 // The theme that is actually on screen (a saved choice stops applying if its
 // entitlement lapses, e.g. Premium ending, without losing the choice).
 export function activeFxTheme(state) {
+  if (!isFeatureOn("advancedThemes")) return null; // admin kill switch
   return state.fxTheme && fxEntitled(state, state.fxTheme) ? state.fxTheme : null;
 }
 
@@ -85,6 +92,7 @@ export function initThemeFx() {
   };
   run();
   store.subscribe(run);
+  window.addEventListener(REMOTE_EVENT, run); // the admin kill switch can change while the app is open
 }
 
 // ---------------------------------------------------------------------------
@@ -143,7 +151,7 @@ function place(layer, el, lifeMs) {
 //   bubbles - bubbles appear all over and pop
 //   ice     - snow: ice crystals and flakes drift down
 // ---------------------------------------------------------------------------
-const MAX_AMBIENT = 64;
+const MAX_AMBIENT = 40;
 
 function add(layer, el, lifeMs) {
   layer.appendChild(el);
@@ -182,6 +190,7 @@ function poppingBubble(layer, x, y, size = rand(14, 40), dur = rand(1.8, 3.2)) {
 
 // A small burst where the finger lands, on any element of the app.
 export function tapBurst(layer, theme, x, y) {
+  if (isLowEnd()) return; // lighter mode: colours only, no particles
   if (!layer?.isConnected || reducedMotion() || layer.childElementCount >= MAX_AMBIENT + 24) return;
   if (theme === "fire") {
     for (let i = 0; i < 4; i++) add(layer, fireDrop(x + rand(-14, 14), y - rand(0, 10), rand(40, 110), rand(7, 12), rand(0.6, 1.2)), 2500);
@@ -198,6 +207,7 @@ export function tapBurst(layer, theme, x, y) {
 
 // One tick of the whole-screen weather. `strength` is how many particles to try.
 export function ambientDrift(layer, theme) {
+  if (isLowEnd()) return;
   if (!layer?.isConnected || reducedMotion() || layer.childElementCount >= MAX_AMBIENT) return;
   const w = window.innerWidth, h = window.innerHeight;
   const x = rand(0.02, 0.98) * w;
@@ -222,6 +232,7 @@ export function ambientDrift(layer, theme) {
 }
 
 export function spawn(layer, theme, x, strong = false) {
+  if (isLowEnd()) return;
   if (!layer?.isConnected || reducedMotion()) return;
   const make = MAKERS[theme];
   if (!make || layer.childElementCount >= MAX_PARTICLES) return;

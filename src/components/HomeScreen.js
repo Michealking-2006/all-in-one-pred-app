@@ -3,6 +3,7 @@ import { getFixturesByDate, peekFixturesByDate } from "../api/footballApi.js";
 import { localDateISO, groupByLeague, isLive } from "../utils/fixtures.js";
 import { observeFixtures } from "../liveAlerts.js";
 import { store } from "../store.js";
+import { pollMs } from "../perf.js";
 import { gradeFixtures } from "../predictions/tracker.js";
 import { DateStrip } from "./DateStrip.js";
 import { MatchRow } from "./MatchRow.js";
@@ -66,7 +67,7 @@ export function HomeScreen(props) {
       } catch {
         // Keep showing the last good list; the next tick retries.
       }
-    }, 60_000);
+    }, pollMs(60_000));
   }
 
   function showRows(rows) {

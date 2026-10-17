@@ -15,6 +15,7 @@ export default function handler(req, res) {
     "Disallow: /coins",
     "Disallow: /premium",
     "Disallow: /themes",
+    "Disallow: /mingt-t",
     "",
     `Sitemap: ${origin}/sitemap.xml`,
     "",

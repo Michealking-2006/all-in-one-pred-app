@@ -1,6 +1,6 @@
 import { h, text } from "../utils/h.js";
 import { PageHeader } from "./PageHeader.js";
-import { FX_THEMES, fxEntitled, attachFx } from "../themeFx.js";
+import { FX_THEMES, fxEntitled, attachFx, fxPriceOf } from "../themeFx.js";
 
 const PREVIEW_TABS = [["games", "Games"], ["sparkles", "VIP"], ["trophy", "Leagues"], ["user-round", "Profile"]];
 
@@ -39,7 +39,7 @@ function actionFor(theme, owned, isActive, props) {
   }
   return h("button", { type: "button", className: "primary-button fx-action", onClick: () => props.onUnlock(theme.id) }, [
     h("i", { "data-lucide": "lock" }),
-    text("span", {}, "Unlock \u00b7 " + theme.price),
+    text("span", {}, "Unlock \u00b7 " + fxPriceOf(theme)),
     h("i", { "data-lucide": "coins" }),
   ]);
 }
@@ -47,7 +47,8 @@ function actionFor(theme, owned, isActive, props) {
 function card(theme, props) {
   const owned = fxEntitled({ isVip: props.isVip, unlockedThemes: props.unlocked }, theme.id);
   const isActive = owned && props.active === theme.id;
-  const short = !owned && !theme.vip && props.coins < theme.price;
+  const price = fxPriceOf(theme);
+  const short = !owned && !theme.vip && props.coins < price;
   return h("article", { className: "card fx-card" + (owned ? "" : " is-locked") }, [
     preview(theme),
     h("div", { className: "fx-card-body" }, [
@@ -58,7 +59,7 @@ function card(theme, props) {
           theme.vip ? text("span", { className: "fx-chip" }, "Premium") : owned ? null : text("span", { className: "fx-chip" }, "Locked"),
         ]),
         text("p", {}, theme.blurb),
-        short ? text("small", { className: "fx-need" }, "You have " + props.coins + " coins. " + (theme.price - props.coins) + " more needed.") : null,
+        short ? text("small", { className: "fx-need" }, "You have " + props.coins + " coins. " + (price - props.coins) + " more needed.") : null,
       ]),
       actionFor(theme, owned, isActive, props),
     ]),

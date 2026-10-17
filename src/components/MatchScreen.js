@@ -15,6 +15,7 @@ import { eventsOf, assignGoals, redCardCounts, formLetters, formatCountdown, isM
 import { observeFixtures } from "../liveAlerts.js";
 import { setPageSeo } from "../seo.js";
 import { isFeatureOn } from "../features.js";
+import { pollMs } from "../perf.js";
 import { predictFixture } from "../predictions/engine.js";
 import { gradeFixtures } from "../predictions/tracker.js";
 import { PredictionCard } from "./PredictionCard.js";
@@ -194,7 +195,7 @@ function startPolling(initial, fixtureId, hero, page, onUpdate) {
     } catch {
       // A failed refresh keeps the last good scoreboard; the next tick retries.
     }
-  }, POLL_MS);
+  }, pollMs(POLL_MS));
 }
 
 function loadTab(tab, fixture) {

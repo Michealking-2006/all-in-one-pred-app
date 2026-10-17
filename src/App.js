@@ -9,10 +9,13 @@ import { SkeletonPage } from "./components/Skeleton.js";
 import { supabase, initializeAuth } from "./api/supabase.js";
 import { initNavBars, syncNavBars } from "./utils/navbar.js";
 import { initTheme } from "./theme.js";
-import { initThemeFx, activeFxTheme, fxThemeById } from "./themeFx.js";
+import { initThemeFx, activeFxTheme, fxThemeById, fxPriceOf } from "./themeFx.js";
+import { initRemoteConfig, REMOTE_EVENT } from "./remoteConfig.js";
+import { blockingNotice, blockingScreen, announcementBar } from "./components/RemoteNotices.js";
 import { initClubTheme, clubById } from "./clubTheme.js";
 import { initLiveAlerts } from "./liveAlerts.js";
 import { applyRouteSeo } from "./seo.js";
+import { initPerf } from "./perf.js";
 import { initPwaMode } from "./pwaMode.js";
 import { initPullToRefresh, setRefreshHandler } from "./pullToRefresh.js";
 
@@ -136,6 +139,7 @@ const actions = {
   // applied immediately, and the Appearance screen needs to re-render so its
   // checkmark moves to the new choice.
   setTheme: (theme) => store.setState({ theme }),
+  setPerfMode: (perfMode) => store.setState({ perfMode }),
   setClubTheme: (club) => {
     store.setState({ clubTheme: club ? { id: club.id, primary: club.primary } : null });
     showToast(club ? `${club.name || "Custom"} colours applied` : "Standard colours restored", "success");
@@ -148,12 +152,13 @@ const actions = {
     const theme = fxThemeById(id);
     const state = store.getState();
     if (!theme || theme.vip || state.unlockedThemes.includes(id)) return;
-    if (state.coins < theme.price) {
+    const price = fxPriceOf(theme);
+    if (state.coins < price) {
       showToast(`Not enough coins for ${theme.name}`, "error");
       navigate("/coins");
       return;
     }
-    store.setState({ coins: state.coins - theme.price, unlockedThemes: [...state.unlockedThemes, id], fxTheme: id });
+    store.setState({ coins: state.coins - price, unlockedThemes: [...state.unlockedThemes, id], fxTheme: id });
     showToast(`${theme.name} unlocked and applied`, "success");
   },
   saveDisplayName: async (name) => {
@@ -253,7 +258,7 @@ function App(state) {
   } else if (state.tab === "language") {
     content = lazyScreen("LanguageScreen", () => import("./components/LanguageScreen.js"), { current: state.language, onSelect: actions.setLanguage, onBack });
   } else if (state.tab === "appearance") {
-    content = lazyScreen("AppearanceScreen", () => import("./components/AppearanceScreen.js"), { current: state.theme, club: state.clubTheme, fxActive: fxThemeById(activeFxTheme(state))?.name || "", onSelect: actions.setTheme, onSelectClub: actions.setClubTheme, onBack });
+    content = lazyScreen("AppearanceScreen", () => import("./components/AppearanceScreen.js"), { current: state.theme, club: state.clubTheme, perfMode: state.perfMode, onPerfMode: actions.setPerfMode, fxActive: fxThemeById(activeFxTheme(state))?.name || "", onSelect: actions.setTheme, onSelectClub: actions.setClubTheme, onBack });
   } else if (state.tab === "themes") {
     content = lazyScreen("ThemesScreen", () => import("./components/ThemesScreen.js"), {
       coins: state.coins,
@@ -323,7 +328,16 @@ function render() {
   lastRouteKey = key;
   try {
     root.innerHTML = "";
+    // Maintenance mode / "update required" (set from the admin dashboard) replace the whole app.
+    const blocking = blockingNotice();
+    if (blocking) {
+      root.appendChild(blockingScreen(blocking, render));
+      window.__scoutwaveBooted = true;
+      return;
+    }
     const app = App(state);
+    const banner = announcementBar(render);
+    if (banner) app.prepend(banner);
     root.appendChild(app);
     window.scrollTo(0, scrollY);
     lastRenderError = null;
@@ -358,6 +372,7 @@ function guardAuthRoute(state) {
 
 store.subscribe(guardAuthRoute);
 store.subscribe(render);
+window.addEventListener(REMOTE_EVENT, render); // flags, banner or maintenance changed from the admin dashboard
 
 supabase.auth.onAuthStateChange((event, session) => {
   if (event === "AUTH_ERROR") {
@@ -373,6 +388,8 @@ initNavBars();
 initPwaMode();
 initPullToRefresh();
 initTheme();
+initPerf();
+initRemoteConfig();
 initClubTheme();
 initThemeFx();
 initLiveAlerts();

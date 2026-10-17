@@ -8,12 +8,18 @@ const OPTIONS = [
   { id: "dark", icon: "moon", title: "Dark", subtitle: "Always use the dark theme" },
 ];
 
+const PERF_OPTIONS = [
+  { id: "auto", icon: "smartphone", title: "Automatic", subtitle: "Lighter mode on low-memory phones and data saver" },
+  { id: "on", icon: "zap", title: "Lighter mode", subtitle: "Smoothest on older phones, uses less battery" },
+  { id: "off", icon: "sparkles", title: "Full effects", subtitle: "Blur, animations and all theme effects" },
+];
+
 function swatch(club) {
   const secondary = club.secondary && club.secondary.toLowerCase() !== "#ffffff" ? club.secondary : null;
   return h("span", { className: "club-swatch", "aria-hidden": "true", style: { background: secondary ? `linear-gradient(135deg, ${club.primary} 50%, ${secondary} 50%)` : club.primary } });
 }
 
-export function AppearanceScreen({ current, club, fxActive = "", onSelect, onSelectClub, onBack }) {
+export function AppearanceScreen({ current, club, perfMode = "auto", onPerfMode = () => {}, fxActive = "", onSelect, onSelectClub, onBack }) {
   const activeId = club?.id || null;
   const customValue = club?.id === "custom" && isHex(club.primary) ? club.primary : "#d50000";
 
@@ -31,6 +37,16 @@ export function AppearanceScreen({ current, club, fxActive = "", onSelect, onSel
       ])
     )),
     text("p", { className: "screen-note" }, "System follows your phone's Light/Dark setting and switches automatically."),
+
+    text("div", { className: "profile-section-label" }, "Performance"),
+    h("section", { className: "selection-list card" }, PERF_OPTIONS.map((opt) =>
+      h("button", { type: "button", className: "selection-row appearance-row", onClick: () => onPerfMode(opt.id) }, [
+        h("i", { "data-lucide": opt.icon }),
+        h("span", { className: "appearance-copy" }, [text("span", {}, opt.title), text("small", {}, opt.subtitle)]),
+        opt.id === perfMode ? h("i", { "data-lucide": "check" }) : null,
+      ])
+    )),
+    text("p", { className: "screen-note" }, "Lighter mode removes blur and animated theme effects, keeps smaller caches and refreshes less often. It is what phones with 2 GB of memory or less need to stay smooth."),
 
     text("div", { className: "profile-section-label" }, "Club colours"),
     fxActive ? text("p", { className: "screen-note club-paused" }, "The " + fxActive + " theme is active, so club colours are paused. They come back when you switch it off in Advanced themes.") : null,

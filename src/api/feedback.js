@@ -56,7 +56,14 @@ export async function sendSupportMessage({ kind, message, email = "", name = "",
     window.clearTimeout(timer);
   }
 
-  if (response.ok) { markSent(); return true; }
+  if (response.ok) {
+    markSent();
+    // Also keep a copy in the admin inbox (/mingt-t). Best effort: never affects what the person sees.
+    try {
+      window.fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), keepalive: true }).catch(() => {});
+    } catch { /* ignore */ }
+    return true;
+  }
   const data = await response.json().catch(() => null);
   if (response.status === 429) throw new Error("Too many messages right now. Please try again in a few minutes.");
   const detail = Array.isArray(data?.errors) ? data.errors.map((e) => e?.message).filter(Boolean).join(" ") : "";

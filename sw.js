@@ -41,6 +41,7 @@ self.addEventListener("fetch", (event) => {
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (!sameOrigin && !isFont) return; // Supabase, API-Football images, etc.
   if (sameOrigin && url.pathname.startsWith("/api/")) return;
+  if (sameOrigin && url.pathname.startsWith("/mingt-t")) return; // the admin area is never cached or served from the app shell
 
   const isStaticAsset = isFont || /\.(png|jpg|jpeg|webp|svg|ico|woff2?)$/i.test(url.pathname);
   if (isStaticAsset) {

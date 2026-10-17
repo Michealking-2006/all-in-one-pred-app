@@ -2,7 +2,7 @@ const STORAGE_KEY = "scoutwave.app.state.v2";
 const PERSISTED_KEYS = [
   "isVip", "coins", "unlockedMatchIds", "favorites",
   "selectedDayOffset", "language", "avatarId", "notificationPrefs", "theme",
-  "unlockedThemes", "fxTheme", "clubTheme"
+  "unlockedThemes", "fxTheme", "clubTheme", "perfMode"
 ];
 const THEME_VALUES = new Set(["system", "light", "dark"]);
 
@@ -73,6 +73,7 @@ function readPersisted() {
       safe.unlockedThemes = [...new Set(parsed.unlockedThemes.filter((id) => COIN_THEME_IDS.includes(id)))];
     }
     if (parsed.fxTheme === null || FX_THEME_IDS.includes(parsed.fxTheme)) safe.fxTheme = parsed.fxTheme;
+    if (["auto", "on", "off"].includes(parsed.perfMode)) safe.perfMode = parsed.perfMode;
     const club = parsed.clubTheme;
     if (club === null) safe.clubTheme = null;
     else if (club && typeof club === "object" && /^#[0-9a-f]{6}$/i.test(club.primary || "") && typeof club.id === "string" && club.id.length <= 40) {
@@ -156,6 +157,7 @@ export const store = createStore({
   unlockedThemes: [],
   fxTheme: null,
   clubTheme: null,
+  perfMode: "auto",
 });
 
 export const UNLOCK_COST = 5;

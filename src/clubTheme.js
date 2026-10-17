@@ -4,6 +4,7 @@
 // each so text stays readable.
 import { store } from "./store.js";
 import { activeFxTheme } from "./themeFx.js";
+import { REMOTE_EVENT } from "./remoteConfig.js";
 
 // Primary = the colour the app is built around. Colours are approximations of
 // each club's main brand colour. Use the custom picker for an exact match.
@@ -123,6 +124,7 @@ export function initClubTheme() {
   const run = () => { const state = store.getState(); applyClubTheme(activeFxTheme(state) ? null : state.clubTheme); };
   run();
   store.subscribe(run);
+  window.addEventListener(REMOTE_EVENT, run);
   // Light/dark can change on its own (system setting); re-derive the colours.
   new MutationObserver(run).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 }

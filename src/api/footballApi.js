@@ -57,6 +57,8 @@ const STALE_OK = new Set(["leagues", "teams", "teams/seasons", "coachs", "teams/
   "players/topscorers", "players/topassists", "players/topyellowcards", "players/topredcards"]);
 const STALE_MAX_MS = 6 * HOUR;
 const LOCAL_BUDGET_CHARS = 2_000_000;
+const LOW_END_LOCAL_BUDGET_CHARS = 800_000;
+const lowEnd = () => typeof document !== "undefined" && document.documentElement?.dataset?.lowend === "1";
 const MAX_ENTRY_CHARS = 250_000;
 
 const SETTLED = new Set(["FT", "AET", "PEN"]);
@@ -131,7 +133,7 @@ function writeStored(key, entry) {
   if (raw.length > MAX_ENTRY_CHARS) return;
   try {
     // The long-lived tier gets a size budget so it can never crowd out the site's other storage.
-    if (store === window.localStorage && storedChars(store) + raw.length > LOCAL_BUDGET_CHARS) pruneStore(store, 0.4);
+    if (store === window.localStorage && storedChars(store) + raw.length > (lowEnd() ? LOW_END_LOCAL_BUDGET_CHARS : LOCAL_BUDGET_CHARS)) pruneStore(store, 0.4);
     store.setItem(PREFIX + key, raw);
   } catch {
     pruneStore(store, 0.5); // quota: drop the older half, try once more
@@ -196,7 +198,7 @@ export function ttlFor(endpoint, params, data) {
 function writeCache(key, endpoint, data, params = {}) {
   const entry = { at: Date.now(), ttl: ttlFor(endpoint, params, data), data };
   cache.set(key, entry);
-  if (cache.size > MAX_CACHE_ENTRIES) cache.delete(cache.keys().next().value);
+  while (cache.size > (lowEnd() ? 80 : MAX_CACHE_ENTRIES)) cache.delete(cache.keys().next().value); // low-end phones keep fewer responses in memory
   writeStored(key, entry);
 }
 

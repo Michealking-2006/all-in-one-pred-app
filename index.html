@@ -35,6 +35,11 @@
           // Club colours: set the accent right away so there is no flash of red; src/clubTheme.js refines it.
           if (saved && saved.clubTheme && /^#[0-9a-f]{6}$/i.test(saved.clubTheme.primary || "")) document.documentElement.style.setProperty("--accent", saved.clubTheme.primary);
           document.documentElement.dataset.themePref = pref;
+          // Lighter mode for low-end phones, decided before first paint (same rules as src/perf.js).
+          var nav = navigator, mem = nav.deviceMemory, conn = nav.connection || {};
+          var mode = saved && saved.perfMode || "auto";
+          var low = mode === "on" || (mode !== "off" && ((typeof mem === "number" && mem <= 2) || (mem == null && nav.hardwareConcurrency <= 4 && /Android/i.test(nav.userAgent)) || conn.saveData === true || conn.effectiveType === "2g" || conn.effectiveType === "slow-2g"));
+          if (low) document.documentElement.dataset.lowend = "1";
         } catch (e) {
           document.documentElement.dataset.theme = "light";
         }
@@ -112,13 +117,18 @@
     <link rel="modulepreload" href="/src/components/DateStrip.js" />
     <link rel="modulepreload" href="/src/components/HomeScreen.js" />
     <link rel="modulepreload" href="/src/components/MatchRow.js" />
+    <link rel="modulepreload" href="/src/components/RemoteNotices.js" />
     <link rel="modulepreload" href="/src/components/Skeleton.js" />
+    <link rel="modulepreload" href="/src/config.js" />
     <link rel="modulepreload" href="/src/data/avatars.js" />
+    <link rel="modulepreload" href="/src/features.js" />
     <link rel="modulepreload" href="/src/liveAlerts.js" />
+    <link rel="modulepreload" href="/src/perf.js" />
     <link rel="modulepreload" href="/src/predictions/model.js" />
     <link rel="modulepreload" href="/src/predictions/tracker.js" />
     <link rel="modulepreload" href="/src/pullToRefresh.js" />
     <link rel="modulepreload" href="/src/pwaMode.js" />
+    <link rel="modulepreload" href="/src/remoteConfig.js" />
     <link rel="modulepreload" href="/src/router.js" />
     <link rel="modulepreload" href="/src/seo.js" />
     <link rel="modulepreload" href="/src/seoCore.js" />

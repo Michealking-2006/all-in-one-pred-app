@@ -1,3 +1,16 @@
+# Changes in 0.17.0 — low-end phones, and the admin dashboard at /mingt-t
+
+## Faster on 2 GB Android phones
+- **Lighter mode**, automatic on phones that report 2 GB of memory or less (or data saver / a slow connection), and switchable in Appearance (Automatic / Lighter mode / Full effects). It is decided before the first paint. It removes backdrop blur (the costliest effect for a phone GPU), the animated theme weather and glow, skeleton shimmer and most shadows, keeps smaller in-memory and stored caches, and refreshes live scores 50% less often. Themes keep their colours.
+- **Measured** (fire theme, phone-class CPU at 4x slowdown, scrolling the Games list): compositor layers 45 down to 15, and the snow theme from 106 layers to 15, with roughly 4-5x less rendering work in lighter mode. A normal screen is about 11-15 layers.
+- For everyone: off-screen list items (match groups, news, search results) are skipped by the browser until needed (`content-visibility`), and particles no longer force their own GPU layers.
+
+## Admin dashboard at `/mingt-t`
+- Overview (health, users, inbox, football API quota), **remote config** (predictions flag, advanced-themes kill switch, maintenance mode, announcement banner, minimum app version, theme prices), message inbox, users (ban/unban), audit log. See `docs/ADMIN.md` for setup (a SQL migration, `node scripts/admin-setup.mjs`, and a few Vercel environment variables).
+- Secured on the server: scrypt-hashed passphrase, optional email and TOTP two-factor, lockout after 5 failures, signed 8-hour tokens in an Authorization header, same-origin POST only, strict validation, full audit trail. The service-role key never reaches the browser.
+- The app now obeys it: flags and prices, a dismissible announcement banner, a full-screen maintenance message, and an "update required" screen. If the config can't be reached the app uses its saved copy or built-in defaults.
+- New public endpoints `GET /api/config` and `POST /api/feedback` (support messages are also kept for the inbox; Formspree still emails you).
+- The dashboard is never cached by the service worker, is `noindex`, disallowed in robots.txt and served with a strict content-security policy.
 # Changes in 0.16.0 — advanced themes have their own weather, all over the app
 
 Each advanced theme now runs its own animation across every screen, by itself (no tapping needed), falling over the content without ever blocking taps. Tapping still adds a burst in the same style.
