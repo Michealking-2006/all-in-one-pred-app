@@ -1,3 +1,11 @@
+# Changes in 0.18.0 — Premium and coins on the account (admin-managed)
+
+- **New, off by default:** a Remote config flag, *Account Premium and coins*. When on, signed-in users' Premium, coins and unlocked themes/tips come from the database and follow them to any device. Guests keep the local demo. Nothing changes for anyone until you switch it on.
+- **Server-authoritative.** Prices and balances are decided on the server; the app only asks. A purchase is charged exactly once (double taps, two devices at once), never takes a balance below zero, and every coin movement is recorded in a ledger. Editing the phone's storage can't create Premium or coins (the next sync restores the real values). Signing out clears them from the device.
+- **Admin:** Users now shows Premium (with end date) and coins, with a *Premium & coins* dialog: grant 7/30/90/365 days or permanent, revoke, add or remove coins. A reason is required and goes to the audit log and the ledger. New setting: the coin cost of unlocking a tip. Overview has a health check for the new table.
+- New endpoints `GET /api/me` and `POST /api/spend`; migration `supabase/migrations/002_entitlements.sql` (RLS on, no client access).
+- **Not included (needs a payment provider):** buying Premium or coins inside the app. With the flag on, signed-in users see that purchases aren't open yet; the admin can add Premium/coins by hand. `docs/ADMIN.md` describes how a payment webhook would plug in.
+
 # Changes in 0.17.0 — low-end phones, and the admin dashboard at /mingt-t
 
 ## Faster on 2 GB Android phones

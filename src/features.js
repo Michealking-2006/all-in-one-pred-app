@@ -8,6 +8,7 @@ import { remoteFlag } from "./remoteConfig.js";
 export const FEATURE_DEFAULTS = {
   predictions: false,     // Scoutwave's own prediction model (never API-Football's)
   advancedThemes: true,   // kill switch for the animated themes (Fire, Water, Ice, Bubbles)
+  serverEntitlements: false, // Premium, coins and unlocks live on the account (server), not the device
 };
 
 const keyOf = (name) => "scoutwave.flag." + name;

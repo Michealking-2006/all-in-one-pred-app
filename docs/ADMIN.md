@@ -12,11 +12,11 @@ The URL is only obscurity. The protection is the sign-in and the server checks d
 | **Overview** | App version and deploy, registered users, new messages, the football API's daily quota (read from the provider's free `/status` call), health checks for every service and secret, and what is live right now. |
 | **Remote config** | Change the app for everyone within about a minute, no deploy: turn **predictions** on/off, the **advanced themes kill switch**, **maintenance mode** (replaces the app with your message), an **announcement banner** (info/warning/good news, optional link, optional expiry, dismissible; editing it shows it again to everyone), a **minimum app version** (older devices are asked to update), and the **theme coin prices**. A publish confirmation lists exactly what changes. |
 | **Messages** | Inbox for every feedback, issue and contact message (a copy is stored when a user submits; Formspree still emails you). Filter, search, mark read/resolved, private notes, reply by email, delete. |
-| **Users** | Everyone who has an account: sign-in method, joined, last seen, confirmed. Ban (24 h / 7 d / 30 d / permanent) and unban. |
+| **Users** | Everyone who has an account: sign-in method, joined, last seen, confirmed, **Premium and coins**. Grant or revoke Premium (7/30/90/365 days or permanent), add or remove coins (a reason is required and goes in the audit log and the coin ledger), ban (24 h / 7 d / 30 d / permanent) and unban. |
 | **Audit log** | Every sign-in and every change, with the time and IP. |
 
 ## One-time setup
-1. **Database.** In the Supabase SQL editor run `supabase/migrations/001_admin.sql`. It creates
+1. **Database.** In the Supabase SQL editor run `supabase/migrations/001_admin.sql`, then `002_entitlements.sql` (Premium and coins on accounts). It creates
    `app_config`, `support_messages` and `admin_audit` with Row Level Security **on and no
    policies**, so the browser can read and write nothing; only the server can.
 2. **Secrets.** Run `node scripts/admin-setup.mjs "a long passphrase"` and paste the printed lines into
@@ -53,3 +53,19 @@ The URL is only obscurity. The protection is the sign-in and the server checks d
 ## Local use
 `.env.example` lists every variable. With `vercel dev` the dashboard works at
 `http://localhost:3000/mingt-t`.
+
+## Premium and coins on the account
+By default Premium and coins live on each phone (a local demo). With the **Account Premium and coins**
+flag on (Remote config, off by default) it works like this for **signed-in** users; guests keep the demo:
+- The database is the only source of truth (`entitlements`, plus a `coin_ledger` of every movement).
+  The app mirrors it, so editing the phone's storage cannot create Premium or coins; the next sync undoes it.
+- Spending (unlocking a theme or a tip) is decided on the server: price from Remote config, balance checked,
+  charged exactly once even on a double tap or two devices at once (optimistic concurrency), never below zero.
+- You grant or revoke Premium and coins in **Users**. Premium can have an end date.
+- Buying Premium or coins inside the app is **not connected to a payment provider yet**, so with the flag on those
+  buttons tell signed-in users purchases aren't open and that the team can add them. Connecting a provider
+  (for example Stripe or Paddle) means a webhook endpoint that calls the same server-side grant logic
+  (`api/_account.js`, `adminSet`).
+- Signing out clears account Premium and coins from the device.
+Turn the flag on only after running migration 002 (Overview shows a green check for it) and granting yourself
+Premium to try it.

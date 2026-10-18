@@ -236,6 +236,7 @@ function liveRow(label, tone, detail) {
 const FLAG_INFO = {
   predictions: ["Predictions", "Show Scoutwave's own prediction model on match pages and the VIP tab."],
   advancedThemes: ["Advanced themes", "Kill switch for Fire, Water, Ice and Bubbles. Turn off if they ever misbehave."],
+  serverEntitlements: ["Account Premium and coins", "Signed-in users get Premium, coins and unlocks from their account (granted here, spent through the server). Guests keep the local demo. Needs migration 002 and payments are not connected yet."],
 };
 
 async function viewConfig(main) {
@@ -251,6 +252,7 @@ async function viewConfig(main) {
     if (JSON.stringify(loaded.announcement) !== JSON.stringify(draft.announcement)) out.push(`Announcement: ${draft.announcement.on ? "showing" : "off"}`);
     if (loaded.minVersion !== draft.minVersion) out.push(`Minimum version: ${draft.minVersion}`);
     if (JSON.stringify(loaded.fxPrices) !== JSON.stringify(draft.fxPrices)) out.push("Theme prices changed");
+    if (loaded.tipCost !== draft.tipCost) out.push(`Tip unlock cost: ${draft.tipCost} coins`);
     return out;
   };
 
@@ -305,6 +307,8 @@ async function viewConfig(main) {
         el("div", { class: "field" }, [el("label", { for: "min-v", text: "Version" }), input({ id: "min-v", type: "text", maxlength: "20", placeholder: "0.0.0" }, () => draft.minVersion, (v) => { draft.minVersion = v; })]),
       ]),
       el("div", { class: "card" }, [
+        el("h2", { text: "Coin prices" }),
+        el("div", { class: "field" }, [el("label", { for: "tip-cost", text: "Unlock one tip (coins)" }), input({ id: "tip-cost", type: "number", min: "0", max: "500", step: "1" }, () => draft.tipCost, (v) => { draft.tipCost = v === "" ? "" : Number(v); })]),
         el("h2", { text: "Theme prices (coins)" }),
         el("div", { class: "grid" }, ["fire", "ice", "bubbles"].map((k) => el("div", { class: "field" }, [el("label", { for: "px-" + k, text: k[0].toUpperCase() + k.slice(1) }), input({ id: "px-" + k, type: "number", min: "0", max: "5000", step: "1" }, () => draft.fxPrices[k], (v) => { draft.fxPrices[k] = v === "" ? "" : Number(v); })]))),
         el("p", { class: "sub", text: "Water is part of Premium and cannot be bought with coins." }),
@@ -404,16 +408,21 @@ async function viewUsers(main) {
     const rows = st.users.filter((u) => !st.q || u.email.toLowerCase().includes(st.q));
     const banned = (u) => u.bannedUntil && new Date(u.bannedUntil).getTime() > Date.now();
     body.replaceChildren(rows.length ? el("table", {}, [
-      el("thead", {}, [el("tr", {}, ["Email", "Sign-in", "Joined", "Last seen", "Status", ""].map((h) => el("th", { text: h })))]),
+      el("thead", {}, [el("tr", {}, ["Email", "Sign-in", "Joined", "Last seen", "Premium", "Coins", "Status", ""].map((h) => el("th", { text: h })))]),
       el("tbody", {}, rows.map((u) => el("tr", {}, [
         el("td", { class: "mono", text: u.email || "(no email)" }),
         el("td", { text: u.providers.join(", ") || "email" }),
         el("td", { title: when(u.createdAt), text: ago(u.createdAt) }),
         el("td", { title: when(u.lastSignInAt), text: ago(u.lastSignInAt) }),
+        el("td", {}, [u.premium ? el("span", { class: "chip ok", title: u.premiumUntil ? "Until " + when(u.premiumUntil) : "No end date", text: u.premiumUntil ? "Until " + new Date(u.premiumUntil).toLocaleDateString() : "Premium" }) : el("span", { class: "chip", text: "No" })]),
+        el("td", { class: "mono", text: u.coins == null ? "–" : String(u.coins) }),
         el("td", {}, [banned(u) ? el("span", { class: "chip bad", text: "Banned" }) : el("span", { class: "chip " + (u.confirmed ? "ok" : "warn"), text: u.confirmed ? "Active" : "Unconfirmed" })]),
-        el("td", {}, [banned(u)
-          ? el("button", { class: "btn small", type: "button", text: "Unban", onClick: () => act(u, "user_unban") })
-          : el("button", { class: "btn small danger", type: "button", text: "Ban…", onClick: () => ban(u) })]),
+        el("td", {}, [el("div", { class: "row" }, [
+          el("button", { class: "btn small", type: "button", text: "Premium & coins…", onClick: () => manage(u) }),
+          banned(u)
+            ? el("button", { class: "btn small", type: "button", text: "Unban", onClick: () => act(u, "user_unban") })
+            : el("button", { class: "btn small danger", type: "button", text: "Ban…", onClick: () => ban(u) }),
+        ])]),
       ]))),
     ]) : el("div", { class: "empty", text: "No users on this page." }));
     pager.replaceChildren(
@@ -424,6 +433,25 @@ async function viewUsers(main) {
   }
   async function act(u, action, extra = {}) {
     try { await api(action, { id: u.id, ...extra }); toast(action === "user_unban" ? "Unbanned" : "Banned"); await load(); } catch (e) { toast(e.message, true); }
+  }
+  // Grant or revoke Premium, add or remove coins. A reason is required: it goes in the audit log.
+  async function manage(u) {
+    const premium = el("select", { id: "mg-prem", "aria-label": "Premium" }, [["keep", "Leave as it is"], ["7", "Grant for 7 days"], ["30", "Grant for 30 days"], ["90", "Grant for 90 days"], ["365", "Grant for a year"], ["perm", "Grant permanently"], ["off", "Revoke Premium"]].map(([v, l]) => el("option", { value: v, text: l })));
+    const coins = el("input", { id: "mg-coins", type: "number", step: "1", placeholder: "e.g. 50 or -10", "aria-label": "Coin change" });
+    const reason = el("input", { id: "mg-why", type: "text", maxlength: "200", placeholder: "Reason (kept in the audit log)", "aria-label": "Reason" });
+    const body = el("div", { class: "stack" }, [
+      el("p", { class: "msg-meta", text: `Now: ${u.premium ? "Premium" + (u.premiumUntil ? " until " + new Date(u.premiumUntil).toLocaleDateString() : "") : "no Premium"} · ${u.coins == null ? "no coin balance yet" : u.coins + " coins"}` }),
+      el("div", { class: "field" }, [el("label", { for: "mg-prem", text: "Premium" }), premium]),
+      el("div", { class: "field" }, [el("label", { for: "mg-coins", text: "Add or remove coins" }), coins]),
+      el("div", { class: "field" }, [el("label", { for: "mg-why", text: "Reason" }), reason]),
+    ]);
+    const ok = await confirmDialog({ title: "Premium & coins for " + (u.email || "this user"), message: "Applies to their account straight away.", ok: "Apply", body });
+    if (!ok) return;
+    const payload = { id: u.id, reason: reason.value, coinsDelta: coins.value === "" ? 0 : Number(coins.value) };
+    if (premium.value === "off") payload.vip = false;
+    else if (premium.value === "perm") { payload.vip = true; payload.permanent = true; }
+    else if (premium.value !== "keep") { payload.vip = true; payload.days = Number(premium.value); }
+    try { await api("entitlement_set", payload); toast("Updated"); await load(); } catch (e) { toast(e.message, true); }
   }
   async function ban(u) {
     const sel = el("select", { "aria-label": "Ban length" }, [["24", "24 hours"], ["168", "7 days"], ["720", "30 days"], ["perm", "Permanently"]].map(([v, l]) => el("option", { value: v, text: l })));

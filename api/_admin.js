@@ -185,6 +185,7 @@ export const DEFAULT_CONFIG = {
   announcement: { on: false, id: "", text: "", level: "info", link: "", expiresAt: null },
   minVersion: "0.0.0",
   fxPrices: { fire: 50, ice: 40, bubbles: 30 },
+  tipCost: 5,
   updatedAt: null,
 };
 export const KNOWN_FLAGS = Object.keys(DEFAULT_CONFIG.flags);
@@ -229,6 +230,9 @@ export function validateConfig(input) {
     if (!Number.isInteger(v) || v < 0 || v > 5000) throw new HttpError(400, `The ${key} theme price must be a whole number from 0 to 5000 coins.`);
     out.fxPrices[key] = v;
   }
+  const tip = Number(input.tipCost ?? DEFAULT_CONFIG.tipCost);
+  if (!Number.isInteger(tip) || tip < 0 || tip > 500) throw new HttpError(400, "The tip unlock cost must be a whole number from 0 to 500 coins.");
+  out.tipCost = tip;
   return out;
 }
 

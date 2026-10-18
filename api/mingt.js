@@ -5,6 +5,7 @@ import {
   env, adminConfigured, signToken, verifyToken, TOKEN_TTL_MS, clientIp, loginLocked, recordLogin, checkCredentials,
   supabaseConfigured, sb, HttpError, validateConfig, readConfig, writeConfig, audit, KNOWN_FLAGS, DEFAULT_CONFIG,
 } from "./_admin.js";
+import { adminSet, effective, getRow, isUuid, hasStorage } from "./_account.js";
 import { APP_VERSION } from "../src/config.js";
 
 const FOOTBALL_BASE = env("FOOTBALL_API_BASE") || "https://v3.football.api-sports.io";
@@ -45,8 +46,9 @@ async function overview() {
     supabaseConfigured() ? sb("/rest/v1/support_messages?select=id&status=eq.new&limit=1", { raw: true, headers: { Prefer: "count=exact", Range: "0-0" } }).then(countFrom) : Promise.resolve(null),
     supabaseConfigured() ? sb("/rest/v1/support_messages?select=id&limit=1", { raw: true, headers: { Prefer: "count=exact", Range: "0-0" } }).then(countFrom) : Promise.resolve(null),
     supabaseConfigured() ? sb("/auth/v1/admin/users?page=1&per_page=1", { raw: true }).then((res) => { const n = Number(res.headers.get("x-total-count")); return Number.isFinite(n) && n > 0 ? n : null; }) : Promise.resolve(null),
+    supabaseConfigured() ? sb("/rest/v1/entitlements?select=user_id&limit=1").then(() => true) : Promise.resolve(false),
   ]);
-  const [football, config, newMessages, totalMessages, users] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
+  const [football, config, newMessages, totalMessages, users, accountsTable] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
   const supabaseOk = settled[1].status === "fulfilled" && supabaseConfigured();
   const flag = (name) => !!env(name);
   return {
@@ -56,6 +58,7 @@ async function overview() {
       { id: "football", label: "Football data API", ok: !!football?.ok, detail: football?.configured === false ? "SCOUTWAVE_FOOTBALL_API_KEY is not set" : football?.ok ? `${football.plan || "plan"} · ${football.used ?? "?"}/${football.limit ?? "?"} requests today` : football?.error || "No answer" },
       { id: "news", label: "News API", ok: flag("NEWS_ACCESS"), detail: flag("NEWS_ACCESS") ? "NEWS_ACCESS is set" : "NEWS_ACCESS is not set" },
       { id: "storage", label: "Database (Supabase)", ok: supabaseOk, detail: !supabaseConfigured() ? "SUPABASE_SERVICE_ROLE_KEY is not set" : supabaseOk ? "Reachable" : "Could not read app_config (did you run supabase/migrations/001_admin.sql?)" },
+      { id: "accounts", label: "Account Premium & coins table", ok: accountsTable === true, detail: accountsTable === true ? "Ready" : "Run supabase/migrations/002_entitlements.sql (needed for Premium and coins on accounts)" },
       { id: "site", label: "Public site URL", ok: flag("SITE_URL"), detail: flag("SITE_URL") ? env("SITE_URL") : "SITE_URL not set (the request host is used for canonical links)" },
       { id: "twofa", label: "Admin two-factor sign-in", ok: flag("ADMIN_TOTP_SECRET"), detail: flag("ADMIN_TOTP_SECRET") ? "Enabled" : "Not enabled: strongly recommended (ADMIN_TOTP_SECRET)" },
     ],
@@ -112,11 +115,19 @@ async function listUsers({ page = 1 }) {
   const data = await res.json();
   const list = Array.isArray(data) ? data : data.users || [];
   const total = Number(res.headers.get("x-total-count"));
+  // Premium and coins for the people on this page (accounts that never opened the app have no row yet).
+  let rows = [];
+  const ids = list.map((u) => u.id).filter(isUuid);
+  if (ids.length) {
+    try { rows = await sb(`/rest/v1/entitlements?user_id=in.(${ids.join(",")})&select=*`); } catch { rows = []; }
+  }
+  const byUser = new Map((Array.isArray(rows) ? rows : []).map((r) => [r.user_id, effective(r)]));
   return {
     page: p, total: Number.isFinite(total) && total > 0 ? total : null,
     users: list.map((u) => ({
       id: u.id, email: u.email || "", createdAt: u.created_at, lastSignInAt: u.last_sign_in_at || null,
       confirmed: !!u.email_confirmed_at, providers: u.app_metadata?.providers || [], bannedUntil: u.banned_until || null,
+      premium: byUser.get(u.id)?.isVip ?? false, premiumUntil: byUser.get(u.id)?.vipUntil ?? null, coins: byUser.get(u.id)?.coins ?? null,
     })),
   };
 }
@@ -155,6 +166,16 @@ const ACTIONS = {
     await sb(`/auth/v1/admin/users/${body.id}`, { method: "PUT", body: { ban_duration: `${hours}h` } });
     await audit(ctx.actor, "user.ban", { id: body.id, hours }, ctx.ip);
     return { ok: true };
+  },
+  entitlement_set: async (body, ctx) => {
+    if (!isUuid(String(body.id))) throw new HttpError(400, "Bad user id.");
+    const { before, after } = await adminSet(body.id, body, ctx.actor);
+    await audit(ctx.actor, "entitlement.update", {
+      id: body.id, reason: String(body.reason).slice(0, 200),
+      premium: { from: effective(before).isVip, to: effective(after).isVip, until: effective(after).vipUntil },
+      coins: { from: before.coins, to: after.coins },
+    }, ctx.ip);
+    return { entitlements: effective(after) };
   },
   user_unban: async (body, ctx) => {
     if (!UUID.test(String(body.id))) throw new HttpError(400, "Bad user id.");

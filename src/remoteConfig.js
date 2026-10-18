@@ -21,6 +21,7 @@ function sane(data) {
     announcement: null,
     minVersion: /^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(data.minVersion || "") ? data.minVersion : "0.0.0",
     fxPrices: {},
+    tipCost: Number.isInteger(data.tipCost) && data.tipCost >= 0 && data.tipCost <= 500 ? data.tipCost : null,
   };
   for (const [name, value] of Object.entries(data.flags || {})) if (typeof value === "boolean") out.flags[name] = value;
   const a = data.announcement;
@@ -49,6 +50,7 @@ export function remoteFlag(name) {
   return typeof value === "boolean" ? value : undefined;
 }
 
+export const tipCostOverride = () => current?.tipCost ?? undefined;
 export const fxPriceOverride = (id) => current?.fxPrices?.[id];
 
 // "0.17.0" vs "0.16.2": negative if a < b.

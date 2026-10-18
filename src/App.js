@@ -11,6 +11,7 @@ import { initNavBars, syncNavBars } from "./utils/navbar.js";
 import { initTheme } from "./theme.js";
 import { initThemeFx, activeFxTheme, fxThemeById, fxPriceOf } from "./themeFx.js";
 import { initRemoteConfig, REMOTE_EVENT } from "./remoteConfig.js";
+import { initEntitlements, serverMode, spendCoins, tipCost } from "./entitlements.js";
 import { blockingNotice, blockingScreen, announcementBar } from "./components/RemoteNotices.js";
 import { initClubTheme, clubById } from "./clubTheme.js";
 import { initLiveAlerts } from "./liveAlerts.js";
@@ -90,15 +91,23 @@ const actions = {
   // Profile sub-pages fall back to Profile (not Home) when opened via a direct link.
   closeSubpage: () => goBack(PROFILE_SUBPAGES.includes(store.getState().tab) ? "/profile" : "/"),
   subscribe: () => {
+    if (serverMode()) { showToast("Premium isn't open for purchase yet. The Scoutwave team can add it to your account.", "default", 4500); return; }
     store.setState({ isVip: true });
     showToast("Welcome to VIP — every tip is unlocked", "success");
     goBack("/profile");
   },
   buyCoins: (amount) => {
+    if (serverMode()) { showToast("Coin purchases aren't open yet. The Scoutwave team can add coins to your account.", "default", 4500); return; }
     store.setState((state) => ({ coins: state.coins + amount }));
     showToast(`+${amount} coins added`, "success");
   },
-  unlockWithCoins: (matchId) =>
+  unlockWithCoins: (matchId) => {
+    if (serverMode()) {
+      spendCoins("tip:" + matchId)
+        .then(() => showToast(`Tip unlocked for ${tipCost()} coins`, "success"))
+        .catch((error) => showToast(error.message || "Couldn't unlock that tip", "error"));
+      return;
+    }
     store.setState((state) => {
       if (state.unlockedMatchIds.includes(matchId)) return {};
       if (state.coins < UNLOCK_COST) {
@@ -110,7 +119,8 @@ const actions = {
         coins: state.coins - UNLOCK_COST,
         unlockedMatchIds: [...state.unlockedMatchIds, matchId],
       };
-    }),
+    });
+  },
   // Silent: the calling component updates its own star, so favouriting never
   // re-renders the app (no scroll jump, no refetch). Returns the new state.
   // Silent: the calling row/button updates its own star in place (see
@@ -153,9 +163,17 @@ const actions = {
     const state = store.getState();
     if (!theme || theme.vip || state.unlockedThemes.includes(id)) return;
     const price = fxPriceOf(theme);
-    if (state.coins < price) {
+    // On an account the server decides whether the balance covers it (this copy may be a few minutes old).
+    if (!serverMode() && state.coins < price) {
       showToast(`Not enough coins for ${theme.name}`, "error");
       navigate("/coins");
+      return;
+    }
+    if (serverMode()) {
+      // The server checks the balance and charges; the new state comes back and is mirrored.
+      spendCoins("theme:" + id)
+        .then(() => { store.setState({ fxTheme: id }); showToast(`${theme.name} unlocked and applied`, "success"); })
+        .catch((error) => showToast(error.message || `Couldn't unlock ${theme.name}`, "error"));
       return;
     }
     store.setState({ coins: state.coins - price, unlockedThemes: [...state.unlockedThemes, id], fxTheme: id });
@@ -390,6 +408,7 @@ initPullToRefresh();
 initTheme();
 initPerf();
 initRemoteConfig();
+initEntitlements();
 initClubTheme();
 initThemeFx();
 initLiveAlerts();

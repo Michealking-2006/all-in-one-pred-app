@@ -124,6 +124,12 @@ async function validSession() {
   return expiring ? refreshSession(session) : session;
 }
 
+// The current access token (refreshed if it is about to expire), for calls to our own /api endpoints.
+export async function getAccessToken() {
+  const session = await validSession();
+  return session?.access_token || null;
+}
+
 async function currentUser() {
   const stored = readSession();
   if (!stored) return null;
