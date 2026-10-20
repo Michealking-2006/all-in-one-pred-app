@@ -2,6 +2,8 @@
 // Set SCOUTWAVE_FOOTBALL_API_KEY in Vercel -> Project Settings -> Environment
 // Variables (and in a local .env for `vercel dev`).
 
+import { recordUsage } from "./_usage.js";
+
 const API_BASE = "https://v3.football.api-sports.io";
 
 // endpoint -> edge cache lifetime in seconds
@@ -95,6 +97,8 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json().catch(() => null);
+    // Every request that reaches here used one provider call (edge-cached answers never get here).
+    await recordUsage("proxy", endpoint, 1, !response.ok || (data?.errors && Object.keys(data.errors).length) ? 1 : 0);
 
     if (data?.errors && Object.keys(data.errors).length) {
       const message = providerErrorMessage(data.errors);

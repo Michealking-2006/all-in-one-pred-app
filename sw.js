@@ -8,7 +8,7 @@
 //   - images / fonts: cache first.
 //   - API and auth traffic is never cached here (the app caches API data itself).
 // Bump CACHE to drop every previously cached file.
-const CACHE = "scoutwave-shell-v2";
+const CACHE = "scoutwave-shell-v6";
 const NAV_TIMEOUT_MS = 2500;
 const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png"];
 
@@ -81,6 +81,41 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => { if (!settled) { settled = true; clearTimeout(timer); resolve(save(request, response)); } else save(request, response); })
         .catch(() => { if (!settled) { settled = true; clearTimeout(timer); fallback().then(resolve); } });
+    })
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Push alerts (goals, kick-offs, half-time, full-time) sent by the server.
+// The payload is { title, body, tag, url }. If Scoutwave is open and in view the app
+// already shows its own banner, so nothing extra is shown then.
+// ---------------------------------------------------------------------------
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
+  const title = typeof data.title === "string" && data.title ? data.title.slice(0, 80) : "Scoutwave";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      if (windows.some((w) => w.visibilityState === "visible")) return undefined;
+      return self.registration.showNotification(title, {
+        body: typeof data.body === "string" ? data.body.slice(0, 160) : "",
+        tag: typeof data.tag === "string" ? data.tag.slice(0, 64) : undefined,
+        icon: "/icons/icon-192.png",
+        badge: "/icons/icon-192.png",
+        data: { url: typeof data.url === "string" && data.url.startsWith("/") && !data.url.startsWith("//") ? data.url : "/" },
+      });
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((w) => new URL(w.url).origin === self.location.origin);
+      if (open) return open.focus().then((w) => (w && "navigate" in w ? w.navigate(target) : undefined));
+      return self.clients.openWindow(target);
     })
   );
 });

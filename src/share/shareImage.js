@@ -38,9 +38,15 @@ export function canShareFiles() {
   }
 }
 
-export async function shareImageFile(blob, type, title) {
+// share: { title, text, url }. The picture goes with a caption and a link to our page for it, so the
+// people it is sent to can open the live version (the link also previews with the score, via the
+// server-rendered page). Some systems refuse files plus a link: fall back to the picture and caption.
+export async function shareImageFile(blob, type, share = {}) {
   const file = new File([blob], filenameFor(type), { type: "image/png" });
-  await navigator.share({ files: [file], title: title || "Scoutwave" });
+  const title = typeof share === "string" ? share : share.title || "Scoutwave";
+  const full = { files: [file], title, text: share.text || title, ...(share.url ? { url: share.url } : {}) };
+  if (navigator.canShare?.(full)) { await navigator.share(full); return; }
+  await navigator.share({ files: [file], title, text: share.text || title });
 }
 
 export function downloadImageFile(blob, type) {

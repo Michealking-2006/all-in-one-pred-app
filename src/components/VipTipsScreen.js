@@ -3,7 +3,7 @@ import { matches } from "../data/mockData.js";
 import { isFeatureOn } from "../features.js";
 import { getFixturesByDate } from "../api/footballApi.js";
 import { localDateISO } from "../utils/fixtures.js";
-import { predictFixture } from "../predictions/engine.js";
+import { predictFixture, serverAccuracy } from "../predictions/engine.js";
 import { accuracySummary, gradeFixtures } from "../predictions/tracker.js";
 import { PredictionRow } from "./PredictionCard.js";
 import { SkeletonRow } from "./Skeleton.js";
@@ -22,9 +22,27 @@ function loadModelFeed() {
   });
 }
 
+// Server-tracked accuracy (all matches, shown once enough are graded) replaces the on-device figure.
 function accuracyCard() {
-  const a = accuracySummary();
-  if (!a.total) return null;
+  const holder = h("div", {}, []);
+  const local = accuracySummary();
+  if (local.total) holder.append(localAccuracyCard(local));
+  serverAccuracy().then((a) => {
+    if (!a) return;
+    const pct = (v) => Math.round(v * 100) + "%";
+    holder.replaceChildren(h("section", { className: "card pred-accuracy" }, [
+      text("span", { className: "section-kicker" }, "Tracked accuracy"),
+      h("div", { className: "pred-stats" }, [
+        h("div", { className: "pred-stat" }, [text("span", {}, "Winner picks"), text("strong", { className: "mono" }, pct(a.winnerAccuracy))]),
+        h("div", { className: "pred-stat" }, [text("span", {}, "Over/under 2.5"), text("strong", { className: "mono" }, pct(a.overUnderAccuracy))]),
+        h("div", { className: "pred-stat" }, [text("span", {}, "Matches graded"), text("strong", { className: "mono" }, String(a.sample))]),
+      ]),
+    ]));
+  });
+  return holder;
+}
+
+function localAccuracyCard(a) {
   return h("section", { className: "card pred-accuracy" }, [
     text("span", { className: "section-kicker" }, "Tracked accuracy"),
     h("div", { className: "pred-stats" }, [

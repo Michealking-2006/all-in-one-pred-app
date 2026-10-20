@@ -57,7 +57,7 @@ export function MatchScreen({ fixtureId, matchTab = "summary", isFavorite, onBac
   const share = h("button", { type: "button", className: "icon-button share-header-button", "aria-label": "Share match", onClick: () => {
     fixturePromise.then((fixture) => {
       if (!fixture) { showToast("This match isn't available to share yet.", "error"); return; }
-      openShareSheet("match", fixture);
+      openShareSheet("match", fixture, { events: view.events, form: view.form });
     });
   } }, [h("i", { "data-lucide": "share-2" })]);
 

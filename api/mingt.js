@@ -2,11 +2,17 @@
 // out: { action, ...params }. Everything except "login" needs a valid token.
 import crypto from "node:crypto";
 import {
-  env, adminConfigured, signToken, verifyToken, TOKEN_TTL_MS, clientIp, loginLocked, recordLogin, checkCredentials,
+  env, adminConfigured, signToken, verifyToken, TOKEN_TTL_MS, clientIp, checkFactors, twoFactorConfigured,
   supabaseConfigured, sb, HttpError, validateConfig, readConfig, writeConfig, audit, KNOWN_FLAGS, DEFAULT_CONFIG,
 } from "./_admin.js";
 import { adminSet, effective, getRow, isUuid, hasStorage } from "./_account.js";
 import { APP_VERSION } from "../src/config.js";
+import { CATALOGUE } from "./_polar.js";
+import { runPredict, runGrade } from "./_predict.js";
+import { adminReport, importForebet } from "./_report.js";
+import { pushConfigured } from "./_push.js";
+import { lockStatus, recordFailure, recordSuccess, consumeTotp, createSession, checkSession, reasonText, listSessions, revokeSession, revokeAll, storageReady, idleMs } from "./_adminsec.js";
+import { q as Q } from "./_query.js";
 
 const FOOTBALL_BASE = env("FOOTBALL_API_BASE") || "https://v3.football.api-sports.io";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,8 +53,12 @@ async function overview() {
     supabaseConfigured() ? sb("/rest/v1/support_messages?select=id&limit=1", { raw: true, headers: { Prefer: "count=exact", Range: "0-0" } }).then(countFrom) : Promise.resolve(null),
     supabaseConfigured() ? sb("/auth/v1/admin/users?page=1&per_page=1", { raw: true }).then((res) => { const n = Number(res.headers.get("x-total-count")); return Number.isFinite(n) && n > 0 ? n : null; }) : Promise.resolve(null),
     supabaseConfigured() ? sb("/rest/v1/entitlements?select=user_id&limit=1").then(() => true) : Promise.resolve(false),
+    supabaseConfigured() ? sb("/rest/v1/payment_events?select=order_id&limit=1").then(() => true) : Promise.resolve(false),
+    supabaseConfigured() ? sb("/rest/v1/predictions?select=fixture_id&limit=1").then(() => true) : Promise.resolve(false),
+    supabaseConfigured() ? sb("/rest/v1/push_subscriptions?select=endpoint&limit=1000").catch(() => null) : Promise.resolve(null),
+    supabaseConfigured() ? storageReady() : Promise.resolve(false),
   ]);
-  const [football, config, newMessages, totalMessages, users, accountsTable] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
+  const [football, config, newMessages, totalMessages, users, accountsTable, paymentsTable, predictionsTable, pushRows, adminSecReady] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
   const supabaseOk = settled[1].status === "fulfilled" && supabaseConfigured();
   const flag = (name) => !!env(name);
   return {
@@ -59,6 +69,10 @@ async function overview() {
       { id: "news", label: "News API", ok: flag("NEWS_ACCESS"), detail: flag("NEWS_ACCESS") ? "NEWS_ACCESS is set" : "NEWS_ACCESS is not set" },
       { id: "storage", label: "Database (Supabase)", ok: supabaseOk, detail: !supabaseConfigured() ? "SUPABASE_SERVICE_ROLE_KEY is not set" : supabaseOk ? "Reachable" : "Could not read app_config (did you run supabase/migrations/001_admin.sql?)" },
       { id: "accounts", label: "Account Premium & coins table", ok: accountsTable === true, detail: accountsTable === true ? "Ready" : "Run supabase/migrations/002_entitlements.sql (needed for Premium and coins on accounts)" },
+      { id: "payments", label: "Payments (Polar)", ok: paymentsTable === true && flag("POLAR_ACCESS_TOKEN") && flag("POLAR_WEBHOOK_SECRET"), detail: paymentsTable !== true ? "Run supabase/migrations/003_payments.sql" : !flag("POLAR_ACCESS_TOKEN") ? "POLAR_ACCESS_TOKEN is not set" : !flag("POLAR_WEBHOOK_SECRET") ? "POLAR_WEBHOOK_SECRET is not set" : `Ready${env("POLAR_SERVER") === "sandbox" ? " (sandbox mode)" : ""} · ${Object.values(CATALOGUE).filter((c) => env(c.envVar)).length}/${Object.keys(CATALOGUE).length} products linked` },
+      { id: "predtrack", label: "Server-side prediction tracking", ok: predictionsTable === true && flag("CRON_SECRET"), detail: predictionsTable !== true ? "Run supabase/migrations/004_predictions.sql" : !flag("CRON_SECRET") ? "CRON_SECRET is not set (the scheduled jobs can't run)" : `Ready · OpenAI notes ${flag("OPENAI_API_KEY") && Number(env("PREDICT_EXPLAIN_MAX")) > 0 ? "on" : "off"} · bookmaker odds ${env("PREDICT_ODDS") === "1" ? "on" : "off"}` },
+      { id: "push", label: "Push notifications", ok: Array.isArray(pushRows) && pushConfigured() && flag("CRON_SECRET"), detail: !Array.isArray(pushRows) ? "Run supabase/migrations/005_usage_and_push.sql" : !pushConfigured() ? "Generate keys: node scripts/generate-vapid.mjs, then set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT" : !flag("CRON_SECRET") ? "CRON_SECRET is not set" : `Ready · ${pushRows.length} device${pushRows.length === 1 ? "" : "s"} signed up · the alert job must be scheduled every minute (docs/NOTIFICATIONS.md)` },
+      { id: "adminsec", label: "Admin sign-in protection", ok: adminSecReady === true && twoFactorConfigured(), detail: !twoFactorConfigured() ? "Two-factor is required: set ADMIN_TOTP_SECRET" : adminSecReady !== true ? "Run supabase/migrations/006_admin_security.sql (lockout and session controls are reduced until then)" : `Two-factor required, database lockout and ${Math.round(idleMs() / 60000)}-minute idle sessions active` },
       { id: "site", label: "Public site URL", ok: flag("SITE_URL"), detail: flag("SITE_URL") ? env("SITE_URL") : "SITE_URL not set (the request host is used for canonical links)" },
       { id: "twofa", label: "Admin two-factor sign-in", ok: flag("ADMIN_TOTP_SECRET"), detail: flag("ADMIN_TOTP_SECRET") ? "Enabled" : "Not enabled: strongly recommended (ADMIN_TOTP_SECRET)" },
     ],
@@ -95,14 +109,12 @@ async function setConfig(input, actor, ip) {
   return next;
 }
 
-const likeTerm = (q) => String(q || "").replace(/[^\p{L}\p{N}@._\- ]/gu, "").trim().slice(0, 60);
-
-async function listMessages({ status, q, offset = 0, limit = 30 }) {
-  const lim = Math.min(Math.max(parseInt(limit, 10) || 30, 1), 100), off = Math.max(parseInt(offset, 10) || 0, 0);
+async function listMessages({ status, q: search, offset = 0, limit = 30 }) {
+  const lim = Math.min(Math.max(parseInt(limit, 10) || 30, 1), 100), off = Math.min(Math.max(parseInt(offset, 10) || 0, 0), 1000000);
   let path = `/rest/v1/support_messages?select=*&order=created_at.desc`;
-  if (["new", "read", "resolved"].includes(status)) path += `&status=eq.${status}`;
-  const term = likeTerm(q);
-  if (term) path += `&or=(message.ilike.*${encodeURIComponent(term)}*,email.ilike.*${encodeURIComponent(term)}*,name.ilike.*${encodeURIComponent(term)}*)`;
+  if (["new", "read", "resolved"].includes(status)) path += `&status=eq.${q.word(status)}`;
+  const term = Q.like(search);
+  if (term) path += `&or=(message.ilike.${term},email.ilike.${term},name.ilike.${term})`;
   const res = await sb(path, { raw: true, headers: { Prefer: "count=exact", Range: `${off}-${off + lim - 1}`, "Range-Unit": "items" } });
   if (!res.ok && res.status !== 206) throw new HttpError(502, "Could not load messages.");
   return { items: await res.json(), total: countFrom(res), offset: off, limit: lim };
@@ -110,7 +122,7 @@ async function listMessages({ status, q, offset = 0, limit = 30 }) {
 
 async function listUsers({ page = 1 }) {
   const p = Math.min(Math.max(parseInt(page, 10) || 1, 1), 1000);
-  const res = await sb(`/auth/v1/admin/users?page=${p}&per_page=50`, { raw: true });
+  const res = await sb(`/auth/v1/admin/users?page=${Q.int(p)}&per_page=50`, { raw: true });
   if (!res.ok) throw new HttpError(502, "Could not load users.");
   const data = await res.json();
   const list = Array.isArray(data) ? data : data.users || [];
@@ -119,7 +131,7 @@ async function listUsers({ page = 1 }) {
   let rows = [];
   const ids = list.map((u) => u.id).filter(isUuid);
   if (ids.length) {
-    try { rows = await sb(`/rest/v1/entitlements?user_id=in.(${ids.join(",")})&select=*`); } catch { rows = []; }
+    try { rows = await sb(`/rest/v1/entitlements?user_id=in.(${Q.uuids(ids)})&select=*`); } catch { rows = []; }
   }
   const byUser = new Map((Array.isArray(rows) ? rows : []).map((r) => [r.user_id, effective(r)]));
   return {
@@ -132,7 +144,95 @@ async function listUsers({ page = 1 }) {
   };
 }
 
+async function usageOverview() {
+  const since = new Date(Date.now() - 13 * 86400000).toISOString().slice(0, 10);
+  const [usage, cache, football] = await Promise.all([
+    sb(`/rest/v1/usage_daily?day=gte.${Q.day(since)}&select=day,source,endpoint,calls,errors&limit=5000`),
+    sb(`/rest/v1/client_cache_daily?day=gte.${Q.day(since)}&select=*`),
+    footballStatus(),
+  ]);
+  const days = [];
+  for (let i = 13; i >= 0; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+  const rows = Array.isArray(usage) ? usage : [];
+  const clients = new Map((Array.isArray(cache) ? cache : []).map((r) => [r.day, r]));
+  const perDay = days.map((day) => {
+    const mine = rows.filter((r) => r.day === day);
+    const sum = (source, field = "calls") => mine.filter((r) => r.source === source).reduce((t, r) => t + r[field], 0);
+    const c = clients.get(day);
+    const answered = c ? Number(c.memory) + Number(c.stored) + Number(c.network) : 0;
+    const proxy = sum("proxy");
+    return {
+      day, proxy, cron: sum("cron"), push: mine.filter((r) => r.source === "push" && !["sent", "failed"].includes(r.endpoint)).reduce((t, r) => t + r.calls, 0),
+      errors: mine.filter((r) => r.source !== "push" || !["sent", "failed"].includes(r.endpoint)).reduce((t, r) => t + r.errors, 0),
+      pushSent: mine.filter((r) => r.source === "push" && r.endpoint === "sent").reduce((t, r) => t + r.calls, 0),
+      pushFailed: mine.filter((r) => r.source === "push" && r.endpoint === "failed").reduce((t, r) => t + r.calls, 0),
+      // The app's own caches: share of lookups that never left the device.
+      deviceHitRate: answered >= 20 ? (Number(c.memory) + Number(c.stored)) / answered : null,
+      lookups: answered,
+      // Of the lookups that did go to the server, how many were answered by the shared edge cache instead of the provider.
+      // An estimate: only apps that reported are counted.
+      edgeHitRate: c && Number(c.network) >= 20 ? Math.max(0, Math.min(1, 1 - proxy / Number(c.network))) : null,
+    };
+  });
+  const byEndpoint = new Map();
+  for (const r of rows) if (r.source !== "push" || !["sent", "failed"].includes(r.endpoint)) byEndpoint.set(r.endpoint, (byEndpoint.get(r.endpoint) || 0) + r.calls);
+  const total = (field) => perDay.reduce((t, d) => t + d[field], 0);
+  const lookups = total("lookups");
+  const deviceHits = [...clients.values()].reduce((t, c) => t + Number(c.memory) + Number(c.stored), 0);
+  return {
+    days: perDay,
+    endpoints: [...byEndpoint.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([endpoint, calls]) => ({ endpoint, calls })),
+    totals: { calls14d: total("proxy") + total("cron") + total("push"), deviceHitRate14d: lookups ? deviceHits / lookups : null, pushSent14d: total("pushSent") },
+    quota: football?.ok ? { used: football.used, limit: football.limit } : null,
+  };
+}
+
+const LOGIN_EVENTS = ["login", "login.failed", "login.locked", "login.replayed_code", "session.rejected", "session.ip_changed", "sessions.revoke_all", "session.revoked"];
+
 const ACTIONS = {
+  security_overview: async (body, ctx) => {
+    const since = new Date(Date.now() - 13 * 86400000).toISOString().slice(0, 10);
+    const cspRows = await sb(`/rest/v1/usage_daily?source=eq.csp&day=gte.${Q.day(since)}&select=endpoint,calls&limit=200`).catch(() => []);
+    const csp = {};
+    for (const r of Array.isArray(cspRows) ? cspRows : []) csp[r.endpoint] = (csp[r.endpoint] || 0) + r.calls;
+    const [ready, sessions, events] = await Promise.all([
+      storageReady(),
+      listSessions(ctx.token.jti).catch(() => []),
+      sb(`/rest/v1/admin_audit?action=in.(${Q.words(LOGIN_EVENTS)})&select=at,action,detail,ip&order=at.desc&limit=25`).catch(() => []),
+    ]);
+    return { csp, twoFactor: twoFactorConfigured(), protectionsActive: ready, degradedSession: !!ctx.token.deg, idleMinutes: Math.round(idleMs() / 60000), bindIp: env("ADMIN_BIND_IP") === "1", sessions, events: Array.isArray(events) ? events : [] };
+  },
+  session_revoke: async (body, ctx) => {
+    const id = String(body.id || "");
+    if (!/^[0-9a-f-]{36}$/.test(id)) throw new HttpError(400, "Bad request");
+    await revokeSession(id, "manual");
+    await audit(ctx.actor, "session.revoked", { current: id === ctx.token.jti }, ctx.ip);
+    return { ok: true };
+  },
+  sessions_revoke_all: async (body, ctx) => {
+    await revokeAll();
+    await audit(ctx.actor, "sessions.revoke_all", {}, ctx.ip);
+    return { ok: true };
+  },
+  logout: async (body, ctx) => {
+    if (ctx.token.jti && !ctx.token.deg) await revokeSession(ctx.token.jti, "logout");
+    return { ok: true };
+  },
+  usage_overview: async () => usageOverview(),
+  predictions_overview: async () => adminReport(),
+  predictions_run: async (body, ctx) => {
+    if (!["predict", "grade"].includes(body.task)) throw new HttpError(400, "Unknown job.");
+    const result = body.task === "predict" ? await runPredict() : await runGrade();
+    await audit(ctx.actor, "predictions.run", { task: body.task, ...result }, ctx.ip);
+    return { result };
+  },
+  benchmark_import: async (body, ctx) => {
+    const text = String(body.text || "");
+    if (text.length > 60000) throw new HttpError(400, "That is too much at once (up to 300 lines).");
+    const result = await importForebet(text);
+    await audit(ctx.actor, "benchmark.import", { saved: result.saved, late: result.late, problems: result.problems.length }, ctx.ip);
+    return result;
+  },
   me: async (_body, ctx) => ({ ok: true, expiresAt: ctx.token.exp, version: APP_VERSION }),
   overview: async () => overview(),
   config_get: async () => ({ config: await readConfig({ fresh: true }), flagsKnown: KNOWN_FLAGS }),
@@ -148,14 +248,14 @@ const ACTIONS = {
     }
     if (body.note !== undefined) patch.note = String(body.note).slice(0, 500);
     if (!Object.keys(patch).length) throw new HttpError(400, "Nothing to update.");
-    await sb(`/rest/v1/support_messages?id=eq.${id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: patch });
+    await sb(`/rest/v1/support_messages?id=eq.${Q.int(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: patch });
     await audit(ctx.actor, "message.update", { id, ...patch }, ctx.ip);
     return { ok: true };
   },
   message_delete: async (body, ctx) => {
     const id = Number(body.id);
     if (!Number.isInteger(id) || id < 1) throw new HttpError(400, "Bad message id.");
-    await sb(`/rest/v1/support_messages?id=eq.${id}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+    await sb(`/rest/v1/support_messages?id=eq.${Q.int(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
     await audit(ctx.actor, "message.delete", { id }, ctx.ip);
     return { ok: true };
   },
@@ -163,7 +263,7 @@ const ACTIONS = {
   user_ban: async (body, ctx) => {
     if (!UUID.test(String(body.id))) throw new HttpError(400, "Bad user id.");
     const hours = body.permanent ? 876000 : Math.min(Math.max(parseInt(body.hours, 10) || 24, 1), 87600);
-    await sb(`/auth/v1/admin/users/${body.id}`, { method: "PUT", body: { ban_duration: `${hours}h` } });
+    await sb(`/auth/v1/admin/users/${Q.uuid(body.id)}`, { method: "PUT", body: { ban_duration: `${hours}h` } });
     await audit(ctx.actor, "user.ban", { id: body.id, hours }, ctx.ip);
     return { ok: true };
   },
@@ -179,13 +279,13 @@ const ACTIONS = {
   },
   user_unban: async (body, ctx) => {
     if (!UUID.test(String(body.id))) throw new HttpError(400, "Bad user id.");
-    await sb(`/auth/v1/admin/users/${body.id}`, { method: "PUT", body: { ban_duration: "none" } });
+    await sb(`/auth/v1/admin/users/${Q.uuid(body.id)}`, { method: "PUT", body: { ban_duration: "none" } });
     await audit(ctx.actor, "user.unban", { id: body.id }, ctx.ip);
     return { ok: true };
   },
   audit_list: async (body) => {
     const lim = Math.min(Math.max(parseInt(body.limit, 10) || 100, 1), 300);
-    return { items: await sb(`/rest/v1/admin_audit?select=*&order=at.desc&limit=${lim}`) };
+    return { items: await sb(`/rest/v1/admin_audit?select=*&order=at.desc&limit=${Q.int(lim)}`) };
   },
 };
 
@@ -207,6 +307,10 @@ export default async function handler(req, res) {
   if (!adminConfigured()) {
     return res.status(503).json({ error: "The admin area is not set up yet. See docs/ADMIN.md.", code: "NOT_CONFIGURED" });
   }
+  // Two-factor is required, never optional: without it nobody can sign in.
+  if (!twoFactorConfigured()) {
+    return res.status(503).json({ error: "Two-factor sign-in is required. Run node scripts/admin-setup.mjs, add ADMIN_TOTP_SECRET in Vercel, then redeploy. See docs/ADMIN.md.", code: "NOT_CONFIGURED" });
+  }
 
   const body = typeof req.body === "string" ? (() => { try { return JSON.parse(req.body); } catch { return null; } })() : req.body;
   if (!body || typeof body.action !== "string") return res.status(400).json({ error: "Bad request" });
@@ -216,23 +320,41 @@ export default async function handler(req, res) {
     if (body.action === "login") {
       // The dashboard probes with an empty login to learn whether the area is configured: not a failed attempt.
       if (!body.password) return res.status(400).json({ error: "Enter your passphrase." });
-      const wait = loginLocked(ip);
-      if (wait) return res.status(429).json({ error: `Too many attempts. Try again in ${Math.ceil(wait / 60)} minute(s).`, retryAfter: wait });
-      const ok = checkCredentials({ email: body.email, password: body.password, code: body.code });
-      recordLogin(ip, ok);
-      if (!ok) {
-        await sleep(400 + Math.floor(Math.random() * 300)); // slow down guessing
-        return res.status(401).json({ error: "Those details are not right." });
+      const lock = await lockStatus(ip);
+      if (lock.seconds) return res.status(429).json({ error: `Too many attempts. Try again in ${Math.ceil(lock.seconds / 60)} minute(s).`, retryAfter: lock.seconds });
+      const { ok: factorsOk, step } = checkFactors({ email: body.email, password: body.password, code: body.code });
+      let ok = factorsOk, degraded = lock.degraded, replay = false;
+      if (ok) {
+        // Every authenticator code works once: burning the step makes a seen code useless.
+        const used = await consumeTotp(step);
+        degraded = degraded || used.degraded;
+        if (!used.ok) { ok = false; replay = true; }
       }
+      if (!ok) {
+        const fail = await recordFailure(ip);
+        if (fail.fails === 1 || fail.lockedSeconds) await audit("admin", fail.lockedSeconds ? "login.locked" : replay ? "login.replayed_code" : "login.failed", { lockedMinutes: Math.ceil(fail.lockedSeconds / 60) || 0 }, ip);
+        await sleep(400 + Math.floor(Math.random() * 300)); // slow down guessing
+        return res.status(401).json({ error: replay ? "That code was already used. Wait for the next one." : "Those details are not right." });
+      }
+      await recordSuccess(ip);
       const now = Date.now();
-      const token = signToken({ sub: "admin", iat: now, exp: now + TOKEN_TTL_MS, jti: crypto.randomUUID() });
-      await audit("admin", "login", {}, ip);
-      return res.status(200).json({ token, expiresAt: now + TOKEN_TTL_MS, version: APP_VERSION });
+      req.__ip = ip;
+      const session = await createSession(req, { now, ttl: TOKEN_TTL_MS });
+      degraded = degraded || session.degraded;
+      const token = signToken({ sub: "admin", iat: now, exp: now + TOKEN_TTL_MS, jti: session.id, ...(session.degraded ? { deg: 1 } : {}) });
+      await audit("admin", "login", { degraded }, ip);
+      return res.status(200).json({ token, expiresAt: now + TOKEN_TTL_MS, idleMinutes: Math.round(idleMs() / 60000), degraded, version: APP_VERSION });
     }
 
     const header = String(req.headers?.authorization || "");
     const parsed = verifyToken(header.startsWith("Bearer ") ? header.slice(7) : "");
     if (!parsed) return res.status(401).json({ error: "Your session has ended. Sign in again.", code: "SESSION" });
+    const live = await checkSession(parsed, req, ip);
+    if (!live.ok) {
+      if (live.reason === "device" || live.reason === "network") await audit("admin", "session.rejected", { reason: live.reason }, ip);
+      return res.status(401).json({ error: reasonText(live.reason), code: "SESSION" });
+    }
+    if (live.ipChanged) await audit("admin", "session.ip_changed", { from: live.from }, ip);
 
     const run = Object.prototype.hasOwnProperty.call(ACTIONS, body.action) ? ACTIONS[body.action] : null;
     if (!run) return res.status(400).json({ error: "Unknown action" });

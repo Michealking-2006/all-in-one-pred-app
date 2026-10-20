@@ -5,6 +5,8 @@
 // content with links. People never see this page; they get the app.
 import { metaForPath, metaForFixture, metaForLeague, jsonLdSite, jsonLdFixture, breadcrumbs, normalizePath, KEYWORDS, SITE_NAME } from "../src/seoCore.js";
 import { siteOrigin, esc, footballData, slugOf, TOP_LEAGUES } from "./_site.js";
+import { cleanArticle } from "./news.js";
+import { parseArticleId, isProviderId } from "../src/newsArticle.js";
 
 const link = (href, text) => `<a href="${esc(href)}">${esc(text)}</a>`;
 const list = (items) => (items.length ? `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>` : "");
@@ -65,6 +67,24 @@ async function buildLeague(id, path, origin) {
   };
 }
 
+// A news story: the headline, the publisher's summary and a link to the full story, as real HTML for
+// search engines and link previews (WhatsApp, X, Slack). Only stories the provider can return by id.
+async function buildArticle(id, path, origin) {
+  const token = String(process.env.NEWS_ACCESS || "").trim();
+  if (!token || !isProviderId(id)) return null;
+  const r = await fetch(`https://api.thenewsapi.com/v1/news/uuid/${id}?` + new URLSearchParams({ api_token: token }), { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(6000) });
+  const article = r.ok ? cleanArticle(await r.json().catch(() => null)) : null;
+  if (!article) return null;
+  const clip = (t, n) => (t.length <= n ? t : t.slice(0, n - 1).replace(/\s+\S*$/, "") + "\u2026");
+  const description = clip(article.description || article.title, 300);
+  return {
+    meta: { path, kind: "article", title: clip(article.title, 62) + " | " + SITE_NAME, description, image: article.image || "" },
+    heading: article.title,
+    jsonLd: [{ "@context": "https://schema.org", "@type": "NewsArticle", headline: clip(article.title, 110), ...(article.image ? { image: [article.image] } : {}), ...(article.publishedAt ? { datePublished: article.publishedAt } : {}), author: { "@type": "Organization", name: article.source || "Publisher" }, publisher: { "@type": "Organization", name: SITE_NAME }, mainEntityOfPage: origin + path }, breadcrumbs(origin, [["Home", "/"], ["News", "/news"], [clip(article.title, 60), path]])],
+    body: `<p>${esc(description)}</p>${article.source ? `<p>Source: ${esc(article.source)}</p>` : ""}<p><a href="${esc(article.url)}" rel="noopener nofollow">Read the full story${article.source ? " on " + esc(article.source) : ""}</a></p>${list([link("/news", "More football news")])}`,
+  };
+}
+
 export default async function handler(req, res) {
   const origin = siteOrigin(req);
   const raw = Array.isArray(req.query?.path) ? req.query.path[0] : req.query?.path;
@@ -81,6 +101,7 @@ export default async function handler(req, res) {
     if (path === "/") built = await buildHome();
     else if (kind === "match" && /^\d+$/.test(slug || "")) built = await buildMatch(slug, path, origin);
     else if (kind === "league" && /^\d+/.test(slug || "")) built = await buildLeague(parseInt(slug, 10), path, origin);
+    else if (kind === "news" && slug && parseArticleId(slug)) built = await buildArticle(parseArticleId(slug), path, origin);
     if (built) {
       meta = built.meta || meta;
       heading = built.heading || heading;
@@ -92,7 +113,7 @@ export default async function handler(req, res) {
   }
 
   const url = origin + (path === "/" ? "/" : path);
-  const image = origin + "/icons/icon-512.png";
+  const image = meta.image && /^https:\/\//.test(meta.image) ? meta.image : origin + "/icons/icon-512.png";
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>${esc(meta.title)}</title>
@@ -100,10 +121,10 @@ export default async function handler(req, res) {
 <meta name="keywords" content="${esc(KEYWORDS)}">
 <meta name="robots" content="${meta.noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}">
 <link rel="canonical" href="${esc(url)}">
-<meta property="og:site_name" content="${SITE_NAME}"><meta property="og:type" content="website">
+<meta property="og:site_name" content="${SITE_NAME}"><meta property="og:type" content="${meta.kind === "article" ? "article" : "website"}">
 <meta property="og:title" content="${esc(meta.title)}"><meta property="og:description" content="${esc(meta.description)}">
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(image)}">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="${esc(meta.title)}"><meta name="twitter:description" content="${esc(meta.description)}"><meta name="twitter:image" content="${esc(image)}">
+<meta name="twitter:card" content="${meta.kind === "article" && meta.image ? "summary_large_image" : "summary"}"><meta name="twitter:title" content="${esc(meta.title)}"><meta name="twitter:description" content="${esc(meta.description)}"><meta name="twitter:image" content="${esc(image)}">
 ${jsonLd.map((data) => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`).join("\n")}
 </head><body>
 <header><a href="/">${SITE_NAME}</a></header>

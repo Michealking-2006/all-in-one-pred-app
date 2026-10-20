@@ -1,4 +1,5 @@
 import { store } from "./store.js";
+import { parseArticleId } from "./newsArticle.js";
 
 const VALID_TABS = new Set([
   "home","vip","leagues","profile","auth","favorites","edit-profile","change-password",
@@ -18,6 +19,15 @@ function syncFromPath() {
     const mode = AUTH_MODES.includes(parts[1]) ? parts[1] : "login";
     store.setState({ tab: "auth", authMode: mode, openFixtureId: null, openEntity: null, modal });
     return;
+  }
+
+  // A news story on our own address: /news/<words>-<id>
+  if (parts[0] === "news" && parts[1]) {
+    const id = parseArticleId(parts[1]);
+    if (id) {
+      store.setState({ tab: "news", openEntity: { type: "article", id }, openFixtureId: null, modal });
+      return;
+    }
   }
 
   if (parts[0] === "match" && parts[1]) {
@@ -87,7 +97,22 @@ export function closeModal() {
   syncFromPath();
 }
 
+// Links inside the app move around without reloading the page. Anything else (new tab, other site,
+// files, the API, the admin area, modified clicks) is left to the browser.
+function interceptLinks(event) {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const a = event.target instanceof Element ? event.target.closest("a[href]") : null;
+  if (!a || (a.target && a.target !== "_self") || a.hasAttribute("download")) return;
+  let url;
+  try { url = new URL(a.href, window.location.href); } catch { return; }
+  if (url.origin !== window.location.origin || /^\/(api|mingt-t|src|icons)(\/|$)/.test(url.pathname) || /\.[a-z0-9]{2,5}$/i.test(url.pathname)) return;
+  if (url.pathname === window.location.pathname && url.search === window.location.search) return; // same page / in-page anchor
+  event.preventDefault();
+  navigate(url.pathname + url.search);
+}
+
 export function initRouter() {
+  document.addEventListener("click", interceptLinks);
   window.addEventListener("popstate", syncFromPath);
   syncFromPath();
 }

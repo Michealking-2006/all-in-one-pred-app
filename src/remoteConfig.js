@@ -5,6 +5,8 @@
 // Design rules: the app must never depend on it. A saved copy is used
 // instantly at start, a failed or slow request is ignored, and anything
 // malformed is thrown away in favour of the built-in defaults.
+import { safeUrl } from "./utils/safeUrl.js";
+
 const KEY = "scoutwave.remote.v1";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const REFRESH_MS = 5 * 60 * 1000;
@@ -30,6 +32,14 @@ function sane(data) {
       id: String(a.id || ""), text: a.text.slice(0, 240), level: ["info", "warn", "success"].includes(a.level) ? a.level : "info",
       link: typeof a.link === "string" && /^(https?:\/\/|\/)/i.test(a.link) ? a.link : "", expiresAt: a.expiresAt || null,
     };
+  }
+  out.placements = {};
+  for (const slot of ["news_list", "news_top", "news_inline", "news_bottom"]) {
+    const p = data.placements?.[slot];
+    if (!p || p.on !== true || typeof p.title !== "string" || !p.title.trim()) continue;
+    const link = safeUrl(String(p.link || ""));
+    if (!link || /^(mailto:|tel:)/i.test(link)) continue; // no usable destination: don't show it
+    out.placements[slot] = { label: ["Sponsored", "Ad", "Partner", "Promoted"].includes(p.label) ? p.label : "Sponsored", title: p.title.slice(0, 90), text: String(p.text || "").slice(0, 200), cta: String(p.cta || "Learn more").slice(0, 24), link, image: safeUrl(String(p.image || ""), { image: true, httpsOnly: true }) };
   }
   for (const [name, value] of Object.entries(data.fxPrices || {})) if (Number.isInteger(value) && value >= 0 && value <= 5000) out.fxPrices[name] = value;
   return out;

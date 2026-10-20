@@ -1,3 +1,45 @@
+# Changes in 0.23.0 — draggable drawers, richer sharing, news on our own URL, tighter security
+
+- **Draggable drawers.** Every bottom drawer (the share sheet today) now follows your finger: drag it by the handle or header, or pull down on the content when it is scrolled to the top. It closes on a long drag or a quick flick and springs back otherwise; the backdrop fades as it moves. Also closes on Escape, a tap outside, the Close button and the phone's Back button, keeps keyboard focus inside, and respects "reduce motion". One reusable component (`src/components/Sheet.js`).
+- **Share is data-rich.** The match picture now carries recent form for both teams, half-time score, the scorers with minutes (own goals and penalties marked) and the referee, from data the match page already has (no extra requests). Sharing sends a caption and a link to our page for it (which previews with the live score), and the drawer has Copy link.
+- **News polish and our own URLs.** Stories open at `/news/<words>-<id>` with a summary page, a "Read the full story" button to the publisher, More stories, share, and page titles / previews for search engines. The list is tidier (source badges, larger thumbnails, three-line headlines), keeps loading as you scroll, and links inside the app no longer reload the page. See `docs/NEWS.md`.
+- **Placements.** Four labelled spaces for an ad or promotion (in the news list and at the top, middle and end of a story), managed from admin > Remote config with safe-link validation. Off until you fill them in.
+- **Security (SQL injection and XSS).** No exploitable injection was found, and it is now structurally impossible: one helper (`api/_query.js`) for every database value, enforced by a test that fails if any file does otherwise. New Content-Security-Policy and security headers for the whole app, URL-scheme protection for every link and image (`javascript:` and friends can't run), cleaned news data, inline scripts moved out of `index.html`. Violation counts appear on admin > Security. See `docs/SECURITY.md`.
+- New: 47 automated tests (`npm test`). A bug that one of them caught in this release's own refactor was fixed before shipping.
+- **Before you deploy:** nothing new to run in Supabase. After deploying, open the app and click through the main screens, then check admin > Security for "Nothing blocked" (details in `docs/SECURITY.md`). Redeploy so the new headers apply.
+
+# Changes in 0.22.0 — three layers of security for the admin sign-in
+
+1. **Required two-factor, every code works once.** The authenticator code can no longer be skipped (before, leaving `ADMIN_TOTP_SECRET` unset turned it off), and a code that has been used is refused, so a seen code can't be replayed.
+2. **Lockout that survives restarts.** Failed attempts are stored in the database (the old counter lived in a server's memory and reset on every new instance). 5 failures lock an address for 15 minutes, doubling each time; 20 failures from anywhere in an hour lock sign-in for 15 minutes, so spreading guesses over many addresses doesn't help.
+3. **Server-side sessions you can see and end.** Idle timeout (30 min, `ADMIN_IDLE_MINUTES`), tied to the browser that signed in (optionally the network: `ADMIN_BIND_IP=1`), listed and revocable on the new **Security** page, with *Sign out everywhere*. Signing out now ends the session on the server. Failed sign-ins, locks, reused codes and rejected sessions appear in the audit log and on the Security page.
+- New: `supabase/migrations/006_admin_security.sql`, `api/_adminsec.js`, `tests/admin-security.test.mjs`, an "Admin sign-in protection" health check, `docs/ADMIN.md` rewritten security section.
+- **Before you deploy:** `ADMIN_TOTP_SECRET` must be set in Vercel or you won't be able to sign in (run `node scripts/admin-setup.mjs` if you don't have one). Run migration 006 as well; until then sign-in works with reduced protection and a warning.
+
+# Changes in 0.21.0 — push notifications and admin usage charts
+
+- **Push notifications.** People can turn on alerts for goals, kick-offs, half-time and full-time for matches and clubs they have starred, delivered when the app is closed (Profile > Notifications). Follows the existing Kickoff, Goal and Whistle switches. On iPhone it needs the app on the Home Screen. The server job sends only changes, never repeats an alert, removes dead devices, and stops when less than 25% of the day's football API quota is left.
+- **Admin > Usage.** Football API requests per day (app, prediction jobs, push), busiest endpoints, today's quota, cache hit rate on the device and (estimated) at the shared edge cache, and alerts sent per day. The app now reports cache counters (totals only).
+- New: `supabase/migrations/005_usage_and_push.sql`, `api/push.js`, `api/usage.js`, `scripts/generate-vapid.mjs`, `docs/NOTIFICATIONS.md`, `tests/push.test.mjs`, a `web-push` dependency, and a "Push notifications" health check.
+- Needs from you: run migration 005, generate and set the three VAPID keys, and schedule `/api/cron?task=push` every minute (Vercel Pro cron or a free outside scheduler; Hobby can't). Full steps in `docs/NOTIFICATIONS.md`.
+
+# Changes in 0.20.0 — server-side prediction tracking (switched off until you set it up)
+
+- **Scheduled jobs** record a prediction for every upcoming match before kick-off and grade it after the match, so tracked accuracy covers all matches. The first prediction per match is final. Costs a capped share of the football API quota (default at most 40 calls and 35% of what is left that day).
+- **The app shows the stored prediction** (one batched request) and falls back to the on-device model if the server has none. The VIP tab shows the server-tracked accuracy once 200 matches are graded (`PREDICT_MIN_PUBLISH`).
+- **Admin > Predictions:** headline accuracy, Brier score, log loss, exact score and top-3/top-5 coverage, calibration tables, run-now buttons, and a like-for-like comparison with the bookmaker market and with Forebet (typed in by hand before kick-off; never scraped).
+- **Optional:** bookmaker odds for benchmark, edge and quarter-Kelly (admin only, never shown to users); OpenAI writes a short plain-language note per match and never changes a probability.
+- New: `supabase/migrations/004_predictions.sql`, `api/cron.js`, `api/predictions.js`, `api/accuracy.js`, `src/predictions/metrics.js`, `tests/predictions.test.mjs` (`npm test`), a health check in Admin > Overview, new variables in `.env.example`. `docs/PREDICTIONS.md` says exactly what is built and what is not.
+- Needs from you: run migration 004, set `CRON_SECRET` in Vercel, redeploy.
+
+# Changes in 0.19.0 — buying Premium and coins with Polar
+
+- **Real checkout.** With *Account Premium and coins* on, signed-in users who choose a Premium plan or a coin pack are sent to Polar's hosted checkout. Back in the app it confirms the payment and updates the balance (the webhook can take a few seconds). Guests and the flag-off state keep the prototype.
+- **Server decides.** `POST /api/checkout` creates the Polar checkout for the signed-in account; `POST /api/polar-webhook` verifies Polar's signature, then adds Premium days or coins based on the Polar *product id*. Each order is recorded once (`payment_events`), so repeats never double-grant; refunds take the purchase back; every coin movement is in the ledger.
+- New: `supabase/migrations/003_payments.sql`, `docs/PAYMENTS.md` (setup, in sandbox first), Polar environment variables in `.env.example`, and a "Payments (Polar)" health check in Admin > Overview.
+- Premium is added as time (1 month = 30 days, 12 months = 365 days) and stacks on an existing end date.
+- Needs from you: the Polar access token, webhook secret and six product ids (see `docs/PAYMENTS.md`). Until they're set, buying shows "Payments are not set up yet." and nothing else changes.
+
 # Changes in 0.18.0 — Premium and coins on the account (admin-managed)
 
 - **New, off by default:** a Remote config flag, *Account Premium and coins*. When on, signed-in users' Premium, coins and unlocked themes/tips come from the database and follow them to any device. Guests keep the local demo. Nothing changes for anyone until you switch it on.

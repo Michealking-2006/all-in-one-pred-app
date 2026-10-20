@@ -131,7 +131,13 @@ export function predictFromTable({ homeId, awayId, rows, form = {} }) {
   const home = strengthsOf(homeRow, avg);
   const away = strengthsOf(awayRow, avg);
   const xg = expectedGoals(home, away, avg, form);
-  const probs = summarize(scoreMatrix(xg.home, xg.away));
+  const grid = scoreMatrix(xg.home, xg.away);
+  const probs = summarize(grid);
+  // Unrounded figures for scoring, the 5 likeliest scores and the whole score grid (server tracking).
+  let h = 0, d = 0, a = 0, o = 0, b = 0;
+  const all = [];
+  grid.forEach((row, i) => row.forEach((p, j) => { if (i > j) h += p; else if (i === j) d += p; else a += p; if (i + j > 2) o += p; if (i > 0 && j > 0) b += p; all.push({ home: i, away: j, p }); }));
+  all.sort((x, y) => y.p - x.p);
 
   const outcomes = [["home", probs.home], ["draw", probs.draw], ["away", probs.away]].sort((a, b) => b[1] - a[1]);
   const pick = outcomes[0][0];
@@ -148,6 +154,9 @@ export function predictFromTable({ homeId, awayId, rows, form = {} }) {
     likelyScore: { home: probs.scores[0].home, away: probs.scores[0].away },
     topScores: probs.scores.map((s) => ({ home: s.home, away: s.away, p: Math.round(s.p * 1000) / 10 })),
     over25: probs.over25, under25: 100 - probs.over25, btts: probs.btts,
+    top5: all.slice(0, 5).map((s) => ({ home: s.home, away: s.away, p: Math.round(s.p * 1000) / 10 })),
+    exact: { home: h, draw: d, away: a, over25: o, btts: b },
+    matrix: grid.map((row) => row.map((p) => Math.round(p * 10000) / 10000)),
     basis: { gamesHome: home.homePlayed, gamesAway: away.awayPlayed, leagueAvgHome: Math.round(avg.home * 100) / 100, leagueAvgAway: Math.round(avg.away * 100) / 100, formUsed: !!(form.home?.length || form.away?.length) },
     // Plain-language drivers, for display.
     drivers: {

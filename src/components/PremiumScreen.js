@@ -3,7 +3,7 @@ import { PageHeader } from "./PageHeader.js";
 import { VerifiedBadge } from "../utils/ui.js";
 
 const BENEFITS=["Match winner predictions","Full odds comparison","Tracked accuracy by market","Exclusive Water theme","Verified badge on your profile"];
-export function PremiumScreen({isVip,onSubscribe,onOpenThemes,onBack}){
+export function PremiumScreen({isVip,live,onSubscribe,onOpenThemes,onBack}){
  if(isVip)return h("main",{className:"screen premium-screen"},[
   PageHeader({title:"Premium",onBack}),
   h("section",{className:"premium-success"},[
@@ -37,9 +37,9 @@ export function PremiumScreen({isVip,onSubscribe,onOpenThemes,onBack}){
    h("i",{"data-lucide":"check"})
   ]))),
   h("section",{className:"plan-grid"},[
-   h("button",{className:"plan-card featured-plan",onClick:onSubscribe},[text("span",{className:"eyebrow"},"12 months"),text("strong",{},"$59"),text("small",{},"Best value"),h("span",{className:"plan-cta"},"Choose plan")]),
-   h("button",{className:"plan-card",onClick:onSubscribe},[text("span",{className:"eyebrow"},"1 month"),text("strong",{},"$9"),text("small",{},"Flexible"),h("span",{className:"plan-cta"},"Choose plan")])
+   h("button",{className:"plan-card featured-plan",onClick:()=>onSubscribe("12m")},[text("span",{className:"eyebrow"},"12 months"),text("strong",{},"$59"),text("small",{},"Best value"),h("span",{className:"plan-cta"},"Choose plan")]),
+   h("button",{className:"plan-card",onClick:()=>onSubscribe("1m")},[text("span",{className:"eyebrow"},"1 month"),text("strong",{},"$9"),text("small",{},"Flexible"),h("span",{className:"plan-cta"},"Choose plan")])
   ]),
-  text("p",{className:"prototype-note"},"This is a prototype checkout; no real payment is processed.")
+  text("p",{className:"prototype-note"},live?"Secure checkout by Polar. Premium is added to your account as soon as the payment clears.":"This is a prototype checkout; no real payment is processed.")
  ]);
 }

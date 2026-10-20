@@ -5,6 +5,9 @@
 // GET /api/news?page=1  ->  { articles: [...], page, found, limit }
 
 import { tagQuery } from "../src/newsTags.js";
+import crypto from "node:crypto";
+import { safeUrl } from "../src/utils/safeUrl.js";
+import { isProviderId } from "../src/newsArticle.js";
 
 const API_URL = "https://api.thenewsapi.com/v1/news/all";
 
@@ -16,16 +19,23 @@ const FALLBACK_QUERY = "football";
 
 const MAX_PAGE = 20;
 
-function cleanArticle(item) {
-  if (!item || typeof item !== "object" || !item.url || !item.title) return null;
+// Everything from the provider is untrusted text: lengths are capped, links must be plain https/http
+// (never "javascript:" or "data:"), and images https only. The app also checks again when it renders.
+const cap = (v, n) => String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
+export function cleanArticle(item) {
+  if (!item || typeof item !== "object") return null;
+  const url = safeUrl(String(item.url || ""), { httpsOnly: false });
+  if (!url || /^(\/|#|\?|mailto:|tel:)/i.test(url) || !item.title) return null;
   return {
-    id: String(item.uuid || item.url),
-    title: String(item.title),
-    description: String(item.description || item.snippet || ""),
-    url: String(item.url),
-    image: item.image_url ? String(item.image_url) : "",
-    source: String(item.source || ""),
-    publishedAt: item.published_at ? String(item.published_at) : "",
+    // The provider's own id when it has one, otherwise a stable fingerprint of the link, so the same story
+    // always has the same address in our app.
+    id: isProviderId(String(item.uuid || "").toLowerCase()) ? String(item.uuid).toLowerCase() : crypto.createHash("sha1").update(url).digest("hex").slice(0, 32),
+    title: cap(item.title, 240),
+    description: cap(item.description || item.snippet || "", 600),
+    url,
+    image: safeUrl(String(item.image_url || ""), { image: true, httpsOnly: true }),
+    source: cap(item.source, 80),
+    publishedAt: item.published_at && !Number.isNaN(Date.parse(item.published_at)) ? new Date(item.published_at).toISOString() : "",
   };
 }
 
@@ -55,6 +65,22 @@ export default async function handler(req, res) {
       error: "Set NEWS_ACCESS in the Vercel project environment variables.",
       code: "MISSING_NEWS_ACCESS",
     });
+  }
+
+  // One story by id (an article opened from a shared link): ask the provider for just that story.
+  const rawId = String(Array.isArray(req.query?.id) ? req.query.id[0] : req.query?.id || "").toLowerCase();
+  if (rawId) {
+    if (!isProviderId(rawId)) return res.status(404).json({ error: "Story not found.", code: "NEWS_NOT_FOUND" });
+    try {
+      const r = await fetch(`https://api.thenewsapi.com/v1/news/uuid/${rawId}?` + new URLSearchParams({ api_token: token }), { headers: { Accept: "application/json" } });
+      const d = await r.json().catch(() => null);
+      const article = r.ok ? cleanArticle(d) : null;
+      if (!article) return res.status(r.status === 429 || r.status === 402 ? 429 : 404).json({ error: "Story not found.", code: "NEWS_NOT_FOUND" });
+      res.setHeader("Cache-Control", "public, s-maxage=21600, stale-while-revalidate=86400");
+      return res.status(200).json({ article });
+    } catch {
+      return res.status(502).json({ error: "Unable to reach the news service.", code: "NEWS_NETWORK_ERROR" });
+    }
   }
 
   const rawPage = Array.isArray(req.query?.page) ? req.query.page[0] : req.query?.page;

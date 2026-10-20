@@ -1,52 +1,38 @@
 import { h, text } from "../utils/h.js";
 import { generateShareImage, canShareFiles, shareImageFile, downloadImageFile } from "../share/shareImage.js";
 import { showToast } from "../toast.js";
+import { createSheet } from "./Sheet.js";
+import { buildSlug } from "../utils/slug.js";
 
 const TITLES = { match: "Share match", player: "Share player", club: "Share club", venue: "Share venue", league: "Share league" };
 
-// #share-sheet-root lives outside #root (like #toast-root), so App.js's full
-// re-render on every store change can't tear the sheet down mid-generation.
-let root = null;
-let closeOnPop = false; // true while the history entry pushed by open() is live
+// The drawer itself (drag to dismiss, Escape, Back button, focus handling) lives in Sheet.js.
+// #share-sheet-root sits outside #root (like #toast-root), so App.js's full re-render on every
+// store change can't tear the drawer down mid-generation.
 
-function ensureRoot() {
-  if (root) return root;
-  root = h("div", { className: "share-sheet-root" });
-  document.getElementById("share-sheet-root").appendChild(root);
-  window.addEventListener("popstate", () => { if (closeOnPop) { closeOnPop = false; render(null); } });
-  return root;
-}
-
-function render(content) {
-  const mount = ensureRoot();
-  mount.replaceChildren();
-  if (content) mount.appendChild(content);
-}
-
-function closeSheet() {
-  // Important: closeOnPop must stay true here — history.back() triggers the
-  // popstate handler above asynchronously, and that handler is what actually
-  // resets the flag and clears the sheet. Resetting it here first meant the
-  // handler's own check always saw it as already-false and never fired.
-  if (closeOnPop) {
-    history.back();
-  } else {
-    render(null);
+// Our own page for what is being shared, and a one-line caption to go with the picture.
+function linkFor(type, data) {
+  const id = (n) => (n != null ? n : "");
+  switch (type) {
+    case "match": return data?.fixture?.id ? `/match/${data.fixture.id}` : "";
+    case "player": return data?.player?.id ? `/player/${buildSlug(data.player.id, data.player.name || "player")}` : "";
+    case "club": return data?.team?.id ? `/club/${buildSlug(data.team.id, data.team.name || "club")}` : "";
+    case "venue": return data?.id ? `/venue/${buildSlug(data.id, data.name || "venue")}` : "";
+    case "league": return data?.league?.id ? `/league/${buildSlug(data.league.id, data.league.name || "league")}` : "";
+    default: return id("");
   }
 }
 
-function sheetShell(type, body) {
-  const backdrop = h("div", { className: "share-sheet-backdrop", onClick: closeSheet });
-  const card = h("div", { className: "share-sheet-card", role: "dialog", "aria-modal": "true", "aria-label": TITLES[type] || "Share" }, [
-    h("header", { className: "share-sheet-head" }, [
-      text("strong", {}, TITLES[type] || "Share"),
-      h("button", { type: "button", className: "icon-button", "aria-label": "Close", onClick: closeSheet }, [h("i", { "data-lucide": "x" })]),
-    ]),
-    body,
-  ]);
-  // Stop a tap on the card itself from bubbling to the backdrop and closing it.
-  card.addEventListener("click", (event) => event.stopPropagation());
-  return h("div", { className: "share-sheet-wrap" }, [backdrop, card]);
+function captionFor(type, data) {
+  if (type === "match") {
+    const home = data?.teams?.home?.name, away = data?.teams?.away?.name;
+    if (!home || !away) return "Football on Scoutwave";
+    const status = data?.fixture?.status?.short;
+    const scored = data?.goals?.home != null && data?.goals?.away != null && status && status !== "NS" && status !== "TBD";
+    return scored ? `${home} ${data.goals.home}\u2013${data.goals.away} ${away}` : `${home} v ${away}`;
+  }
+  const name = data?.player?.name || data?.team?.name || data?.name || data?.league?.name;
+  return name ? `${name} on Scoutwave` : "Football on Scoutwave";
 }
 
 function loadingBody() {
@@ -64,13 +50,13 @@ function errorBody(message, onRetry) {
   ]);
 }
 
-function readyBody(blob, type) {
+function readyBody(blob, type, sheet, share) {
   const url = URL.createObjectURL(blob);
   const img = h("img", { className: "share-sheet-preview", src: url, alt: "" });
 
   async function onShare() {
     try {
-      await shareImageFile(blob, type);
+      await shareImageFile(blob, type, share);
     } catch (error) {
       if (error?.name !== "AbortError") showToast("Couldn't open the share sheet. Try downloading instead.", "error");
     }
@@ -84,15 +70,12 @@ function readyBody(blob, type) {
     canShareFiles() ? h("button", { type: "button", className: "primary-button", onClick: onShare }, [h("i", { "data-lucide": "share-2" }), text("span", {}, "Share")]) : null,
     h("button", { type: "button", className: canShareFiles() ? "secondary-button" : "primary-button", onClick: onDownload }, [h("i", { "data-lucide": "download" }), text("span", {}, "Download")]),
   ]);
+  const copy = share.url ? h("button", { type: "button", className: "text-action share-sheet-copy", onClick: async () => {
+    try { await navigator.clipboard.writeText(share.url); showToast("Link copied", "success"); } catch { showToast("Couldn't copy the link", "error"); }
+  } }, [h("i", { "data-lucide": "link", "aria-hidden": "true" }), text("span", {}, "Copy link")]) : null;
 
-  const body = h("div", { className: "share-sheet-body" }, [img, actions]);
-  // Release the object URL once this body is no longer in the document
-  // (sheet closed/replaced) — a MutationObserver on the root catches both
-  // "replaced by new content" and "removed entirely".
-  new MutationObserver((_, observer) => {
-    if (!body.isConnected) { URL.revokeObjectURL(url); observer.disconnect(); }
-  }).observe(ensureRoot(), { childList: true, subtree: true });
-
+  const body = h("div", { className: "share-sheet-body" }, [img, actions, copy]);
+  sheet.setBody(body, () => URL.revokeObjectURL(url)); // released when the drawer is replaced or closed
   return body;
 }
 
@@ -109,14 +92,14 @@ export function shareButton(type, data, extra) {
 // Never fetches anything itself, so opening the sheet never costs an API call
 // beyond what the page already made to render itself.
 export function openShareSheet(type, data, extra) {
-  history.pushState({ shareSheet: true }, "");
-  closeOnPop = true;
-
+  const sheet = createSheet({ title: TITLES[type] || "Share", label: TITLES[type] || "Share" });
+  const path = linkFor(type, data);
+  const share = { title: captionFor(type, data), text: captionFor(type, data) + " | Scoutwave", url: path ? location.origin + path : "" };
   function run() {
-    render(sheetShell(type, loadingBody()));
+    sheet.setBody(loadingBody());
     generateShareImage(type, data, extra)
-      .then((blob) => render(sheetShell(type, readyBody(blob, type))))
-      .catch((error) => render(sheetShell(type, errorBody(error?.message, run))));
+      .then((blob) => { if (!sheet.closed) readyBody(blob, type, sheet, share); })
+      .catch((error) => { if (!sheet.closed) sheet.setBody(errorBody(error?.message, run)); });
   }
   run();
 }

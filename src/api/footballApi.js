@@ -153,16 +153,26 @@ function cleanParams(params) {
 
 const keyOf = (endpoint, params) => endpoint + "?" + new URLSearchParams(params).toString();
 
+// How the app's own lookups were answered, reported (totals only) so the admin can see the cache hit rate.
+const usage = { memory: 0, stored: 0, network: 0 };
+let lastTier = "memory";
+export function takeUsage() {
+  const out = { ...usage };
+  usage.memory = usage.stored = usage.network = 0;
+  return out;
+}
+
 function readCache(key) {
   const hit = cache.get(key);
   if (hit) {
-    if (Date.now() - hit.at <= hit.ttl) return hit.data;
+    if (Date.now() - hit.at <= hit.ttl) { lastTier = "memory"; return hit.data; }
     cache.delete(key);
   }
   // Not in memory (e.g. just after a reload): fall back to the stored copy.
   const saved = readStored(key);
   if (saved && Date.now() - saved.at <= saved.ttl) {
     cache.set(key, saved);
+    lastTier = "stored";
     return saved.data;
   }
   return undefined;
@@ -289,10 +299,12 @@ async function fetchFootball(endpoint, params = {}) {
   const key = keyOf(endpoint, clean);
 
   const cached = readCache(key);
-  if (cached !== undefined) return cached;
-  if (inflight.has(key)) return inflight.get(key);
+  if (cached !== undefined) { usage[lastTier]++; return cached; }
+  if (inflight.has(key)) { usage.memory++; return inflight.get(key); }
 
   const stale = staleEntry(key, endpoint);
+  usage.network++;
+  if (stale) usage.stored++;
   const promise = request(endpoint, clean)
     .then((data) => {
       writeCache(key, endpoint, data, clean);

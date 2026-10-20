@@ -3,16 +3,22 @@
 // exposing this file as a route.
 //
 // Security model (the URL /mingt-t is only obscurity, the real protection is here):
+//  Three layers guard the sign-in (see api/_adminsec.js and docs/ADMIN.md):
+//   1. Two-factor is REQUIRED (ADMIN_TOTP_SECRET) and every code works once.
+//   2. Failed logins lock out per IP and overall, stored in the database so
+//      it survives serverless restarts, with lock times that double.
+//   3. Sessions are recorded on the server: idle timeout, tied to the browser,
+//      listed and revocable ("sign out everywhere").
 //  - The admin signs in with ADMIN_PASSWORD_HASH (scrypt) or ADMIN_PASSWORD, an
-//    optional ADMIN_EMAIL, and (strongly recommended) a TOTP code (ADMIN_TOTP_SECRET).
+//    optional ADMIN_EMAIL, and the authenticator code.
 //  - A successful login returns a short-lived HMAC-signed token (ADMIN_SESSION_SECRET).
 //    It travels in an Authorization header (never a cookie), so cross-site
 //    request forgery can't use it.
-//  - Failed logins are rate-limited per IP and slowed down.
 //  - Every admin write is recorded in the admin_audit table.
 //  - The Supabase service-role key only ever exists on the server.
 import crypto from "node:crypto";
 import { FEATURE_DEFAULTS } from "../src/features.js";
+import { safeUrl } from "../src/utils/safeUrl.js";
 
 export const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
 const DEFAULT_SUPABASE_URL = "https://fhsteyglvxuanyvgkkxp.supabase.co";
@@ -72,15 +78,21 @@ export function totp(secretBase32, time = Date.now(), stepOffset = 0) {
   return String(code % 1_000_000).padStart(6, "0");
 }
 
-function verifyTotp(code) {
+export const twoFactorConfigured = () => env("ADMIN_TOTP_SECRET").length >= 16;
+
+// The 30-second step the code belongs to, or null. Two-factor is required: with no secret
+// configured no code is ever accepted (the sign-in refuses to start; it never skips the check).
+export function totpStep(code, now = Date.now()) {
   const secret = env("ADMIN_TOTP_SECRET");
-  if (!secret) return true; // not enabled
+  if (!secret) return null;
   const clean = String(code || "").replace(/\s+/g, "");
-  if (!/^\d{6}$/.test(clean)) return false;
+  if (!/^\d{6}$/.test(clean)) return null;
   try {
-    return [-1, 0, 1].some((step) => safeEqual(totp(secret, Date.now(), step), clean)); // one step of clock drift either way
+    let found = null;
+    for (const offset of [-1, 0, 1]) if (safeEqual(totp(secret, now, offset), clean)) found = Math.floor(now / 30000) + offset; // one step of clock drift either way
+    return found;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -135,12 +147,14 @@ export const resetRateLimits = () => attempts.clear();
 // ---------------------------------------------------------------------------
 // Login
 // ---------------------------------------------------------------------------
-export function checkCredentials({ email, password, code }) {
+// Always evaluates all three factors so nothing hints at which one was wrong.
+// Returns { ok, step }: step is the authenticator step to burn once the login is accepted.
+export function checkFactors({ email, password, code }, now = Date.now()) {
   const wantEmail = env("ADMIN_EMAIL").toLowerCase();
   const emailOk = !wantEmail || safeEqual(String(email || "").trim().toLowerCase(), wantEmail);
   const passOk = verifyPassword(String(password || ""));
-  const totpOk = verifyTotp(code);
-  return emailOk && passOk && totpOk; // always evaluate all three: no hint about which one failed
+  const step = totpStep(code, now);
+  return { ok: emailOk && passOk && step !== null, step };
 }
 
 // ---------------------------------------------------------------------------
@@ -179,16 +193,22 @@ export async function sb(path, { method = "GET", body, headers = {}, raw = false
 // Remote config: one validated JSON document in app_config (key = 'main')
 // ---------------------------------------------------------------------------
 export const FX_PRICE_KEYS = ["fire", "ice", "bubbles"];
+export const PLACEMENT_SLOTS = ["news_list", "news_top", "news_inline", "news_bottom"];
+
 export const DEFAULT_CONFIG = {
   flags: { ...FEATURE_DEFAULTS },
   maintenance: { on: false, message: "" },
   announcement: { on: false, id: "", text: "", level: "info", link: "", expiresAt: null },
+  // Spaces in the news section for an ad or a house promotion. Each is off until filled in and switched on.
+  placements: Object.fromEntries(PLACEMENT_SLOTS.map((slot) => [slot, { on: false, label: "Sponsored", title: "", text: "", cta: "Learn more", link: "", image: "" }])),
   minVersion: "0.0.0",
   fxPrices: { fire: 50, ice: 40, bubbles: 30 },
   tipCost: 5,
   updatedAt: null,
 };
 export const KNOWN_FLAGS = Object.keys(DEFAULT_CONFIG.flags);
+
+export const PLACEMENT_LABELS = ["Sponsored", "Ad", "Partner", "Promoted"];
 
 const isSemver = (v) => /^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v);
 const clean = (v, max) => String(v ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").trim().slice(0, max);
@@ -220,6 +240,17 @@ export function validateConfig(input) {
   const text = clean(a.text, 240);
   if (a.on === true && !text) throw new HttpError(400, "Write the announcement text before turning it on.");
   out.announcement = { on: a.on === true, id: clean(a.id, 40) || (a.on ? String(Date.now()) : ""), text, level, link, expiresAt };
+
+  for (const slot of PLACEMENT_SLOTS) {
+    const p = input.placements?.[slot] || {};
+    const link = clean(p.link, 500), image = clean(p.image, 500);
+    const safeLink = link ? safeUrl(link) : "", safeImage = image ? safeUrl(image, { image: true, httpsOnly: true }) : "";
+    if (link && (!safeLink || /^(mailto:|tel:)/i.test(safeLink))) throw new HttpError(400, `The ${slot.replace("_", " ")} link must start with https://, http:// or /.`);
+    if (image && !safeImage) throw new HttpError(400, `The ${slot.replace("_", " ")} image must be an https:// address.`);
+    const entry = { on: p.on === true, label: PLACEMENT_LABELS.includes(p.label) ? p.label : "Sponsored", title: clean(p.title, 90), text: clean(p.text, 200), cta: clean(p.cta, 24) || "Learn more", link: safeLink, image: safeImage };
+    if (entry.on && (!entry.title || !entry.link)) throw new HttpError(400, `Add a headline and a link to the ${slot.replace("_", " ")} space before turning it on.`);
+    out.placements[slot] = entry;
+  }
 
   const minVersion = clean(input.minVersion || "0.0.0", 20);
   if (!isSemver(minVersion)) throw new HttpError(400, "Minimum version must look like 0.17.0.");

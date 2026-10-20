@@ -77,6 +77,34 @@ export async function spendCoins(item) {
   return entitlements;
 }
 
+// Open a Polar checkout for "premium:1m", "premium:12m" or "coins:<pack>". Leaves the app for the hosted payment page.
+export async function startCheckout(item) {
+  const { url } = await call("/api/checkout", { method: "POST", body: { item } });
+  if (typeof url !== "string" || !/^https:\/\//.test(url)) throw new Error("Couldn't start the checkout. Try again.");
+  window.location.assign(url);
+}
+
+// Back from the payment page (?checkout=success). The webhook can land a few seconds after the
+// redirect, so ask a few times until the account shows the purchase.
+async function finishCheckoutReturn() {
+  let params;
+  try { params = new URLSearchParams(window.location.search); } catch { return; }
+  if (params.get("checkout") !== "success") return;
+  params.delete("checkout"); params.delete("checkout_id");
+  const query = params.toString();
+  window.history.replaceState(window.history.state, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+  const before = store.getState();
+  const showToast = (await import("./toast.js")).showToast;
+  showToast("Thanks! Confirming your payment…", "default", 4000);
+  for (let attempt = 0; attempt < 8; attempt++) {
+    await new Promise((resolve) => window.setTimeout(resolve, attempt === 0 ? 1500 : 3000));
+    await syncEntitlements();
+    const now = store.getState();
+    if (now.isVip !== before.isVip || now.coins !== before.coins) { showToast("Payment received. Your account is updated.", "success", 4500); return; }
+  }
+  showToast("Payment received. It can take a minute to show up here; pull to refresh.", "default", 6000);
+}
+
 export function initEntitlements() {
   let lastUser = store.getState().authUser?.id || null;
   const check = () => {
@@ -95,5 +123,5 @@ export function initEntitlements() {
   window.addEventListener(REMOTE_EVENT, () => { syncEntitlements(); });
   window.setInterval(() => { if (!document.hidden) syncEntitlements(); }, REFRESH_MS);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) syncEntitlements(); });
-  syncEntitlements();
+  syncEntitlements().then(finishCheckoutReturn);
 }

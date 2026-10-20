@@ -49,7 +49,7 @@ async function api(action, payload = {}) {
     throw new Error("Can't reach the server. Check your connection.");
   }
   const data = await res.json().catch(() => ({}));
-  if (res.status === 401 && data.code === "SESSION") { logout(); throw new Error(data.error || "Session ended."); }
+  if (res.status === 401 && data.code === "SESSION") { logout(data.error); throw new Error(data.error || "Session ended."); }
   if (!res.ok) { const err = new Error(data.error || `Request failed (${res.status}).`); err.code = data.code; err.status = res.status; throw err; }
   return data;
 }
@@ -88,12 +88,16 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 // ---------------------------------------------------------------- state
 let overviewCache = null;
 let view = "overview";
-const VIEWS = [["overview", "Overview"], ["config", "Remote config"], ["messages", "Messages"], ["users", "Users"], ["audit", "Audit log"]];
+const VIEWS = [["overview", "Overview"], ["config", "Remote config"], ["messages", "Messages"], ["users", "Users"], ["usage", "Usage"], ["security", "Security"], ["predictions", "Predictions"], ["audit", "Audit log"]];
 
-function logout() {
+// notice: why the person was signed out (shown on the sign-in screen). Passing nothing is a deliberate
+// sign-out, which also ends the session on the server so the token is dead everywhere.
+function logout(notice) {
+  const deliberate = typeof notice !== "string";
+  if (deliberate && session.token) api("logout").catch(() => {});
   session.clear();
   overviewCache = null;
-  renderLogin();
+  renderLogin(deliberate ? "" : notice);
 }
 
 // ---------------------------------------------------------------- login
@@ -114,7 +118,7 @@ function renderLogin(notice = "", notConfigured = false) {
       : el("p", { text: "Authorised administrators only. Every action is recorded." }),
     el("div", { class: "field" }, [el("label", { for: "f-email", text: "Email (if one is configured)" }), email]),
     el("div", { class: "field" }, [el("label", { for: "f-pass", text: "Passphrase" }), password]),
-    el("div", { class: "field" }, [el("label", { for: "f-code", text: "Authenticator code (if enabled)" }), code]),
+    el("div", { class: "field" }, [el("label", { for: "f-code", text: "Authenticator code (6 digits, required)" }), code]),
     error,
     button,
   ]);
@@ -126,8 +130,10 @@ function renderLogin(notice = "", notConfigured = false) {
     try {
       const data = await api("login", { email: email.value, password: password.value, code: code.value });
       session.set(data.token, data.expiresAt);
+      session.degraded = !!data.degraded;
       location.hash = "#/overview";
       renderShell();
+      if (data.degraded) toast("Signed in, but lockout and session controls are reduced until supabase/migrations/006_admin_security.sql is run.", true);
     } catch (err) {
       show(err.message);
       if (err.code === "NOT_CONFIGURED") renderLogin(err.message, true);
@@ -149,7 +155,7 @@ function renderShell() {
     ...VIEWS.map(([id, label]) => el("button", { class: "nav-btn", type: "button", "data-view": id, "aria-current": id === view ? "page" : null, onClick: () => { location.hash = "#/" + id; } }, [label, id === "messages" ? el("span", { class: "count", id: "msg-count", hidden: true }) : null])),
     el("div", { class: "side-foot" }, [
       el("span", { id: "session-left" }),
-      el("button", { class: "btn small", type: "button", text: "Sign out", onClick: logout }),
+      el("button", { class: "btn small", type: "button", text: "Sign out", onClick: () => logout() }),
     ]),
   ]);
   const main = el("main", { class: "main", id: "main", tabindex: "-1" });
@@ -157,7 +163,7 @@ function renderShell() {
   clearInterval(sessionTimer);
   const tick = () => {
     const left = session.expires - Date.now();
-    if (left <= 0) { logout(); return; }
+    if (left <= 0) { logout("Your session has expired. Sign in again."); return; }
     const t = $("#session-left"); if (t) t.textContent = "Session ends in " + (left > 3600e3 ? Math.floor(left / 3600e3) + " h " + Math.floor((left % 3600e3) / 60e3) + " m" : Math.max(1, Math.round(left / 60e3)) + " m");
   };
   tick(); sessionTimer = setInterval(tick, 30000);
@@ -173,7 +179,7 @@ function route() {
   const main = $("#main");
   if (!main) return;
   main.replaceChildren(el("p", { class: "boot", text: "Loading…" }));
-  const render = { overview: viewOverview, config: viewConfig, messages: viewMessages, users: viewUsers, audit: viewAudit }[view];
+  const render = { overview: viewOverview, config: viewConfig, messages: viewMessages, users: viewUsers, usage: viewUsage, security: viewSecurity, predictions: viewPredictions, audit: viewAudit }[view];
   render(main).catch((err) => main.replaceChildren(el("div", { class: "error", role: "alert", text: err.message || "Could not load this section." })));
   main.focus({ preventScroll: true });
 }
@@ -239,6 +245,13 @@ const FLAG_INFO = {
   serverEntitlements: ["Account Premium and coins", "Signed-in users get Premium, coins and unlocks from their account (granted here, spent through the server). Guests keep the local demo. Needs migration 002 and payments are not connected yet."],
 };
 
+const PLACEMENT_SLOTS = [
+  ["news_list", "In the news list", "After the fourth story in the list."],
+  ["news_top", "Top of a story", "Under the headline, above the summary."],
+  ["news_inline", "Middle of a story", "After the summary, above the full-story button."],
+  ["news_bottom", "End of a story", "Under the full-story button."],
+];
+
 async function viewConfig(main) {
   const { config, flagsKnown } = await api("config_get");
   const loaded = clone(config);
@@ -250,6 +263,7 @@ async function viewConfig(main) {
     for (const k of flagsKnown) if (loaded.flags[k] !== draft.flags[k]) out.push(`${(FLAG_INFO[k] || [k])[0]}: ${draft.flags[k] ? "on" : "off"}`);
     if (JSON.stringify(loaded.maintenance) !== JSON.stringify(draft.maintenance)) out.push(`Maintenance mode: ${draft.maintenance.on ? "ON" : "off"}`);
     if (JSON.stringify(loaded.announcement) !== JSON.stringify(draft.announcement)) out.push(`Announcement: ${draft.announcement.on ? "showing" : "off"}`);
+    if (JSON.stringify(loaded.placements) !== JSON.stringify(draft.placements)) out.push("News placements changed");
     if (loaded.minVersion !== draft.minVersion) out.push(`Minimum version: ${draft.minVersion}`);
     if (JSON.stringify(loaded.fxPrices) !== JSON.stringify(draft.fxPrices)) out.push("Theme prices changed");
     if (loaded.tipCost !== draft.tipCost) out.push(`Tip unlock cost: ${draft.tipCost} coins`);
@@ -300,6 +314,28 @@ async function viewConfig(main) {
         ]),
         el("div", { class: "field" }, [el("label", { for: "an-exp", text: "Hide automatically after (optional)" }), expiry]),
         el("div", { class: "field" }, [el("label", { text: "Preview" }), preview]),
+      ]),
+      el("div", { class: "card" }, [
+        el("h2", { text: "News placements" }),
+        el("p", { class: "sub", text: "Spaces for an ad or a promotion in the news section. Each is labelled so it can't be mistaken for a story, and stays hidden until it has a headline and a link and is switched on." }),
+        ...PLACEMENT_SLOTS.map(([slot, title, hint]) => {
+          const p = () => draft.placements[slot];
+          const labelSel = el("select", { id: "pl-label-" + slot }, ["Sponsored", "Ad", "Partner", "Promoted"].map((l) => el("option", { value: l, text: l })));
+          labelSel.value = p().label; labelSel.addEventListener("change", () => { p().label = labelSel.value; refreshBar(); });
+          return el("div", { class: "placement-editor" }, [
+            el("div", { class: "switch" }, [el("div", {}, [el("div", { class: "t", text: title }), el("div", { class: "d", text: hint })]), toggle(() => p().on, (v) => { p().on = v; }, title)]),
+            el("div", { class: "two" }, [
+              el("div", { class: "field" }, [el("label", { for: "pl-title-" + slot, text: "Headline" }), input({ id: "pl-title-" + slot, type: "text", maxlength: "90", placeholder: "Short and clear" }, () => p().title, (v) => { p().title = v; })]),
+              el("div", { class: "field" }, [el("label", { for: "pl-label-" + slot, text: "Label shown" }), labelSel]),
+            ]),
+            el("div", { class: "field" }, [el("label", { for: "pl-text-" + slot, text: "Text (optional)" }), input({ id: "pl-text-" + slot, type: "text", maxlength: "200" }, () => p().text, (v) => { p().text = v; })]),
+            el("div", { class: "two" }, [
+              el("div", { class: "field" }, [el("label", { for: "pl-link-" + slot, text: "Link" }), input({ id: "pl-link-" + slot, type: "text", maxlength: "500", placeholder: "https://… or /premium" }, () => p().link, (v) => { p().link = v; })]),
+              el("div", { class: "field" }, [el("label", { for: "pl-cta-" + slot, text: "Button text" }), input({ id: "pl-cta-" + slot, type: "text", maxlength: "24", placeholder: "Learn more" }, () => p().cta, (v) => { p().cta = v; })]),
+            ]),
+            el("div", { class: "field" }, [el("label", { for: "pl-img-" + slot, text: "Image address (optional, https)" }), input({ id: "pl-img-" + slot, type: "text", maxlength: "500", placeholder: "https://…/banner.jpg" }, () => p().image, (v) => { p().image = v; })]),
+          ]);
+        }),
       ]),
       el("div", { class: "card" }, [
         el("h2", { text: "Minimum app version" }),
@@ -478,6 +514,212 @@ async function viewAudit(main) {
         el("td", { class: "mono", text: a.ip || "" }),
       ]))),
     ]) : el("div", { class: "empty", text: "Nothing recorded yet." })])
+  );
+}
+
+// ---------------------------------------------------------------- security
+const EVENT_LABELS = {
+  login: "Signed in", "login.failed": "Failed sign-in attempt", "login.locked": "Sign-in locked after repeated failures",
+  "login.replayed_code": "Authenticator code reused (blocked)", "session.rejected": "Session ended: different browser or network",
+  "session.ip_changed": "Session continued from a new IP address", "session.revoked": "Session ended from this page", "sessions.revoke_all": "Signed out everywhere",
+};
+async function viewSecurity(main) {
+  const r = await api("security_overview");
+  const item = (ok, title, detail) => el("div", { class: "check " + (ok ? "ok" : "bad") }, [el("strong", { text: (ok ? "On: " : "Off: ") + title }), el("span", { class: "sub", text: detail })]);
+
+  const revoke = async (id, current) => {
+    try { await api("session_revoke", { id }); if (current) { logout("You signed out this session."); return; } toast("Session ended."); route(); } catch (err) { toast(err.message, true); }
+  };
+  const everywhere = el("button", { class: "btn small", type: "button", text: "Sign out everywhere" });
+  everywhere.addEventListener("click", async () => {
+    if (!confirm("End every admin session, including this one?")) return;
+    everywhere.disabled = true;
+    try { await api("sessions_revoke_all"); logout("All sessions were ended. Sign in again."); } catch (err) { toast(err.message, true); everywhere.disabled = false; }
+  });
+
+  main.replaceChildren(
+    ...header("Security", "How the admin sign-in is protected, who is signed in, and what has been tried."),
+    el("div", { class: "stack" }, [
+      r.protectionsActive && !r.degradedSession ? null : el("div", { class: "card notice bad" }, [el("strong", { text: "Reduced protection" }), el("p", { class: "sub", text: "Run supabase/migrations/006_admin_security.sql in the Supabase SQL editor, then sign in again. Until then lockouts only last as long as the server instance and sessions can't be listed or revoked." })]),
+      el("div", { class: "card" }, [
+        el("h2", { text: "Three layers on sign-in" }),
+        item(r.twoFactor, "Required two-factor, every code works once", "A code that was seen can't be replayed. Without ADMIN_TOTP_SECRET nobody can sign in."),
+        item(r.protectionsActive, "Lockout that survives restarts", "5 failures from one address lock it for 15 minutes, doubling each time (up to a day). 20 failures from anywhere in an hour lock sign-in for 15 minutes."),
+        item(r.protectionsActive, `Server-side sessions, ${r.idleMinutes}-minute idle limit`, "Tied to the browser that signed in" + (r.bindIp ? " and its network (ADMIN_BIND_IP)" : "; set ADMIN_BIND_IP=1 to tie them to the network as well") + ". Revocable below."),
+      ]),
+      el("div", { class: "card" }, [
+        el("h2", { text: "Page protection (Content-Security-Policy)" }),
+        el("p", { class: "sub", text: "The app only runs its own scripts, so injected code can't run, and it can only talk to Scoutwave, Supabase and Formspree. Browsers report anything it blocks; a healthy site shows none." }),
+        Object.keys(r.csp || {}).length
+          ? el("p", { class: "sub", text: "Blocked in the last 14 days: " + Object.entries(r.csp).map(([k, n]) => `${k} ${n}`).join(", ") + ". A sudden jump right after a deploy usually means something legitimate is being blocked; the header is in vercel.json." })
+          : el("p", { class: "sub", text: "Nothing blocked in the last 14 days." }),
+      ]),
+      el("div", { class: "card tablewrap" }, [
+        el("h2", { text: "Active sessions" }),
+        r.sessions.length ? el("table", {}, [
+          el("thead", {}, [el("tr", {}, ["Device", "Address", "Signed in", "Last active", ""].map((x) => el("th", { text: x })))]),
+          el("tbody", {}, r.sessions.map((x) => el("tr", {}, [
+            el("td", { text: x.device + (x.current ? " (this one)" : "") }), el("td", {}, [el("code", { text: x.ip || "–" })]), el("td", { text: ago(x.createdAt) }), el("td", { text: ago(x.lastSeen) }),
+            el("td", {}, [el("button", { class: "btn small", type: "button", text: x.current ? "Sign out" : "End", onClick: () => revoke(x.id, x.current) })]),
+          ]))),
+        ]) : el("div", { class: "empty", text: r.protectionsActive ? "No active sessions." : "Sessions can't be listed until the migration is run." }),
+        el("div", { class: "row" }, [everywhere]),
+      ]),
+      el("div", { class: "card tablewrap" }, [
+        el("h2", { text: "Recent sign-in activity" }),
+        r.events.length ? el("table", {}, [
+          el("thead", {}, [el("tr", {}, ["When", "What", "Address"].map((x) => el("th", { text: x })))]),
+          el("tbody", {}, r.events.map((e) => el("tr", {}, [el("td", { text: ago(e.at) }), el("td", { text: EVENT_LABELS[e.action] || e.action }), el("td", {}, [el("code", { text: e.ip || "–" })])]))),
+        ]) : el("div", { class: "empty", text: "Nothing recorded yet." }),
+      ]),
+    ])
+  );
+}
+
+// ---------------------------------------------------------------- usage
+// A bar chart made of plain elements (the page's CSP forbids inline styles and scripts; setting
+// style from script is allowed). stacks: [{ label, key, tone }] drawn bottom to top.
+function barChart({ title, days, stacks, hint, format = (v) => String(v) }) {
+  const totals = days.map((d) => stacks.reduce((t, s) => t + (d[s.key] || 0), 0));
+  const max = Math.max(1, ...totals);
+  const cols = days.map((d, i) => {
+    const col = el("div", { class: "chart-col", title: `${d.day}: ` + stacks.map((s) => `${s.label} ${format(d[s.key] || 0)}`).join(", ") }, []);
+    const stack = el("div", { class: "chart-stack" }, []);
+    stack.style.height = Math.round((totals[i] / max) * 100) + "%";
+    for (const s of stacks) {
+      const v = d[s.key] || 0;
+      if (!v) continue;
+      const seg = el("div", { class: "chart-seg " + s.tone }, []);
+      seg.style.flexGrow = String(v);
+      stack.append(seg);
+    }
+    col.append(el("div", { class: "chart-area" }, [stack]), el("div", { class: "chart-day", text: d.day.slice(8) + "/" + d.day.slice(5, 7) }));
+    return col;
+  });
+  return el("div", { class: "card" }, [
+    el("h2", { text: title }),
+    el("div", { class: "legend" }, stacks.map((s) => el("span", { class: "legend-item" }, [el("i", { class: "legend-dot " + s.tone }), s.label]))),
+    el("div", { class: "chart" }, cols),
+    hint ? el("p", { class: "sub", text: hint }) : null,
+  ]);
+}
+
+async function viewUsage(main) {
+  const u = await api("usage_overview");
+  const pctOrDash = (v) => (v == null ? "–" : Math.round(v * 100) + "%");
+  const stat = (num, lbl) => el("div", { class: "card stat" }, [el("div", { class: "num", text: num }), el("div", { class: "lbl", text: lbl })]);
+  const rate = (key) => u.days.map((d) => ({ day: d.day, [key]: d[key] == null ? 0 : Math.round(d[key] * 100) }));
+  const top = u.endpoints[0];
+  main.replaceChildren(
+    ...header("Usage", "Football data API requests and how well caching is working, last 14 days."),
+    el("div", { class: "stack" }, [
+      el("div", { class: "grid" }, [
+        stat(u.quota ? `${u.quota.used} of ${u.quota.limit}` : "–", "Football API requests used today (all sources)"),
+        stat(String(u.totals.calls14d), "Provider requests, 14 days"),
+        stat(pctOrDash(u.totals.deviceHitRate14d), "Lookups answered on the device, 14 days"),
+        stat(top ? top.endpoint : "–", top ? `Most-used endpoint (${top.calls} requests)` : "Most-used endpoint"),
+      ]),
+      barChart({ title: "Football API requests per day", days: u.days, stacks: [{ label: "The app", key: "proxy", tone: "tone-a" }, { label: "Prediction jobs", key: "cron", tone: "tone-b" }, { label: "Push alerts", key: "push", tone: "tone-c" }], hint: "Counted when a request actually reaches the football provider. Requests answered by the shared cache don't appear here, which is the point." }),
+      barChart({ title: "Cache hit rate: on the device", days: rate("deviceHitRate"), stacks: [{ label: "% answered without asking the server", key: "deviceHitRate", tone: "tone-a" }], format: (v) => v + "%", hint: "Share of the app's data lookups answered from memory or the copy saved on the phone. Days with fewer than 20 reported lookups are left blank." }),
+      barChart({ title: "Cache hit rate: shared edge cache (estimate)", days: rate("edgeHitRate"), stacks: [{ label: "% of server lookups that didn't reach the provider", key: "edgeHitRate", tone: "tone-b" }], format: (v) => v + "%", hint: "Estimated from what the apps report versus what reached the provider, so it is only as complete as those reports." }),
+      barChart({ title: "Push alerts sent per day", days: u.days, stacks: [{ label: "Delivered to the push service", key: "pushSent", tone: "tone-c" }, { label: "Failed", key: "pushFailed", tone: "tone-d" }] }),
+      el("div", { class: "card tablewrap" }, [el("h2", { text: "Busiest endpoints, 14 days" }), u.endpoints.length ? el("table", {}, [
+        el("thead", {}, [el("tr", {}, ["Endpoint", "Requests"].map((x) => el("th", { text: x })))]),
+        el("tbody", {}, u.endpoints.map((e) => el("tr", {}, [el("td", {}, [el("code", { text: e.endpoint })]), el("td", { text: String(e.calls) })]))),
+      ]) : el("div", { class: "empty", text: "Nothing counted yet. Run supabase/migrations/005_usage_and_push.sql, then use the app." })]),
+    ])
+  );
+}
+
+// ---------------------------------------------------------------- predictions
+const pc = (v) => (v == null ? "–" : Math.round(v * 1000) / 10 + "%");
+const dec = (v, d = 3) => (v == null ? "–" : Number(v).toFixed(d));
+
+async function viewPredictions(main) {
+  const r = await api("predictions_overview");
+  const h = r.headline || {};
+  const c = r.counts || {};
+  const stat = (num, lbl) => el("div", { class: "card stat" }, [el("div", { class: "num", text: num }), el("div", { class: "lbl", text: lbl })]);
+
+  const runJob = async (task, button) => {
+    button.disabled = true;
+    try {
+      const { result } = await api("predictions_run", { task });
+      toast(task === "predict" ? `Recorded ${result.predicted} predictions (${result.callsUsed} football API calls).` : `Graded ${result.graded} of ${result.pending} waiting matches (${result.callsUsed} calls).`);
+      route();
+    } catch (err) { toast(err.message, true); button.disabled = false; }
+  };
+  const predictBtn = el("button", { class: "btn small", type: "button", text: "Record predictions now" });
+  const gradeBtn = el("button", { class: "btn small", type: "button", text: "Grade finished matches now" });
+  predictBtn.addEventListener("click", () => runJob("predict", predictBtn));
+  gradeBtn.addEventListener("click", () => runJob("grade", gradeBtn));
+
+  const calTable = (title, rows) => el("div", { class: "card tablewrap" }, [el("h2", { text: title }), rows.length ? el("table", {}, [
+    el("thead", {}, [el("tr", {}, ["We said", "Matches", "Said on average", "Actually happened"].map((x) => el("th", { text: x })))]),
+    el("tbody", {}, rows.map((b) => el("tr", {}, [el("td", { text: Math.round(b.from * 100) + "–" + Math.round(b.to * 100) + "%" }), el("td", { text: String(b.n) }), el("td", { text: pc(b.predicted) }), el("td", { text: pc(b.actual) })]))),
+  ]) : el("div", { class: "empty", text: "Needs graded matches." })]);
+
+  const versus = (name, v) => {
+    if (!v || !v.n) return el("div", { class: "card" }, [el("h2", { text: "Scoutwave vs " + name }), el("p", { class: "sub", text: name === "Forebet" ? "Nothing entered yet. Add Forebet's pre-match numbers below for matches Scoutwave tracks." : "No bookmaker odds recorded yet (set PREDICT_ODDS=1)." })]);
+    const row = (label, a, b, fmt) => el("tr", {}, [el("td", { text: label }), el("td", { text: fmt(a) }), el("td", { text: fmt(b) })]);
+    return el("div", { class: "card tablewrap" }, [el("h2", { text: `Scoutwave vs ${name} · ${v.n} matches` }), el("table", {}, [
+      el("thead", {}, [el("tr", {}, ["", "Scoutwave", name].map((x) => el("th", { text: x })))]),
+      el("tbody", {}, [
+        v.probs.n ? row(`Brier score, lower is better (${v.probs.n} matches)`, v.probs.scoutwave.brier, v.probs.other.brier, (x) => dec(x)) : null,
+        v.probs.n ? row("Log loss, lower is better", v.probs.scoutwave.logLoss, v.probs.other.logLoss, (x) => dec(x)) : null,
+        v.probs.n ? row("Winner picked right", v.probs.scoutwave.winner, v.probs.other.winner, pc) : null,
+        v.scores.n ? row(`Exact score (${v.scores.n} matches)`, v.scores.scoutwave.exact, v.scores.other.exact, pc) : null,
+        v.scores.n ? row("Real score in top 3", v.scores.scoutwave.top3, v.scores.other.top3, pc) : null,
+        v.scores.n ? row("Real score in top 5", v.scores.scoutwave.top5, v.scores.other.top5, pc) : null,
+      ]),
+    ])]);
+  };
+
+  const box = el("textarea", { id: "forebet-text", rows: "6", placeholder: "2026-10-20,Arsenal,Chelsea,52,25,23,2-1,1-0,2-0,1-1,3-1" });
+  const importBtn = el("button", { class: "btn small", type: "button", text: "Save comparison rows" });
+  const importOut = el("p", { class: "sub" });
+  importBtn.addEventListener("click", async () => {
+    importBtn.disabled = true;
+    try {
+      const out = await api("benchmark_import", { text: box.value });
+      importOut.textContent = `Saved ${out.saved}${out.late ? ` (${out.late} entered after kick-off: kept but left out of comparisons)` : ""}.` + (out.problems.length ? " Problems: " + out.problems.slice(0, 8).join(" | ") : "");
+      if (out.saved) box.value = "";
+    } catch (err) { toast(err.message, true); }
+    importBtn.disabled = false;
+  });
+
+  main.replaceChildren(
+    ...header("Predictions", `Server-side tracking of model ${r.model}: recorded before kick-off, graded on the 90-minute result.`),
+    el("div", { class: "stack" }, [
+      el("div", { class: "grid" }, [
+        stat(String(c.total ?? 0), `Matches tracked · ${c.pending ?? 0} waiting · ${c.graded ?? 0} graded`),
+        stat(pc(h.winnerAccuracy), `Winner picked right (${h.n || 0} matches)`),
+        stat(dec(h.brier), "Brier score (0.667 = guessing)"),
+        stat(dec(h.logLoss), "Log loss (1.099 = guessing)"),
+      ]),
+      el("div", { class: "grid" }, [
+        stat(pc(h.exactScore), "Exact score"), stat(pc(h.top3Score), "Real score in top 3"), stat(pc(h.top5Score), "Real score in top 5"),
+        stat(`${pc(h.overUnderAccuracy)} / ${pc(h.bttsAccuracy)}`, "Over/under 2.5 / both teams score"),
+      ]),
+      el("div", { class: "card" }, [
+        el("h2", { text: "Publishing" }),
+        el("p", { class: "sub", text: r.publishReady ? `Enough matches graded (${r.publishNeeds}+). The app can show a real accuracy figure.` : `${h.n || 0} of ${r.publishNeeds} graded matches needed before the app shows an accuracy figure. Until then it only shows the count.` }),
+        el("div", { class: "row" }, [predictBtn, gradeBtn]),
+      ]),
+      versus("the bookmaker market", r.versus?.market),
+      versus("Forebet", r.versus?.forebet),
+      el("div", { class: "card" }, [
+        el("h2", { text: "Add Forebet's predictions by hand" }),
+        el("p", { class: "sub", text: "One match per line: date, home team, away team, home %, draw %, away %, then their likeliest score and up to four more. Only enter numbers you read before kick-off; lines saved after kick-off are kept but never counted." }),
+        el("div", { class: "field" }, [box]),
+        el("div", { class: "row" }, [importBtn]), importOut,
+      ]),
+      el("div", { class: "grid" }, [calTable("Calibration: match result", r.calibration?.outcome || []), calTable("Calibration: over 2.5 goals", r.calibration?.over25 || []), calTable("Calibration: both teams score", r.calibration?.btts || [])]),
+      el("div", { class: "card tablewrap" }, [el("h2", { text: "Latest graded" }), r.recent?.length ? el("table", {}, [
+        el("thead", {}, [el("tr", {}, ["Match", "Result", "Our pick", "Real score ranked"].map((x) => el("th", { text: x })))]),
+        el("tbody", {}, r.recent.map((m) => el("tr", {}, [el("td", { text: `${m.home} v ${m.away}` }), el("td", { text: m.score }), el("td", { text: `${m.pick || "–"} ${m.pickCorrect ? "✓" : "✗"}` }), el("td", { text: m.topScoreRank ? "#" + m.topScoreRank : "outside grid" })]))),
+      ]) : el("div", { class: "empty", text: "Nothing graded yet." })]),
+    ])
   );
 }
 

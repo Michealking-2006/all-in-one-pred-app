@@ -1,3 +1,4 @@
+import { assignGoals } from "../utils/matchEvents.js";
 import { roundRectPath, fillRoundRect, loadImage, drawImageCover, drawImageContain, fitText, drawTextCenter, wrapText, font, ensureFontsReady } from "./canvas.js";
 
 export const CARD_W = 1080;
@@ -73,7 +74,35 @@ async function newCanvas() {
 // ---------------------------------------------------------------------------
 // Match
 // ---------------------------------------------------------------------------
-export async function drawMatchCard(fx) {
+const FORM_COLOUR = { W: "#1a9c4b", D: "#9a9aa1", L: "#d32f2f" };
+
+// Five small result circles (W / D / L, oldest to newest) centred on cx.
+function drawFormDots(ctx, letters, cx, y) {
+  const list = (letters || []).slice(-5);
+  if (!list.length) return false;
+  const r = 22, gap = 14, total = list.length * r * 2 + (list.length - 1) * gap;
+  let x = cx - total / 2 + r;
+  for (const letter of list) {
+    ctx.fillStyle = FORM_COLOUR[letter] || FORM_COLOUR.D;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    drawTextCenter(ctx, String(letter || ""), x, y + 9, "700", 24, "#fff");
+    x += r * 2 + gap;
+  }
+  return true;
+}
+
+// "Saka 12', 67'", "Haaland (pen) 45+2'", "Smith (og) 80'": one line per scorer, centred in its column.
+function drawScorers(ctx, scorers, cx, y, maxW) {
+  const lines = scorers.slice(0, 5).map((s) => `${s.name}${s.own ? " (og)" : s.penalty ? " (pen)" : ""} ${s.minutes.join(", ")}`);
+  if (scorers.length > 5) lines.push(`+${scorers.length - 5} more`);
+  lines.forEach((line, i) => drawTextCenter(ctx, line, cx, y + i * 44, "500", 28, INK, maxW));
+  return lines.length;
+}
+
+// Everything the match page already has in memory is drawn when it is there: scorers, recent form,
+// half-time score, referee. Nothing is fetched here, so sharing never costs an API request.
+// extra: { events, form: { home: ["W","D",..], away: [...] } }
+export async function drawMatchCard(fx, extra = {}) {
   const { canvas, ctx, mark } = await newCanvas();
   const panel = await drawChrome(ctx, mark);
   const cx = CARD_W / 2;
@@ -105,13 +134,44 @@ export async function drawMatchCard(fx) {
   drawTextCenter(ctx, homeLines[0], panel.x + 80 + crest / 2, y, "600", 34, INK, nameW);
   drawTextCenter(ctx, awayLines[0], panel.x + panel.w - 80 - crest / 2, y, "600", 34, INK, nameW);
 
-  y += 90;
-  ctx.strokeStyle = "rgba(60,60,67,.14)";
-  ctx.beginPath(); ctx.moveTo(panel.x + 60, y); ctx.lineTo(panel.x + panel.w - 60, y); ctx.stroke();
-  y += 70;
+  const homeX = panel.x + 80 + crest / 2, awayX = panel.x + panel.w - 80 - crest / 2;
+  const rule = (at) => { ctx.strokeStyle = "rgba(60,60,67,.14)"; ctx.beginPath(); ctx.moveTo(panel.x + 60, at); ctx.lineTo(panel.x + panel.w - 60, at); ctx.stroke(); };
+
+  // Recent form under each name
+  y += 56;
+  const hasForm = drawFormDots(ctx, extra.form?.home, homeX, y) | drawFormDots(ctx, extra.form?.away, awayX, y);
+  if (hasForm) drawTextCenter(ctx, "LAST 5", cx, y + 8, "700", 22, INK_DIM);
+  y += hasForm ? 70 : 20;
+
+  // Half-time score when the match has been played or is under way
+  const ht = fx.score?.halftime;
+  if ((played || live) && ht && ht.home != null && ht.away != null) {
+    drawTextCenter(ctx, `Half-time ${ht.home} \u2013 ${ht.away}`, cx, y + 20, "600", 28, INK_DIM);
+    y += 56;
+  }
+
+  // Scorers: home on the left, away on the right
+  const goals = (played || live) && Array.isArray(extra.events) ? assignGoals(extra.events, fx) : null;
+  if (goals && (goals.home.length || goals.away.length)) {
+    y += 20;
+    rule(y);
+    y += 54;
+    drawTextCenter(ctx, "GOALS", cx, y, "700", 24, RED);
+    y += 56;
+    const colW = (panel.w - 160) / 2;
+    const a = drawScorers(ctx, goals.home, homeX, y, colW);
+    const b = drawScorers(ctx, goals.away, awayX, y, colW);
+    y += Math.max(a, b, 1) * 44 + 8;
+  }
+
+  y += 30;
+  rule(y);
+  y += 64;
 
   drawTextCenter(ctx, formatDate(fx.fixture?.date), cx, y, "500", 28, INK_DIM);
-  if (fx.fixture?.venue?.name) drawTextCenter(ctx, fx.fixture.venue.name, cx, y + 44, "500", 26, INK_DIM);
+  let line = y + 44;
+  if (fx.fixture?.venue?.name) { drawTextCenter(ctx, [fx.fixture.venue.name, fx.fixture.venue.city].filter(Boolean).join(", "), cx, line, "500", 26, INK_DIM, panel.w - 120); line += 42; }
+  if (fx.fixture?.referee) drawTextCenter(ctx, "Referee: " + String(fx.fixture.referee).split(",")[0], cx, line, "500", 26, INK_DIM, panel.w - 120);
 
   return canvas;
 }

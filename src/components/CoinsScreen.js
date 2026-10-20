@@ -2,7 +2,7 @@ import { h, text } from "../utils/h.js";
 import { PageHeader } from "./PageHeader.js";
 
 const TIERS=[{coins:10,price:"$0.99"},{coins:50,price:"$3.99"},{coins:120,price:"$7.99",badge:"-10%"},{coins:300,price:"$14.99",badge:"-20%"}];
-export function CoinsScreen({coins,onBuy,onBack}){
+export function CoinsScreen({coins,live,onBuy,onBack}){
  return h("main",{className:"screen coins-screen"},[
   PageHeader({title:"Coins",onBack}),
   h("section",{className:"coin-balance"},[
@@ -18,6 +18,6 @@ export function CoinsScreen({coins,onBuy,onBack}){
    text("small",{className:"mono"},t.price),
    text("span",{className:"coin-pack-action"},"Add coins")
   ]))),
-  h("section",{className:"card coin-note"},[h("i",{"data-lucide":"info"}),text("span",{},"Prototype purchases only. No real payment is processed.")])
+  h("section",{className:"card coin-note"},[h("i",{"data-lucide":"info"}),text("span",{},live?"Secure checkout by Polar. Coins are added to your account as soon as the payment clears.":"Prototype purchases only. No real payment is processed.")])
  ]);
 }

@@ -8,6 +8,14 @@
 // the app already uses this exact shape (a leftover convention from when
 // icons were swapped in later by a CDN script), so intercepting it here means
 // zero call sites needed to change when that CDN dependency was removed.
+import { safeUrl } from "./safeUrl.js";
+
+// Attributes that load or navigate to a URL, and ones that can run code or inject markup.
+// Values from outside the app can end up in any of these, so they are checked here, once, for every
+// element in the app. Event handlers must be functions: a string on* attribute is dropped.
+const URL_ATTRS = new Set(["href", "src", "action", "formaction", "poster", "xlink:href", "data", "cite", "background"]);
+const NEVER_ATTRS = new Set(["srcdoc", "srcset", "innerhtml", "outerhtml", "formmethod", "http-equiv"]);
+
 export function h(tag, props = {}, children = []) {
   if (tag === "i" && props && Object.prototype.hasOwnProperty.call(props, "data-lucide")) {
     const { "data-lucide": name, style = {}, color: explicitColor, fill, ...rest } = props;
@@ -26,6 +34,15 @@ export function h(tag, props = {}, children = []) {
 
   Object.entries(props || {}).forEach(([key, value]) => {
     if (value == null) return;
+    const lower = key.toLowerCase();
+    if (lower.startsWith("on") && typeof value !== "function") return; // a string handler would be code
+    if (NEVER_ATTRS.has(lower) || (lower === "style" && typeof value === "string")) return;
+    if (URL_ATTRS.has(lower) && typeof value === "string") {
+      const clean = safeUrl(value, { image: lower === "src" || lower === "poster" });
+      if (!clean) return; // unsafe or empty: leave the attribute off rather than render it
+      el.setAttribute(key, clean);
+      return;
+    }
     if (key.startsWith("on") && typeof value === "function") {
       el.addEventListener(key.slice(2).toLowerCase(), value);
     } else if (key === "style" && typeof value === "object") {
@@ -47,6 +64,13 @@ export function h(tag, props = {}, children = []) {
       el.setAttribute(key, value);
     }
   });
+
+  // A link that opens a new tab must not hand that tab a way back to ours.
+  if (tag === "a" && el.getAttribute("target") === "_blank") {
+    const rel = new Set((el.getAttribute("rel") || "").split(/\s+/).filter(Boolean)); // keep e.g. "sponsored", always add the two that matter
+    rel.add("noopener"); rel.add("noreferrer");
+    el.setAttribute("rel", [...rel].join(" "));
+  }
 
   // Decode images off the main thread: smoother scrolling through long match lists.
   if (tag === "img" && !el.hasAttribute("decoding")) el.setAttribute("decoding", "async");

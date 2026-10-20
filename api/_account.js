@@ -1,6 +1,7 @@
 // Account entitlements (Premium, coins, unlocked themes and tips) stored in the
 // database and changed only by the server. Used by api/me.js, api/spend.js and
 // the admin dashboard.
+import { q } from "./_query.js";
 import { sb, env, HttpError, readConfig } from "./_admin.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -53,7 +54,7 @@ export function effective(row, now = Date.now()) {
 
 export async function getRow(userId) {
   if (!isUuid(userId)) throw new HttpError(400, "Bad user id.");
-  const rows = await sb(`/rest/v1/entitlements?user_id=eq.${userId}&select=*&limit=1`);
+  const rows = await sb(`/rest/v1/entitlements?user_id=eq.${q.uuid(userId)}&select=*&limit=1`);
   if (Array.isArray(rows) && rows[0]) return rows[0];
   // First time we see this account: create its row (a second concurrent create is ignored).
   const created = await sb("/rest/v1/entitlements?on_conflict=user_id", {
@@ -62,7 +63,7 @@ export async function getRow(userId) {
     body: { user_id: userId, coins: STARTING_COINS },
   });
   if (Array.isArray(created) && created[0]) return created[0];
-  const again = await sb(`/rest/v1/entitlements?user_id=eq.${userId}&select=*&limit=1`);
+  const again = await sb(`/rest/v1/entitlements?user_id=eq.${q.uuid(userId)}&select=*&limit=1`);
   if (Array.isArray(again) && again[0]) return again[0];
   throw new HttpError(502, "Could not load the account.");
 }
@@ -77,7 +78,7 @@ export async function mutate(userId, change, actor = "system") {
     const row = await getRow(userId);
     const { patch, ledger } = change(row);
     const next = { ...patch, version: Number(row.version) + 1, updated_at: new Date().toISOString() };
-    const updated = await sb(`/rest/v1/entitlements?user_id=eq.${userId}&version=eq.${row.version}`, {
+    const updated = await sb(`/rest/v1/entitlements?user_id=eq.${q.uuid(userId)}&version=eq.${q.int(row.version)}`, {
       method: "PATCH",
       headers: { Prefer: "return=representation" },
       body: next,
@@ -159,3 +160,47 @@ export async function adminSet(userId, { vip, days, permanent, coinsDelta, reaso
 }
 
 export const hasStorage = () => !!env("SUPABASE_SERVICE_ROLE_KEY");
+
+// ---------------------------------------------------------------------------
+// Payments (called only by the Polar webhook, after the signature is verified)
+// ---------------------------------------------------------------------------
+
+// Add paid Premium days and/or coins. Days extend from whichever is later: now or the current end date.
+// A permanent (no end date) Premium stays permanent.
+export async function grantPurchase(userId, { days = 0, coins = 0, reason }) {
+  return mutate(userId, (row) => {
+    const patch = {};
+    let ledger;
+    if (coins > 0) {
+      patch.coins = row.coins + coins;
+      ledger = { delta: coins, reason };
+    }
+    if (days > 0) {
+      const permanent = row.is_vip && !row.vip_until;
+      if (!permanent) {
+        const current = row.is_vip && row.vip_until ? new Date(row.vip_until).getTime() : 0;
+        patch.is_vip = true;
+        patch.vip_until = new Date(Math.max(Date.now(), current) + days * 86400000).toISOString();
+      }
+    }
+    return { patch, ledger };
+  }, "polar");
+}
+
+// A refund takes the purchase back: coins down to zero at most, Premium days off the end date.
+export async function reversePurchase(userId, { days = 0, coins = 0, reason }) {
+  return mutate(userId, (row) => {
+    const patch = {};
+    let ledger;
+    if (coins > 0) {
+      const take = Math.min(coins, row.coins);
+      if (take > 0) { patch.coins = row.coins - take; ledger = { delta: -take, reason }; }
+    }
+    if (days > 0 && row.is_vip && row.vip_until) {
+      const end = new Date(row.vip_until).getTime() - days * 86400000;
+      if (end <= Date.now()) { patch.is_vip = false; patch.vip_until = null; }
+      else patch.vip_until = new Date(end).toISOString();
+    }
+    return { patch, ledger };
+  }, "polar");
+}

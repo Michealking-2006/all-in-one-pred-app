@@ -1,19 +1,19 @@
 import { h, text } from "../utils/h.js";
-import { metaLine } from "../utils/ui.js";
 import { SkeletonRow } from "./Skeleton.js";
-import { getNews, timeAgo } from "../api/newsApi.js";
+import { getNews, timeAgo, rememberArticle } from "../api/newsApi.js";
+import { articlePath } from "../newsArticle.js";
+import { placement } from "./Placement.js";
 import { NEWS_TAGS, tagById, tagsOf } from "../newsTags.js";
 import { store } from "../store.js";
 
-// Every article opens its original page in a new tab: the app shows the
-// briefing (headline + summary), the publisher keeps the full story.
+// Every story opens on our own address (/news/<words>-<id>). That page shows the briefing and sends
+// the reader on to the publisher for the full text. The story is remembered so it opens instantly.
 function storyLink(article, className, children) {
+  rememberArticle(article);
   return h("a", {
     className,
-    href: article.url,
-    target: "_blank",
-    rel: "noopener noreferrer",
-    "aria-label": article.title + (article.source ? " \u2014 " + article.source : "") + ". Opens the full story in a new tab.",
+    href: articlePath(article),
+    "aria-label": article.title + (article.source ? ", " + article.source : ""),
   }, children);
 }
 
@@ -25,7 +25,13 @@ function thumb(article, className) {
 }
 
 function readMore() {
-  return h("span", { className: "news-read-more" }, [text("span", {}, "Read full story"), h("i", { "data-lucide": "external-link", "aria-hidden": "true" })]);
+  return h("span", { className: "news-read-more" }, [text("span", {}, "Read story"), h("i", { "data-lucide": "chevron-right", "aria-hidden": "true" })]);
+}
+
+// The publisher, as a small badge with its first letter, so a list of stories is easy to scan.
+function sourceBadge(article) {
+  if (!article.source) return null;
+  return h("span", { className: "news-source" }, [text("span", { className: "news-source-dot", "aria-hidden": "true" }, article.source.trim().charAt(0).toUpperCase()), text("span", {}, article.source)]);
 }
 
 // The hashtags an article is about, as small tappable chips. They sit inside
@@ -48,7 +54,7 @@ function featuredCard(article, onPickTag) {
     h("div", { className: "news-featured-body" }, [
       text("h2", { className: "news-featured-title" }, article.title),
       article.description ? text("p", {}, article.description) : null,
-      metaLine([article.source, timeAgo(article.publishedAt)], "meta-line news-meta"),
+      h("div", { className: "news-meta-row" }, [sourceBadge(article), text("span", { className: "news-time" }, timeAgo(article.publishedAt))]),
       articleTags(article, onPickTag),
       readMore(),
     ]),
@@ -61,9 +67,8 @@ function itemCard(article, onPickTag) {
     h("div", { className: "news-copy" }, [
       text("strong", {}, article.title),
       article.description ? text("p", {}, article.description) : null,
-      metaLine([article.source, timeAgo(article.publishedAt)], "meta-line news-meta"),
+      h("div", { className: "news-meta-row" }, [sourceBadge(article), text("span", { className: "news-time" }, timeAgo(article.publishedAt))]),
       articleTags(article, onPickTag),
-      readMore(),
     ]),
   ]);
 }
@@ -87,6 +92,8 @@ export function NewsScreen() {
   let page = 0;
   let featuredShown = false;
   let seen = new Set();
+  let placed = false; // the "in the list" ad/promotion space is shown once, after the 4th story
+  let observer = null;
 
   const body = h("div", { className: "news-body" });
   const list = h("div", { className: "news-list", hidden: true });
@@ -112,7 +119,7 @@ export function NewsScreen() {
     h("header", { className: "page-intro" }, [
       text("span", { className: "section-kicker" }, "Football"),
       h("div", { className: "page-intro-row" }, [text("h1", {}, "News")]),
-      text("p", {}, "Headlines from across the game. Filter by #tag."),
+      text("p", {}, "Headlines from across the game. Tap a story for the summary, then read the full piece at the source."),
     ]),
     tagRow,
     body,
@@ -138,6 +145,7 @@ export function NewsScreen() {
     generation++;
     page = 0;
     featuredShown = false;
+    placed = false;
     seen = new Set();
     body.replaceChildren();
     list.replaceChildren();
@@ -180,13 +188,28 @@ export function NewsScreen() {
         featuredShown = true;
         rest = fresh.slice(1);
       }
-      rest.forEach((a) => list.appendChild(itemCard(a, selectTag)));
+      rest.forEach((a) => {
+        list.appendChild(itemCard(a, selectTag));
+        if (!placed && list.querySelectorAll(".news-item").length === 4) {
+          const slot = placement("news_list");
+          if (slot) { list.appendChild(slot); placed = true; }
+        }
+      });
       list.hidden = list.children.length === 0;
 
       // Another page exists if the provider says there are more than we have shown.
       const hasMore = data.articles.length > 0 && data.found > seen.size;
       more.hidden = !hasMore;
-      if (hasMore) more.appendChild(h("button", { type: "button", className: "secondary-button news-more-button", onClick: loadPage }, "Load more"));
+      if (hasMore) {
+        const button = h("button", { type: "button", className: "secondary-button news-more-button", onClick: loadPage }, "Load more");
+        more.appendChild(button);
+        // Keep reading: the next page loads by itself when the button scrolls into view (the button stays as a fallback).
+        observer?.disconnect();
+        if ("IntersectionObserver" in window) {
+          observer = new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting) && button.isConnected) { observer.disconnect(); loadPage(); } }, { rootMargin: "400px" });
+          observer.observe(button);
+        }
+      }
     }).catch((error) => {
       if (mine !== generation) return;
       if (first) body.replaceChildren(showError(error, loadPage));

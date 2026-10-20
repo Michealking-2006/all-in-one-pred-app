@@ -11,7 +11,9 @@ import { initNavBars, syncNavBars } from "./utils/navbar.js";
 import { initTheme } from "./theme.js";
 import { initThemeFx, activeFxTheme, fxThemeById, fxPriceOf } from "./themeFx.js";
 import { initRemoteConfig, REMOTE_EVENT } from "./remoteConfig.js";
-import { initEntitlements, serverMode, spendCoins, tipCost } from "./entitlements.js";
+import { initUsageBeacon } from "./usageBeacon.js";
+import { initPush } from "./push.js";
+import { initEntitlements, serverMode, spendCoins, startCheckout, tipCost } from "./entitlements.js";
 import { blockingNotice, blockingScreen, announcementBar } from "./components/RemoteNotices.js";
 import { initClubTheme, clubById } from "./clubTheme.js";
 import { initLiveAlerts } from "./liveAlerts.js";
@@ -90,14 +92,22 @@ const actions = {
   closeMatch: () => goBack("/"),
   // Profile sub-pages fall back to Profile (not Home) when opened via a direct link.
   closeSubpage: () => goBack(PROFILE_SUBPAGES.includes(store.getState().tab) ? "/profile" : "/"),
-  subscribe: () => {
-    if (serverMode()) { showToast("Premium isn't open for purchase yet. The Scoutwave team can add it to your account.", "default", 4500); return; }
+  subscribe: (plan) => {
+    if (serverMode()) {
+      showToast("Opening secure checkout…", "default", 3000);
+      startCheckout(plan === "1m" ? "premium:1m" : "premium:12m").catch((error) => showToast(error.message || "Couldn't start the checkout", "error"));
+      return;
+    }
     store.setState({ isVip: true });
     showToast("Welcome to VIP — every tip is unlocked", "success");
     goBack("/profile");
   },
   buyCoins: (amount) => {
-    if (serverMode()) { showToast("Coin purchases aren't open yet. The Scoutwave team can add coins to your account.", "default", 4500); return; }
+    if (serverMode()) {
+      showToast("Opening secure checkout…", "default", 3000);
+      startCheckout("coins:" + amount).catch((error) => showToast(error.message || "Couldn't start the checkout", "error"));
+      return;
+    }
     store.setState((state) => ({ coins: state.coins + amount }));
     showToast(`+${amount} coins added`, "success");
   },
@@ -219,6 +229,7 @@ function App(state) {
     else if (type === "league-slug") content = lazyScreen("LeaguePage", () => import("./components/LeaguePage.js"), { slug, onBack: actions.closeSubpage });
     else if (type === "club") content = lazyScreen("ClubPage", () => import("./components/ClubPage.js"), { id, onBack: actions.closeSubpage, isFavorite: isFavorite("club", id), onToggleFavorite: () => actions.toggleFavorite("club", id) });
     else if (type === "venue") content = lazyScreen("VenuePage", () => import("./components/VenuePage.js"), { id, onBack: actions.closeSubpage, isFavorite: isFavorite("venue", id), onToggleFavorite: () => actions.toggleFavorite("venue", id) });
+    else if (type === "article") content = lazyScreen("ArticlePage", () => import("./components/ArticlePage.js"), { id, onBack: () => goBack("/news") });
     else if (type === "player") content = lazyScreen("PlayerPage", () => import("./components/PlayerPage.js"), { id, onBack: actions.closeSubpage, isFavorite: isFavorite("player", id), onToggleFavorite: () => actions.toggleFavorite("player", id) });
   } else if (state.tab === "auth") {
     content = lazyScreen("AuthScreen", () => import("./components/AuthScreen.js"), { mode: state.authMode || "login" });
@@ -290,9 +301,9 @@ function App(state) {
       onBack,
     });
   } else if (state.tab === "premium") {
-    content = lazyScreen("PremiumScreen", () => import("./components/PremiumScreen.js"), { isVip: state.isVip, onSubscribe: actions.subscribe, onOpenThemes: () => actions.goTo("themes"), onBack });
+    content = lazyScreen("PremiumScreen", () => import("./components/PremiumScreen.js"), { isVip: state.isVip, live: serverMode(), onSubscribe: actions.subscribe, onOpenThemes: () => actions.goTo("themes"), onBack });
   } else if (state.tab === "coins") {
-    content = lazyScreen("CoinsScreen", () => import("./components/CoinsScreen.js"), { coins: state.coins, onBuy: actions.buyCoins, onBack });
+    content = lazyScreen("CoinsScreen", () => import("./components/CoinsScreen.js"), { coins: state.coins, live: serverMode(), onBuy: actions.buyCoins, onBack });
   } else {
     content = lazyScreen("ProfileScreen", () => import("./components/ProfileScreen.js"), {
       isVip: state.isVip,
@@ -316,6 +327,7 @@ function App(state) {
   const inEntity = state.openFixtureId || state.openEntity;
   // Match pages belong to Games; league / club / player / venue pages belong to Leagues.
   const navActive = state.openFixtureId ? "home"
+    : state.openEntity?.type === "article" ? "news"
     : state.openEntity ? "leagues"
     : PROFILE_SUBPAGES.includes(state.tab) || state.tab === "search" ? (state.tab === "search" ? "home" : "profile")
     : state.tab;
@@ -409,6 +421,8 @@ initTheme();
 initPerf();
 initRemoteConfig();
 initEntitlements();
+initUsageBeacon();
+initPush();
 initClubTheme();
 initThemeFx();
 initLiveAlerts();
