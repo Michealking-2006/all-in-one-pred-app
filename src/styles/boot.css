@@ -1,0 +1,10 @@
+/* Styles for the page before the app starts (and its error screen). Kept in a file, not inline, so the
+   Content-Security-Policy can forbid inline styles. */
+.boot-screen{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#fff;font-family:Arial,sans-serif;color:#111}
+.boot-card{width:min(100%,380px);text-align:center}
+.boot-title{display:block;font-size:20px;margin:0 0 8px}
+.boot-lede{margin:0 0 12px;color:#555;font-size:14px}
+.boot-nav{margin:0 0 12px;font-size:14px}
+.boot-note{display:block;color:#777;font-size:13px;line-height:1.5}
+.boot-button{margin-top:18px;border:0;border-radius:12px;padding:12px 18px;background:#d50000;color:#fff;font-weight:700;cursor:pointer}
+@media (prefers-color-scheme:dark){.boot-screen{background:#0d0e11;color:#f1f2f4}.boot-lede,.boot-note{color:#a3a9b6}}
