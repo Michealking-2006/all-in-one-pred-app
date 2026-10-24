@@ -9,7 +9,7 @@ import { SkeletonPage } from "./components/Skeleton.js";
 import { supabase, initializeAuth } from "./api/supabase.js";
 import { initNavBars, syncNavBars } from "./utils/navbar.js";
 import { initTheme } from "./theme.js";
-import { initThemeFx, activeFxTheme, fxThemeById, fxPriceOf } from "./themeFx.js";
+import { initThemeFx, activeFxTheme, fxThemeById, fxPriceOf } from "./themeFxData.js";
 import { initRemoteConfig, REMOTE_EVENT } from "./remoteConfig.js";
 import { initEntitlements, serverMode, spendCoins, startCheckout, tipCost } from "./entitlements.js";
 import { blockingNotice, blockingScreen, announcementBar } from "./components/RemoteNotices.js";

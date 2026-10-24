@@ -1,3 +1,13 @@
+# Changes in 0.28.0 — faster startup, faster lists, fewer round trips
+
+- **Icons are parsed once.** A busy match day draws 500+ star icons; each used to re-parse the same markup. Now one parse per icon, then copies (a test proves 500 stars cost one parse).
+- **Fonts don't hold up the first paint.** The DM Sans stylesheet was a render-blocking request to another site; it now loads after the page, is skipped on 1 GB phones and with data saver (they use the system font), and the unused Space Mono request is gone. On Android and Windows text may show in the system font for a moment before switching.
+- **Animated themes load on demand.** Only someone who has switched a theme on downloads the animation code (9 KB); the theme list and unlock rules stay small and available at startup.
+- **Fewer round trips on repeat visits.** App code is reused for 5 minutes (refreshed in the background for a day) and images and icons for a week, instead of being re-checked on every launch (about 40 requests). Pages, the API, the service worker and the admin stay fresh; a new release can take up to about 5 minutes longer to reach someone who already has the app open.
+- **Startup code:** 220 KB in 41 files at the start of this round of work, 175 KB in 37 now (gestures, push, usage reporting, prediction code, server-only SEO code and theme animation load when needed).
+- **Budget test.** `tests/startup.test.mjs` (8 tests; the suite is 113) fails if startup code grows past 180 KB or 40 files, if a deferred module is imported at startup again, if a blocking third-party stylesheet returns, or if a cache rule would make pages or the API stale.
+- Measured by file size and by test; not timed on a real phone. See the end of `docs/PERFORMANCE.md`.
+
 # Changes in 0.27.2 — makes the function-limit fix survive an upgrade from a zip, and a lighter startup
 
 - **Why the deployment could still fail after 0.27.1:** copying a new version over an old project never deletes the files that were removed. The 16 old endpoint files that moved from `api/` to `server/` stay behind and still count as serverless functions (22 in total, limit 12). A copy of the project with 7 of them left over counts 15, and the deployment fails exactly as before.

@@ -1,5 +1,5 @@
 import { h, text } from "../utils/h.js";
-import { attachFx, currentFxTheme } from "../themeFx.js";
+import { attachNavFx, currentFxTheme } from "../themeFxData.js";
 
 const TABS = [
   { id: "home", label: "Games", icon: "games" },
@@ -48,6 +48,6 @@ export function BottomNav({ active, onChange }) {
       setTimeout(() => lens.classList.remove("moving"), 650);
     });
   }
-  attachFx(nav, layer, currentFxTheme);
+  attachNavFx(nav, layer, currentFxTheme);
   return nav;
 }

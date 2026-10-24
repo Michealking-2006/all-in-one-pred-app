@@ -166,7 +166,7 @@ await test("source: no way to write HTML or run strings as code", () => {
     const src = read(file);
     src.split("\n").forEach((line, i) => {
       const code = line.replace(/\/\/.*$/, "");
-      if (/\.innerHTML\s*=(?!=)/.test(code) && !/\.innerHTML\s*=\s*(""|'')\s*;?/.test(code) && !(file.endsWith("icons.js") && /svg\.innerHTML = ICONS\[name\]/.test(code))) sinks.push(`${file}:${i + 1} innerHTML`);
+      if (/\.innerHTML\s*=(?!=)/.test(code) && !/\.innerHTML\s*=\s*(""|'')\s*;?/.test(code) && !(file.endsWith("icons.js") && /parts\.innerHTML = ICONS\[name\]/.test(code))) sinks.push(`${file}:${i + 1} innerHTML`);
       if (/\b(eval|new Function)\s*\(/.test(code)) sinks.push(`${file}:${i + 1} eval`);
       if (/document\.write|insertAdjacentHTML|outerHTML\s*=|createContextualFragment|setAttribute\(\s*["']style["']/.test(code)) sinks.push(`${file}:${i + 1} html sink`);
       if (/setTimeout\(\s*["'`]|setInterval\(\s*["'`]/.test(code)) sinks.push(`${file}:${i + 1} string timer`);

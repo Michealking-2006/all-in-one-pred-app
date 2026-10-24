@@ -16,7 +16,13 @@ Detection is in `src/perf.js` (and `src/boot/theme-init.js`, which runs before f
 - **Backgrounds do less.** Live-score refresh already paused when the tab was hidden; it now also stretches by tier.
 - Football data is fetched from the API once and cached in three layers (memory, tab, device); past seasons' tables are kept for a week.
 
-- **Less to load at startup (0.27.2).** Touch gestures (pull to refresh), push settings, usage reporting, the prediction tracker and model, and the server-only SEO code no longer load before the first screen: the startup code went from 220 KB (41 files) to 185 KB (37 files). Gestures and reporting start when the browser is idle.
+- **Less to load at startup (0.27.2).** Touch gestures (pull to refresh), push settings, usage reporting, the prediction tracker and model, and the server-only SEO code no longer load before the first screen: the startup code went from 220 KB (41 files) to 175 KB (37 files) once the theme animation is also deferred. Gestures and reporting start when the browser is idle.
+
+- **Icons are parsed once (0.28.0).** Each icon's markup is turned into elements once and copied afterwards; a busy match day draws 500+ star icons and used to parse the same text 500+ times.
+- **Fonts no longer block the first paint.** The DM Sans stylesheet was a render-blocking request to another site; it now loads after the page has finished loading, is skipped on 1 GB phones and with data saver (they use the system font), and the unused Space Mono request is gone. The font stack was already system-first (iPhones and Macs never used DM Sans), so on those devices nothing changes visually; on Android and Windows text may appear in the system font for a moment, then switch.
+- **Animated themes load on demand.** The theme list and unlock rules stay at startup (about 4 KB); the 9 KB of animation code downloads only for someone who has switched a theme on.
+- **Cache lifetimes.** Vercel serves every file with "check again on every load", which cost one round trip per file (about 40) on every launch. App code is now reused for 5 minutes (and refreshed in the background for a day), images and icons for a week. Pages, the service worker, the API and the admin stay fresh. A new release can therefore take up to about 5 minutes longer to reach someone who already has the app open.
+- **A budget test** (`tests/startup.test.mjs`) fails if startup code grows past 180 KB or 40 files, or if one of the deferred modules is imported at startup again.
 
 ## Not done, and why
 - **No bundler or minifier.** The app serves its modules as written (about 205 KB for startup, which is roughly 50 KB compressed in transit) and 130 KB of CSS. A bundler would cut requests and a little size, but needs a build step and tooling this project doesn't have; the batching, drawing in pieces and image changes above matter more for memory.

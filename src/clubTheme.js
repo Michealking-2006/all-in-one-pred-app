@@ -3,7 +3,7 @@
 // Light/dark mode is separate and keeps working: colours are re-derived for
 // each so text stays readable.
 import { store } from "./store.js";
-import { activeFxTheme } from "./themeFx.js";
+import { activeFxTheme } from "./themeFxData.js";
 import { REMOTE_EVENT } from "./remoteConfig.js";
 
 // Primary = the colour the app is built around. Colours are approximations of

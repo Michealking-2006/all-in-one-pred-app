@@ -82,6 +82,19 @@ const ICONS = {
 // Drop-in replacement for h("i", { "data-lucide": name, ... }) — same call
 // shape, but renders real SVG immediately, synchronously, no external script.
 const warned = new Set();
+// Each icon's markup is turned into elements once; every use after that copies those elements. A busy match day
+// draws hundreds of star icons, and parsing the same text hundreds of times was the slowest part of building a row.
+const parsed = new Map();
+function iconParts(name) {
+  let parts = parsed.get(name);
+  if (!parts) {
+    parts = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    parts.innerHTML = ICONS[name] || ""; // ICONS is a fixed table in this file: never user data
+    parsed.set(name, parts);
+  }
+  return parts;
+}
+
 export function Icon(name, { size = 18, color = "currentColor", fill = "none", style = {}, ...rest } = {}) {
   const svg = h("svg", {
     viewBox: "0 0 24 24",
@@ -100,6 +113,6 @@ export function Icon(name, { size = 18, color = "currentColor", fill = "none", s
     warned.add(name);
     console.warn("Scoutwave: missing icon \"" + name + "\" — add it to utils/icons.js");
   }
-  svg.innerHTML = ICONS[name] || "";
+  for (const child of iconParts(name).childNodes) svg.appendChild(child.cloneNode(true));
   return svg;
 }

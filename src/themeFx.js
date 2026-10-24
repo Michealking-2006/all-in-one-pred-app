@@ -1,49 +1,18 @@
-// Advanced themes (fire / water / ice / bubbles): a liquid-glass tab bar with a
-// sliding lens and themed particles that follow your finger. Everything here is
-// presentation only; unlock rules live in fxEntitled().
-import { store, FX_THEME_IDS } from "./store.js";
+// Advanced themes (fire / water / ice / bubbles): a liquid-glass tab bar with a sliding lens and themed particles that
+// follow your finger. Everything here is presentation only; unlock rules live in fxEntitled() (themeFxData.js).
 import { isLowEnd } from "./perf.js";
-import { isFeatureOn } from "./features.js";
-import { fxPriceOverride, REMOTE_EVENT } from "./remoteConfig.js";
+import { currentFxTheme } from "./themeFxData.js";
 
-export const FX_THEMES = [
-  { id: "fire", name: "Fire", icon: "flame", price: 50, blurb: "Embers drift up from a molten glass bar." },
-  { id: "water", name: "Water", icon: "droplet", vip: true, blurb: "Ripples and droplets over rolling waves. Included with Premium." },
-  { id: "ice", name: "Ice", icon: "snowflake", price: 40, blurb: "Frosted glass with a cold shimmer and falling crystals." },
-  { id: "bubbles", name: "Bubbles", icon: "bubbles", price: 30, blurb: "Iridescent bubbles float up as you glide across the bar." },
-];
-
-// The coin price, unless the admin dashboard has changed it.
-export const fxPriceOf = (theme) => (theme?.vip ? null : fxPriceOverride(theme?.id) ?? theme?.price);
-
-export const fxThemeById = (id) => FX_THEMES.find((t) => t.id === id) || null;
-
-// Water belongs to Premium; the rest are bought once with coins.
-export function fxEntitled(state, id) {
-  const theme = fxThemeById(id);
-  if (!theme) return false;
-  return theme.vip ? !!state.isVip : (state.unlockedThemes || []).includes(id);
-}
-
-// The theme that is actually on screen (a saved choice stops applying if its
-// entitlement lapses, e.g. Premium ending, without losing the choice).
-export function activeFxTheme(state) {
-  if (!isFeatureOn("advancedThemes")) return null; // admin kill switch
-  return state.fxTheme && fxEntitled(state, state.fxTheme) ? state.fxTheme : null;
-}
-
-function applyAttribute() {
-  const active = activeFxTheme(store.getState());
-  if (active) document.documentElement.dataset.fx = active;
-  else delete document.documentElement.dataset.fx;
-}
+// The data (which themes exist, who may use them) lives in themeFxData.js, which the app loads at startup; this file
+// is the animation and loads only when a theme is switched on or its settings screen is opened.
+export * from "./themeFxData.js";
 
 // The app-wide layers live on <body>, outside #root, so re-rendering a screen
 // never wipes them: a backdrop (drifting colour + ambient particles) behind the
 // content, and an overlay above it for tap bursts.
 let backdrop = null, ambient = null, overlay = null;
 
-function ensureLayers() {
+export function ensureFxLayers() {
   if (backdrop) return;
   backdrop = document.createElement("div");
   backdrop.id = "fx-backdrop";
@@ -85,15 +54,6 @@ function ensureLayers() {
   new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ["data-fx"] });
 }
 
-export function initThemeFx() {
-  const run = () => {
-    applyAttribute();
-    if (activeFxTheme(store.getState())) ensureLayers();
-  };
-  run();
-  store.subscribe(run);
-  window.addEventListener(REMOTE_EVENT, run); // the admin kill switch can change while the app is open
-}
 
 // ---------------------------------------------------------------------------
 // Particles
@@ -271,4 +231,3 @@ export function attachFx(el, layer, getTheme, { ambientMs = 1100 } = {}) {
   }, ambientMs);
 }
 
-export const currentFxTheme = () => document.documentElement.dataset.fx || null;
