@@ -7,4 +7,4 @@ export const SOCIAL_LINKS = {
   instagram: "",
 };
 
-export const APP_VERSION = "0.28.0";
+export const APP_VERSION = "0.29.0";

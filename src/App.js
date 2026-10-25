@@ -220,6 +220,8 @@ function App(state) {
       onBack: actions.closeMatch,
       isFavorite: isFavorite("match", state.openFixtureId),
       onToggleFavorite: () => actions.toggleFavorite("match", state.openFixtureId),
+      isClubFavorite: (teamId) => isFavorite("club", teamId),
+      onToggleClub: (teamId) => actions.toggleFavorite("club", teamId),
       onTabChange: actions.setMatchTab,
     });
   } else if (state.openEntity) {

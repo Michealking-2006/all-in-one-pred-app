@@ -59,7 +59,7 @@ export function ClubPage({ id, onBack, isFavorite, onToggleFavorite }) {
     ),
     hero: seasonBar.node,
     tabs: [
-      { id: "overview", label: "Overview", skeleton: "overview", load: () => loadOverview(id, teamPromise, baseCtx, ctx) },
+      { id: "overview", label: "Overview", skeleton: "overview", load: () => loadOverview(id, teamPromise, baseCtx, ctx, () => page.setTab("squad")) },
       { id: "matches", label: "Matches", skeleton: "cards", load: () => loadMatches(id, ctx) },
       { id: "squad", label: "Squad", skeleton: "people", load: () => loadSquad(id, ctx) },
       { id: "stats", label: "Stats", skeleton: "stats", load: () => loadStats(id, baseCtx, ctx) },
@@ -115,7 +115,7 @@ function stadiumCard(venue) {
   return h("div", props, content);
 }
 
-function loadOverview(id, teamPromise, contextPromise, ctx) {
+function loadOverview(id, teamPromise, contextPromise, ctx, openSquad = null) {
   return teamPromise.then((entry) => {
     if (!entry) return emptyNode("Club not found.");
     const { team, venue } = entry;
@@ -149,7 +149,7 @@ function loadOverview(id, teamPromise, contextPromise, ctx) {
       title: "Top performers",
       skeleton: "tiles",
       load: () => seasonPromise().then((season) => (season ? getTeamPlayers(id, season) : [])),
-      render: (rows) => topPerformersCard(rows, id),
+      render: (rows) => topPerformersCard(rows, id, { onSeeAll: openSquad }),
     });
 
     // Time-based sections only make sense for the current season; a past season gets the same cards for

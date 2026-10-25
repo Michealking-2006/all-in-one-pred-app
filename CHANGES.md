@@ -1,3 +1,12 @@
+# Changes in 0.29.0 — match header: follow clubs and league positions; club page touches
+
+- **Follow a club from the match header.** A star now sits beside each club's crest (the same favourite the club page uses; tapping it doesn't leave the match).
+- **League position beside each crest**, like "[2]" in your screenshot: where each club stands in that competition's table (Champions League league phase included). Competitions without a table show nothing. One table request, shared with the app's cache.
+- **Club page.** The standings slice now has the Goals column (goals scored) from your screenshot, and Top performers has "See all players", which opens the Squad tab.
+- **Already in place from earlier versions** (your screenshots 2 and 3): the last-5 results card, top performers, the standings slice, history rankings, and five form chips directly under the club crest and under both club names in the match header.
+- **Not built: squad value ("1B€").** The football data provider doesn't supply squad market values; they come from other sources (such as Transfermarkt) that need a separate licence. Showing a made-up number would be wrong, so it is left out.
+- New check: `tests/imports.test.mjs` finds a function that is called but never imported (a mistake a syntax check can't see; I made one while building this). Suite: 117 tests.
+
 # Changes in 0.28.0 — faster startup, faster lists, fewer round trips
 
 - **Icons are parsed once.** A busy match day draws 500+ star icons; each used to re-parse the same markup. Now one parse per icon, then copies (a test proves 500 stars cost one parse).

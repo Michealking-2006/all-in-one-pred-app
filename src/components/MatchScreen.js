@@ -4,7 +4,7 @@ import { LineupPitch } from "./LineupPitch.js";
 import { SkeletonMatchHero, SkeletonCards } from "./Skeleton.js";
 import {
   getFixtureById, getHeadToHead, getFixtureEvents, getTeamFixtures,
-  getFixtureLineups, getFixtureStatistics, getFixtureOdds, oddsRows, getFixturePlayers,
+  getFixtureLineups, getFixtureStatistics, getFixtureOdds, oddsRows, getFixturePlayers, getStandings,
 } from "../api/footballApi.js";
 import { ratingMap, sortedRatings, formatRating } from "../utils/ratings.js";
 import { ratingPill } from "./LineupPitch.js";
@@ -19,6 +19,7 @@ import { pollMs } from "../perf.js";
 import { predictFixture } from "../predictions/engine.js";
 import { gradeFixtures } from "../predictions/tracker.js";
 import { PredictionCard, PredictionLockedCard } from "./PredictionCard.js";
+import { rankIn } from "../clubStats.js";
 import { metaForFixture, jsonLdFixture } from "../seoCore.js";
 import { metaLine, setStarState, headerActions } from "../utils/ui.js";
 import { openShareSheet } from "./ShareSheet.js";
@@ -37,7 +38,7 @@ const TABS = [
 
 const TAB_SKELETON = { summary: "summary", events: "list", lineups: "pitch", ratings: "list", stats: "stats", odds: "list", prediction: "cards" };
 
-export function MatchScreen({ fixtureId, matchTab = "summary", isFavorite, onBack, onToggleFavorite, onTabChange }) {
+export function MatchScreen({ fixtureId, matchTab = "summary", isFavorite, onBack, onToggleFavorite, onTabChange, isClubFavorite = () => false, onToggleClub = null }) {
   const fixturePromise = getFixtureById(fixtureId).then((rows) => rows[0] || null);
 
   const hero = h("section", { className: "match-hero", "aria-busy": "true" }, [SkeletonMatchHero()]);
@@ -66,7 +67,7 @@ export function MatchScreen({ fixtureId, matchTab = "summary", isFavorite, onBac
   const view = { fixture: null, events: null, form: { home: null, away: null } };
   const draw = (pop = false) => {
     if (!view.fixture) return;
-    hero.replaceChildren(scoreboard(view.fixture, { pop, events: view.events, form: view.form }));
+    hero.replaceChildren(scoreboard(view.fixture, { pop, events: view.events, form: view.form, clubs: { isFavorite: isClubFavorite, toggle: onToggleClub } }));
   };
 
   fixturePromise
@@ -257,18 +258,30 @@ function redCardBadge(count) {
   return h("span", { className: "red-card-badge", role: "img", "aria-label": count + (count > 1 ? " red cards" : " red card") }, count > 1 ? String(count) : "");
 }
 
-function teamBlock(team, away, { form = null, reds = 0 } = {}) {
+// A star beside the crest to follow this club (the same favourite the club page uses).
+function clubStar(team, away, { isFavorite, toggle }) {
+  if (!team?.id || !toggle) return null;
+  const label = (on) => `${on ? "Remove" : "Add"} ${team.name} ${on ? "from" : "to"} favourites`;
+  const on = !!isFavorite(team.id);
+  const star = h("button", { type: "button", className: "match-club-star" + (away ? " away" : "") + (on ? " selected" : ""), "aria-label": label(on), "aria-pressed": String(on) }, [h("i", { "data-lucide": "star", fill: on ? "currentColor" : "none" })]);
+  star.addEventListener("click", () => { const now = toggle(team.id); setStarState(star, now); star.setAttribute("aria-label", label(now)); });
+  return star;
+}
+
+function teamBlock(team, away, { form = null, reds = 0, rankEl = null } = {}) {
   const inner = [
     h("span", { className: "match-logo-wrap" }, [
       team?.logo ? h("img", { className: "match-team-logo", src: team.logo, alt: "" }) : h("span", { className: "match-team-logo" }),
       redCardBadge(reds),
+      rankEl,
     ]),
     text("strong", {}, team?.name || "TBD"),
     formStrip(form, team?.name),
   ];
   const props = { type: "button", className: "match-side" + (away ? " away-side" : "") };
-  if (team?.id) return h("button", { ...props, onClick: () => navigate("/club/" + team.id), "aria-label": "Open " + team.name }, inner);
-  return h("div", props, inner);
+  return team?.id
+    ? h("button", { ...props, onClick: () => navigate("/club/" + team.id), "aria-label": "Open " + team.name }, inner)
+    : h("div", props, inner);
 }
 
 // Live ticking countdown to kick-off. Stops itself when it leaves the page.
@@ -307,7 +320,28 @@ function scorersRow(fx, events) {
   return h("div", { className: "match-scorers", "aria-label": "Goal scorers" }, [scorersColumn(home, false), h("span", { className: "match-scorers-ball", "aria-hidden": "true" }), scorersColumn(away, true)]);
 }
 
-function scoreboard(fx, { pop = false, events = null, form = {} } = {}) {
+// The club's block plus its favourite star: a wrapper, because a button can't sit inside the club's own button.
+function teamCell(team, away, { clubs, ...rest }) {
+  return h("div", { className: "match-team-cell" }, [teamBlock(team, away, rest), clubStar(team, away, clubs)]);
+}
+
+// "[2]": where each club stands in this competition's table. Filled in when the table arrives (one request,
+// shared with the rest of the app's cache); competitions without a table simply show nothing.
+function positionBadge(team) {
+  return h("span", { className: "match-rank mono", "aria-hidden": "true" });
+}
+function fillPositions(fx, badges) {
+  const league = fx.league || {};
+  if (!league.id || !league.season) return;
+  getStandings(league.id, league.season).then((response) => {
+    for (const [side, el] of Object.entries(badges)) {
+      const rank = rankIn(response, league.id, fx.teams?.[side]?.id);
+      if (rank != null) { el.textContent = `[${rank}]`; el.removeAttribute("aria-hidden"); el.setAttribute("aria-label", `Position ${rank} in ${league.name || "the table"}`); }
+    }
+  }).catch(() => {});
+}
+
+function scoreboard(fx, { pop = false, events = null, form = {}, clubs = { isFavorite: () => false, toggle: null } } = {}) {
   const status = fx.fixture?.status?.short;
   const live = isLive(status);
   const goals = fx.goals || {};
@@ -316,16 +350,18 @@ function scoreboard(fx, { pop = false, events = null, form = {} } = {}) {
   const kickoff = new Date(fx.fixture?.date).getTime();
   // Not started yet: count down instead of showing dashes.
   const showCountdown = status === "NS" && Number.isFinite(kickoff);
+  const badges = { home: positionBadge(fx.teams?.home), away: positionBadge(fx.teams?.away) };
+  fillPositions(fx, badges);
   return h("div", {}, [
     metaLine([fx.league?.name, roundLabel(fx.league?.round)], "meta-line match-league-line"),
     h("span", { className: live ? "match-live-label" : "match-status" },
       live ? [h("span", { className: "live-dot" }), text("span", {}, headline)] : headline),
     h("div", { className: "match-scoreboard" }, [
-      teamBlock(fx.teams?.home, false, { form: form.home, reds: reds.home }),
+      teamCell(fx.teams?.home, false, { form: form.home, reds: reds.home, rankEl: badges.home, clubs }),
       showCountdown
         ? countdown(kickoff)
         : text("div", { className: "match-score-big mono" + (pop ? " score-pop" : "") }, (goals.home ?? "\u2013") + " \u2013 " + (goals.away ?? "\u2013")),
-      teamBlock(fx.teams?.away, true, { form: form.away, reds: reds.away }),
+      teamCell(fx.teams?.away, true, { form: form.away, reds: reds.away, rankEl: badges.away, clubs }),
     ]),
     scorersRow(fx, events),
   ]);

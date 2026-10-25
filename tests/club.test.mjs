@@ -1,7 +1,7 @@
 // Run with:  node tests/club.test.mjs   (pure logic: club cards, performance tiers, list drawing)
 import assert from "node:assert/strict";
 let passed = 0; const test = async (name, fn) => { await fn(); passed++; console.log("ok  " + name); };
-const { lastResults, formString, topPerformers, standingsWindow, pickTable, seasonRank, historyChart } = await import("../src/clubStats.js");
+const { lastResults, formString, topPerformers, standingsWindow, pickTable, seasonRank, historyChart, rankIn } = await import("../src/clubStats.js");
 
 const fx = (id, ts, home, away, gh, ga, status = "FT") => ({ fixture: { id, timestamp: ts, status: { short: status } }, teams: { home: { id: home, name: "T" + home, logo: "l" + home }, away: { id: away, name: "T" + away, logo: "l" + away } }, goals: { home: gh, away: ga } });
 const ME = 529;
@@ -62,6 +62,13 @@ await test("history chart: rank 1 on top, gaps break the line, points stay insid
   assert.equal(g.coords[2], null);
   assert.equal(historyChart([{ season: 2020, rank: 5 }]).coords[0].x, 160); // a single season sits in the middle
   assert.equal(historyChart([{ season: 1, rank: null }]).segments.length, 0);
+});
+
+await test("match header position: a club's place in the competition table, nothing for cups without one", () => {
+  const resp = [league(2, "Champions League", Array.from({ length: 36 }, (_, i) => i + 1))];
+  assert.equal(rankIn(resp, 2, 1002), 2); assert.equal(rankIn(resp, 2, 1036), 36);
+  assert.equal(rankIn(resp, 2, 99999), null); assert.equal(rankIn([], 2, 1002), null); assert.equal(rankIn(null, 2, 1002), null); assert.equal(rankIn([{ league: { id: 2, standings: [] } }], 2, 1002), null);
+  assert.equal(rankIn(resp, 777, 1005), 5, "a table for a different league id is still the only table we have, so the club's place in it is used");
 });
 
 // ------------------------------------------------------------------ performance tiers

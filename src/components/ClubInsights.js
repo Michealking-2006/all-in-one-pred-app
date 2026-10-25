@@ -47,21 +47,23 @@ function performerCard(person, value, label, ariaLabel) {
 }
 
 // "Top performers": top scorer (penalties in brackets), most assists and highest average rating.
-export function topPerformersCard(rows, teamId) {
+export function topPerformersCard(rows, teamId, { onSeeAll = null } = {}) {
   const { scorer, assister, rated } = topPerformers(rows, teamId);
   const cards = [];
   if (scorer) cards.push(performerCard(scorer, scorer.pens > 0 ? `${scorer.goals}(${scorer.pens})` : String(scorer.goals), "Goals", `Top scorer: ${scorer.name}, ${scorer.goals} goals`));
   if (assister) cards.push(performerCard(assister, String(assister.assists), "Assists", `Most assists: ${assister.name}, ${assister.assists}`));
   if (rated) cards.push(performerCard(rated, rated.rating.toFixed(1), "Rating", `Best rated: ${rated.name}, ${rated.rating.toFixed(1)}`));
   if (!cards.length) return null;
-  return h("div", { className: "performers" }, cards);
+  const grid = h("div", { className: "performers" }, cards);
+  if (!onSeeAll) return grid;
+  return h("div", { className: "performers-wrap" }, [grid, h("div", { className: "performers-foot" }, [h("button", { type: "button", className: "text-action", onClick: onSeeAll }, "See all players")])]);
 }
 
 // "Standings": three rows around the club, the club highlighted.
 export function standingsCard(table, teamId, { league, onOpenLeague } = {}) {
   const rows = standingsWindow(table?.rows, teamId, 3);
   if (!rows.length) return null;
-  const head = h("div", { className: "mini-standings-row head" }, ["#", "Team", "P", "W", "D", "L", "GD", "Pts"].map((c, i) => text("span", { className: i === 1 ? "ms-team" : "" }, c)));
+  const head = h("div", { className: "mini-standings-row head" }, ["#", "Team", "P", "W", "D", "L", "GF", "GD", "Pts"].map((c, i) => text("span", { className: i === 1 ? "ms-team" : "" }, c)));
   const body = rows.map((r) => h("button", {
     type: "button", className: "mini-standings-row" + (r.team.id === teamId ? " me" : ""),
     "aria-label": `${r.rank}. ${r.team.name}, ${r.points} points`,
@@ -70,6 +72,7 @@ export function standingsCard(table, teamId, { league, onOpenLeague } = {}) {
     text("span", { className: "mono" }, r.rank),
     h("span", { className: "ms-team" }, [r.team.logo ? h("img", { src: r.team.logo, alt: "", loading: "lazy", decoding: "async", width: "20", height: "20" }) : null, text("span", {}, r.team.name)]),
     text("span", { className: "mono" }, r.all?.played ?? "–"), text("span", { className: "mono" }, r.all?.win ?? "–"), text("span", { className: "mono" }, r.all?.draw ?? "–"), text("span", { className: "mono" }, r.all?.lose ?? "–"),
+    text("span", { className: "mono" }, r.all?.goals?.for ?? "–"),
     text("span", { className: "mono" }, r.goalsDiff > 0 ? "+" + r.goalsDiff : r.goalsDiff ?? "–"),
     text("strong", { className: "mono" }, r.points ?? "–"),
   ]));

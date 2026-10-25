@@ -71,6 +71,13 @@ export function pickTable(response, leagueId) {
   return (withRows.find((e) => e.league.id === leagueId) || withRows.sort((a, b) => a.rows.length - b.rows.length).find((e) => e.rows.length >= 8) || withRows[0] || null);
 }
 
+// A club's position in the table the standings response holds for this league, or null (cups without a table, unknown club).
+export function rankIn(response, leagueId, teamId) {
+  const table = pickTable(response, leagueId);
+  const row = table?.rows.find((r) => r.team?.id === teamId);
+  return row && Number.isFinite(Number(row.rank)) ? Number(row.rank) : null;
+}
+
 // One season of history from standings?team=&season= (every competition the club had a table in).
 // Prefers the club's usual league; a promoted or relegated club falls back to its single league table.
 export function seasonRank(response, teamId, preferredLeagueId) {

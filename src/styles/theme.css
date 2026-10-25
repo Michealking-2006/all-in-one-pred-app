@@ -1758,7 +1758,7 @@ html[data-lowend="2"] :is(.news-featured,.stadium-card,.placement-card){backgrou
 .performer-bottom span{font-size:12px;color:var(--text-muted)}
 .mini-standings{padding:14px 12px 8px}
 .mini-standings-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px 10px}
-.mini-standings-row{display:grid;grid-template-columns:22px minmax(0,1fr) repeat(4,26px) 34px 34px;align-items:center;gap:2px;width:100%;padding:11px 4px;background:none;border:0;border-radius:10px;color:inherit;text-align:center;font-size:14px}
+.mini-standings-row{display:grid;grid-template-columns:22px minmax(0,1fr) repeat(4,24px) 30px 32px 32px;align-items:center;gap:2px;width:100%;padding:11px 4px;background:none;border:0;border-radius:10px;color:inherit;text-align:center;font-size:14px}
 .mini-standings-row.head{font-size:12px;color:var(--text-muted);padding-top:2px;padding-bottom:6px}
 .mini-standings-row.me{background:var(--accent-soft);font-weight:700}
 .mini-standings-row:not(.head):active{opacity:.7}
@@ -1773,7 +1773,7 @@ html[data-lowend="2"] :is(.news-featured,.stadium-card,.placement-card){backgrou
 .history-dot{fill:var(--history)}
 .history-rank{font-size:11px;font-weight:700;fill:var(--text)}
 .history-season{font-size:10px;fill:var(--text-muted)}
-@media (max-width:359px){.mini-standings-row{grid-template-columns:20px minmax(0,1fr) repeat(3,24px) 30px 30px}.mini-standings-row>:nth-child(5){display:none}}
+@media (max-width:359px){.mini-standings-row{grid-template-columns:20px minmax(0,1fr) repeat(3,22px) 30px 30px}.mini-standings-row>:nth-child(5),.mini-standings-row>:nth-child(7){display:none}}
 
 /* Locked picks */
 .pred-lock-actions{display:grid;gap:8px;margin-top:12px}
@@ -1797,3 +1797,15 @@ html[data-lowend="2"] :is(.news-featured,.stadium-card,.placement-card){backgrou
 .news-thumb,.news-featured-image,.last-five-crest,.performer-photo{background-color:var(--surface-2)}
 img{image-rendering:auto}
 @media (max-width:359px){.score-badge{font-size:12px}.performer-name{font-size:12px}.card-title{font-size:18px}}
+
+/* Match header: a star beside each club's crest, and its league position next to the crest */
+.match-team-cell{position:relative;min-width:0}
+.match-team-cell>.match-side{width:100%}
+.match-club-star{position:absolute;top:8px;left:-6px;width:36px;height:36px;display:grid;place-items:center;padding:0;color:var(--accent);background:none;border:0}
+.match-club-star.away{left:auto;right:-6px}
+.match-club-star svg{width:20px;height:20px}
+.match-club-star::after{content:"";position:absolute;inset:-4px}
+.match-rank{position:absolute;top:50%;left:calc(100% + 6px);transform:translateY(-50%);font-size:12px;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.away-side .match-rank{left:auto;right:calc(100% + 6px)}
+.match-rank:empty{display:none}
+.performers-foot{display:flex;justify-content:flex-end;padding:8px 2px 0}
