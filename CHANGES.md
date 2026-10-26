@@ -1,3 +1,16 @@
+# Changes in 0.29.1 — font consistency, design and bug fixes
+
+- **Shared images no longer fall back to a serif.** Share cards were drawn in "DM Sans" with no fallback, so on phones where the web font is skipped (1 GB tier, data saver) or hadn't loaded yet, the browser's default font (often a serif) was used. Cards now have a sans-serif fallback stack, and exporting a card loads DM Sans first if the page hasn't.
+- **Boot screen matches the app.** The loading/error screen used Arial and then jumped to the app's font; it now uses the same system stack.
+- **Weight 800 removed.** Only 400-700 of DM Sans are loaded, so 800 looked heavier on Apple devices (real SF 800) than on Android/Windows (clamped to 700). The six uses are now 700 everywhere.
+- **Report an issue and Contact us showed a stray "null".** The support form passed empty slots to the browser's native `append()`, which prints them as text. Empty slots are now dropped first.
+- **Pages no longer scroll when they are short.** `100vh` is taller than the visible screen on phones (address bar, toolbars), so every page could be nudged up and down. Screens now use `100dvh` where supported.
+- **Match header stars match the rest of the app.** The favourite star in the match header is now the same circle as the share button, grey when off and amber when on (as in the match list); the stars beside the crests follow the same colours.
+- **Predictions: matches past the 60th in one request were never asked for.** The app asks the server for picks in batches, and the server answers at most 60, but the app remembered every match it had queued as "no pick". It now asks in chunks of 60.
+- **Predictions: a league table row without a home/away split crashed the "why" figures.** The per-game numbers now cope with missing splits (and have tests).
+- **Leagues can recover from a failed load** with a Try again button, like the Games list.
+- **Spacing and text fixes:** lists directly under a page header (Appearance, Language and others) had no gap above them; a gap before the full stop in "Privacy Policy." on the sign-in screen; the search box placeholder was cut off on phones and now reads "Search football…".
+
 # Changes in 0.29.0 — match header: follow clubs and league positions; club page touches
 
 - **Follow a club from the match header.** A star now sits beside each club's crest (the same favourite the club page uses; tapping it doesn't leave the match).

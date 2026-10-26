@@ -45,6 +45,7 @@ export function LeaguesScreen() {
     else list.forEach((entry) => popular.appendChild(leagueRow(entry)));
   }
 
+  function loadPopular() {
   fillSkeletons(popular, 6);
   Promise.allSettled(POPULAR_LEAGUE_IDS.map((id) => getLeagueById(id))).then((settled) => {
     const found = settled
@@ -53,11 +54,16 @@ export function LeaguesScreen() {
     if (!found.length) {
       const firstError = settled.find((r) => r.status === "rejected")?.reason;
       popular.innerHTML = "";
-      popular.appendChild(text("div", { className: "error-state" }, firstError?.message || "Unable to load football data."));
+      popular.appendChild(h("div", { className: "error-state" }, [
+        text("p", {}, firstError?.message || "Unable to load football data."),
+        h("button", { type: "button", className: "secondary-button", onClick: loadPopular }, "Try again"),
+      ]));
       return;
     }
     renderPopular(found);
   });
+  }
+  loadPopular();
 
   let timer = 0;
   let searchSeq = 0; // ignore responses that arrive after a newer query

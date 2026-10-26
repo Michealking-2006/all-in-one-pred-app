@@ -17,6 +17,15 @@ await test("model: probabilities sum to 1, stronger side favoured, matrix return
   assert.equal(p.matrix.length, 9); assert.equal(p.top5.length, 5);
   assert.ok(Math.abs(p.matrix.flat().reduce((a, b) => a + b, 0) - 1) < 1e-3);
 });
+await test("model: a table row without a home/away split does not crash the drivers", () => {
+  const flat = table.map((r) => ({ team: r.team, form: r.form, home: { played: 0, goals: { for: 0, against: 0 } }, away: undefined }));
+  const p = predictFromTable({ homeId: 1, awayId: 2, rows: flat });
+  assert.ok(p && p.drivers.awayConceding === 0 && Number.isFinite(p.probs.home));
+});
+await test("model: drivers are goals per game to two decimals", () => {
+  const p = predictFromTable({ homeId: 1, awayId: 2, rows: table });
+  assert.equal(p.drivers.homeScoring, 2.5); assert.equal(p.drivers.awayConceding, 2.5);
+});
 await test("model: missing team returns null", () => assert.equal(predictFromTable({ homeId: 1, awayId: 99, rows: table }), null));
 
 await test("metrics: grading, ranks and coverage", () => {

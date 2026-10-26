@@ -18,6 +18,8 @@ const MAX_LAMBDA = 4.5;
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+// Goals per game for display, to two decimals; safe when a table row has no home/away split.
+const perGame = (goals, played) => Math.round((num(goals) / Math.max(1, num(played))) * 100) / 100;
 
 // Standings -> the flat list of team rows (some competitions have groups: use
 // the group that contains both teams).
@@ -160,10 +162,10 @@ export function predictFromTable({ homeId, awayId, rows, form = {} }) {
     basis: { gamesHome: home.homePlayed, gamesAway: away.awayPlayed, leagueAvgHome: Math.round(avg.home * 100) / 100, leagueAvgAway: Math.round(avg.away * 100) / 100, formUsed: !!(form.home?.length || form.away?.length) },
     // Plain-language drivers, for display.
     drivers: {
-      homeScoring: Math.round(((homeRow.home.goals.for) / Math.max(1, homeRow.home.played)) * 100) / 100,
-      awayConceding: Math.round(((awayRow.away.goals.against) / Math.max(1, awayRow.away.played)) * 100) / 100,
-      awayScoring: Math.round(((awayRow.away.goals.for) / Math.max(1, awayRow.away.played)) * 100) / 100,
-      homeConceding: Math.round(((homeRow.home.goals.against) / Math.max(1, homeRow.home.played)) * 100) / 100,
+      homeScoring: perGame(homeRow.home?.goals?.for, homeRow.home?.played),
+      awayConceding: perGame(awayRow.away?.goals?.against, awayRow.away?.played),
+      awayScoring: perGame(awayRow.away?.goals?.for, awayRow.away?.played),
+      homeConceding: perGame(homeRow.home?.goals?.against, homeRow.home?.played),
     },
   };
 }

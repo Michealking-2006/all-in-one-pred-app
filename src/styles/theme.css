@@ -131,6 +131,7 @@ a{color:inherit;text-decoration:none;cursor:pointer}
 h1,h2,h3,p{margin:0}
 svg{flex-shrink:0}
 #root{min-height:100vh}
+@supports (height:1dvh){#root{min-height:100dvh}}
 
 .app-shell{
   position:relative;width:100%;max-width:480px;min-height:100vh;margin:0 auto;
@@ -967,7 +968,7 @@ button.lineup-head:active{background:var(--surface-2);opacity:1}
 .pitch-shirt{position:relative;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
 .pitch-shirt b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .pitch-name{max-width:100%;font-size:10.5px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pitch-badge{position:absolute;display:grid;place-items:center;font-size:9px;font-weight:800;color:#111}
+.pitch-badge{position:absolute;display:grid;place-items:center;font-size:9px;font-weight:700;color:#111}
 .pitch-badge.goal{top:-6px;right:-8px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px #111}
 .pitch-badge.goal:empty{background:radial-gradient(circle,#111 0 30%,#fff 34%)}
 .pitch-badge.yellow,.pitch-badge.red{top:-6px;left:-6px;width:10px;height:14px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.28)}
@@ -1398,10 +1399,10 @@ html[data-fx="bubbles"] .bottom-nav::before,[data-fx-scope="bubbles"] .fx-previe
 
 /* ======================================== Match header: form, cards, countdown */
 .match-logo-wrap{position:relative;display:inline-grid;place-items:center}
-.red-card-badge{position:absolute;top:-4px;right:-9px;width:14px;height:19px;border-radius:3px;background:#ff3b30;box-shadow:0 0 0 2px var(--bg),0 2px 5px rgba(0,0,0,.3);transform:rotate(8deg);display:grid;place-items:center;color:#fff;font-size:10px;font-weight:800;line-height:1;animation:card-in .35s cubic-bezier(.3,1.5,.5,1)}
+.red-card-badge{position:absolute;top:-4px;right:-9px;width:14px;height:19px;border-radius:3px;background:#ff3b30;box-shadow:0 0 0 2px var(--bg),0 2px 5px rgba(0,0,0,.3);transform:rotate(8deg);display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700;line-height:1;animation:card-in .35s cubic-bezier(.3,1.5,.5,1)}
 @keyframes card-in{from{transform:rotate(8deg) scale(.3);opacity:0}to{transform:rotate(8deg) scale(1);opacity:1}}
 .match-form{display:flex;justify-content:center;gap:3px;min-height:18px;margin-top:2px}
-.form-chip{width:18px;height:18px;display:grid;place-items:center;border-radius:6px;font-size:10px;font-weight:800;color:#fff;letter-spacing:0;background:#8e8e93}
+.form-chip{width:18px;height:18px;display:grid;place-items:center;border-radius:6px;font-size:10px;font-weight:700;color:#fff;letter-spacing:0;background:#8e8e93}
 .form-chip.win{background:#2fb457}
 .form-chip.draw{background:#8e8e93}
 .form-chip.loss{background:#e5453b}
@@ -1680,7 +1681,7 @@ a.announce-text{text-decoration:underline;text-underline-offset:2px}
 .news-source{display:inline-flex;align-items:center;gap:6px;max-width:60%;font-weight:600;color:var(--text-dim)}
 .news-featured .news-source{color:#fff}
 .news-source span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.news-source-dot{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);font-size:10px;font-weight:800;flex:0 0 18px}
+.news-source-dot{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);font-size:10px;font-weight:700;flex:0 0 18px}
 .news-featured .news-source-dot{background:rgba(255,255,255,.25);color:#fff}
 .news-more-button{min-width:180px}
 
@@ -1705,7 +1706,7 @@ a.announce-text{text-decoration:underline;text-underline-offset:2px}
 .article-head{display:grid;gap:10px;padding:18px 16px 4px}
 .article-source{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted)}
 .article-source-name{padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);font-weight:700}
-.article-title{margin:0;font-size:26px;line-height:1.15;letter-spacing:-.025em;font-weight:800;text-wrap:balance}
+.article-title{margin:0;font-size:26px;line-height:1.15;letter-spacing:-.025em;font-weight:700;text-wrap:balance}
 .article-summary{padding:8px 16px 0;font-size:18px;line-height:1.55;color:var(--text-dim);text-wrap:pretty}
 .article-actions{display:grid;gap:10px;padding:18px 16px 4px}
 .article-read{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;text-decoration:none;text-align:center}
@@ -1754,7 +1755,7 @@ html[data-lowend="2"] :is(.news-featured,.stadium-card,.placement-card){backgrou
 .performer-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.3)}
 .performer-name{font-size:13px;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .performer-bottom{display:grid;gap:2px;padding:10px 6px 12px}
-.performer-bottom strong{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.performer-bottom strong{font-size:22px;font-weight:700;letter-spacing:-.02em}
 .performer-bottom span{font-size:12px;color:var(--text-muted)}
 .mini-standings{padding:14px 12px 8px}
 .mini-standings-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px 10px}
@@ -1809,3 +1810,19 @@ img{image-rendering:auto}
 .away-side .match-rank{left:auto;right:calc(100% + 6px)}
 .match-rank:empty{display:none}
 .performers-foot{display:flex;justify-content:flex-end;padding:8px 2px 0}
+
+
+/* ---- Audit fixes (0.29.1) ---- */
+/* 100vh is taller than what is visible on phones (browser bars), so every page scrolled a little even when short. */
+@supports (height:1dvh){
+  .app-shell,.screen,.sk-page,.blocking-screen{min-height:100dvh}
+}
+/* Header favourite star: same 36px circle as the share button next to it; grey off, amber on (like the match list). */
+.match-star{width:36px;height:36px;border-radius:50%;background:var(--fill);color:#c7c7cc}
+.match-star.selected{color:var(--warning)}
+.match-club-star{color:#c7c7cc}
+.match-club-star.selected{color:var(--warning)}
+/* Lists that sit straight under a page header need air above them. */
+.page-header+:is(.selection-list,.settings-list,.profile-group,.faq-list,.contact-list,.benefit-list,.info-card){margin-top:16px}
+/* The tap padding on inline legal links left a gap before the full stop. */
+.auth-legal button{margin:0 -3px}

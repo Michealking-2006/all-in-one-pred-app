@@ -54,7 +54,8 @@ export function buildSupportForm({ kind, types = null, typeLabel = "Type", place
   }
 
   button.addEventListener("click", submit);
-  root.append(
+  // Element.append() turns null into the text "null", so drop the empty slots first.
+  root.append(...[
     withRating ? h("section", { className: "card rate-card" }, [text("strong", {}, "How's Scoutwave so far?"), h("div", { className: "rate-stars", role: "group", "aria-label": "Rating" }, stars)]) : null,
     h("section", { className: "form-group" }, [
       type ? h("label", { className: "form-row" }, [text("span", { className: "form-row-label" }, typeLabel), type, h("i", { "data-lucide": "chevron-down", className: "form-row-chevron", "aria-hidden": "true" })]) : null,
@@ -66,6 +67,6 @@ export function buildSupportForm({ kind, types = null, typeLabel = "Type", place
     error,
     text("p", { className: "form-footnote" }, "Your message goes straight to the Scoutwave team. Include your email if you'd like a reply."),
     h("div", { className: "form-actions" }, [button])
-  );
+  ].filter(Boolean));
   return root;
 }

@@ -3,6 +3,25 @@
 // knows how to draw rounded rectangles, fit text, and load images safely.
 
 const FONT = "DM Sans";
+// Generic fallbacks after the web font: without them a canvas whose font failed to load (data saver, 1 GB phone,
+// offline) falls back to the browser's default font, which is usually a serif.
+const FONT_FALLBACK = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const FONT_CSS_URL = "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap";
+
+// fonts.js skips the web font on 1 GB phones / data saver and waits for the page's load event, so on a card exported
+// early (or on those phones) the stylesheet may not exist yet. Add it now, because the person asked for an image.
+function ensureFontStylesheet() {
+  if (document.querySelector('link[href*="fonts.googleapis.com"]')) return Promise.resolve();
+  return new Promise((resolve) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = FONT_CSS_URL;
+    link.onload = () => resolve();
+    link.onerror = () => resolve();
+    document.head.appendChild(link);
+    setTimeout(resolve, 3000); // never hold up sharing for a slow network
+  });
+}
 
 // The app's real font stack leads with the device's native system font (so
 // the UI feels at home on each platform) — but an exported, shared image
@@ -11,6 +30,7 @@ const FONT = "DM Sans";
 export async function ensureFontsReady() {
   const specs = ["400 32px", "500 32px", "600 32px", "700 32px"].map((s) => `${s} "${FONT}"`);
   try {
+    await ensureFontStylesheet();
     await Promise.all(specs.map((spec) => document.fonts.load(spec)));
     await document.fonts.ready;
   } catch {
@@ -20,7 +40,7 @@ export async function ensureFontsReady() {
 }
 
 export function font(weight, size) {
-  return `${weight} ${size}px "${FONT}"`;
+  return `${weight} ${size}px "${FONT}", ${FONT_FALLBACK}`;
 }
 
 export function roundRectPath(ctx, x, y, w, h, radius) {

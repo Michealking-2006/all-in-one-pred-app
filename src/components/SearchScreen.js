@@ -203,7 +203,7 @@ function buildQueryMode({ keys, big, emptyMessage }) {
 }
 
 const QUERY_TABS = [
-  { id: "all", label: "All", placeholder: "Search matches, clubs, leagues, venues, players\u2026", keys: ["today", "teams", "leagues", "venues", "players"], big: false,
+  { id: "all", label: "All", placeholder: "Search football\u2026", keys: ["today", "teams", "leagues", "venues", "players"], big: false,
     emptyMessage: "Search across clubs, leagues, venues, players and today's matches. Type at least 3 characters." },
   { id: "matches", label: "Matches", placeholder: "Search matches by team\u2026", keys: ["today", "upcoming", "recent"], big: true,
     emptyMessage: "Type a team name to find its matches today, upcoming and recent. At least 3 characters." },

@@ -39,15 +39,21 @@ function fromServer(id) {
     queue = batch;
     window.setTimeout(async () => {
       queue = null;
-      const ids = [...batch.ids].slice(0, 60);
-      let data = null;
-      try {
-        const res = await fetch("/api/predictions?fixtures=" + ids.join(","), { headers: { Accept: "application/json", ...(await authHeader()) }, cache: "no-store" });
-        data = res.ok ? await res.json() : null;
-      } catch { data = null; } // offline or no server tracking yet: fall back (see predictFixture)
-      for (const fid of batch.ids) {
-        if (!data) continue; // not cached: try again next time
-        serverCache.set(fid, data.predictions?.[fid] ? { full: data.predictions[fid] } : data.locked?.[fid] ? { locked: data.locked[fid], at: Date.now() } : null);
+      const all = [...batch.ids];
+      const headers = { Accept: "application/json", ...(await authHeader()) };
+      // The server answers at most 60 matches per request, so ask in chunks. (Matches past the first 60 used to be
+      // remembered as "no pick" without ever being asked about.)
+      for (let i = 0; i < all.length; i += 60) {
+        const ids = all.slice(i, i + 60);
+        let data = null;
+        try {
+          const res = await fetch("/api/predictions?fixtures=" + ids.join(","), { headers, cache: "no-store" });
+          data = res.ok ? await res.json() : null;
+        } catch { data = null; } // offline or no server tracking yet: fall back (see predictFixture)
+        for (const fid of ids) {
+          if (!data) continue; // not cached: try again next time
+          serverCache.set(fid, data.predictions?.[fid] ? { full: data.predictions[fid] } : data.locked?.[fid] ? { locked: data.locked[fid], at: Date.now() } : null);
+        }
       }
       batch.waiters.forEach((w) => w());
     }, 25);
