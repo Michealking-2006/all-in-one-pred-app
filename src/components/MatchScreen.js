@@ -336,7 +336,7 @@ function fillPositions(fx, badges) {
   getStandings(league.id, league.season).then((response) => {
     for (const [side, el] of Object.entries(badges)) {
       const rank = rankIn(response, league.id, fx.teams?.[side]?.id);
-      if (rank != null) { el.textContent = `[${rank}]`; el.removeAttribute("aria-hidden"); el.setAttribute("aria-label", `Position ${rank} in ${league.name || "the table"}`); }
+      if (rank != null) { el.textContent = `#${rank}`; el.removeAttribute("aria-hidden"); el.setAttribute("aria-label", `Position ${rank} in ${league.name || "the table"}`); }
     }
   }).catch(() => {});
 }

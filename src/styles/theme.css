@@ -477,6 +477,9 @@ button.info-card{width:calc(100% - 32px);text-align:left}
 .legal-copy h1{font-size:28px;font-weight:700;letter-spacing:-.025em}
 .legal-copy p{color:var(--text-dim);font-size:16px;line-height:1.55}
 .legal-copy .section-kicker{color:var(--accent-text)}
+.legal-copy h2{font-size:19px;line-height:1.25;font-weight:700;letter-spacing:-.015em;margin-top:10px}
+.legal-copy ul{display:grid;gap:8px;margin:0;padding-left:20px;color:var(--text-dim);font-size:16px;line-height:1.5}
+.legal-copy .legal-meta{color:var(--text-muted);font-size:14px}
 
 /* ------------------------------------------- Entity pages (league/club/player) */
 .entity-hero{display:grid;justify-items:center;gap:6px;padding:14px 16px 18px;text-align:center}
@@ -1826,3 +1829,25 @@ img{image-rendering:auto}
 .page-header+:is(.selection-list,.settings-list,.profile-group,.faq-list,.contact-list,.benefit-list,.info-card){margin-top:16px}
 /* The tap padding on inline legal links left a gap before the full stop. */
 .auth-legal button{margin:0 -3px}
+
+/* ---- Audit fixes, round 2 (0.29.2) ---- */
+/* Dark mode: the sign-in fields used the same black as the page, so they had no visible box. */
+:root[data-theme="dark"] .auth-field{background:var(--surface)}
+/* Pitch: the rating chip sat on the first letters of every player name. */
+.pitch-player:has(.rating-pill){gap:8px}
+/* Match header: long scorer names ran off the screen, and on 320 px phones the score collided with the crests. */
+.match-scoreboard{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+.match-scorers{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr)}
+.match-scorers-col .scorer-name{min-width:0}
+.match-scorers-col .scorer-min{flex:0 0 auto}
+@media (max-width:359px){
+  .match-team-logo{width:44px;height:44px}
+  .match-score-big{font-size:34px}
+  .match-side{font-size:14px}
+}
+/* Scorer names wrap inside their own half instead of running under the ball or off the screen. */
+.match-scorers-col,.match-scorers-col li{min-width:0}
+.match-scorers-col .scorer-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+/* League position: a small chip on the crest's lower corner instead of "[1]" squeezed between the crest and the score. */
+.match-rank{top:auto;bottom:-6px;left:auto;right:-12px;transform:none;padding:2px 6px;border-radius:9px;background:var(--surface);box-shadow:0 0 0 1px var(--separator);font-size:11px;line-height:1}
+.away-side .match-rank{right:auto;left:-12px}

@@ -1,3 +1,10 @@
+# Changes in 0.29.2 — more design fixes
+
+- **Dark mode: sign-in and sign-up fields had no visible box.** They used the same black as the page. They now use the card grey.
+- **Lineup pitch: rating chips no longer cover the first letters of player names.**
+- **Match header on small phones (320 px):** the score no longer collides with the crests, and scorer names wrap inside their own half instead of running off the screen.
+- **League position** now shows as a small "#1" chip on the crest's corner instead of "[1]" squeezed between the crest and the score.
+
 # Changes in 0.29.1 — font consistency, design and bug fixes
 
 - **Shared images no longer fall back to a serif.** Share cards were drawn in "DM Sans" with no fallback, so on phones where the web font is skipped (1 GB tier, data saver) or hadn't loaded yet, the browser's default font (often a serif) was used. Cards now have a sans-serif fallback stack, and exporting a card loads DM Sans first if the page hasn't.
