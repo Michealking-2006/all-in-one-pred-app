@@ -5,6 +5,7 @@ import { env, sb } from "./_admin.js";
 import { MODEL_VERSION } from "../src/predictions/model.js";
 import { summarizeGrades, calibration, gradeBenchmark } from "../src/predictions/metrics.js";
 import { q } from "./_query.js";
+import { SHADOW_NAMES } from "./_models.js";
 
 const PAGE = 1000;
 
@@ -78,8 +79,21 @@ export async function adminReport() {
     };
   }
 
+  // The current model against the older versions kept running beside it, on the matches BOTH predicted.
+  const modelCompare = [];
+  for (const other of SHADOW_NAMES) {
+    const theirRows = await gradedRows(other);
+    const theirs = new Map(theirRows.map((r) => [Number(r.fixture_id), r]));
+    const both = rows.filter((r) => theirs.has(Number(r.fixture_id)));
+    modelCompare.push({
+      model: other, n: both.length,
+      current: summarizeGrades(both.map((r) => r.grade)),
+      other: summarizeGrades(both.map((r) => theirs.get(Number(r.fixture_id)).grade)),
+    });
+  }
+
   return {
-    model: MODEL_VERSION, counts: count, headline, calibration: calib, versus,
+    model: MODEL_VERSION, counts: count, headline, calibration: calib, versus, modelCompare,
     publishNeeds: minToPublish(), publishReady: rows.length >= minToPublish(),
     recent: rows.slice(0, 15).map((r) => ({ fixtureId: r.fixture_id, kickoff: r.kickoff, league: r.league_name, home: r.home_name, away: r.away_name, score: `${r.home_goals}-${r.away_goals}`, pick: r.grade?.pick, pickCorrect: r.grade?.pickCorrect, topScoreRank: r.grade?.scoreRank })),
   };

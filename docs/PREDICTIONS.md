@@ -13,16 +13,32 @@ soon" and the VIP tab shows its sample notice. Turn it on for one device to try 
 
 To launch for everyone, set `predictions: true` in `src/features.js` (`FEATURE_DEFAULTS`).
 
-## The model (`src/predictions/model.js`, version `poisson-v1`)
-1. From the league table (home and away goals for/against per team) it computes attack and
-   defence strengths at home and away, blended toward the league average while a team has
-   few games (6 "average" games of prior).
-2. Expected goals = league average x attack x opponent defence (home/away aware).
-   Recent form (last 5) moves expected goals by at most 8%.
-3. A Poisson scoreline grid (0-8 goals each, small Dixon-Coles low-score correction) gives
-   win/draw/loss, over/under 2.5, both teams to score and the likeliest score.
-4. Confidence is "low" with under 4 home/away games of data or a near coin-flip, "high" at
-   55%+ for the favourite.
+## The model (`src/predictions/model.js`, version `poisson-v2`)
+1. **Strengths.** From the league table it computes each team's attack and defence, first from
+   *all* its games and then with a small home/away adjustment (a team's home record alone is
+   too few games to trust). Everything is a ratio around 1 against the league average.
+2. **Shrinkage is measured.** A team's record is pulled toward the league average by an
+   amount estimated from how much teams really differ in this table (method of moments, between
+   8 and 40 "average expected goals" of prior; 14 when the table is too small to tell). The
+   home/away split is pulled toward the team's own overall record (40).
+3. **Expected goals** = league average x attack x opponent defence (home/away aware), then a
+   form nudge: last five results against the team's own season points per game, at most 5% on its
+   own expected goals and 2.5% the other way on its opponent's.
+4. **Scoreline grid.** A Poisson grid (0-8 goals each, small Dixon-Coles low-score correction),
+   with the level scorelines scaled so an *average* match in this league has the league's real
+   draw share (shrunk toward 26% with 30 games of prior). Gives win/draw/loss, over/under 2.5,
+   both teams to score and the likeliest scores.
+5. **Confidence** is "low" with under 5 games of data or a near coin-flip, "high" at 55%+ with
+   at least 8 games.
+
+The constants are sensible, not fitted (there is no history to fit them on yet). The server
+records `poisson-v1` (frozen in `src/predictions/poisson-v1.js`, server-only) on the same matches
+so the two are compared on identical data in Admin > Predictions. Keep a change only if it wins there.
+`api/_models.js` lists what is recorded. To retire the old model, remove it from `SHADOWS`; to
+try a new one, make `poisson-v3` the current model and move v2 into `SHADOWS`.
+
+## ratings-v3 (shadow)
+`src/predictions/ratings.js` fits attack, defence and home advantage from the season's finished matches with time decay and a ridge pull toward average. It is recorded beside v2 (never shown) at the cost of one extra `fixtures` call per competition; `PREDICT_RATINGS=0` turns it off. Promote it by making it the current model in `api/_models.js` only if it beats v2 on log loss over a few hundred shared matches.
 
 Cost in API requests: one cached `standings` call per competition (10 min), plus the team
 form the match header already loads. Nothing extra per prediction.
@@ -58,12 +74,12 @@ A scheduled job now records a prediction for **every** upcoming match, so accura
 
 | Item | Status |
 |---|---|
-| Attack/defence, home/away strength, league scoring baseline, Poisson, Dixon-Coles low-score correction, score matrix, 1X2, O/U 2.5, BTTS, correct score top 1/3/5, confidence class | **Built** (poisson-v1) |
-| Recent form weighting | Built, small (last 5, max 8%) |
+| Attack/defence, home/away strength, league scoring baseline, Poisson, Dixon-Coles low-score correction, score matrix, 1X2, O/U 2.5, BTTS, correct score top 1/3/5, confidence class | **Built** (poisson-v1, improved in poisson-v2) |
+| Recent form weighting | Built, small (last 5 against the team's own season, max 5%) |
 | Odds comparison, value, fractional Kelly | **Built** (admin only) |
-| Calibration *measurement* | **Built**; correcting for it waits for data |
+| Calibration *measurement* | **Built**; correcting for it waits for data. v2 already calibrates the league draw rate from the table |
 | Benchmarks vs market and Forebet | **Built** (Forebet by hand) |
-| Elo, time decay, strength of schedule, opponent-adjusted xG, H2H, injuries, goalkeeper, lineup impact, weather, HT/FT, correct-score ensembles, Monte Carlo, ML ensemble, walk-forward retraining | **Not yet.** They need match history the app doesn't hold today (API-Football's xG is not available for most competitions, and head-to-head and injuries cost one call per match). The tracking job stores today's inputs and results so these can be trained and back-tested; add each as its own small tested change with a new `MODEL_VERSION`, kept only if it beats `poisson-v1` on log loss over the same matches. |
+| Elo, time decay, strength of schedule, opponent-adjusted xG, H2H, injuries, goalkeeper, lineup impact, weather, HT/FT, correct-score ensembles, Monte Carlo, ML ensemble, walk-forward retraining | **Not yet.** They need match history the app doesn't hold today (API-Football's xG is not available for most competitions, and head-to-head and injuries cost one call per match). The tracking job stores today's inputs and results so these can be trained and back-tested; add each as its own small tested change with a new `MODEL_VERSION`, kept only if it beats the current model on log loss over the same matches (both are recorded side by side, see above). |
 
 ## Switching on server-side tracking
 1. Run `supabase/migrations/004_predictions.sql` in the Supabase SQL editor.
@@ -76,7 +92,7 @@ A scheduled job now records a prediction for **every** upcoming match, so accura
 ## Suggested next steps (in order of value)
 1. ~~Server-side tracking~~ (done in 0.20.0). Publish the running accuracy only once it has a meaningful sample.
 2. **Calibrate.** Compare predicted vs actual frequencies (e.g. all "60%" picks should win
-   about 60%) and adjust `PRIOR_GAMES`, `RHO` and the home-advantage implied by the table.
+   about 60%) and adjust the constants at the top of `model.js` (`KAPPA_VENUE`, `FORM_SLOPE`, `RHO`, ...).
 3. **Better inputs.** Opponent-adjusted form, rest days, injuries and suspensions, and
    head to head. Add each as its own small, tested multiplier and keep `MODEL_VERSION`
    bumped so old and new predictions are graded separately.

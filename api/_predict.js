@@ -2,11 +2,14 @@
 // kick-off, grade them afterwards, keep benchmark odds. Used by api/cron.js and
 // the admin dashboard. The leading underscore keeps Vercel from exposing it.
 //
-// The numbers come only from our own statistical model (src/predictions/model.js).
+// The numbers come only from our own statistical model (src/predictions/model.js). Older model
+// versions (api/_models.js) are recorded beside it on the same matches, never shown, only compared.
 // OpenAI, when enabled, only writes a short plain-language note about numbers it
 // is given; it never changes a probability. No third-party prediction service is read.
 import { env, sb, HttpError } from "./_admin.js";
-import { tableFor, predictFromTable, MODEL_VERSION } from "../src/predictions/model.js";
+import { tableFor, MODEL_VERSION } from "../src/predictions/model.js";
+import { ALL_MODELS } from "./_models.js";
+import { matchesFrom } from "../src/predictions/ratings.js";
 import { gradeOne } from "../src/predictions/metrics.js";
 import { recordUsage } from "./_usage.js";
 import { q } from "./_query.js";
@@ -37,7 +40,46 @@ export async function makeBudget() {
   return { calls, spent: 0, quotaLeft: left };
 }
 
+// Slow-moving answers are remembered for a few minutes inside a running function instance, so pressing "Record
+// predictions now" twice (or cron + a manual run) doesn't pay twice. Free: they don't count against the budget.
+// Only a season's table and a season's finished matches qualify; the day's not-started list is always fetched fresh.
+const memo = new Map();
+const memoMs = () => { const v = Number(env("PREDICT_MEMO_SECONDS")); return (Number.isFinite(v) && env("PREDICT_MEMO_SECONDS") !== "" ? v : 600) * 1000; };
+const memoable = (endpoint, params) => endpoint === "standings" || (endpoint === "fixtures" && params.league && params.season);
+
+// Second layer, shared between runs and instances: the api_cache table (migration 009). Optional: if the table
+// isn't there, or Supabase hiccups, the job just fetches. Only a compact copy is kept (what the models read).
+const keepMinutes = () => { const v = Number(env("PREDICT_CACHE_MINUTES")); return env("PREDICT_CACHE_MINUTES") !== "" && Number.isFinite(v) ? v : 180; };
+const compact = (endpoint, data) => (endpoint === "fixtures"
+  ? { response: (data.response || []).map((fx) => ({ fixture: { id: fx.fixture?.id, date: fx.fixture?.date, status: { short: fx.fixture?.status?.short } }, league: { id: fx.league?.id, name: fx.league?.name, season: fx.league?.season }, teams: { home: { id: fx.teams?.home?.id, name: fx.teams?.home?.name }, away: { id: fx.teams?.away?.id, name: fx.teams?.away?.name } }, goals: fx.goals, score: { fulltime: fx.score?.fulltime } })) }
+  : { response: data.response });
+const storedGet = async (key) => {
+  if (keepMinutes() <= 0 || !env("SUPABASE_SERVICE_ROLE_KEY")) return null;
+  try {
+    const rows = await sb(`/rest/v1/api_cache?key=eq.${q.text(key)}&select=data,fetched_at&limit=1`);
+    const r = Array.isArray(rows) ? rows[0] : null;
+    return r && Date.now() - new Date(r.fetched_at).getTime() < keepMinutes() * 60000 ? r.data : null;
+  } catch { return null; }
+};
+const storedPut = async (key, data) => {
+  if (keepMinutes() <= 0 || !env("SUPABASE_SERVICE_ROLE_KEY")) return;
+  try { await sb("/rest/v1/api_cache?on_conflict=key", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: [{ key, data, fetched_at: new Date().toISOString() }] }); } catch { /* optional */ }
+};
+export const clearMemo = () => memo.clear(); // for tests
+
 export async function football(budget, endpoint, params, source = "cron") {
+  const key = memoable(endpoint, params) ? endpoint + "?" + JSON.stringify(Object.entries(params).sort()) : null;
+  if (key && memoMs() > 0) { const hit = memo.get(key); if (hit && Date.now() - hit.at < memoMs()) return hit.data; }
+  if (key) { const saved = await storedGet(key); if (saved) { memo.set(key, { at: Date.now(), data: saved }); return saved; } }
+  const data = await footballFresh(budget, endpoint, params, source);
+  if (key && data) {
+    if (memoMs() > 0) { memo.set(key, { at: Date.now(), data }); if (memo.size > 200) memo.delete(memo.keys().next().value); }
+    await storedPut(key, compact(endpoint, data));
+  }
+  return data;
+}
+
+async function footballFresh(budget, endpoint, params, source) {
   if (budget.spent >= budget.calls) return null; // out of budget: caller carries on with what it has
   budget.spent++;
   const query = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null)).toString();
@@ -151,7 +193,7 @@ async function inBatches(items, size, fn) {
 
 export async function runPredict({ now = Date.now() } = {}) {
   const budget = await makeBudget();
-  const summary = { job: "predict", model: MODEL_VERSION, budget: budget.calls, quotaLeft: budget.quotaLeft, fixtures: 0, predicted: 0, noTable: 0, already: 0, odds: 0, notes: 0, leaguesSkipped: 0, callsUsed: 0 };
+  const summary = { job: "predict", model: MODEL_VERSION, budget: budget.calls, quotaLeft: budget.quotaLeft, fixtures: 0, predicted: 0, shadow: 0, noTable: 0, already: 0, odds: 0, notes: 0, leaguesSkipped: 0, callsUsed: 0 };
   if (budget.calls < 3) { summary.skipped = "not enough football API quota left today"; return summary; }
 
   const wanted = new Set(env("PREDICT_LEAGUES").split(",").map((s) => Number(s.trim())).filter(Boolean));
@@ -171,14 +213,17 @@ export async function runPredict({ now = Date.now() } = {}) {
   summary.fixtures = fixtures.length;
   if (!fixtures.length) { summary.callsUsed = budget.spent; return summary; }
 
-  // Skip what is already recorded for this model version.
+  // Skip what is already recorded, model by model (a fixture may have the old model's row but not the new one's).
   const ids = fixtures.map((f) => f.fixture.id);
-  const have = new Set();
-  for (let i = 0; i < ids.length; i += 150) {
-    const rows = await sb(`/rest/v1/predictions?model=eq.${q.word(MODEL_VERSION)}&fixture_id=in.(${q.ints(ids.slice(i, i + 150))})&select=fixture_id`);
-    for (const r of rows || []) have.add(Number(r.fixture_id));
+  const have = new Map(ALL_MODELS.map((m) => [m.model, new Set()]));
+  for (const { model } of ALL_MODELS) {
+    for (let i = 0; i < ids.length; i += 150) {
+      const rows = await sb(`/rest/v1/predictions?model=eq.${q.word(model)}&fixture_id=in.(${q.ints(ids.slice(i, i + 150))})&select=fixture_id`);
+      for (const r of rows || []) have.get(model).add(Number(r.fixture_id));
+    }
   }
-  const todo = fixtures.filter((f) => !have.has(f.fixture.id));
+  const lacking = (fx) => ALL_MODELS.filter((m) => !have.get(m.model).has(fx.fixture.id));
+  const todo = fixtures.filter((f) => lacking(f).length);
   summary.already = fixtures.length - todo.length;
 
   // Biggest competitions first (most matches per standings call), until the budget runs out.
@@ -197,6 +242,13 @@ export async function runPredict({ now = Date.now() } = {}) {
     const standings = await football(budget, "standings", { league: lg.id, season: lg.season });
     if (!standings) { summary.leaguesSkipped++; continue; }
 
+    // Season results for the ratings model: one more call, only if something still needs it and budget is left.
+    let matches = null;
+    if (env("PREDICT_RATINGS") !== "0" && budget.spent < budget.calls && lg.fixtures.some((fx) => lacking(fx).some((m) => m.needsMatches))) {
+      const done = await football(budget, "fixtures", { league: lg.id, season: lg.season, status: FINISHED });
+      matches = done ? matchesFrom(done.response) : null;
+    }
+
     const oddsByFixture = new Map();
     if (wantOdds) {
       for (const date of [...new Set(lg.fixtures.map((f) => utcDate(new Date(f.fixture.date).getTime())))]) {
@@ -214,21 +266,25 @@ export async function runPredict({ now = Date.now() } = {}) {
       // The standings row carries the last five results ("WDLWW", newest last): free recent form.
       const formOf = (id) => String(table?.find((r) => r.team?.id === id)?.form || "").toUpperCase().replace(/[^WDL]/g, "").split("");
       const form = { home: formOf(homeId), away: formOf(awayId) };
-      const prediction = predictFromTable({ homeId, awayId, rows: table, form });
-      if (!prediction) { summary.noTable++; continue; }
-      const { matrix, exact, ...shown } = prediction;
-      shown.fixtureId = fx.fixture.id;
       const odds = oddsByFixture.get(fx.fixture.id) || null;
-      const row = {
-        fixture_id: fx.fixture.id, model: MODEL_VERSION, made_at: new Date(now).toISOString(), kickoff: new Date(fx.fixture.date).toISOString(),
-        league_id: fx.league.id, league_name: String(fx.league.name || "").slice(0, 80), season: fx.league.season,
-        home_id: homeId, home_name: String(fx.teams.home.name || "").slice(0, 80), away_id: awayId, away_name: String(fx.teams.away.name || "").slice(0, 80),
-        prediction: shown, matrix, probs: exact,
-        inputs: { form: { home: form.home.join(""), away: form.away.join("") }, basis: prediction.basis, drivers: prediction.drivers },
-        analysis: odds ? valueAnalysis(exact, odds) : null,
-      };
-      rows.push(row);
-      if (odds) benchmarks.push({ fixture_id: fx.fixture.id, source: "market", made_at: row.made_at, late: false, probs: marketProbs(odds), odds });
+      for (const { model, predict, needsMatches } of lacking(fx)) {
+        const primary = model === MODEL_VERSION;
+        if (needsMatches && !matches) continue; // no season results this run: try again next run
+        const prediction = predict({ homeId, awayId, rows: table, form, matches, now });
+        if (!prediction) { if (primary) summary.noTable++; continue; }
+        const { matrix, exact, ...shown } = prediction;
+        shown.fixtureId = fx.fixture.id;
+        const row = {
+          fixture_id: fx.fixture.id, model, made_at: new Date(now).toISOString(), kickoff: new Date(fx.fixture.date).toISOString(),
+          league_id: fx.league.id, league_name: String(fx.league.name || "").slice(0, 80), season: fx.league.season,
+          home_id: homeId, home_name: String(fx.teams.home.name || "").slice(0, 80), away_id: awayId, away_name: String(fx.teams.away.name || "").slice(0, 80),
+          prediction: shown, matrix, probs: exact,
+          inputs: { form: { home: form.home.join(""), away: form.away.join("") }, basis: prediction.basis, drivers: prediction.drivers },
+          analysis: primary && odds ? valueAnalysis(exact, odds) : null,
+        };
+        rows.push(row);
+        if (primary && odds) benchmarks.push({ fixture_id: fx.fixture.id, source: "market", made_at: row.made_at, late: false, probs: marketProbs(odds), odds });
+      }
     }
   }
 
@@ -236,7 +292,7 @@ export async function runPredict({ now = Date.now() } = {}) {
   const maxNotes = Math.max(0, Math.floor(num("PREDICT_EXPLAIN_MAX", 0)));
   if (maxNotes && env("OPENAI_API_KEY")) {
     const rank = { high: 0, medium: 1, low: 2 };
-    const chosen = [...rows].sort((a, b) => rank[a.prediction.confidence] - rank[b.prediction.confidence]).slice(0, maxNotes);
+    const chosen = rows.filter((r) => r.model === MODEL_VERSION).sort((a, b) => rank[a.prediction.confidence] - rank[b.prediction.confidence]).slice(0, maxNotes);
     await inBatches(chosen, 5, async (row) => { row.note = await explain(row); if (row.note) summary.notes++; });
   }
 
@@ -247,7 +303,8 @@ export async function runPredict({ now = Date.now() } = {}) {
   if (benchmarks.length) {
     await sb("/rest/v1/prediction_benchmarks?on_conflict=fixture_id,source", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }, body: benchmarks });
   }
-  summary.predicted = rows.length;
+  summary.predicted = rows.filter((r) => r.model === MODEL_VERSION).length;
+  summary.shadow = rows.length - summary.predicted;
   summary.odds = benchmarks.length;
   summary.callsUsed = budget.spent;
   return summary;
@@ -276,7 +333,8 @@ export async function runGrade({ now = Date.now() } = {}) {
     const data = await football(budget, "fixtures", { date, timezone: "UTC", status: FINISHED });
     if (!data) continue; // out of budget or API trouble: try again on the next run
     const finished = new Map((data.response || []).map((fx) => [fx.fixture?.id, fx]));
-    for (const row of rows) {
+    // Each match now has a row per model, so there are more rows to write: ten at a time.
+    await inBatches(rows, 10, async (row) => {
       const fx = finished.get(Number(row.fixture_id));
       const ft = fx?.score?.fulltime;
       const h = ft?.home ?? fx?.goals?.home, a = ft?.away ?? fx?.goals?.away;
@@ -288,7 +346,7 @@ export async function runGrade({ now = Date.now() } = {}) {
         await patch(row, { status: "void", graded_at: new Date(now).toISOString() });
         summary.voided++;
       }
-    }
+    });
   }
   summary.callsUsed = budget.spent;
   return summary;

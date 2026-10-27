@@ -1,3 +1,55 @@
+# Changes in 0.33.1 — one font everywhere (fixes mixed fonts on a return visit)
+
+- **Bug:** the first visit showed the phone's own font, but on a return visit text could appear in a mix of the phone's font and DM Sans. The font stack listed DM Sans, which was downloaded after the page loaded (and skipped on some phones), then served from the browser's cache on later visits, so which font a piece of text got depended on timing and on the device.
+- **Fix:** the app now uses the phone's own font only (San Francisco on iPhone, Roboto on Android) and loads no web font, so every screen looks the same on every visit. This also removes two network requests and the late font swap.
+- Share images still use DM Sans (the card is a picture, so it looks the same on every phone); that font is only fetched when someone exports a card.
+- The service worker cache is bumped (v17) so old cached font files and styles are dropped.
+- Test: `tests/startup.test.mjs` fails if a web font returns to the page or the stack, or if any style sets its own font-family.
+
+# Changes in 0.33.0 — scheduled jobs share fetched data between runs (optional migration)
+
+- **Snapshot cache in Supabase (`api_cache`, migration `009_api_cache.sql`).** The prediction jobs now keep a compact copy of each competition's table and each season's finished matches for 3 hours (`PREDICT_CACHE_MINUTES`, 0 = off). A later run (the next cron, "Record predictions now", a different model) reads it instead of paying the football API again. Only what the models read is stored (about a quarter of the raw size).
+- **Optional.** Without the migration, or if Supabase hiccups, the jobs fetch exactly as before. Run `009_api_cache.sql` in the SQL editor to switch it on (also appended to `all_migrations.sql`).
+- Layers now: memory inside a running function (10 minutes), then the snapshot (3 hours), then the football API. The day's not-started list and grading lookups are never cached.
+- 1 new test.
+
+# Changes in 0.32.0 — fewer football API calls: smarter shared cache
+
+The app already cached in three layers on the phone (memory, tab, long-term for venues and players). The gap was the **shared cache at Vercel's edge**, which serves every visitor at once and used one fixed lifetime per endpoint. It now decides from the answer itself (`ttlFor` in `api/football.js`):
+
+- **Match lists:** anything live stays 30 s. A day where nothing has started waits a quarter of the time to the next kick-off (2 to 10 minutes; 30 s in the last 10 minutes). Matches long over are kept for a day (6 h for team lists), just finished ones 10 minutes. Before, everything not finished was 30 s.
+- **Match details of a finished match** (events, line-ups, stats, players): 30 minutes instead of 30 seconds, when the app says the match ended more than 3 hours ago (`settled=1`, a hint that is never forwarded to the provider and capped at 30 minutes so it can't keep live data).
+- **Tables:** 10 minutes while matches are being played, up to an hour once the table has been quiet for a day, a week for a finished season.
+- **Slow data:** leagues, teams, coaches and trophies 3 days (were 1); head-to-head and rounds 12 hours (were 6).
+- **Rate limit hit:** the edge now answers "limit reached" for a minute instead of every visitor calling the provider again.
+- **Scheduled jobs:** a season's table and finished matches are remembered for 10 minutes inside a running function (`PREDICT_MEMO_SECONDS`, 0 = off), so pressing "Record predictions now" twice doesn't pay twice. They don't count against the call budget.
+- Nothing is cached longer than the data allows, and live answers are unchanged. Not measured on real traffic: watch the edge hit rate in Admin > Usage after deploying.
+- New: `tests/football-cache.test.mjs` (8 tests).
+
+# Changes in 0.31.0 — ratings model `ratings-v3`, recorded beside the others (not shown in the app)
+
+- **Team ratings fitted from match results.** All finished matches this season are used, newest weighted most (half-life about 150 days). Attack, defence and home advantage are fitted together, so scoring against a strong defence counts for more than against a weak one, which a league table can't see. Records with few games are pulled toward average. Scorelines, draw calibration and outputs reuse `poisson-v2`.
+- **Shadow only.** It is recorded before kick-off and graded like the others, and appears in Admin > Predictions as "poisson-v2 vs ratings-v3". The app never shows it; it would only replace v2 after winning that comparison.
+- **Cost: one extra football API call per competition** per run (finished fixtures for the season), only when something still needs it and budget is left (`PREDICT_MAX_CALLS` / `PREDICT_QUOTA_SHARE` still apply). Set `PREDICT_RATINGS=0` to switch it off. With the default 40-call cap, fewer competitions fit per run: raise `PREDICT_MAX_CALLS` if you want the same coverage.
+- Needs about 20 finished matches in the competition and 3 per team, so it skips the first weeks of a season.
+- On synthetic leagues the gain over v2 is small (table and ratings agree when schedules are balanced); real gains would come from uneven schedules and changing form, which only the comparison on real matches can show.
+- New: `src/predictions/ratings.js` (server-only). 2 new tests.
+
+# Changes in 0.30.0 — prediction model upgrade (poisson-v2), with the old model kept running for comparison
+
+- **New model, `poisson-v2`.** Same inputs as before (the league table and the last five results), so it costs **no extra football API requests**. What changed:
+  - **A team's overall record comes first, its home/away split second.** Eight home games say little on their own; sixteen games say more. A lopsided split (say 3.0 goals a game at home, 0.8 away) is now only partly believed.
+  - **How hard records are pulled toward the league average is measured from the table**, not a fixed "6 average games": a league of near-equals is pulled harder than one with a clear top and bottom, and a record with few games behind it is pulled harder still.
+  - **Draws follow the competition.** The chance of a level score for an average match is lined up with the league's real draw share (itself pulled toward 26%).
+  - **Form is judged against the team's own season.** A strong side winning is normal, not "hot form"; only results better or worse than its usual points per game move the numbers (at most 5% on its own expected goals, 2.5% the other way on its opponent's). Before, raw points counted, so good teams were credited twice.
+  - **Confidence needs enough games** (5 for "medium" or better, 8 for "high"), not only a big percentage.
+  - **League scoring averages are blended with typical values for the first ~10 games**, so matchday 1 can't swing the baseline.
+- **`poisson-v1` is frozen and keeps running.** The scheduled job now records both models for every match, before kick-off, from the same table (still one `standings` call per competition). The app shows one pick per match: the **earliest recorded**, so a pick someone has already seen never changes because the model was upgraded; for new matches that is `poisson-v2`.
+- **Admin > Predictions has a new card, "poisson-v2 vs poisson-v1"**, scored on the matches both predicted (log loss, Brier, winner, over/under, both teams score, exact score, top 3/5). Judge by log loss over a few hundred matches.
+- **Grading writes ten rows at a time** instead of one by one, because each match now has two rows.
+- **What this does not do:** the gain is **not yet measured on real matches**. On synthetic leagues with known strengths v2 beat v1 at every stage of a season (a repeatable check is in `tests/predictions.test.mjs`); real football has things a table can't see, so the admin comparison is the verdict. The public accuracy figure (needs 200 graded matches) now counts `poisson-v2` only, so it starts again from zero.
+- Nothing to run in Supabase: the table already keeps one row per match and model (`004_predictions.sql`). New: `api/_models.js` (which models are recorded), `src/predictions/poisson-v1.js` (frozen, server-only: the app doesn't download it). 11 new tests.
+
 # Changes in 0.29.2 — more design fixes
 
 - **Dark mode: sign-in and sign-up fields had no visible box.** They used the same black as the page. They now use the card grey.

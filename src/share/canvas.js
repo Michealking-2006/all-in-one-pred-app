@@ -8,7 +8,7 @@ const FONT = "DM Sans";
 const FONT_FALLBACK = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 const FONT_CSS_URL = "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap";
 
-// fonts.js skips the web font on 1 GB phones / data saver and waits for the page's load event, so on a card exported
+// The app itself uses the phone's own font and loads no web font, so on a card exported
 // early (or on those phones) the stylesheet may not exist yet. Add it now, because the person asked for an image.
 function ensureFontStylesheet() {
   if (document.querySelector('link[href*="fonts.googleapis.com"]')) return Promise.resolve();

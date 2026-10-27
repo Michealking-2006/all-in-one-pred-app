@@ -255,6 +255,8 @@ const FRIENDLY_ERRORS = {
 
 async function requestOnce(endpoint, params) {
   const query = new URLSearchParams({ endpoint, ...params });
+  // Tell the shared cache a match ended long ago (details never change), so one visitor's request serves everyone.
+  if (["fixtures/events", "fixtures/lineups", "fixtures/statistics", "fixtures/players"].includes(endpoint) && finishedIds.has(Number(params.fixture))) query.set("settled", "1");
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 

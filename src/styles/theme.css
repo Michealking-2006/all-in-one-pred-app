@@ -57,7 +57,7 @@
   --shadow-md:0 10px 32px rgba(0,0,0,.10);
 
   /* Type */
-  --font-display:-apple-system,BlinkMacSystemFont,'SF Pro Text','DM Sans',system-ui,'Segoe UI',Roboto,sans-serif;
+  --font-display:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --font-mono:var(--font-display);
 
   --safe-top:env(safe-area-inset-top,0px);

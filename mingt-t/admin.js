@@ -776,6 +776,25 @@ async function viewPredictions(main) {
     ])]);
   };
 
+  // The current model against an older version, on the matches both predicted (same data, same scoring).
+  const modelCard = (current, m) => {
+    if (!m.n) return el("div", { class: "card" }, [el("h2", { text: `${current} vs ${m.model}` }), el("p", { class: "sub", text: `${m.model} is recorded beside ${current} on the same matches. Nothing graded on both yet.` })]);
+    const row = (label, a, b, fmt) => el("tr", {}, [el("td", { text: label }), el("td", { text: fmt(a) }), el("td", { text: fmt(b) })]);
+    return el("div", { class: "card tablewrap" }, [el("h2", { text: `${current} vs ${m.model} · ${m.n} matches both predicted` }), el("table", {}, [
+      el("thead", {}, [el("tr", {}, ["", current, m.model].map((x) => el("th", { text: x })))]),
+      el("tbody", {}, [
+        row("Log loss, lower is better", m.current.logLoss, m.other.logLoss, (x) => dec(x)),
+        row("Brier score, lower is better", m.current.brier, m.other.brier, (x) => dec(x)),
+        row("Winner picked right", m.current.winnerAccuracy, m.other.winnerAccuracy, pc),
+        row("Over/under 2.5 right", m.current.overUnderAccuracy, m.other.overUnderAccuracy, pc),
+        row("Both teams score right", m.current.bttsAccuracy, m.other.bttsAccuracy, pc),
+        row("Exact score", m.current.exactScore, m.other.exactScore, pc),
+        row("Real score in top 3", m.current.top3Score, m.other.top3Score, pc),
+        row("Real score in top 5", m.current.top5Score, m.other.top5Score, pc),
+      ]),
+    ]), el("p", { class: "sub", text: "Judge by log loss over a few hundred matches. A few dozen is mostly luck." })]);
+  };
+
   const box = el("textarea", { id: "forebet-text", rows: "6", placeholder: "2026-10-20,Arsenal,Chelsea,52,25,23,2-1,1-0,2-0,1-1,3-1" });
   const importBtn = el("button", { class: "btn small", type: "button", text: "Save comparison rows" });
   const importOut = el("p", { class: "sub" });
@@ -807,6 +826,7 @@ async function viewPredictions(main) {
         el("p", { class: "sub", text: r.publishReady ? `Enough matches graded (${r.publishNeeds}+). The app can show a real accuracy figure.` : `${h.n || 0} of ${r.publishNeeds} graded matches needed before the app shows an accuracy figure. Until then it only shows the count.` }),
         el("div", { class: "row" }, [predictBtn, gradeBtn]),
       ]),
+      ...(r.modelCompare || []).map((m) => modelCard(r.model, m)),
       versus("the bookmaker market", r.versus?.market),
       versus("Forebet", r.versus?.forebet),
       el("div", { class: "card" }, [

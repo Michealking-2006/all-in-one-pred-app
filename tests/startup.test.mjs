@@ -32,28 +32,18 @@ await test("things that aren't needed for the first screen are not in the startu
     assert.ok(!inStartup(rel), `${rel} loads at startup`);
   for (const rel of ["themeFxData.js", "store.js", "router.js", "components/HomeScreen.js"]) assert.ok(inStartup(rel), `${rel} should be part of startup`);
 });
-await test("the page doesn't wait for a font: no blocking third-party stylesheet, no unused font", () => {
-  const html = read("index.html").replace(/<noscript>[\s\S]*?<\/noscript>/g, "");
+await test("one font everywhere: the phone's own font, no web font loaded or listed in the stack", () => {
+  const html = read("index.html");
   const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)].map((m) => m[0]);
-  assert.ok(sheets.length >= 1 && sheets.every((l) => /href="\/src\/styles\//.test(l)), "only the app's own stylesheets may block rendering: " + sheets.join("\n"));
-  assert.ok(!/Space\+Mono/.test(read("index.html")) && !/Space\+Mono/.test(read("src/boot/fonts.js")), "Space Mono is not used by any style");
-  assert.ok(!/Space Mono/.test(read("src/styles/theme.css")));
-  assert.match(read("index.html"), /<script src="\/src\/boot\/fonts\.js" defer><\/script>/);
-  assert.match(read("index.html"), /<noscript><link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com/); // still works without scripts
-});
-await test("fonts load after the page, and not at all on 1 GB phones or with data saver", () => {
-  const run = (dataset, connection, readyState = "loading") => {
-    const added = []; const listeners = {};
-    const doc = { documentElement: { dataset }, readyState, createElement: () => ({}), head: { appendChild: (l) => added.push(l) } };
-    const win = { addEventListener: (t, fn) => { listeners[t] = fn; } };
-    vm.runInNewContext(read("src/boot/fonts.js"), { document: doc, window: win, navigator: { connection } });
-    return { added, fire: () => listeners.load?.(), waiting: !!listeners.load };
-  };
-  const normal = run({}); assert.equal(normal.added.length, 0, "nothing is added before the page has loaded"); normal.fire();
-  assert.equal(normal.added.length, 1); assert.match(normal.added[0].href, /^https:\/\/fonts\.googleapis\.com\/css2\?family=DM\+Sans[^&]*&display=swap$/); assert.equal(normal.added[0].rel, "stylesheet");
-  assert.equal(run({}, null, "complete").added.length, 1, "already loaded: add straight away");
-  assert.equal(run({ lowend: "1" }).waiting, true, "the lighter tier still gets the font");
-  for (const [d, c] of [[{ lowend: "2" }, null], [{}, { saveData: true }]]) { const r = run(d, c, "complete"); assert.equal(r.added.length, 0); assert.equal(r.waiting, false); }
+  assert.ok(sheets.length >= 1 && sheets.every((l) => /href="\/src\/styles\//.test(l)), "only the app's own stylesheets: " + sheets.join("\n"));
+  assert.ok(!/fonts\.googleapis|fonts\.js/.test(html), "the page loads no web font");
+  const css = read("src/styles/theme.css");
+  const stack = css.match(/--font-display:([^;]+);/)[1];
+  assert.match(stack, /^-apple-system,/); assert.ok(!/DM Sans|Space Mono/.test(stack), "no web font in the stack: " + stack);
+  assert.ok(!/Space Mono/.test(css));
+  const families = [...css.matchAll(/font-family:([^;}]+)/g)].map((m) => m[1].trim()).filter((f) => f !== "var(--font-display)");
+  assert.deepEqual(families, [], "every font-family comes from the one variable: " + families.join(" | "));
+  assert.match(css, /button,input,select,textarea\{font:inherit/); // form controls follow it too
 });
 
 // ---- icons: parse once, copy afterwards

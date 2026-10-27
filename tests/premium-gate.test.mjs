@@ -80,4 +80,16 @@ await test("input is validated: junk ids are dropped, a list is capped", async (
 await test("matches with no stored pick are simply absent (the app then decides, see engine.js)", async () => {
   const r = await get("999", "tok-vip"); assert.deepEqual(r.body.predictions, {}); assert.deepEqual(r.body.locked, {});
 });
+await test("a model upgrade never changes a pick that was already recorded: the earliest row is served, a tie goes to the current model", async () => {
+  enforce = false;
+  const row = (id, model, made_at, pickProb) => ({ ...pred(id, pickProb, "medium"), model, made_at });
+  rows.push(row(104, "poisson-v1", "2026-10-20T06:00:00Z", 50), row(104, "poisson-v2", "2026-10-21T06:00:00Z", 61)); // v1 came first
+  rows.push(row(105, "poisson-v1", "2026-10-21T06:00:00Z", 50), row(105, "poisson-v2", "2026-10-21T06:00:00Z", 61)); // same run
+  rows.push(row(106, "poisson-v2", "2026-10-21T06:00:00Z", 61), row(106, "poisson-v1", "2026-10-21T06:00:00Z", 50)); // same run, other order
+  const r = await get("101,104,105,106");
+  assert.equal(r.body.predictions[104].model, "poisson-v1"); assert.equal(r.body.predictions[104].pickProb, 50);
+  assert.equal(r.body.predictions[105].model, "poisson-v2"); assert.equal(r.body.predictions[106].model, "poisson-v2");
+  assert.equal(r.body.predictions[101].model, "poisson-v2"); // rows without a model name are the current model
+  enforce = true;
+});
 console.log(`\n${passed} tests passed`);
