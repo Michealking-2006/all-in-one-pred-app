@@ -63,7 +63,7 @@ await test("the entry points dispatch to the right handler, hide the routing par
   const run = async (file, query, method = "GET", extra = {}) => { const out = { headers: {} }; const res = { setHeader(k, v) { out.headers[k] = v; }, status(c) { out.code = c; return this; }, json(b) { out.body = b; return this; }, send(b) { out.body = b; return this; }, end() { return this; } }; await (await import(path.join(root, "api", file))).default({ method, query, headers: { host: "x.test" }, ...extra }, res); return out; };
   assert.equal((await run("public.js", { route: "nope" })).code, 404); assert.equal((await run("public.js", {})).code, 404); assert.equal((await run("public.js", { route: "__proto__" })).code, 404); assert.equal((await run("public.js", { route: "constructor" })).code, 404);
   assert.equal((await run("account.js", { route: "nope" })).code, 404); assert.equal((await run("account.js", { route: "toString" })).code, 404);
-  const predictions = await run("public.js", { route: "predictions" }); assert.equal(predictions.code, 400); assert.match(predictions.body.error, /fixtures=/); // reached the handler
+  const predictions = await run("public.js", { route: "predictions" }); assert.equal(predictions.code, 400); assert.equal(predictions.body.error, "Bad request."); // reached the handler
   assert.equal((await run("public.js", { route: "usage" }, "GET")).code, 405); // usage accepts POST only
   assert.equal((await run("public.js", { route: "csp-report" }, "GET")).code, 405);
   assert.equal((await run("seo.js", { doc: "nope" })).code, 404);

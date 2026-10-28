@@ -13,6 +13,7 @@ import { navigate } from "../router.js";
 import { setPageSeo } from "../seo.js";
 import { showToast } from "../toast.js";
 import { showPhotos } from "../perf.js";
+import { safeMessage } from "../utils/errors.js";
 
 const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return ""; } };
 
@@ -94,7 +95,7 @@ export function ArticlePage({ id, onBack }) {
 
   getArticle(id).then((article) => { current = article; render(article, body); }).catch((error) => {
     body.replaceChildren(h("div", { className: "error-state", role: "alert" }, [
-      text("p", {}, error.message || "The story could not be loaded."),
+      text("p", {}, safeMessage(error, "The story could not be loaded.")),
       h("a", { className: "secondary-button", href: "/news" }, "Back to news"),
     ]));
   });

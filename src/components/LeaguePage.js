@@ -15,6 +15,7 @@ import { FixtureCard, groupByDay } from "./FixtureCard.js";
 import { navigate } from "../router.js";
 import { setPageSeo } from "../seo.js";
 import { metaForLeague } from "../seoCore.js";
+import { safeMessage } from "../utils/errors.js";
 
 // Legacy name-slug links ("/premier-league"): resolve to an id, then move to the
 // canonical /league/<id> URL so the page is bookmarkable and unambiguous.
@@ -49,7 +50,7 @@ export function LeaguePage({ id, slug, onBack, isFavorite, onToggleFavorite }) {
       if (!leagueId) return fail("League not found.");
       navigate("/league/" + leagueId, { replace: true });
     })
-    .catch((error) => fail(error?.message || "Unable to load league."));
+    .catch((error) => fail(safeMessage(error, "Unable to load league.")));
   return page;
 }
 
@@ -330,7 +331,7 @@ function roundsView(id, season, rounds, startIndex) {
       })
       .catch((error) => {
         cache.delete(round);
-        if (list.dataset.round === round) list.replaceChildren(errorNode(error?.message));
+        if (list.dataset.round === round) list.replaceChildren(errorNode(safeMessage(error)));
       });
   }
 
@@ -384,7 +385,7 @@ function loadMatches(id, ctx) {
           })
           .catch((error) => {
             cache.delete(which);
-            if (list.dataset.mode === which) list.replaceChildren(errorNode(error?.message));
+            if (list.dataset.mode === which) list.replaceChildren(errorNode(safeMessage(error)));
           });
       }
 
@@ -437,7 +438,7 @@ function loadPlayers(id, ctx) {
         })
         .catch((error) => {
           cache.delete(kind);
-          if (list.dataset.mode === kind) list.replaceChildren(errorNode(error?.message));
+          if (list.dataset.mode === kind) list.replaceChildren(errorNode(safeMessage(error)));
         });
     }
 

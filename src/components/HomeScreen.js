@@ -9,6 +9,7 @@ import { MatchRow } from "./MatchRow.js";
 import { metaLine } from "../utils/ui.js";
 import { SkeletonMatchList } from "./Skeleton.js";
 import { appendInPieces } from "../utils/chunked.js";
+import { safeMessage } from "../utils/errors.js";
 
 function leagueSection(group, props) {
   const { league, items } = group;
@@ -91,7 +92,7 @@ export function HomeScreen(props) {
     content.replaceChildren();
     content.removeAttribute("aria-busy");
     content.appendChild(h("div", { className: "error-state" }, [
-      text("p", {}, error?.message || "Football matches could not be loaded."),
+      text("p", {}, safeMessage(error, "Football matches could not be loaded.")),
       h("button", { type: "button", className: "secondary-button", onClick: load }, "Try again"),
     ]));
   }

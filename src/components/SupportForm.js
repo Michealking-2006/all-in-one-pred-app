@@ -1,6 +1,7 @@
 import { h, text } from "../utils/h.js";
 import { showToast } from "../toast.js";
 import { sendSupportMessage } from "../api/feedback.js";
+import { safeMessage } from "../utils/errors.js";
 
 // One form for the three support screens (report an issue, feedback, contact).
 // Nothing is lost on failure: the message stays in the box with a clear error.
@@ -35,7 +36,7 @@ export function buildSupportForm({ kind, types = null, typeLabel = "Type", place
       });
       finish();
     } catch (err) {
-      showError(err?.message || "Your message couldn't be sent. Please try again.");
+      showError(safeMessage(err, "Your message couldn't be sent. Please try again."));
       showToast("Message not sent", "error");
     } finally {
       button.disabled = false;

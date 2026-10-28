@@ -1,6 +1,7 @@
 import { h, text } from "./h.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { skeletonFor } from "../components/Skeleton.js";
+import { safeMessage } from "./errors.js";
 
 export function createAsyncPage({ title, onBack, fetchData, renderBody, notFoundMessage = "Not found.", action = null }) {
   const container = h("main", { className: "screen async-detail-screen" });
@@ -22,7 +23,7 @@ export function createAsyncPage({ title, onBack, fetchData, renderBody, notFound
   }).catch((err) => {
     body.innerHTML = "";
     body.removeAttribute("aria-busy");
-    body.appendChild(text("div", { className: "async-error-state" }, err.message || "Couldn't load — check your connection."));
+    body.appendChild(text("div", { className: "async-error-state" }, safeMessage(err, "Couldn't load — check your connection.")));
   });
 
   return container;

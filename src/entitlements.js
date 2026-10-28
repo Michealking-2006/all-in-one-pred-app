@@ -8,6 +8,7 @@ import { store, UNLOCK_COST, COIN_THEME_IDS } from "./store.js";
 import { isFeatureOn } from "./features.js";
 import { getAccessToken } from "./api/supabase.js";
 import { REMOTE_EVENT, tipCostOverride } from "./remoteConfig.js";
+import { publicText } from "./utils/errors.js";
 
 const REFRESH_MS = 5 * 60 * 1000;
 export const serverMode = () => isFeatureOn("serverEntitlements") && !!store.getState().authUser;
@@ -27,7 +28,7 @@ async function call(path, { method = "GET", body } = {}) {
       signal: controller.signal,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) { const error = new Error(data.error || "Request failed."); error.status = res.status; error.coins = data.coins; throw error; }
+    if (!res.ok) { const error = new Error(publicText(data.error, "") || "That didn't work. Please try again."); error.status = res.status; error.coins = data.coins; throw error; }
     return data;
   } catch (error) {
     if (error?.name === "AbortError") throw new Error("That took too long. Try again.");

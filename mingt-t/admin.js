@@ -114,7 +114,7 @@ function renderLogin(notice = "", notConfigured = false) {
     el("div", { class: "brand" }, [el("span", { class: "brand-dot" }), "Scoutwave control room"]),
     el("h1", { text: "Sign in" }),
     notConfigured
-      ? el("p", { text: "This area isn't set up yet. Follow docs/ADMIN.md, add the environment variables in Vercel and redeploy." })
+      ? el("p", { text: "Sign-in is unavailable right now." })
       : el("p", { text: "Authorised administrators only. Every action is recorded." }),
     el("div", { class: "field" }, [el("label", { for: "f-email", text: "Email (if one is configured)" }), email]),
     el("div", { class: "field" }, [el("label", { for: "f-pass", text: "Passphrase" }), password]),
@@ -544,7 +544,7 @@ async function viewSecurity(main) {
   main.replaceChildren(
     ...header("Security", "How the admin sign-in is protected, who is signed in, and what has been tried."),
     el("div", { class: "stack" }, [
-      r.protectionsActive && !r.degradedSession ? null : el("div", { class: "card notice bad" }, [el("strong", { text: "Reduced protection" }), el("p", { class: "sub", text: "Run supabase/migrations/006_admin_security.sql in the Supabase SQL editor, then sign in again. Until then lockouts only last as long as the server instance and sessions can't be listed or revoked." })]),
+      r.protectionsActive && !r.degradedSession ? null : el("div", { class: "card notice bad" }, [el("strong", { text: "Reduced protection" }), el("p", { class: "sub", text: "A one-time update is needed for full sign-in protection. Until then lockouts are short-lived and sessions can't be listed or revoked." })]),
       el("div", { class: "card" }, [
         el("h2", { text: "Three layers on sign-in" }),
         item(r.twoFactor, "Required two-factor, every code works once", "A code that was seen can't be replayed. Without ADMIN_TOTP_SECRET nobody can sign in."),
@@ -553,7 +553,7 @@ async function viewSecurity(main) {
       ]),
       el("div", { class: "card" }, [
         el("h2", { text: "Page protection (Content-Security-Policy)" }),
-        el("p", { class: "sub", text: "The app only runs its own scripts, so injected code can't run, and it can only talk to Scoutwave, Supabase and Formspree. Browsers report anything it blocks; a healthy site shows none." }),
+        el("p", { class: "sub", text: "The app only runs its own scripts, so injected code can't run, and it can only talk to the services it needs. Browsers report anything it blocks; a healthy site shows none." }),
         Object.keys(r.csp || {}).length
           ? el("p", { class: "sub", text: "Blocked in the last 14 days: " + Object.entries(r.csp).map(([k, n]) => `${k} ${n}`).join(", ") + ". A sudden jump right after a deploy usually means something legitimate is being blocked; the header is in vercel.json." })
           : el("p", { class: "sub", text: "Nothing blocked in the last 14 days." }),
@@ -587,7 +587,7 @@ const rate = (v) => (v == null ? "–" : (v * 100).toFixed(v < 0.1 ? 2 : 1) + "%
 async function viewPlacements(main) {
   const r = await api("placements_report");
   if (!r.ready) {
-    main.replaceChildren(...header("Placements", "How often each ad or promotion space is seen and tapped."), el("div", { class: "card" }, [el("p", { class: "sub", text: "Run supabase/migrations/007_placement_stats.sql in the Supabase SQL editor to start counting." })]));
+    main.replaceChildren(...header("Placements", "How often each ad or promotion space is seen and tapped."), el("div", { class: "card" }, [el("p", { class: "sub", text: "Counting isn't switched on yet." })]));
     return;
   }
   const stat = (num, lbl) => el("div", { class: "card stat" }, [el("div", { class: "num", text: num }), el("div", { class: "lbl", text: lbl })]);
@@ -727,7 +727,7 @@ async function viewUsage(main) {
       el("div", { class: "card tablewrap" }, [el("h2", { text: "Busiest endpoints, 14 days" }), u.endpoints.length ? el("table", {}, [
         el("thead", {}, [el("tr", {}, ["Endpoint", "Requests"].map((x) => el("th", { text: x })))]),
         el("tbody", {}, u.endpoints.map((e) => el("tr", {}, [el("td", {}, [el("code", { text: e.endpoint })]), el("td", { text: String(e.calls) })]))),
-      ]) : el("div", { class: "empty", text: "Nothing counted yet. Run supabase/migrations/005_usage_and_push.sql, then use the app." })]),
+      ]) : el("div", { class: "empty", text: "Nothing counted yet. Use the app and check back." })]),
     ])
   );
 }

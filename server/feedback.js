@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  if (!supabaseConfigured()) return res.status(503).json({ error: "Inbox is not configured." });
+  if (!supabaseConfigured()) return res.status(503).json({ error: "Messages can't be sent right now. Please try again later." });
   if (!allowed(clientIp(req))) return res.status(429).json({ error: "Too many messages. Try again later." });
 
   const body = typeof req.body === "string" ? safeJson(req.body) : req.body;
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     return res.status(201).json({ ok: true });
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 502;
-    return res.status(status === 503 ? 503 : 502).json({ error: "Could not save the message." });
+    return res.status(status === 503 ? 503 : 502).json({ error: "Your message couldn't be sent. Please try again." });
   }
 }
 

@@ -12,7 +12,7 @@ import { runPush } from "./_push.js";
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   const secret = env("CRON_SECRET");
-  if (secret.length < 16) return res.status(503).json({ error: "Set CRON_SECRET (16+ characters) first." });
+  if (secret.length < 16) { console.error("Scheduled jobs are off: the job secret is missing or too short."); return res.status(401).json({ error: "Unauthorized" }); }
   const header = String(req.headers?.authorization || "");
   if (!safeEqual(header.startsWith("Bearer ") ? header.slice(7) : "", secret)) return res.status(401).json({ error: "Unauthorized" });
   const task = String(req.query?.task || "all");

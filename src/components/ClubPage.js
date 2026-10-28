@@ -17,6 +17,7 @@ import { navigate } from "../router.js";
 import { showPhotos } from "../perf.js";
 import { heroForm, lastFiveCard, topPerformersCard, standingsCard, historyCard } from "./ClubInsights.js";
 import { pickTable } from "../clubStats.js";
+import { safeMessage } from "../utils/errors.js";
 
 // Team statistics need a league + season. `current=true` can list cups first,
 // so prefer the domestic league entry. `rows` keeps every current competition.
@@ -439,7 +440,7 @@ function loadStats(id, contextPromise, ctx) {
         host.replaceChildren(skeletonFor("stats"));
         getTeamStatistics(id, leagueId, season)
           .then((data) => { if (ctx.competition === leagueId) host.replaceChildren(renderTeamStats(data)); })
-          .catch((error) => { if (ctx.competition === leagueId) host.replaceChildren(errorNode(error?.message)); });
+          .catch((error) => { if (ctx.competition === leagueId) host.replaceChildren(errorNode(safeMessage(error))); });
       };
       if (rows.length > 1) {
         root.appendChild(pills(rows.map((r) => ({ id: String(r.league.id), label: r.league.name })), (value) => show(Number(value)), String(preferred.league.id)).node);

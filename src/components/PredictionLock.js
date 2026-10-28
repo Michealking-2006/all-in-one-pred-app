@@ -6,6 +6,7 @@ import { isFeatureOn } from "../features.js";
 import { navigate } from "../router.js";
 import { spendCoins, tipCost } from "../entitlements.js";
 import { showToast } from "../toast.js";
+import { safeMessage } from "../utils/errors.js";
 
 export function predictionLock(fixtureId) {
   const state = store.getState();
@@ -31,7 +32,7 @@ export function predictionLock(fixtureId) {
       if (!affordable) { navigate("/coins"); return; }
       button.disabled = true;
       try { await spendCoins("tip:" + fixtureId); showToast("Pick unlocked", "success"); } // the screen rebuilds with the pick
-      catch (error) { button.disabled = false; showToast(error.message || "Couldn't unlock that pick", "error"); }
+      catch (error) { button.disabled = false; showToast(safeMessage(error, "Couldn't unlock that pick"), "error"); }
     },
   }, [h("i", { "data-lucide": "coins", "aria-hidden": "true" }), text("span", {}, affordable ? `Unlock for ${cost} coins` : "Get coins to unlock")]);
   return h("div", { className: "pred-lock-actions" }, [premium, coins]);

@@ -1,5 +1,6 @@
 import { h, text } from "./h.js";
 import { skeletonBlock, errorNode } from "./tabbedPage.js";
+import { safeMessage } from "./errors.js";
 
 // A titled block used by the entity pages. `body` is where content goes.
 export function sectionShell(title, { action = null, className = "" } = {}) {
@@ -36,7 +37,7 @@ export function asyncSection({ title, load, render, action = null, onError = "hi
     .then(load)
     .then(show)
     .catch((error) => {
-      if (onError === "show") body.replaceChildren(errorNode(error?.message));
+      if (onError === "show") body.replaceChildren(errorNode(safeMessage(error)));
       else {
         console.warn("Section unavailable:", title, error?.message);
         root.hidden = true;

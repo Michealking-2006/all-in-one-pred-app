@@ -1,4 +1,5 @@
 import { userTimezone } from "../utils/fixtures.js";
+import { publicText } from "../utils/errors.js";
 
 const BASE_URL = "/api/football";
 const REQUEST_TIMEOUT_MS = 12000;
@@ -249,8 +250,8 @@ function safe(fn) {
 // ---------------------------------------------------------------------------
 const FRIENDLY_ERRORS = {
   FOOTBALL_API_RATE_LIMIT: "The football data limit has been reached for now. Please try again later.",
-  MISSING_FOOTBALL_API_KEY: "Football data isn't configured yet (missing API key on the server).",
-  FOOTBALL_API_NETWORK_ERROR: "Couldn't reach the football data service. Please try again.",
+  MISSING_FOOTBALL_API_KEY: "Football data is unavailable right now. Please try again shortly.",
+  FOOTBALL_API_NETWORK_ERROR: "Couldn't load football data. Please try again.",
 };
 
 async function requestOnce(endpoint, params) {
@@ -270,8 +271,8 @@ async function requestOnce(endpoint, params) {
     if (!res.ok) {
       const error = new Error(
         FRIENDLY_ERRORS[data?.code] ||
-          (typeof data?.error === "string" && data.error) ||
-          "Football data request failed (" + res.status + ")."
+          publicText(data?.error, "") ||
+          "Football data couldn't be loaded. Please try again."
       );
       error.status = res.status;
       error.code = data?.code;
@@ -279,7 +280,7 @@ async function requestOnce(endpoint, params) {
     }
     // Most endpoints return an array; teams/statistics returns a single object.
     if (data == null || typeof data !== "object") {
-      throw new Error("Football data service returned an invalid response.");
+      throw new Error("Football data couldn't be loaded. Please try again.");
     }
     return data;
   } catch (error) {

@@ -25,6 +25,7 @@ import { metaLine, setStarState, headerActions } from "../utils/ui.js";
 import { openShareSheet } from "./ShareSheet.js";
 import { showToast } from "../toast.js";
 import { navigate } from "../router.js";
+import { safeMessage } from "../utils/errors.js";
 
 const TABS = [
   ["summary", "Summary"],
@@ -86,7 +87,7 @@ export function MatchScreen({ fixtureId, matchTab = "summary", isFavorite, onBac
     })
     .catch((error) => {
       hero.removeAttribute("aria-busy");
-      hero.replaceChildren(text("div", { className: "async-error-state" }, error?.message || "Couldn't load this match."));
+      hero.replaceChildren(text("div", { className: "async-error-state" }, safeMessage(error, "Couldn't load this match.")));
     });
 
   const page = createTabbedPage({

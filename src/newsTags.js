@@ -11,7 +11,7 @@ export const NEWS_TAGS = [
   { id: "championsleague", label: "ChampionsLeague", query: '"champions league"', match: /champions league/i },
   { id: "europaleague", label: "EuropaLeague", query: '"europa league"', match: /europa league/i },
   { id: "worldcup", label: "WorldCup", query: '"world cup"', match: /world cup/i },
-  { id: "transfers", label: "Transfers", query: '"transfer news" | "transfer window" | "transfer target" | "signs for"', match: /transfer|signing|signs for|loan deal/i },
+  { id: "transfers", label: "Transfers", query: '"transfer news" | "transfer window" | "transfer target" | "signs for"', match: /\btransfers?\b|\bsigning\b|\bsigns? for\b|\bloan deal\b/i },
   { id: "arsenal", label: "Arsenal", query: "arsenal", club: true, match: /arsenal/i },
   { id: "chelsea", label: "Chelsea", query: "chelsea", club: true, match: /chelsea/i },
   { id: "liverpool", label: "Liverpool", query: "liverpool", club: true, match: /liverpool/i },

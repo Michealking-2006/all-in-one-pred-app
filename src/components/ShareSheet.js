@@ -3,6 +3,7 @@ import { generateShareImage, canShareFiles, shareImageFile, downloadImageFile } 
 import { showToast } from "../toast.js";
 import { createSheet } from "./Sheet.js";
 import { buildSlug } from "../utils/slug.js";
+import { safeMessage } from "../utils/errors.js";
 
 const TITLES = { match: "Share match", player: "Share player", club: "Share club", venue: "Share venue", league: "Share league" };
 
@@ -99,7 +100,7 @@ export function openShareSheet(type, data, extra) {
     sheet.setBody(loadingBody());
     generateShareImage(type, data, extra)
       .then((blob) => { if (!sheet.closed) readyBody(blob, type, sheet, share); })
-      .catch((error) => { if (!sheet.closed) sheet.setBody(errorBody(error?.message, run)); });
+      .catch((error) => { if (!sheet.closed) sheet.setBody(errorBody(safeMessage(error), run)); });
   }
   run();
 }

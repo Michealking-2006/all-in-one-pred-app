@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
   const ids = [...new Set(String(req.query?.fixtures || "").split(",").map((s) => parseInt(s, 10)).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 60);
-  if (!ids.length) return res.status(400).json({ error: "Pass fixtures=1,2,3" });
+  if (!ids.length) return res.status(400).json({ error: "Bad request." });
   try {
     const enforce = (await readConfig({ fresh: true })).flags.serverEntitlements === true; // fresh: turning the gate on must not wait for a cache
     const mayView = await entitlementCheck(req, enforce);

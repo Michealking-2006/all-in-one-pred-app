@@ -7,6 +7,7 @@ import { predictFixture, serverAccuracy } from "../predictions/engine.js";
 import { accuracySummary, gradeFixtures } from "../predictions/tracker.js";
 import { PredictionRow } from "./PredictionCard.js";
 import { SkeletonRow } from "./Skeleton.js";
+import { safeMessage } from "../utils/errors.js";
 
 const MAX_PICKS = 12;
 
@@ -63,7 +64,7 @@ function modelFeed(isUnlocked) {
       ? items.map(({ fx, prediction }) => PredictionRow(prediction, fx, { locked: prediction.locked === true || !isUnlocked(fx.fixture.id) }))
       : [h("div", { className: "empty-state" }, "No predictable matches left today. Check back tomorrow.")]));
   }).catch((error) => {
-    feed.replaceChildren(h("div", { className: "error-state", role: "alert" }, [text("p", {}, error?.message || "Predictions couldn't be loaded. Try again shortly.")]));
+    feed.replaceChildren(h("div", { className: "error-state", role: "alert" }, [text("p", {}, safeMessage(error, "Predictions couldn't be loaded. Try again shortly."))]));
   });
   return { feed, count };
 }

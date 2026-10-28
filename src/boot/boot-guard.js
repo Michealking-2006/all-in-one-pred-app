@@ -23,7 +23,7 @@
     var section = node("section", "boot-card");
     section.append(
       node("strong", "boot-title", "Scoutwave could not start"),
-      node("span", "boot-note", "Please reload the app. If the problem continues, the loading system has reported a JavaScript error."),
+      node("span", "boot-note", "Please reload the app. If it keeps happening, check your connection and try again in a moment."),
       button
     );
     var main = node("main", "boot-screen");

@@ -3,6 +3,7 @@ import { SkeletonList } from "./Skeleton.js";
 import { searchLeagues, getLeagueById } from "../api/footballApi.js";
 import { buildSlug } from "../utils/slug.js";
 import { navigate } from "../router.js";
+import { safeMessage } from "../utils/errors.js";
 
 const POPULAR_LEAGUE_IDS = [39, 140, 135, 78, 61, 2];
 const MIN_QUERY = 3; // API-Football requires at least 3 characters for league search
@@ -55,7 +56,7 @@ export function LeaguesScreen() {
       const firstError = settled.find((r) => r.status === "rejected")?.reason;
       popular.innerHTML = "";
       popular.appendChild(h("div", { className: "error-state" }, [
-        text("p", {}, firstError?.message || "Unable to load football data."),
+        text("p", {}, safeMessage(firstError, "Unable to load football data.")),
         h("button", { type: "button", className: "secondary-button", onClick: loadPopular }, "Try again"),
       ]));
       return;
@@ -89,7 +90,7 @@ export function LeaguesScreen() {
       }).catch((err) => {
         if (seq !== searchSeq) return;
         results.innerHTML = "";
-        results.appendChild(text("div", { className: "error-state" }, err.message || "Unable to load leagues."));
+        results.appendChild(text("div", { className: "error-state" }, safeMessage(err, "Unable to load leagues.")));
       });
     }, 300);
   });

@@ -61,10 +61,8 @@ export default async function handler(req, res) {
 
   const token = String(process.env.NEWS_ACCESS || "").trim();
   if (!token) {
-    return res.status(500).json({
-      error: "Set NEWS_ACCESS in the Vercel project environment variables.",
-      code: "MISSING_NEWS_ACCESS",
-    });
+    console.error("News is not configured: the provider token is missing.");
+    return res.status(503).json({ error: "News is unavailable right now.", code: "MISSING_NEWS_ACCESS" });
   }
 
   // One story by id (an article opened from a shared link): ask the provider for just that story.
@@ -79,7 +77,7 @@ export default async function handler(req, res) {
       res.setHeader("Cache-Control", "public, s-maxage=21600, stale-while-revalidate=86400");
       return res.status(200).json({ article });
     } catch {
-      return res.status(502).json({ error: "Unable to reach the news service.", code: "NEWS_NETWORK_ERROR" });
+      return res.status(502).json({ error: "News is unavailable right now.", code: "NEWS_NETWORK_ERROR" });
     }
   }
 
@@ -89,7 +87,7 @@ export default async function handler(req, res) {
   const rawTag = Array.isArray(req.query?.tag) ? req.query.tag[0] : req.query?.tag;
   const tag = rawTag ? String(rawTag) : "";
   const tagSearch = tag ? tagQuery(tag) : null;
-  if (tag && !tagSearch) return res.status(400).json({ error: "Unknown news tag.", code: "NEWS_BAD_TAG" });
+  if (tag && !tagSearch) return res.status(400).json({ error: "Bad request.", code: "NEWS_BAD_TAG" });
 
   try {
     let { response, data } = await fetchNews(token, tagSearch || PRIMARY_QUERY, page);
@@ -101,7 +99,7 @@ export default async function handler(req, res) {
       const providerCode = String(data?.error?.code || "");
       const limited = response.status === 402 || response.status === 429 || /limit/i.test(providerCode);
       return res.status(limited ? 429 : 502).json({
-        error: limited ? "The news limit has been reached for now. Please try again later." : "The news service rejected the request.",
+        error: limited ? "News is busy right now. Please try again later." : "News is unavailable right now.",
         code: limited ? "NEWS_RATE_LIMIT" : response.status === 401 ? "NEWS_BAD_TOKEN" : "NEWS_PROVIDER_ERROR",
       });
     }
@@ -119,7 +117,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("News proxy error:", error?.message || error);
-    return res.status(502).json({ error: "Unable to reach the news service.", code: "NEWS_NETWORK_ERROR" });
+    return res.status(502).json({ error: "News is unavailable right now.", code: "NEWS_NETWORK_ERROR" });
   }
 }
 

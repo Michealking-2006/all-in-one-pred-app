@@ -36,11 +36,11 @@ async function footballStatus() {
     const r = data?.response;
     const value = r && !Array.isArray(r)
       ? { configured: true, ok: true, plan: r.subscription?.plan || "", active: r.subscription?.active ?? null, ends: r.subscription?.end || null, used: r.requests?.current ?? null, limit: r.requests?.limit_day ?? null }
-      : { configured: true, ok: false, error: "The football API did not return account details (check the key)." };
+      : { configured: true, ok: false, error: "Football data account details are unavailable." };
     footballStatusCache = { at: Date.now(), value };
     return value;
   } catch {
-    return { configured: true, ok: false, error: "The football API did not respond." };
+    return { configured: true, ok: false, error: "Football data did not respond." };
   }
 }
 
@@ -374,11 +374,13 @@ export default async function handler(req, res) {
     if (host !== String(req.headers.host || "")) return res.status(403).json({ error: "Forbidden" });
   }
   if (!adminConfigured()) {
-    return res.status(503).json({ error: "The admin area is not set up yet. See docs/ADMIN.md.", code: "NOT_CONFIGURED" });
+    console.error("Admin sign-in is off: it is not configured (see docs/ADMIN.md).");
+    return res.status(503).json({ error: "Sign-in is unavailable right now.", code: "NOT_CONFIGURED" });
   }
   // Two-factor is required, never optional: without it nobody can sign in.
   if (!twoFactorConfigured()) {
-    return res.status(503).json({ error: "Two-factor sign-in is required. Run node scripts/admin-setup.mjs, add ADMIN_TOTP_SECRET in Vercel, then redeploy. See docs/ADMIN.md.", code: "NOT_CONFIGURED" });
+    console.error("Admin sign-in is off: two-factor is not configured (see docs/ADMIN.md).");
+    return res.status(503).json({ error: "Sign-in is unavailable right now.", code: "NOT_CONFIGURED" });
   }
 
   const body = typeof req.body === "string" ? (() => { try { return JSON.parse(req.body); } catch { return null; } })() : req.body;

@@ -1,3 +1,4 @@
+import { publicText } from "../utils/errors.js";
 const SUPABASE_URL = "https://fhsteyglvxuanyvgkkxp.supabase.co";
 // Publishable (anon) key: safe to ship in the browser as long as Row Level
 // Security is enabled on every table.
@@ -84,7 +85,7 @@ async function request(path, { method = "GET", body, accessToken } = {}) {
       data?.message ||
       data?.error_description ||
       data?.error ||
-      "Authentication request failed."
+      "Something went wrong. Please try again."
     );
     error.status = response.status;
     error.code = data?.code || data?.error_code;
@@ -280,5 +281,5 @@ export function authErrorMessage(error) {
   if (/password/i.test(message) && /characters|length|weak|8/i.test(message)) return "Choose a stronger password with at least 8 characters.";
   if (/rate limit|too many requests/i.test(message)) return "Too many attempts. Please try again later.";
   if (/failed to fetch|networkerror|load failed/i.test(message)) return "Couldn't reach the server. Check your connection and try again.";
-  return message || "Something went wrong. Please try again.";
+  return publicText(message, "Something went wrong. Please try again."); // never show a raw service message
 }

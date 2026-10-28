@@ -108,30 +108,28 @@ export default async function handler(req, res) {
 
   const apiKey = String(process.env.SCOUTWAVE_FOOTBALL_API_KEY || "").trim();
   if (!apiKey) {
-    return res.status(500).json({
-      error: "Set SCOUTWAVE_FOOTBALL_API_KEY in the Vercel project environment variables.",
-      code: "MISSING_FOOTBALL_API_KEY",
-    });
+    console.error("Football data is not configured: the provider key is missing.");
+    return res.status(503).json({ error: "Football data is unavailable right now.", code: "MISSING_FOOTBALL_API_KEY" });
   }
 
   const rawEndpoint = req.query?.endpoint;
   const endpoint = String(Array.isArray(rawEndpoint) ? rawEndpoint[0] : rawEndpoint || "").replace(/^\/+|\/+$/g, "");
 
   if (!Object.prototype.hasOwnProperty.call(ENDPOINT_TTL, endpoint)) {
-    return res.status(400).json({ error: "Unsupported football endpoint.", code: "INVALID_ENDPOINT" });
+    return res.status(400).json({ error: "Bad request.", code: "INVALID_ENDPOINT" });
   }
 
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(req.query || {})) {
     if (key === "endpoint" || value == null) continue;
     if (!ALLOWED_PARAMS.has(key)) {
-      return res.status(400).json({ error: "Unsupported parameter: " + key, code: "INVALID_PARAMETER" });
+      return res.status(400).json({ error: "Bad request.", code: "INVALID_PARAMETER" });
     }
     if (key === "settled") continue; // read below, never forwarded
     for (const item of Array.isArray(value) ? value : [value]) {
       const str = String(item);
       if (str.length > MAX_PARAM_LENGTH) {
-        return res.status(400).json({ error: "Parameter too long: " + key, code: "INVALID_PARAMETER" });
+        return res.status(400).json({ error: "Bad request.", code: "INVALID_PARAMETER" });
       }
       params.append(key, str);
     }
@@ -159,10 +157,8 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: "Football data request failed (HTTP " + response.status + ").",
-        code: "FOOTBALL_API_HTTP_ERROR",
-      });
+      console.error("Football data provider answered HTTP", response.status);
+      return res.status(response.status).json({ error: "Football data is unavailable right now.", code: "FOOTBALL_API_HTTP_ERROR" });
     }
 
     const ttl = ttlFor(endpoint, Object.fromEntries(params), data?.response, Date.now(), req.query?.settled === "1");
@@ -173,7 +169,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Football API proxy error:", error);
     return res.status(502).json({
-      error: "Unable to reach the football data service.",
+      error: "Football data is unavailable right now.",
       code: "FOOTBALL_API_NETWORK_ERROR",
     });
   }

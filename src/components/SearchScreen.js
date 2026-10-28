@@ -5,6 +5,7 @@ import { searchLeagues, searchTeams, searchVenues, searchPlayers, getFixturesByD
 import { buildSlug } from "../utils/slug.js";
 import { localDateISO, isLive, isFinished, statusLabel } from "../utils/fixtures.js";
 import { navigate } from "../router.js";
+import { safeMessage } from "../utils/errors.js";
 
 const skeletonRow = () => SkeletonRow({ lines: 1 });
 
@@ -93,7 +94,7 @@ function section(container, { label, run, mapResult, renderRow, limit = 5 }) {
         .catch((error) => {
           if (mine !== seq) return false;
           list.replaceChildren(h("div", { className: "search-error", role: "alert" }, [
-            text("p", {}, error?.message || `Couldn't load ${label.toLowerCase()}. Check your connection and try again.`),
+            text("p", {}, safeMessage(error, `Couldn't load ${label.toLowerCase()}. Check your connection and try again.`)),
             h("button", { type: "button", className: "secondary-button", onClick: () => this.load(query) }, "Try again"),
           ]));
           wrap.hidden = false;

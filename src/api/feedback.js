@@ -66,6 +66,5 @@ export async function sendSupportMessage({ kind, message, email = "", name = "",
   }
   const data = await response.json().catch(() => null);
   if (response.status === 429) throw new Error("Too many messages right now. Please try again in a few minutes.");
-  const detail = Array.isArray(data?.errors) ? data.errors.map((e) => e?.message).filter(Boolean).join(" ") : "";
-  throw new Error(detail || "Your message couldn't be sent (error " + response.status + "). Please try again.");
+  throw new Error("Your message couldn't be sent. Please try again."); // what the service said stays out of sight
 }

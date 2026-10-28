@@ -20,6 +20,8 @@ import { initPerf } from "./perf.js";
 import { initPwaMode } from "./pwaMode.js";
 import { initPullToRefresh, setRefreshHandler } from "./pullToRefreshLazy.js";
 import { whenIdle } from "./idle.js";
+import { safeMessage } from "./utils/errors.js";
+import { publicText } from "./utils/errors.js";
 
 // Screens with free-text fields the user might be mid-typing into: a pull
 // gesture there would rebuild the screen (via render()) and silently wipe
@@ -94,7 +96,7 @@ const actions = {
   subscribe: (plan) => {
     if (serverMode()) {
       showToast("Opening secure checkout…", "default", 3000);
-      startCheckout(plan === "1m" ? "premium:1m" : "premium:12m").catch((error) => showToast(error.message || "Couldn't start the checkout", "error"));
+      startCheckout(plan === "1m" ? "premium:1m" : "premium:12m").catch((error) => showToast(safeMessage(error, "Couldn't start the checkout"), "error"));
       return;
     }
     store.setState({ isVip: true });
@@ -104,7 +106,7 @@ const actions = {
   buyCoins: (amount) => {
     if (serverMode()) {
       showToast("Opening secure checkout…", "default", 3000);
-      startCheckout("coins:" + amount).catch((error) => showToast(error.message || "Couldn't start the checkout", "error"));
+      startCheckout("coins:" + amount).catch((error) => showToast(safeMessage(error, "Couldn't start the checkout"), "error"));
       return;
     }
     store.setState((state) => ({ coins: state.coins + amount }));
@@ -114,7 +116,7 @@ const actions = {
     if (serverMode()) {
       spendCoins("tip:" + matchId)
         .then(() => showToast(`Tip unlocked for ${tipCost()} coins`, "success"))
-        .catch((error) => showToast(error.message || "Couldn't unlock that tip", "error"));
+        .catch((error) => showToast(safeMessage(error, "Couldn't unlock that tip"), "error"));
       return;
     }
     store.setState((state) => {
@@ -182,7 +184,7 @@ const actions = {
       // The server checks the balance and charges; the new state comes back and is mirrored.
       spendCoins("theme:" + id)
         .then(() => { store.setState({ fxTheme: id }); showToast(`${theme.name} unlocked and applied`, "success"); })
-        .catch((error) => showToast(error.message || `Couldn't unlock ${theme.name}`, "error"));
+        .catch((error) => showToast(safeMessage(error, `Couldn't unlock ${theme.name}`), "error"));
       return;
     }
     store.setState({ coins: state.coins - price, unlockedThemes: [...state.unlockedThemes, id], fxTheme: id });
@@ -415,7 +417,7 @@ window.addEventListener(REMOTE_EVENT, render); // flags, banner or maintenance c
 
 supabase.auth.onAuthStateChange((event, session) => {
   if (event === "AUTH_ERROR") {
-    showToast(session?.message || "That link is invalid or has expired.", "error", 4500);
+    showToast(publicText(session?.message, "That link is invalid or has expired."), "error", 4500);
     return;
   }
   store.setState({ authUser: session?.user || null });

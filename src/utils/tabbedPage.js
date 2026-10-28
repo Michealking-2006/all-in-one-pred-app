@@ -1,6 +1,7 @@
 import { h, text } from "./h.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { skeletonFor } from "../components/Skeleton.js";
+import { safeMessage, publicText } from "./errors.js";
 
 // Generic loading placeholder. Prefer skeletonFor("table" | "cards" | ...) so the
 // placeholder matches the layout that replaces it.
@@ -9,7 +10,7 @@ export function skeletonBlock(kind = "list") {
 }
 
 export function errorNode(message = "Couldn't load \u2014 check your connection.") {
-  return text("div", { className: "async-error-state" }, message);
+  return text("div", { className: "async-error-state" }, publicText(message, "Couldn't load \u2014 check your connection."));
 }
 
 export function emptyNode(message) {
@@ -58,7 +59,7 @@ export function createTabbedPage({ title, onBack, tabs, defaultTab, hero = null,
         if (activeTab === tab.id) {
           panel.innerHTML = "";
           panel.removeAttribute("aria-busy");
-          panel.appendChild(errorNode(err?.message));
+          panel.appendChild(errorNode(safeMessage(err)));
         }
       });
   }

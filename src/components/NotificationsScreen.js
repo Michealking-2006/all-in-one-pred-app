@@ -2,6 +2,7 @@ import { h, text } from "../utils/h.js";
 import { PageHeader } from "./PageHeader.js";
 import { pushStatus, enablePush, disablePush } from "../push.js";
 import { showToast } from "../toast.js";
+import { safeMessage } from "../utils/errors.js";
 
 const PREFS = [
   ["kickoff","Match kickoff","Get notified when a followed match starts.","bell"],
@@ -52,7 +53,7 @@ function pushCard() {
     button.disabled = true;
     try {
       if (subscribed) await disablePush(); else await enablePush();
-    } catch (error) { showToast(error.message || "Couldn't change alerts", "error"); }
+    } catch (error) { showToast(safeMessage(error, "Couldn't change alerts"), "error"); }
     paint();
   });
   paint();

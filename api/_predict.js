@@ -25,10 +25,10 @@ const utcDate = (ms) => new Date(ms).toISOString().slice(0, 10);
 // ---------------------------------------------------------------------------
 export async function footballStatus() {
   const key = env("SCOUTWAVE_FOOTBALL_API_KEY");
-  if (!key) throw new HttpError(503, "SCOUTWAVE_FOOTBALL_API_KEY is not set.");
+  if (!key) throw new HttpError(503, "Football data is unavailable right now.");
   const res = await fetch(BASE + "/status", { headers: { "x-apisports-key": key }, signal: AbortSignal.timeout(6000) }).catch(() => null); // free: not counted
   const r = (await res?.json().catch(() => null))?.response;
-  if (!r || Array.isArray(r)) throw new HttpError(502, "The football API did not return account details.");
+  if (!r || Array.isArray(r)) throw new HttpError(502, "Football data is unavailable right now.");
   return { used: Number(r.requests?.current) || 0, limit: Number(r.requests?.limit_day) || 0 };
 }
 

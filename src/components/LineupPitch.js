@@ -3,6 +3,7 @@ import { arrangeRows, layoutSide, kitFor, hexOrNull, shortName } from "../utils/
 import { buildSlug } from "../utils/slug.js";
 import { formatRating, ratingTier } from "../utils/ratings.js";
 import { navigate } from "../router.js";
+import { showPhotos } from "../perf.js";
 
 // ---------------------------------------------------------------------------
 // Events -> per-player badges (goals, cards, substituted off / on)
@@ -101,13 +102,26 @@ function subBadge(info, spot, showSub) {
   return node;
 }
 
+// The player's face on the pitch. The lineup feed has no picture, but the provider serves every player's photo at
+// a fixed address by id; a rated player's own photo is used when we have it. Until it loads (or when it can't:
+// no photo, slow phone, offline) the numbered shirt shows exactly as before, so a player is never blank.
+export const playerPhoto = (id) => (Number.isInteger(id) && id > 0 ? "https://media.api-sports.io/football/players/" + id + ".png" : "");
+
 function marker({ player, x, y, span }, kit, gkKit, summary, ratings, showSub) {
   const info = summary.players.get(player.id);
   const rated = ratings?.get(player.id) || null;
   const isKeeper = player.pos === "G";
   const colors = isKeeper ? gkKit : kit;
+  const src = rated?.photo || playerPhoto(player.id);
   const shirt = h("span", { className: "pitch-shirt", style: { background: colors.primary, color: colors.number, boxShadow: "inset 0 0 0 2px " + colors.border } }, [
     text("b", {}, player.number ?? ""),
+    src && showPhotos() ? (() => {
+      const img = h("img", { className: "pitch-photo", src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
+      img.addEventListener("load", () => { if (img.naturalWidth > 1) shirt.classList.add("photo-ok"); else img.remove(); });
+      img.addEventListener("error", () => img.remove());
+      return img;
+    })() : null,
+    text("i", { className: "pitch-num", style: { background: colors.primary, color: colors.number } }, player.number ?? ""),
     info?.goals ? badge("goal", info.goals) : null,
     info?.red ? badge("red") : info?.yellow ? badge("yellow") : null,
     info?.off ? subBadge(info, { x, y }, showSub) : null,

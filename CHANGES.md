@@ -1,3 +1,31 @@
+# Changes in 0.34.1 — touch targets
+
+- **Small buttons were hard to hit.** The header icons (38 points), icon buttons (36), the #tag chips on News (about 34), the hashtag chips inside news cards (about 20) and the red substitution arrow on the lineup pitch (15) were all under the 44-point size Apple recommends. The look is unchanged; each now has an invisible padding that brings the tappable area to about 44.
+- A code audit also checked: timers and listeners are cleaned up when a screen goes away, every CSS variable is defined or has a fallback, keyboard focus outlines exist, and no raw HTML is built from outside text. Nothing else was found by reading the code alone; layout problems that only show on a screen need a screenshot to find.
+
+# Changes in 0.34.0 — lineup photos, and nothing technical shown to the public
+
+- **Lineups show player photos.** On the pitch, each starter is now their face in a ring instead of a coloured shirt icon, with the shirt number as a small chip on the corner (goal, card and substitution badges and the rating pill stay). The photo comes from the provider's fixed player-photo address by player id (a rated player's own photo is used when we have it). Until the photo loads, or if it can't (no photo, slow or low-memory phone with photos off, offline) the numbered shirt shows exactly as before, so nobody is ever blank.
+- **No error or message names the technology or points at setup.** Before, a visitor could be told things like "Set NEWS_ACCESS in the Vercel project environment variables", "The admin area is not set up yet. See docs/ADMIN.md", "Football data request failed (HTTP 502)" or "Unsupported parameter: x". Now:
+  - Every public response says only what a person needs ("News is unavailable right now.", "Bad request.", "Sign-in is unavailable right now."). The real reason is written to the server log (Vercel > Logs) so it can still be found.
+  - New `src/utils/errors.js`: every place that shows a caught error on screen goes through `safeMessage()`, which replaces anything technical (browser errors like "Cannot read properties of undefined", status codes, service or setting names, database wording) with a plain sentence. The real message still goes to the browser console.
+  - Sign-in errors, football data, news, feedback and checkout errors no longer pass raw service text or status numbers through. The start-up failure screen no longer mentions JavaScript.
+  - The admin sign-in page and the admin script no longer mention docs files, Vercel, Supabase or migration file names.
+- **The site no longer hands out its own project files.** `README.md`, `CHANGES.md`, `package.json`, `vercel.json`, `docs/`, `supabase/`, `server/`, `tests/` and `scripts/` sat in the site root and could be downloaded by anyone who guessed the address. They now redirect to the home page. (`src/` still has to be public: it is the app.)
+- Still shown, to a signed-in administrator only: the setup checklist inside the admin dashboard (it comes from the server after login and names the settings you need to fix).
+- Not changed on purpose: the Privacy Policy still names the services that handle personal data (it is a legal requirement to say who processes it), and the Help Centre answer about where match data comes from.
+- Tests: `tests/errors.test.mjs` fails if a server message or screen text names a technology or a setup step, if a caught error is shown without the filter, or if a project file becomes downloadable again.
+
+# Changes in 0.33.2 — news page fixes
+
+- **Coming back from a story lost your place.** After scrolling through several pages and opening a story, going back showed page 1 at the top. The news list now remembers how many pages you had read and where you were (for as long as the pages stay cached, 15 minutes), rebuilds them instantly and scrolls back. Tapping a #tag chip doesn't count as opening a story.
+- **A tag from the address wasn't scrolled into view.** Opening `/news?tag=bayern` highlighted the chip but left it off-screen in the row. The row now centres the active chip itself once the screen is on the page, and no longer risks scrolling the whole page.
+- **Paging could loop.** If the provider repeated stories it had already sent, "Load more" kept fetching page after page (each one a news API request). It now stops at the first page with nothing new, and only one page loads at a time (the scroll trigger, the button and "Try again" could previously overlap).
+- **"Transfers" tag matched the wrong stories** ("design", "assigning" and similar). It now matches whole words only.
+- **Times were rounded up** ("3.6 hours" showed "4 h ago", "1.6 days" showed "2 d ago"). They now count whole minutes, hours and days.
+- **Less storage work:** a story already remembered is no longer written to session storage again on every render.
+- Tests: `tests/news.test.mjs` (times and tags). The scroll and paging behaviour needs a phone to check; I couldn't run a browser here.
+
 # Changes in 0.33.1 — one font everywhere (fixes mixed fonts on a return visit)
 
 - **Bug:** the first visit showed the phone's own font, but on a return visit text could appear in a mix of the phone's font and DM Sans. The font stack listed DM Sans, which was downloaded after the page loaded (and skipped on some phones), then served from the browser's cache on later visits, so which font a piece of text got depended on timing and on the device.

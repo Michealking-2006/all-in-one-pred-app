@@ -5,6 +5,7 @@ import { getFixturesByIds, getTeamById, getPlayerProfile, getVenueById, getLeagu
 import { SkeletonMatchList, SkeletonList } from "./Skeleton.js";
 import { favoriteEntityRow } from "../utils/ui.js";
 import { buildSlug } from "../utils/slug.js";
+import { safeMessage } from "../utils/errors.js";
 
 function emptyCard(message) {
   return h("section", { className: "empty-card card" }, [
@@ -98,7 +99,7 @@ function entitySection(type, ids, onToggleFavorite, onOpenEntity, onEmptied) {
       });
     })
     .catch((error) => {
-      body.replaceChildren(text("div", { className: "async-error-state" }, error?.message || `Couldn't load your favourite ${def.title.toLowerCase()}.`));
+      body.replaceChildren(text("div", { className: "async-error-state" }, safeMessage(error, `Couldn't load your favourite ${def.title.toLowerCase()}.`)));
     });
 
   return section;
@@ -140,7 +141,7 @@ function matchSection(ids, onToggleFavorite, onOpenMatch, onEmptied) {
       });
     })
     .catch((error) => {
-      body.replaceChildren(text("div", { className: "async-error-state" }, error?.message || "Couldn't load your favourite matches."));
+      body.replaceChildren(text("div", { className: "async-error-state" }, safeMessage(error, "Couldn't load your favourite matches.")));
     });
 
   return section;

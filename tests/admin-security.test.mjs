@@ -50,7 +50,7 @@ const creds = (extra = {}) => ({ action: "login", email: "boss@example.com", pas
 await test("layer 1: two-factor is required, never skipped", async () => {
   const secret = process.env.ADMIN_TOTP_SECRET; delete process.env.ADMIN_TOTP_SECRET;
   const r = await call({ ...creds(), code: "" });
-  assert.equal(r.code, 503); assert.equal(r.body.code, "NOT_CONFIGURED"); assert.match(r.body.error, /Two-factor/);
+  assert.equal(r.code, 503); assert.equal(r.body.code, "NOT_CONFIGURED"); assert.doesNotMatch(r.body.error, /two-factor|totp|docs|admin-setup|vercel/i); // nothing about how it is built or how to set it up
   process.env.ADMIN_TOTP_SECRET = secret;
   assert.equal((await call({ ...creds(), code: "" })).code, 401); // no code: refused
   assert.equal((await call({ ...creds(), code: "000000" }, { ip: "9.9.9.1" })).code, 401);

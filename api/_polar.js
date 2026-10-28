@@ -32,7 +32,7 @@ export const polarConfigured = () => !!env("POLAR_ACCESS_TOKEN");
 const apiBase = () => (env("POLAR_SERVER") === "sandbox" ? "https://sandbox-api.polar.sh" : "https://api.polar.sh");
 
 export async function createCheckout({ item, userId, email, successUrl }) {
-  if (!polarConfigured()) throw new HttpError(503, "Payments are not set up yet.");
+  if (!polarConfigured()) throw new HttpError(503, "Payments are unavailable right now.");
   const productId = productIdFor(item);
   if (!productId) throw new HttpError(400, "That item isn't available to buy.");
   let res;
@@ -69,13 +69,13 @@ const TOLERANCE_S = 5 * 60;
 
 export function verifyWebhook(rawBody, headers) {
   const secret = env("POLAR_WEBHOOK_SECRET");
-  if (!secret) throw new HttpError(503, "Webhook secret is not set.");
+  if (!secret) throw new HttpError(503, "Unavailable.");
   const id = String(headers["webhook-id"] || "");
   const timestamp = String(headers["webhook-timestamp"] || "");
   const header = String(headers["webhook-signature"] || "");
-  if (!id || !timestamp || !header) throw new HttpError(400, "Missing webhook headers.");
+  if (!id || !timestamp || !header) throw new HttpError(400, "Bad request.");
   const ts = Number(timestamp);
-  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > TOLERANCE_S) throw new HttpError(400, "Webhook timestamp is too old.");
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > TOLERANCE_S) throw new HttpError(400, "Bad request.");
   const expected = crypto.createHmac("sha256", Buffer.from(secret, "utf8")).update(`${id}.${timestamp}.${rawBody}`).digest();
   const ok = header.split(" ").some((part) => {
     const [version, signature] = part.split(",");
@@ -83,6 +83,6 @@ export function verifyWebhook(rawBody, headers) {
     const given = Buffer.from(signature, "base64");
     return given.length === expected.length && crypto.timingSafeEqual(given, expected);
   });
-  if (!ok) throw new HttpError(401, "Bad webhook signature.");
-  try { return JSON.parse(rawBody); } catch { throw new HttpError(400, "Bad webhook body."); }
+  if (!ok) throw new HttpError(401, "Unauthorized.");
+  try { return JSON.parse(rawBody); } catch { throw new HttpError(400, "Bad request."); }
 }

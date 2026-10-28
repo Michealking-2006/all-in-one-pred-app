@@ -1,3 +1,4 @@
+import { publicText } from "../utils/errors.js";
 // Client for /api/news (the server holds the TheNewsAPI token as NEWS_ACCESS).
 const TTL_MS = 15 * 60_000;
 const cache = new Map();   // page -> { at, data }
@@ -47,8 +48,8 @@ export function getNews(page = 1, tag = "") {
     try {
       const res = await fetch("/api/news?page=" + page + (tag ? "&tag=" + encodeURIComponent(tag) : ""), { headers: { Accept: "application/json" }, signal: controller.signal });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error || "News request failed (" + res.status + ").");
-      if (!data || !Array.isArray(data.articles)) throw new Error("The news service returned an invalid response.");
+      if (!res.ok) throw new Error(publicText(data?.error, "") || "News couldn't be loaded. Please try again.");
+      if (!data || !Array.isArray(data.articles)) throw new Error("News couldn't be loaded. Please try again.");
       const entry = { at: Date.now(), data };
       cache.set(id, entry);
       try { sessionStore()?.setItem(SESSION_KEY + id, JSON.stringify(entry)); } catch { /* storage full or blocked */ }
@@ -69,12 +70,12 @@ export function getNews(page = 1, tag = "") {
 export function timeAgo(iso, now = Date.now()) {
   const t = new Date(iso).getTime();
   if (!Number.isFinite(t)) return "";
-  const mins = Math.max(0, Math.round((now - t) / 60000));
+  const mins = Math.max(0, Math.floor((now - t) / 60000));
   if (mins < 1) return "Just now";
   if (mins < 60) return mins + " min ago";
-  const hours = Math.round(mins / 60);
+  const hours = Math.floor(mins / 60); // whole hours and days, never rounded up ("3.6 h" is "3 h ago")
   if (hours < 24) return hours + " h ago";
-  const days = Math.round(hours / 24);
+  const days = Math.floor(hours / 24);
   if (days < 7) return days + " d ago";
   return new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
@@ -87,7 +88,7 @@ const memoryArticles = new Map();
 
 // Called when a story is shown in a list, so opening it later needs no request at all.
 export function rememberArticle(article) {
-  if (!article?.id) return;
+  if (!article?.id || memoryArticles.has(article.id)) return; // already remembered: skip the storage write
   memoryArticles.set(article.id, article);
   try { sessionStore()?.setItem(ARTICLE_KEY + article.id, JSON.stringify(article)); } catch { /* storage full or blocked */ }
 }

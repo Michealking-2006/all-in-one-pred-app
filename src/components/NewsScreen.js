@@ -6,6 +6,7 @@ import { placement } from "./Placement.js";
 import { showPhotos } from "../perf.js";
 import { NEWS_TAGS, tagById, tagsOf } from "../newsTags.js";
 import { store } from "../store.js";
+import { safeMessage } from "../utils/errors.js";
 
 // Every story opens on our own address (/news/<words>-<id>). That page shows the briefing and sends
 // the reader on to the publisher for the full text. The story is remembered so it opens instantly.
@@ -75,6 +76,11 @@ function itemCard(article, onPickTag) {
   ]);
 }
 
+// Where the reader was, so coming back from a story (or the back button) lands on the same stories at the same
+// place instead of page 1 at the top. Kept for as long as the pages themselves stay cached (15 minutes).
+let resumePoint = null; // { tag, pages, scrollY, at }
+const RESUME_MS = 15 * 60_000;
+
 const readTagFromUrl = () => {
   const id = new URLSearchParams(window.location.search).get("tag") || "";
   return tagById(id) ? id : "";
@@ -96,6 +102,10 @@ export function NewsScreen() {
   let seen = new Set();
   let placed = false; // the "in the list" ad/promotion space is shown once, after the 4th story
   let observer = null;
+  let loading = false; // one page at a time: the scroll trigger, the button and a retry can all ask at once
+  let ended = false;
+  const resume = resumePoint && resumePoint.tag === tag && Date.now() - resumePoint.at < RESUME_MS ? resumePoint : null;
+  resumePoint = null;
 
   const body = h("div", { className: "news-body" });
   const list = h("div", { className: "news-list", hidden: true });
@@ -129,6 +139,10 @@ export function NewsScreen() {
     more,
   ]);
 
+  root.addEventListener("click", (event) => {
+    if (event.target instanceof Element && !event.target.closest(".news-article-tag") && event.target.closest("a.news-featured, a.news-item")) resumePoint = { tag, pages: page, scrollY: window.scrollY, at: Date.now() };
+  }, true);
+
   const skeleton = () => h("div", { className: "news-skeleton" }, [SkeletonRow({ lines: 2 }), SkeletonRow({ lines: 2 }), SkeletonRow({ lines: 2 })]);
 
   function markActive() {
@@ -137,7 +151,11 @@ export function NewsScreen() {
       chip.classList.toggle("active", on);
       chip.setAttribute("aria-selected", String(on));
     });
-    chips.get(tag)?.scrollIntoView?.({ inline: "center", block: "nearest" });
+    // Centre the active chip in the row. Done on the row itself (scrollIntoView can also scroll the whole page, and
+    // does nothing before the screen is attached, which left a tag from the address out of sight).
+    const chip = chips.get(tag);
+    const centre = () => { if (chip && tagRow.clientWidth) tagRow.scrollTo?.({ left: Math.max(0, chip.offsetLeft - (tagRow.clientWidth - chip.offsetWidth) / 2) }); };
+    if (tagRow.isConnected) centre(); else requestAnimationFrame(() => requestAnimationFrame(centre));
   }
 
   function selectTag(id) {
@@ -149,6 +167,9 @@ export function NewsScreen() {
     featuredShown = false;
     placed = false;
     seen = new Set();
+    ended = false;
+    loading = false;
+    observer?.disconnect();
     body.replaceChildren();
     list.replaceChildren();
     list.hidden = true;
@@ -159,19 +180,21 @@ export function NewsScreen() {
 
   function showError(error, retry) {
     return h("div", { className: "error-state", role: "alert" }, [
-      text("p", {}, error?.message || "News could not be loaded."),
+      text("p", {}, safeMessage(error, "News could not be loaded.")),
       h("button", { type: "button", className: "secondary-button", onClick: retry }, "Try again"),
     ]);
   }
 
   function loadPage() {
+    if (loading || ended) return Promise.resolve();
+    loading = true;
     const mine = generation;
     const next = page + 1;
     const first = next === 1;
     if (first) body.replaceChildren(skeleton());
     else more.replaceChildren(skeleton());
 
-    getNews(next, tag).then((data) => {
+    return getNews(next, tag).then((data) => {
       if (mine !== generation) return; // the filter changed while this was loading
       page = next;
       const fresh = data.articles.filter((a) => !seen.has(a.id));
@@ -200,7 +223,9 @@ export function NewsScreen() {
       list.hidden = list.children.length === 0;
 
       // Another page exists if the provider says there are more than we have shown.
-      const hasMore = data.articles.length > 0 && data.found > seen.size;
+      // A page of stories we already showed means the provider is repeating itself: stop, don't keep paging.
+      const hasMore = data.articles.length > 0 && fresh.length > 0 && data.found > seen.size;
+      if (!hasMore) ended = true;
       more.hidden = !hasMore;
       if (hasMore) {
         const button = h("button", { type: "button", className: "secondary-button news-more-button", onClick: loadPage }, "Load more");
@@ -216,10 +241,19 @@ export function NewsScreen() {
       if (mine !== generation) return;
       if (first) body.replaceChildren(showError(error, loadPage));
       else { more.replaceChildren(showError(error, loadPage)); more.hidden = false; }
-    });
+    }).finally(() => { if (mine === generation) loading = false; });
   }
 
   markActive();
-  loadPage();
+  if (resume && resume.pages > 1) {
+    // Coming back: rebuild the pages already read (they are cached, so this is instant), then return to the same place.
+    (async () => {
+      for (let i = 0; i < resume.pages && !ended; i++) { const before = page; await loadPage(); if (page === before) break; } // stop at the first failure
+      const back = () => window.scrollTo(0, resume.scrollY);
+      requestAnimationFrame(() => { back(); requestAnimationFrame(back); });
+    })();
+  } else {
+    loadPage().then(() => { if (resume?.scrollY) requestAnimationFrame(() => window.scrollTo(0, resume.scrollY)); });
+  }
   return root;
 }

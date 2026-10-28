@@ -169,7 +169,10 @@ export class HttpError extends Error {
 }
 
 export async function sb(path, { method = "GET", body, headers = {}, raw = false } = {}) {
-  if (!supabaseConfigured()) throw new HttpError(503, "Storage is not configured (set SUPABASE_SERVICE_ROLE_KEY).");
+  if (!supabaseConfigured()) {
+    console.error("Database access is off: the service key is not set.");
+    throw new HttpError(503, "This isn't available right now.");
+  }
   const key = env("SUPABASE_SERVICE_ROLE_KEY");
   let res;
   try {
