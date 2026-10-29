@@ -24,6 +24,15 @@ Every page has a unique title and description, a canonical link, Open Graph and 
 - **`/llms.txt`** is a plain summary for AI assistants. It is an emerging convention; no search engine has promised to use it, so treat it as a cheap extra.
 - `/api/*` answers carry `X-Robots-Tag: noindex`.
 
+## Livescores and predictions pages (0.35.0)
+These are the two searches that matter most, so each has its own address and a page per day:
+- `/livescores` (today) and `/livescores/2026-10-29`: every match of the day grouped by competition, each a link to its match page, with a one-line summary (how many matches, how many live) and links to the day before and after.
+- `/predictions` (today) and `/predictions/2026-10-29`: the same list with the model's prediction status for each match. By default only how confident the model is is shown (what a free account sees in the app). Set `SEO_SHOW_PICKS=1` in Vercel to also name the likeliest result: the pages become more useful to searchers and search engines, but the pick is what Premium sells, so this is your call.
+- Dates are limited to 30 days back and 14 ahead; anything else is a real 404, so a crawler can't wander into endless empty pages.
+- `/vip` (the in-app name) moves permanently to `/predictions` for search engines. People still use `/vip` in the app.
+- Upcoming match pages are titled "X vs Y Prediction, Kick-off Time & Lineups" and link to their day's pages.
+- The sitemap has a `days` part (last 7 days, next 7 days, both page kinds). Each page costs one football API request per day, cached at the edge (2 minutes today, 15 minutes for coming days, 6 hours for past days).
+
 ## The football API budget
 Club, player, venue, league and match pages each need football API requests. Search engines can ask for thousands of pages, so the total spent on crawlers is capped at `SEO_MAX_CALLS_PER_DAY` (400 by default). Past the cap pages are still served (without the data, cached for a minute), so a crawl can never use up the quota the app needs. Pages are cached at the edge: 6 hours for clubs and players, a day for stadiums, an hour for finished matches and leagues. admin > SEO shows today's use.
 

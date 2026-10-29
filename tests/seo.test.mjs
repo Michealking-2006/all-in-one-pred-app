@@ -174,4 +174,57 @@ await test("structured data helpers skip missing fields instead of printing empt
   assert.equal(jsonLdTeam({}, "u"), null); assert.equal(jsonLdPerson({}, {}), null); assert.equal(jsonLdVenue({}, "u"), null);
   const t = jsonLdTeam({ team: { name: "A" } }, O + "/club/1-a"); assert.ok(!("foundingDate" in t) && !("logo" in t));
 });
+
+// ============================================================ livescores and predictions pages
+const dayStr = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+await test("livescore and prediction addresses: today's, a date within the window; anything else is a real 404", async () => {
+  for (const ok of ["/livescores", "/predictions", `/livescores/${dayStr(0)}`, `/predictions/${dayStr(3)}`, `/livescores/${dayStr(-30)}`, `/predictions/${dayStr(14)}`]) assert.ok(isKnownPath(ok), ok);
+  for (const bad of ["/livescores/yesterday", "/livescores/2026-13-45", `/livescores/${dayStr(15)}`, `/predictions/${dayStr(-31)}`, "/livescores/2026-10-29/extra", "/predictions/1900-01-01"]) assert.ok(!isKnownPath(bad), bad);
+  assert.equal((await renderPage(`/livescores/${dayStr(40)}`, O)).status, 404);
+});
+await test("/livescores: every match is a link, grouped by competition, with a summary, breadcrumbs and a list", async () => {
+  const r = await renderPage("/livescores", O); assert.equal(r.status, 200);
+  assert.match(r.html, /<title>Livescores: Live Football Scores/); assert.match(r.html, /<h1>Football livescores today: /);
+  assert.match(r.html, /href="\/match\/11"/); assert.match(r.html, /href="\/league\/39-premier-league"/); assert.match(r.html, /2 matches in 1 competition/);
+  assert.match(r.html, /<link rel="canonical" href="https:\/\/scoutwave\.example\/livescores">/);
+  const types = ld(r.html).map((d) => d["@type"]); assert.ok(types.includes("BreadcrumbList") && types.includes("ItemList"));
+  assert.deepEqual(auditHtml(r.html, { canonical: O + "/livescores", indexable: true }).issues.filter((i) => i.level === "error"), []);
+  assert.match(r.html, /href="\/predictions"/); // the sister page, for today
+});
+await test("/predictions and dated pages: right title and canonical, links to the day before and after, no pick shown by default", async () => {
+  const tomorrow = dayStr(1), r = await renderPage(`/predictions/${tomorrow}`, O); assert.equal(r.status, 200);
+  assert.match(r.html, /<title>Football Predictions for \d+ [A-Z][a-z]+ \d{4}: Tips &amp; Previews \| Scoutwave<\/title>/);
+  assert.ok(r.html.includes(`<link rel="canonical" href="${O}/predictions/${tomorrow}">`));
+  assert.ok(r.html.includes(`href="/predictions"`) && r.html.includes(`href="/predictions/${dayStr(2)}"`)); // back to today, on to the day after
+  assert.ok(r.html.includes(`href="/livescores/${tomorrow}"`));
+  assert.doesNotMatch(r.html, /Most likely result/);
+  const today = await renderPage("/predictions", O); assert.match(today.html, /<title>Football Predictions Today/);
+});
+await test("/vip is one address for search engines: it moves permanently to /predictions", async () => {
+  const r = await renderPage("/vip", O); assert.equal(r.status, 301); assert.equal(r.headers.Location, O + "/predictions");
+});
+await test("an upcoming match page reads as a prediction page and links to its day", async () => {
+  const day = dayStr(0);
+  const r = await renderPage("/match/12", O); // the fake provider answers /fixtures?id= only for match 1; 12 has no data: still a plain page
+  assert.ok([200, 404].includes(r.status));
+  const meta = (await import("../src/seoCore.js")).metaForFixture({ fixture: { status: { short: "NS" }, date: `${day}T18:30:00Z` }, league: { name: "Premier League" }, teams: { home: { name: "Arsenal" }, away: { name: "Chelsea" } } }, "/match/5");
+  assert.match(meta.title, /Arsenal vs Chelsea Prediction, Kick-off Time/); assert.match(meta.description, /prediction and preview/);
+});
+await test("sitemap: a days part lists the livescore and prediction pages (never today's dated twin); the fixed pages carry the new addresses", async () => {
+  const idx = await run(sitemap); assert.ok(idx.body.includes(`${O}/sitemap-days.xml`));
+  const d = await run(sitemap, { part: "days" }); assert.equal(d.code, 200);
+  assert.ok(d.body.includes(`${O}/livescores/${dayStr(1)}`) && d.body.includes(`${O}/predictions/${dayStr(-3)}`));
+  assert.ok(!d.body.includes(`/livescores/${dayStr(0)}<`) && !d.body.includes(`/predictions/${dayStr(0)}<`));
+  const p = (await run(sitemap, { part: "pages" })).body; assert.ok(p.includes(`${O}/livescores<`) && p.includes(`${O}/predictions<`) && !p.includes("/vip<"));
+  const vercel = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+  assert.ok(vercel.rewrites.some((r) => r.source.startsWith("/sitemap-:part") && r.source.includes("days")));
+});
+await test("the app opens the same addresses: /livescores[/date] is Home, /predictions is the predictions screen", () => {
+  const src = fs.readFileSync(path.join(root, "src/router.js"), "utf8");
+  assert.match(src, /parts\[0\] === "livescores" \|\| parts\[0\] === "predictions"/); assert.match(src, /tab: home \? "home" : "vip"/);
+  assert.match(fs.readFileSync(path.join(root, "index.html"), "utf8"), /href="\/livescores"[\s\S]*href="\/predictions"/);
+});
+await test("SEO_SHOW_PICKS is off unless switched on (the pick is what Premium sells)", () => {
+  assert.match(fs.readFileSync(path.join(root, "api/_seoPages.js"), "utf8"), /env\("SEO_SHOW_PICKS"\) === "1"/);
+});
 console.log(`\n${passed} tests passed`);

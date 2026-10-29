@@ -57,7 +57,7 @@
   --shadow-md:0 10px 32px rgba(0,0,0,.10);
 
   /* Type */
-  --font-display:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --font-display:-apple-system,BlinkMacSystemFont,system-ui,Roboto,'Segoe UI','Helvetica Neue',Arial,sans-serif;
   --font-mono:var(--font-display);
 
   --safe-top:env(safe-area-inset-top,0px);
@@ -111,7 +111,7 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scroll-behavior:auto;overscroll-behavior-y:none}
+html{-webkit-text-size-adjust:100%;-moz-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:auto;overscroll-behavior-y:none}
 html,body{margin:0;min-height:100%;background:#e9e9ef}
 :root[data-theme="dark"] html,:root[data-theme="dark"] body{background:#000}
 body{

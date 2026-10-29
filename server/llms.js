@@ -12,10 +12,10 @@ export default function handler(req, res) {
 ${SITE_NAME} shows live football scores, fixtures, league tables, lineups, match statistics and odds, club and player pages, and football news summaries that link to the original publishers.
 
 ## Main pages
-- [Live scores](${o}/): today's matches from every major competition
+- [Livescores](${o}/livescores): live football scores, today's results and upcoming fixtures
+- [Football predictions](${o}/predictions): match predictions for today and the coming days, graded after every game
 - [Leagues](${o}/leagues): competitions, tables and fixtures
 - [News](${o}/news): headlines with summaries and links to the full stories
-- [Predictions](${o}/vip): model-based match predictions with tracked accuracy
 
 ## Competitions
 ${TOP_LEAGUES.map(([id, name]) => `- [${name}](${o}/league/${slugOf(id, name)})`).join("\n")}

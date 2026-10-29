@@ -1,3 +1,25 @@
+# Changes in 0.36.0 — fewer football API requests, one font on every phone
+
+- **Fonts.** The loading screen used a different font list from the app (it named "SF Pro Text"), so the text changed font the moment the app appeared. Both now use one identical list, with the phone's own system font first (Apple fonts on iPhone, the phone's chosen font on Android, Roboto where a browser can't name it). The Apple-only "SF Pro" names are gone. Android Chrome and Samsung Internet also enlarge some text blocks on their own ("font boosting") so that text in different cards ended up different sizes; that is now switched off with `text-size-adjust`.
+- **Time zone no longer splits the shared cache.** Every request carried the visitor's time zone, so the same match, club or league list was cached and fetched from the provider once per time zone. Only the by-date list (where it decides which matches belong to the local day) keeps it; match, club, venue, league, form and head-to-head requests are now identical for everyone. Every screen reads times with `new Date(...)`, which understands the offset, so nothing displays differently. Biggest effect: popular live matches, which are polled every minute.
+- **Pull-to-refresh forgets live data only** (scores, events, lineups, statistics, odds, tables). It used to wipe everything, so pulling on a player or club page re-spent a dozen requests on players, squads, trophies, leagues and teams that cannot have changed.
+- **Player pages:** before July the app asked for this calendar year's season first and almost always got nothing, then asked again. It now asks for last year's season first in that part of the year (one request instead of two for most players).
+- The startup budget (180 KB) still holds. 4 new tests in `tests/api-usage.test.mjs`. Service worker cache v19.
+- Not changed, worth knowing: the by-date list is still cached per time zone (it has to be); Admin > Usage will show the hit rate improving after deployment.
+
+# Changes in 0.35.0 — SEO for livescores and predictions
+
+- **Pages for the two searches that matter.** `/livescores` and `/predictions`, plus one page per day (`/livescores/2026-10-29`, `/predictions/2026-10-29`, from 30 days back to 14 ahead). Search engines get the full list of matches by competition, each linked to its match page, with a plain summary, previous/next-day links, breadcrumbs and an ItemList. Dates outside the window are a real 404.
+- **Predictions pages show the model's confidence by default, not the pick** (the pick is what Premium sells). `SEO_SHOW_PICKS=1` also names the likeliest result. Read from the stored predictions, so no extra football API requests beyond one fixtures call per day.
+- **Match pages for upcoming games read as prediction pages** (title "X vs Y Prediction, Kick-off Time & Lineups", a prediction section, links to that day's pages).
+- **`/vip` moves permanently to `/predictions` for search engines**, so one address collects the ranking. The app keeps `/vip`.
+- **The app opens the same addresses.** `/livescores[/date]` shows Home on that day; `/predictions` shows the predictions screen. A visitor arriving from a search result lands where the result promised.
+- **Sitemap:** new `sitemap-days.xml`; fixed pages list the new addresses; match sitemap now covers four days (yesterday to day after tomorrow). `llms.txt` and the crawler navigation link to the new pages.
+- **Link previews** use a 1200 x 630 image (`icons/og-image.png`) instead of the square icon, so shares on WhatsApp, X and Telegram show a large card.
+- Startup code stayed under its 180 KB budget: helpers only search engines need live in `seoEntities.js` (not downloaded by the app); `breadcrumbs` moved there too.
+- Service worker cache is now v18. 9 new tests in `tests/seo.test.mjs` (one of them caught a title that was cut off mid-brand).
+- Not done here, needs your Search Console: submit `/sitemap.xml`, and set `SITE_URL` to your https address.
+
 # Changes in 0.34.1 — touch targets
 
 - **Small buttons were hard to hit.** The header icons (38 points), icon buttons (36), the #tag chips on News (about 34), the hashtag chips inside news cards (about 20) and the red substitution arrow on the lineup pitch (15) were all under the 44-point size Apple recommends. The look is unchanged; each now has an invisible padding that brings the tappable area to about 44.

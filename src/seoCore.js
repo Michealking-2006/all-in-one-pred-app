@@ -8,7 +8,6 @@ export const DEFAULT_DESCRIPTION =
 export const KEYWORDS =
   "livescore, live football scores, football live score, soccer scores, football predictions, football data, football fixtures, league tables, match stats, lineups, football odds, Premier League, Champions League";
 
-// Pages that are useful to index, and pages that are not (account / settings).
 export const PAGES = {
   "/": { title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION },
   "/leagues": {
@@ -22,6 +21,14 @@ export const PAGES = {
   "/vip": {
     title: "Football Predictions & VIP Tips | Scoutwave",
     description: "Football predictions and VIP tips with tracked accuracy, odds comparison and match intelligence from Scoutwave.",
+  },
+  "/livescores": {
+    title: "Livescores: Live Football Scores, Results & Fixtures | Scoutwave",
+    description: "Football livescores: every live match, today's results and fixtures from the Premier League, La Liga, Serie A, Champions League and more.",
+  },
+  "/predictions": {
+    title: "Football Predictions Today: Match Previews & Tips | Scoutwave",
+    description: "Football predictions for today's matches from a model graded after every game. Match previews, model confidence and kick-off times.",
   },
   "/search": {
     title: "Search Football Matches, Teams, Leagues & Players | Scoutwave",
@@ -57,6 +64,7 @@ export function metaForPath(pathname) {
   if (PAGES[path]) return { ...PAGES[path], path, kind: path === "/" ? "home" : "page" };
   if (NOINDEX.has("/" + kind) && !slug) return { title: SITE_NAME, description: DEFAULT_DESCRIPTION, path, kind: "private", noindex: true };
 
+  if (/^(livescores|predictions)$/.test(kind) && slug) return { ...PAGES["/" + kind], path, kind: "page" };
   const name = nameFromSlug(slug);
   if (kind === "league" && name) {
     return { path, kind, title: `${name}: Live Scores, Table, Fixtures & Top Scorers | ${SITE_NAME}`, description: `${name} live scores, league table, fixtures, results and top scorers. Football data for ${name} updated through the season.` };
@@ -103,8 +111,8 @@ export function metaForFixture(fx, path) {
     title = `${home} ${hasScore ? `${gh}-${ga}` : "vs"} ${away}: Final Score, Lineups & Stats | ${SITE_NAME}`;
     description = `${home} ${hasScore ? `${gh}-${ga}` : "vs"} ${away} full-time result in the ${league}${when ? ` (${when})` : ""}. Goal scorers, lineups, player ratings and match statistics.`;
   } else {
-    title = `${home} vs ${away}: Kick-off Time, Lineups & Odds | ${SITE_NAME}`;
-    description = `${home} vs ${away} in the ${league}${when ? `, ${when}` : ""}. Live countdown, recent form, lineups, head to head and odds.`;
+    title = `${home} vs ${away} Prediction, Kick-off Time & Lineups | ${SITE_NAME}`;
+    description = `${home} vs ${away} prediction and preview for the ${league}${when ? `, ${when}` : ""}. Kick-off time, form, lineups, head to head and odds.`;
   }
   return { path, kind: "match", title: trim(title, 70), description: trim(description, 300) };
 }
@@ -150,12 +158,5 @@ export function jsonLdFixture(fx, url) {
     competitor: [team(fx.teams?.home), team(fx.teams?.away)],
     ...(fx.league?.name ? { superEvent: { "@type": "SportsEvent", name: fx.league.name } } : {}),
     ...(venue?.name ? { location: { "@type": "Place", name: venue.name, address: venue.city || undefined } } : {}),
-  };
-}
-
-export function breadcrumbs(origin, items) {
-  return {
-    "@context": "https://schema.org", "@type": "BreadcrumbList",
-    itemListElement: items.map(([name, path], i) => ({ "@type": "ListItem", position: i + 1, name, item: origin + path })),
   };
 }

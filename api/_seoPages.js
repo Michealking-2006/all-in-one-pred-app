@@ -5,10 +5,12 @@
 //   { notFound: true }                         a real 404 (the thing does not exist),
 //   { redirect: "/club/42-right-name" }        a 301 to the one correct address,
 //   null                                       "no data right now": the generic page is served and cached briefly.
-import { metaForPath, metaForFixture, metaForLeague, jsonLdSite, jsonLdFixture, breadcrumbs, normalizePath, KEYWORDS, SITE_NAME } from "../src/seoCore.js";
-import { jsonLdTeam, jsonLdPerson, jsonLdVenue, jsonLdItemList, isKnownPath } from "../src/seoEntities.js";
+import { metaForPath, metaForFixture, metaForLeague, jsonLdSite, jsonLdFixture, normalizePath, KEYWORDS, SITE_NAME } from "../src/seoCore.js";
+import { jsonLdTeam, jsonLdPerson, jsonLdVenue, jsonLdItemList, isKnownPath, breadcrumbs, isDaySlug, dayInWindow, prettyDay, shiftDay, metaForDay } from "../src/seoEntities.js";
 import { siteOrigin, esc, footballData, slugOf, currentSeasonYear, TOP_LEAGUES } from "./_site.js";
-import { env } from "./_admin.js";
+import { env, sb, supabaseConfigured } from "./_admin.js";
+import { q } from "./_query.js";
+import { ALL_NAMES } from "./_models.js";
 import { cleanArticle } from "../server/news.js";
 import { parseArticleId, isProviderId } from "../src/newsArticle.js";
 import { SOCIAL_LINKS } from "../src/config.js";
@@ -45,9 +47,114 @@ async function buildHome(origin) {
     body: `<p>Follow live scores, fixtures, league tables, lineups, match statistics and odds from every major competition.</p>` +
       `<h2>Competitions</h2>${list(TOP_LEAGUES.map(([id, name]) => link(`/league/${slugOf(id, name)}`, name)))}` +
       (fixtures.length ? `<h2>Today's matches</h2>${list(fixtures.map(fixtureLine))}` : "") +
-      `<h2>More</h2>${list([link("/leagues", "All leagues"), link("/news", "Football news"), link("/vip", "Football predictions")])}`,
+      `<h2>More</h2>${list([link("/livescores", "Livescores: live football scores"), link("/predictions", "Football predictions today"), link("/leagues", "All leagues"), link("/news", "Football news")])}`,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Livescore and prediction pages: the pages people search for by name ("livescores", "football predictions
+// today"), one per day. One football API request per day (cached at the edge), one database read for predictions.
+// ---------------------------------------------------------------------------
+const LIVE_CODES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "LIVE", "INT"]);
+const NOT_STARTED = new Set(["NS", "TBD"]);
+const leagueRank = new Map(TOP_LEAGUES.map(([id], i) => [id, i]));
+const hhmm = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(11, 16) + " UTC"; };
+const todayUtc = () => new Date().toISOString().slice(0, 10);
+
+function groupByLeague(fixtures) {
+  const groups = new Map();
+  for (const fx of fixtures) {
+    const id = fx.league?.id ?? 0;
+    if (!groups.has(id)) groups.set(id, { id, name: fx.league?.name || "Other competitions", country: fx.league?.country || "", fixtures: [] });
+    groups.get(id).fixtures.push(fx);
+  }
+  const out = [...groups.values()];
+  for (const g of out) g.fixtures.sort((a, b) => (a.fixture?.timestamp || 0) - (b.fixture?.timestamp || 0));
+  return out.sort((a, b) => (leagueRank.get(a.id) ?? 999) - (leagueRank.get(b.id) ?? 999) || a.country.localeCompare(b.country) || a.name.localeCompare(b.name));
+}
+
+// The earliest stored prediction per match: -> Map(fixtureId -> { confidence, pick, pickProb }). Never throws.
+async function storedPredictions(ids) {
+  const out = new Map();
+  const list = [...new Set(ids.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 400);
+  if (!list.length || !supabaseConfigured()) return out;
+  try {
+    const rows = (await sb(`/rest/v1/predictions?model=in.(${q.words(ALL_NAMES)})&fixture_id=in.(${q.ints(list)})&select=fixture_id,made_at,prediction`)) || [];
+    const made = new Map();
+    for (const r of rows) {
+      const id = Number(r.fixture_id), at = +new Date(r.made_at);
+      if (made.has(id) && made.get(id) <= at) continue;
+      made.set(id, at);
+      out.set(id, { confidence: r.prediction?.confidence || null, pick: r.prediction?.pick || null, pickProb: r.prediction?.pickProb ?? null });
+    }
+  } catch { /* predictions are an extra: the page is served without them */ }
+  return out;
+}
+
+// What the public sees of a pick. By default only how confident the model is (what a free account sees in the app);
+// SEO_SHOW_PICKS=1 also names the likeliest result, which is a business choice: it makes the pages more useful to
+// search engines and visitors, and the pick itself is what Premium sells.
+const showPicks = () => env("SEO_SHOW_PICKS") === "1";
+function predictionText(fx, stored) {
+  if (!stored) return "";
+  const home = fx.teams?.home?.name || "Home", away = fx.teams?.away?.name || "Away";
+  const level = stored.confidence ? `Model confidence: ${esc(stored.confidence)}.` : "";
+  if (!showPicks() || !stored.pick) return level;
+  const label = stored.pick === "draw" ? "a draw" : `${esc(stored.pick === "home" ? home : away)} to win`;
+  return `Most likely result: ${label}${stored.pickProb != null ? ` (${esc(Math.round(stored.pickProb))}%)` : ""}. ${level}`.trim();
+}
+
+async function buildDay(kind, day, path, origin, requestedPlain) {
+  const rows = await footballData("fixtures", { date: day });
+  if (rows === null) return null;
+  const fixtures = rows.filter((fx) => fx?.fixture?.id).slice(0, 400);
+  const nice = prettyDay(day);
+  const groups = groupByLeague(fixtures);
+  const live = fixtures.filter((fx) => LIVE_CODES.has(fx.fixture?.status?.short)).length;
+  const done = fixtures.filter((fx) => FINISHED.has(fx.fixture?.status?.short)).length;
+  const upcoming = fixtures.filter((fx) => NOT_STARTED.has(fx.fixture?.status?.short)).length;
+  const predictions = kind === "predictions" ? await storedPredictions(fixtures.map((fx) => fx.fixture.id)) : new Map();
+  const sister = kind === "livescores" ? "predictions" : "livescores";
+  const base = `/${kind}`, sisterBase = `/${sister}`;
+  const dayPath = (d) => (d === todayUtc() ? base : `${base}/${d}`);
+  const navLinks = [-1, 1].map((n) => shiftDay(day, n)).filter((d) => dayInWindow(d)).map((d) => link(dayPath(d), `${kind === "livescores" ? "Livescores" : "Predictions"} ${n_label(d, day)}`));
+  const sisterPath = day === todayUtc() ? sisterBase : `${sisterBase}/${day}`;
+
+  const summary = fixtures.length
+    ? `${nice}: ${fixtures.length} ${fixtures.length === 1 ? "match" : "matches"} in ${groups.length} ${groups.length === 1 ? "competition" : "competitions"}` +
+      `${live ? `, ${live} live now` : ""}${done ? `, ${done} finished` : ""}${upcoming ? `, ${upcoming} still to play` : ""}.`
+    : `No matches are listed for ${nice}.`;
+  const intro = kind === "livescores"
+    ? `<p>${esc(summary)} Follow every score as it happens, with goals, lineups, player ratings and match statistics a tap away.</p>`
+    : `<p>${esc(summary)} Each match has a statistical prediction made before kick-off and graded afterwards, so the record is open to check. Predictions are estimates, not betting advice.</p>`;
+
+  const sections = groups.map((g) => {
+    const items = g.fixtures.map((fx) => {
+      const status = fx.fixture?.status?.short;
+      const homeName = fx.teams?.home?.name || "Home", awayName = fx.teams?.away?.name || "Away";
+      const score = fx.goals?.home != null && fx.goals?.away != null ? ` ${fx.goals.home}-${fx.goals.away} ` : " vs ";
+      const when = NOT_STARTED.has(status) ? `kick-off ${hhmm(fx.fixture.date)}` : LIVE_CODES.has(status) ? `live${fx.fixture?.status?.elapsed ? ` ${esc(fx.fixture.status.elapsed)}'` : ""}` : esc(fx.fixture?.status?.long || status || "");
+      const extra = kind === "predictions" ? predictionText(fx, predictions.get(Number(fx.fixture.id))) : "";
+      return `${link(`/match/${fx.fixture.id}`, `${homeName}${score}${awayName}`)}${kind === "predictions" && NOT_STARTED.has(status) ? " prediction" : ""} (${when})${extra ? ` ${extra}` : ""}`;
+    });
+    const heading = `${g.id ? link(`/league/${slugOf(g.id, g.name)}`, g.name) : esc(g.name)}${g.country && g.country !== "World" ? ` (${esc(g.country)})` : ""}`;
+    return `<h2>${heading}</h2>${list(items)}`;
+  }).join("");
+
+  const title = kind === "livescores" ? `Football livescores${day === todayUtc() ? " today" : ""}: ${nice}` : `Football predictions${day === todayUtc() ? " today" : ""}: ${nice}`;
+  const itemList = fixtures.slice(0, 50).map((fx) => ({ name: `${fx.teams?.home?.name || "Home"} vs ${fx.teams?.away?.name || "Away"}`, url: `${origin}/match/${fx.fixture.id}` }));
+  const label = kind === "livescores" ? "Livescores" : "Predictions";
+  const date = isDaySlug(requestedPlain) ? requestedPlain : null;
+  return {
+    meta: date ? metaForDay(kind, date, path) : metaForPath(base),
+    heading: title,
+    cache: day === todayUtc() ? 120 : day < todayUtc() ? 21600 : 900,
+    jsonLd: [breadcrumbs(origin, [["Home", "/"], [label, base], ...(date ? [[nice, path]] : [])]), itemList.length ? jsonLdItemList(`${label} ${nice}`, itemList) : null],
+    body: intro + sections +
+      `<h2>More</h2>${list([...navLinks, link(sisterPath, `${sister === "predictions" ? "Football predictions" : "Livescores"} for ${day === todayUtc() ? "today" : nice}`), link("/leagues", "All leagues"), link("/news", "Football news")])}`,
+  };
+}
+function n_label(d, from) { return d > from ? "tomorrow's page: " + prettyDay(d) : "the day before: " + prettyDay(d); }
 
 async function buildMatch(id, path, origin) {
   const rows = await footballData("fixtures", { id });
@@ -58,6 +165,10 @@ async function buildMatch(id, path, origin) {
   const home = fx.teams?.home, away = fx.teams?.away;
   const goals = (fx.events || []).filter((e) => String(e.type).toLowerCase() === "goal" && !/missed/i.test(e.detail || ""));
   const live = !FINISHED.has(fx.fixture?.status?.short) && fx.fixture?.status?.short !== "NS" && fx.fixture?.status?.short !== "TBD";
+  const upcoming = NOT_STARTED.has(fx.fixture?.status?.short);
+  const matchDay = fx.fixture?.date ? new Date(fx.fixture.date).toISOString().slice(0, 10) : "";
+  const stored = upcoming ? (await storedPredictions([id])).get(Number(id)) : null;
+  const dayLinks = matchDay && dayInWindow(matchDay) ? [link(`/predictions/${matchDay}`, `Football predictions for ${prettyDay(matchDay)}`), link(`/livescores/${matchDay}`, `Livescores for ${prettyDay(matchDay)}`)] : [link("/predictions", "Football predictions"), link("/livescores", "Livescores")];
   return {
     meta, cache: live ? 60 : FINISHED.has(fx.fixture?.status?.short) ? 3600 : 600,
     jsonLd: [jsonLdFixture(fx, origin + path), breadcrumbs(origin, [["Home", "/"], [fx.league?.name || "Football", fx.league?.id ? `/league/${slugOf(fx.league.id, fx.league.name)}` : "/leagues"], [`${home?.name} vs ${away?.name}`, path]])],
@@ -71,7 +182,9 @@ async function buildMatch(id, path, origin) {
         home?.id ? link(`/club/${slugOf(home.id, home.name)}`, home.name) : "",
         away?.id ? link(`/club/${slugOf(away.id, away.name)}`, away.name) : "",
       ].filter(Boolean)) +
-      (goals.length ? `<h2>Goals</h2>${list(goals.map((e) => `${esc(e.time?.elapsed)}' ${esc(e.player?.name)} (${esc(e.team?.name)})`))}` : ""),
+      (goals.length ? `<h2>Goals</h2>${list(goals.map((e) => `${esc(e.time?.elapsed)}' ${esc(e.player?.name)} (${esc(e.team?.name)})`))}` : "") +
+      (upcoming ? `<h2>${esc(home?.name || "Home")} vs ${esc(away?.name || "Away")} prediction</h2><p>${esc(home?.name || "Home")} host ${esc(away?.name || "Away")} in the ${esc(fx.league?.name || "match")}${fx.fixture?.date ? `, kick-off ${esc(hhmm(fx.fixture.date))}` : ""}. ${predictionText(fx, stored) || "The model's prediction is made before kick-off and graded after the match."}</p>` : "") +
+      `<h2>More</h2>${list(dayLinks)}`,
   };
 }
 
@@ -186,11 +299,11 @@ async function buildArticle(id, path, origin) {
 function shell({ meta, heading, body, jsonLd, origin, path, status = 200 }) {
   const url = origin + (path === "/" ? "/" : path);
   const hasImage = meta.image && /^https:\/\//.test(meta.image);
-  const image = hasImage ? meta.image : origin + "/icons/icon-512.png";
+  const image = hasImage ? meta.image : origin + "/icons/og-image.png";
   const noindex = meta.noindex || status === 404;
   const verify = [["google-site-verification", env("GOOGLE_SITE_VERIFICATION")], ["msvalidate.01", env("BING_SITE_VERIFICATION")]].filter(([, v]) => v);
   const twitter = env("TWITTER_SITE").replace(/^@?/, "@");
-  const big = meta.kind === "article" && hasImage;
+  const big = !hasImage || (meta.kind === "article" && hasImage);
   const m = (attr, k, v) => `<meta ${attr}="${k}" content="${esc(v)}">`;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -205,13 +318,13 @@ ${verify.map(([k, v]) => m("name", k, v)).join("\n")}
 ${m("property", "og:site_name", SITE_NAME)}${m("property", "og:locale", "en_GB")}${m("property", "og:type", meta.kind === "article" ? "article" : "website")}
 ${m("property", "og:title", meta.title)}${m("property", "og:description", meta.description)}
 ${m("property", "og:url", url)}${m("property", "og:image", image)}${m("property", "og:image:alt", heading || meta.title)}
-${hasImage ? "" : m("property", "og:image:width", "512") + m("property", "og:image:height", "512")}
+${hasImage ? "" : m("property", "og:image:width", "1200") + m("property", "og:image:height", "630")}
 ${m("name", "twitter:card", big ? "summary_large_image" : "summary")}${m("name", "twitter:title", meta.title)}${m("name", "twitter:description", meta.description)}${m("name", "twitter:image", image)}
 ${twitter.length > 1 ? m("name", "twitter:site", twitter) : ""}
 ${m("name", "theme-color", "#d50000")}
 ${(jsonLd || []).filter(Boolean).map((data) => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")}</script>`).join("\n")}
 </head><body>
-<header><a href="/">${SITE_NAME}</a> <nav>${link("/leagues", "Leagues")} ${link("/news", "News")} ${link("/vip", "Predictions")}</nav></header>
+<header><a href="/">${SITE_NAME}</a> <nav>${link("/livescores", "Livescores")} ${link("/predictions", "Predictions")} ${link("/leagues", "Leagues")} ${link("/news", "News")}</nav></header>
 <main><h1>${esc(heading)}</h1>${body}</main>
 <footer>${link("/about", "About")} ${link("/privacy-policy", "Privacy")} ${link("/terms-of-use", "Terms")} ${link("/contact-us", "Contact")}</footer>
 </body></html>`;
@@ -228,6 +341,9 @@ export async function renderPage(rawPath, origin) {
     return { status: 404, headers: { "Cache-Control": "public, s-maxage=3600" }, html: html({ meta, heading: "Page not found", body: `<p>${esc(meta.description)}</p>${list([link("/", "Live scores"), link("/leagues", "Leagues"), link("/news", "News")])}`, status: 404 }) };
   }
 
+  // /vip is the in-app name of the predictions screen; search engines get one address for it.
+  if (path === "/vip") return { status: 301, headers: { Location: origin + "/predictions", "Cache-Control": "public, s-maxage=86400" }, html: "" };
+
   let meta = metaForPath(path);
   let jsonLd = [];
   let heading = meta.title.split(/[:|]/)[0].trim();
@@ -235,6 +351,7 @@ export async function renderPage(rawPath, origin) {
   let cache = 300, built = null;
   try {
     if (path === "/") built = await buildHome(origin);
+    else if ((kind === "livescores" || kind === "predictions") && (!slug || isDaySlug(slug))) built = await buildDay(kind, slug || todayUtc(), path, origin, slug);
     else if (kind === "match" && /^\d+$/.test(slug || "")) built = await buildMatch(slug, path, origin);
     else if (kind === "league" && /^\d+/.test(slug || "")) built = await buildLeague(parseInt(slug, 10), path, origin, slug);
     else if (kind === "club" && /^\d+/.test(slug || "")) built = await buildClub(parseInt(slug, 10), path, origin, slug);
@@ -255,7 +372,7 @@ export async function renderPage(rawPath, origin) {
     meta = built.meta || meta; heading = built.heading || heading; body = built.body; cache = built.cache ?? cache;
     jsonLd = built.jsonLd || [];
     if (path === "/" ) jsonLd = [...jsonLd];
-  } else if (["match", "league", "club", "player", "venue"].includes(kind) || kind === "news") {
+  } else if (["match", "league", "club", "player", "venue", "livescores", "predictions"].includes(kind) || kind === "news") {
     cache = 60; // no data this time (quota, cap or provider down): serve the plain page, and try again soon
   }
   return { status: 200, headers: { "Cache-Control": `public, s-maxage=${cache}, stale-while-revalidate=${Math.max(3600, cache * 4)}` }, html: html({ meta, heading, body, jsonLd }) };

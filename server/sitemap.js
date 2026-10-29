@@ -9,9 +9,10 @@ import { siteOrigin, esc, footballData, slugOf, currentSeasonYear, TOP_LEAGUES }
 import { env } from "../api/_admin.js";
 import { latestArticles } from "./news.js";
 import { articlePath } from "../src/newsArticle.js";
+import { shiftDay } from "../src/seoEntities.js";
 
-const STATIC = ["/", "/leagues", "/news", "/vip", "/about", "/help-centre", "/contact-us", "/privacy-policy", "/terms-of-use"];
-const PARTS = ["pages", "leagues", "clubs", "matches", "news"];
+const STATIC = ["/", "/livescores", "/predictions", "/leagues", "/news", "/about", "/help-centre", "/contact-us", "/privacy-policy", "/terms-of-use"];
+const PARTS = ["pages", "leagues", "clubs", "days", "matches", "news"];
 const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
 
 const urlset = (urls) => `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
@@ -32,8 +33,14 @@ export async function sitemapUrls(part, origin) {
     const season = currentSeasonYear();
     for (const [id] of TOP_LEAGUES.slice(0, 12)) for (const e of (await footballData("teams", { league: id, season })) || []) if (e?.team?.id && e.team.name) add(out, `${origin}/club/${slugOf(e.team.id, e.team.name)}`);
   }
+  // One livescores page and one predictions page per day: today, the last week and the next few days. Today's own
+  // pages are /livescores and /predictions (the dated address of today would be a duplicate).
+  if (part === "days") {
+    const today = day(0);
+    for (const kind of ["livescores", "predictions"]) for (let n = -7; n <= 7; n++) { const d = shiftDay(today, n); if (d !== today) add(out, `${origin}/${kind}/${d}`, d <= today ? d : undefined); }
+  }
   if (part === "matches") {
-    for (const date of [day(-1), day(0), day(1)]) for (const fx of ((await footballData("fixtures", { date })) || []).slice(0, 700)) if (fx?.fixture?.id) add(out, `${origin}/match/${fx.fixture.id}`, fx.fixture.date?.slice(0, 10));
+    for (const date of [day(-1), day(0), day(1), day(2)]) for (const fx of ((await footballData("fixtures", { date })) || []).slice(0, 700)) if (fx?.fixture?.id) add(out, `${origin}/match/${fx.fixture.id}`, fx.fixture.date?.slice(0, 10));
   }
   if (part === "news") for (const a of await latestArticles()) add(out, origin + articlePath(a), a.publishedAt ? a.publishedAt.slice(0, 10) : undefined);
   return out;

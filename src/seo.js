@@ -45,7 +45,7 @@ export function setPageSeo({ title, description, noindex = false, jsonLd = null,
   upsertMeta("name", "robots", noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1");
   upsertLink("canonical", url || origin + "/");
   upsertMeta("property", "og:site_name", SITE_NAME);
-  const picture = /^https:\/\//.test(image) ? image : origin + "/icons/icon-512.png";
+  const fallback = origin + "/icons/og-image.png", picture = /^https:\/\//.test(image) ? image : fallback;
   upsertMeta("property", "og:type", type);
   upsertMeta("property", "og:locale", "en_GB");
   upsertMeta("property", "og:title", finalTitle);
@@ -53,7 +53,7 @@ export function setPageSeo({ title, description, noindex = false, jsonLd = null,
   upsertMeta("property", "og:url", url || origin + "/");
   upsertMeta("property", "og:image", picture);
   upsertMeta("property", "og:image:alt", finalTitle);
-  upsertMeta("name", "twitter:card", type === "article" && picture !== origin + "/icons/icon-512.png" ? "summary_large_image" : "summary");
+  upsertMeta("name", "twitter:card", type === "article" || picture === fallback ? "summary_large_image" : "summary");
   upsertMeta("name", "twitter:title", finalTitle);
   upsertMeta("name", "twitter:description", finalDescription);
   upsertMeta("name", "twitter:image", picture);

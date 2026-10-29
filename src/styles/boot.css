@@ -1,6 +1,6 @@
 /* Styles for the page before the app starts (and its error screen). Kept in a file, not inline, so the
    Content-Security-Policy can forbid inline styles. */
-.boot-screen{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;color:#111}
+.boot-screen{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,system-ui,Roboto,'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-text-size-adjust:100%;text-size-adjust:100%;color:#111}
 .boot-card{width:min(100%,380px);text-align:center}
 .boot-title{display:block;font-size:20px;margin:0 0 8px}
 .boot-lede{margin:0 0 12px;color:#555;font-size:14px}

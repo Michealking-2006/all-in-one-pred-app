@@ -1,13 +1,13 @@
 {
   "name": "scoutwave-app-vanilla",
   "private": true,
-  "version": "0.34.1",
+  "version": "0.36.0",
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
     "dev:static": "npx serve -s . -l 5173",
     "build:shell": "node scripts/build-shell.mjs",
-    "test": "node tests/predictions.test.mjs && node tests/errors.test.mjs && node tests/news.test.mjs && node tests/football-cache.test.mjs && node tests/push.test.mjs && node tests/admin-security.test.mjs && node tests/security.test.mjs && node tests/sheet.test.mjs && node tests/club.test.mjs && node tests/premium-gate.test.mjs && node tests/design.test.mjs && node tests/seo.test.mjs && node tests/placements.test.mjs && node tests/deploy.test.mjs && node tests/startup.test.mjs && node tests/imports.test.mjs && node tests/legal.test.mjs"
+    "test": "node tests/predictions.test.mjs && node tests/errors.test.mjs && node tests/news.test.mjs && node tests/football-cache.test.mjs && node tests/push.test.mjs && node tests/admin-security.test.mjs && node tests/security.test.mjs && node tests/sheet.test.mjs && node tests/club.test.mjs && node tests/premium-gate.test.mjs && node tests/design.test.mjs && node tests/seo.test.mjs && node tests/placements.test.mjs && node tests/deploy.test.mjs && node tests/startup.test.mjs && node tests/imports.test.mjs && node tests/legal.test.mjs && node tests/api-usage.test.mjs"
   },
   "dependencies": {
     "web-push": "3.6.7"

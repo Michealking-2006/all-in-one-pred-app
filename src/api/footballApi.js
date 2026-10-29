@@ -11,9 +11,8 @@ const REQUEST_TIMEOUT_MS = 12000;
 //   2. sessionStorage - this browser tab session: reloads / back-forward are free
 //   3. localStorage - long-lived data that rarely changes (venues: one year,
 //                     players: one day), shared across sessions
-// Failures are never cached. Live data (fixtures, events, lineups, stats, odds,
-// standings) is never served stale; slow data may be shown stale while it
-// refreshes quietly in the background. Finished matches stop being re-fetched.
+// Failures are never cached. Live data is never served stale; slow data may be
+// shown stale while it refreshes. Finished matches stop being re-fetched.
 // ---------------------------------------------------------------------------
 const MIN = 60_000, HOUR = 60 * MIN, DAY = 24 * HOUR;
 const TTL_MS = {
@@ -50,10 +49,9 @@ const TTL_MS = {
 const DEFAULT_TTL_MS = 10 * MIN;
 const MAX_CACHE_ENTRIES = 300;
 
-// Endpoints persisted across sessions (localStorage); everything else uses the
-// per-tab session cache.
+// Persisted across sessions (localStorage); the rest use the per-tab cache.
 const LOCAL_ENDPOINTS = new Set(["venues", "players", "players/squads", "players/seasons", "players/profiles", "trophies", "transfers"]);
-// Slow endpoints that may be shown (up to 6 h old) while a refresh runs.
+// Slow endpoints that may be shown up to 6 h old while refreshing.
 const STALE_OK = new Set(["leagues", "teams", "teams/seasons", "coachs", "teams/statistics", "fixtures/headtohead", "fixtures/rounds",
   "players/topscorers", "players/topassists", "players/topyellowcards", "players/topredcards"]);
 const STALE_MAX_MS = 6 * HOUR;
@@ -225,19 +223,14 @@ export function peekFootball(endpoint, params = {}) {
   return readCache(keyOf(endpoint, cleanParams(params)));
 }
 
-// Used by pull-to-refresh: forget everything except venues (stadium data is
-// effectively static, and is cached for a year on purpose).
-export function clearFootballCache({ keepVenues = true } = {}) {
-  cache.clear();
+// Pull-to-refresh forgets only what changes by the minute; slow data (players, venues, teams...) keeps its lifetime.
+const LIVE_ENDPOINTS = new Set(["fixtures", "fixtures/events", "fixtures/lineups", "fixtures/statistics", "fixtures/players", "odds", "standings"]);
+export function clearFootballCache({ all = false } = {}) {
+  const drop = (name) => all || LIVE_ENDPOINTS.has(endpointOfKey(name.slice(PREFIX.length)));
+  for (const key of [...cache.keys()]) if (drop(PREFIX + key)) cache.delete(key);
   for (const store of [safe(() => window.sessionStorage), safe(() => window.localStorage)]) {
     if (!store) continue;
-    try {
-      ownKeys(store)
-        .filter((name) => !(keepVenues && name.startsWith(PREFIX + "venues?")))
-        .forEach((name) => store.removeItem(name));
-    } catch {
-      // Ignore.
-    }
+    try { ownKeys(store).filter(drop).forEach((name) => store.removeItem(name)); } catch { /* ignore */ }
   }
 }
 
@@ -359,7 +352,8 @@ export const getPlayerById = (id, season) => fetchFootball("players", { id, seas
 // a calendar-year league in Jan-Jul), so fall back one season.
 export async function getPlayerProfile(id) {
   const year = new Date().getFullYear();
-  for (const season of [year, year - 1]) {
+  // Before July most players are still in last year's season: ask for that first.
+  for (const season of new Date().getMonth() >= 6 ? [year, year - 1] : [year - 1, year]) {
     const rows = await getPlayerById(id, season);
     if (rows[0]) return rows[0];
   }
@@ -369,8 +363,8 @@ export async function getPlayerProfile(id) {
 export const getStandings = (leagueId, season, teamId = null) =>
   fetchFootball("standings", { league: leagueId, season, team: teamId });
 export const getUpcomingFixtures = (leagueId, season, count = 8) =>
-  fetchFootball("fixtures", { league: leagueId, season, next: count, timezone: userTimezone() });
-export const getTeamFixtures = (teamId, options = {}) => fetchFootball("fixtures", { team: teamId, timezone: userTimezone(), ...options });
+  fetchFootball("fixtures", { league: leagueId, season, next: count });
+export const getTeamFixtures = (teamId, options = {}) => fetchFootball("fixtures", { team: teamId, ...options });
 export const getTeamSquad = (teamId) => fetchFootball("players/squads", { team: teamId });
 export const getTopScorers = (leagueId, season) => fetchFootball("players/topscorers", { league: leagueId, season });
 export const getTopAssists = (leagueId, season) => fetchFootball("players/topassists", { league: leagueId, season });
@@ -388,7 +382,7 @@ export const getTeamLeagues = (team) => fetchFootball("leagues", { team, current
 // it played in a given season, and that season's full fixture list.
 export const getTeamSeasons = (team) => fetchFootball("teams/seasons", { team });
 export const getTeamLeaguesForSeason = (team, season) => fetchFootball("leagues", { team, season });
-export const getTeamSeasonFixtures = (team, season) => fetchFootball("fixtures", { team, season, timezone: userTimezone() });
+export const getTeamSeasonFixtures = (team, season) => fetchFootball("fixtures", { team, season });
 
 // Richer entity pages ------------------------------------------------------
 export const getCoach = (team) => fetchFootball("coachs", { team });
@@ -397,15 +391,15 @@ export const getPlayerSeasons = (player) => fetchFootball("players/seasons", { p
 export const getPlayerTrophies = (player) => fetchFootball("trophies", { player });
 export const getPlayerTransfers = (player) => fetchFootball("transfers", { player });
 export const getVenueTeams = (venue) => fetchFootball("teams", { venue });
-export const getVenueFixtures = (venue, options = {}) => fetchFootball("fixtures", { venue, timezone: userTimezone(), ...options });
+export const getVenueFixtures = (venue, options = {}) => fetchFootball("fixtures", { venue, ...options });
 export const getLeagueTeams = (league, season) => fetchFootball("teams", { league, season });
 export const getLeagueFixtures = (league, season, options = {}) =>
-  fetchFootball("fixtures", { league, season, timezone: userTimezone(), ...options });
+  fetchFootball("fixtures", { league, season, ...options });
 
-// Fixtures. Passing the browser timezone makes "date" mean the user's local day.
+// Only the by-date list needs the timezone ("date" = the user's local day); leaving it out elsewhere shares one cached answer worldwide.
 export const getFixturesByDate = (date) => fetchFootball("fixtures", { date, timezone: userTimezone() });
 export const peekFixturesByDate = (date) => peekFootball("fixtures", { date, timezone: userTimezone() });
-export const getFixtureById = (id) => fetchFootball("fixtures", { id, timezone: userTimezone() });
+export const getFixtureById = (id) => fetchFootball("fixtures", { id });
 export const getFixtureEvents = (fixture) => fetchFootball("fixtures/events", { fixture });
 export const getFixtureLineups = (fixture) => fetchFootball("fixtures/lineups", { fixture });
 export const getFixtureStatistics = (fixture) => fetchFootball("fixtures/statistics", { fixture });
@@ -423,7 +417,7 @@ export async function getFixturesByIds(ids) {
   const chunks = [];
   for (let i = 0; i < unique.length; i += 20) chunks.push(unique.slice(i, i + 20));
   const results = await Promise.all(
-    chunks.map((chunk) => fetchFootball("fixtures", { ids: chunk.join("-"), timezone: userTimezone() }))
+    chunks.map((chunk) => fetchFootball("fixtures", { ids: chunk.join("-") }))
   );
   return results.flat();
 }

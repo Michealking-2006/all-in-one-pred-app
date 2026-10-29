@@ -9,6 +9,13 @@ const VALID_TABS = new Set([
 
 const AUTH_MODES = ["signup", "reset", "login", "update"];
 
+// /livescores[/date] = Home on that day; /predictions = predictions screen
+const dayOffset = (iso) => {
+  const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso), n = new Date();
+  const d = m && Math.round((Date.UTC(m[1], m[2] - 1, m[3]) - Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())) / 864e5);
+  return Math.abs(d) <= 30 ? d : null;
+};
+
 function syncFromPath() {
   const url = new URL(window.location.href);
   const parts = url.pathname.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
@@ -18,6 +25,12 @@ function syncFromPath() {
   if (parts[0] === "auth") {
     const mode = AUTH_MODES.includes(parts[1]) ? parts[1] : "login";
     store.setState({ tab: "auth", authMode: mode, openFixtureId: null, openEntity: null, modal });
+    return;
+  }
+
+  if (parts[0] === "livescores" || parts[0] === "predictions") {
+    const home = parts[0] === "livescores", offset = home ? (parts[1] ? dayOffset(parts[1]) : 0) : null;
+    store.setState({ tab: home ? "home" : "vip", openFixtureId: null, openEntity: null, modal, ...(offset === null ? {} : { selectedDayOffset: offset }) });
     return;
   }
 

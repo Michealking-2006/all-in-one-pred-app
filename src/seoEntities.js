@@ -1,6 +1,6 @@
 // Structured data and address rules for clubs, players and stadiums. Used by the server-side pages for
 // search engines (api/_seoPages.js) and the tests; kept out of seoCore.js so the app itself doesn't download it.
-import { PAGES, NOINDEX, normalizePath } from "./seoCore.js";
+import { PAGES, NOINDEX, SITE_NAME, normalizePath } from "./seoCore.js";
 
 const toNumber = (v) => { const n = parseInt(String(v ?? "").replace(/[^\d.]/g, ""), 10); return Number.isFinite(n) && n > 0 ? n : null; };
 
@@ -45,6 +45,30 @@ export function jsonLdItemList(name, items) {
 }
 
 // ---------------------------------------------------------------------------
+// Date pages: /livescores/2026-10-29 and /predictions/2026-10-29. The window is limited on purpose, so the
+// number of addresses a crawler can find stays small and every one of them has real matches behind it.
+// ---------------------------------------------------------------------------
+export const DAY_BACK = 30, DAY_AHEAD = 14;
+export const isDaySlug = (s) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s || ""))) return false;
+  const t = Date.parse(s + "T00:00:00Z");
+  return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) === s;
+};
+export const dayOffsetFromToday = (s, now = Date.now()) => Math.round((Date.parse(s + "T00:00:00Z") - Date.parse(new Date(now).toISOString().slice(0, 10) + "T00:00:00Z")) / 86400000);
+export const dayInWindow = (s, now = Date.now()) => { if (!isDaySlug(s)) return false; const n = dayOffsetFromToday(s, now); return n >= -DAY_BACK && n <= DAY_AHEAD; };
+export const prettyDay = (s) => new Date(s + "T00:00:00Z").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+export const shiftDay = (s, n) => new Date(Date.parse(s + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
+
+
+export function metaForDay(kind, day, path) {
+  const nice = prettyDay(day), short = new Date(day + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  const cut = (t) => (t.length <= 70 ? t : t.slice(0, 69).replace(/\s+\S*$/, "") + "\u2026");
+  return kind === "livescores"
+    ? { path, kind: "page", title: cut(`Football Livescores & Results for ${short} | ${SITE_NAME}`), description: `Football scores and results for ${nice}: every match from the major leagues and cups, with goals, lineups and match stats.` }
+    : { path, kind: "page", title: cut(`Football Predictions for ${short}: Tips & Previews | ${SITE_NAME}`), description: `Football predictions for ${nice}: match previews, model confidence and kick-off times for every major league, from a model graded after every game.` };
+}
+
+// ---------------------------------------------------------------------------
 // Which addresses are real pages (so unknown ones can be answered with a genuine 404, not a soft one)
 // ---------------------------------------------------------------------------
 const ENTITY_KINDS = new Set(["league", "club", "player", "venue", "match", "news"]);
@@ -53,6 +77,7 @@ export function isKnownPath(pathname) {
   if (path === "/" || PAGES[path]) return true;
   const [, kind, slug, extra] = path.split("/");
   if (NOINDEX.has("/" + kind)) return true;
+  if ((kind === "livescores" || kind === "predictions") && slug && !extra) return dayInWindow(slug);
   if (kind === "news" && !slug) return true;
   return ENTITY_KINDS.has(kind) && !!slug && !extra;
 }
@@ -62,3 +87,9 @@ export function canonicalSlugPath(kind, id, name, slugify) {
   return `/${kind}/${slugify(id, name)}`;
 }
 
+export function breadcrumbs(origin, items) {
+  return {
+    "@context": "https://schema.org", "@type": "BreadcrumbList",
+    itemListElement: items.map(([name, path], i) => ({ "@type": "ListItem", position: i + 1, name, item: origin + path })),
+  };
+}

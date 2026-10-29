@@ -90,7 +90,7 @@
       "destination": "/api/seo?doc=sitemap"
     },
     {
-      "source": "/sitemap-:part(pages|leagues|clubs|matches|news).xml",
+      "source": "/sitemap-:part(pages|leagues|clubs|days|matches|news).xml",
       "destination": "/api/seo?doc=sitemap&part=:part"
     },
     {
