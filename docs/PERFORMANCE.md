@@ -24,6 +24,13 @@ Detection is in `src/perf.js` (and `src/boot/theme-init.js`, which runs before f
 - **Cache lifetimes.** Vercel serves every file with "check again on every load", which cost one round trip per file (about 40) on every launch. App code is now reused for 5 minutes (and refreshed in the background for a day), images and icons for a week. Pages, the service worker, the API and the admin stay fresh. A new release can therefore take up to about 5 minutes longer to reach someone who already has the app open.
 - **A budget test** (`tests/startup.test.mjs`) fails if startup code grows past 180 KB or 40 files, or if one of the deferred modules is imported at startup again.
 
+## Large traffic (0.38.0)
+The football data quota is the wall, not the servers. What keeps it flat as visitors grow:
+- Every football request is the same URL for everyone, so the shared edge cache answers all of them. Time zones used to split this: the list of a day's matches (the most polled request) was cached once per time zone. It now asks for UTC days and the app keeps the matches on the user's local day, so one cached answer serves the world. A visitor in most time zones loads two lists instead of one; the second is almost always already cached.
+- If a cached answer expires while many people are asking, each server instance asks the provider once and shares the answer.
+- Background traffic to our own API is lighter: cache counters go out every 15 minutes (and at most every 2 when the app is hidden) instead of every 5; the account check runs every 10 minutes.
+- Watch Admin > Usage after a busy match day: provider requests per day should stay close to the number of distinct matches, leagues and days people looked at, not to the number of visitors.
+
 ## Not done, and why
 - **No bundler or minifier.** The app serves its modules as written (about 205 KB for startup, which is roughly 50 KB compressed in transit) and 130 KB of CSS. A bundler would cut requests and a little size, but needs a build step and tooling this project doesn't have; the batching, drawing in pieces and image changes above matter more for memory.
 - **No real-device measurements.** Everything above comes from reading the code and sizing the assets, not from profiling a 1 GB phone. After deploying, open the app on one (Chrome > chrome://inspect, or Android's Developer options "Running services") and compare memory on Home and a club page.

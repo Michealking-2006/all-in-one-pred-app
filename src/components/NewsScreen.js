@@ -131,7 +131,7 @@ export function NewsScreen() {
     h("header", { className: "page-intro" }, [
       text("span", { className: "section-kicker" }, "Football"),
       h("div", { className: "page-intro-row" }, [text("h1", {}, "News")]),
-      text("p", {}, "Headlines from across the game. Tap a story for the summary, then read the full piece at the source."),
+      text("p", {}, "Football headlines. Tap a story for the summary; the full article opens on the publisher's site."),
     ]),
     tagRow,
     body,

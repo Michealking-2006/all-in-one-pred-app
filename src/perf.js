@@ -35,7 +35,7 @@ export const isLowEnd = () => !!document.documentElement.dataset.lowend;
 export const isUltraLow = () => document.documentElement.dataset.lowend === "2";
 
 // Decorative photos (news pictures, stadiums, ad images) are skipped on 1 GB phones: each decoded photo
-// costs far more memory than the information it adds. Crests and player photos are always shown.
+// costs far more memory than the information it adds. Crests and player photos are always shown (the lineup pitch included).
 export const showPhotos = () => !isUltraLow();
 
 // Refresh intervals stretch on low-end phones (fewer wake-ups, less battery and CPU).

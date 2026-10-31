@@ -1,3 +1,29 @@
+# Changes in 0.38.0 — ready for a lot more visitors
+
+The thing that limits Scoutwave under heavy traffic is the football provider's daily request quota, not the servers (Vercel serves the cached answers). The changes protect that quota:
+
+- **One cached list of matches for the whole world.** The day's match list is the most requested thing in the app (every viewer, every minute while a game is on), and it was cached once per time zone, so 25 time zones meant 25 provider requests every 30 seconds on a match day. The app now asks for UTC days, which are the same URL for everyone, and keeps the matches that fall on the user's own day. Most visitors load two lists instead of one, and the second is nearly always already cached. Matches still appear on the right local day (checked in Tokyo time and UTC in the tests).
+- **No stampede when a cached answer expires.** If many people ask for the same thing in the same instant, a server instance now asks the provider once and shares the answer (before, each of them could trigger its own request).
+- **Less background traffic to our own API.** The cache counters sent to `/api/usage` (one function call and one database write each) go out every 15 minutes, and no more than every 2 minutes when the app is hidden, instead of every 5 minutes. The account (Premium and coins) check runs every 10 minutes instead of 5. At 100,000 open apps that is about 14,000 fewer function calls and database writes a minute.
+- 2 new tests, 1 updated. Docs: `docs/PERFORMANCE.md` has a "Large traffic" section. Service worker cache v22.
+- Not changed: Supabase limits (sign-in and favourites go straight from the browser to Supabase, so check your Supabase plan's connection and auth limits before a big launch), and Vercel plan limits. Both are plan settings, not code.
+
+# Changes in 0.37.1 — real player photos on the lineups
+
+- **Why the numbered shirts never turned into photos:** the photo was added hidden and set to load lazily; browsers don't fetch a lazy image that isn't displayed, so the photo never loaded and the shirt stayed. It now loads straight away and swaps in as soon as it arrives. If a player has no picture (or the phone is offline) the numbered shirt stays, so nobody is ever blank.
+- **Every phone gets the faces.** Phones with very little memory used to skip them (the "lighter mode" gate); player photos are tiny, so that gate is gone for the lineup.
+- **Substitutes show faces too**, with the shirt number as a small badge on the photo.
+- 3 new tests in `tests/lineup-photos.test.mjs`. Service worker cache v21.
+
+# Changes in 0.37.0 — plainer copy, tidier SEO text
+
+- **Rewrote the text that read like generated marketing**, in the app, the page descriptions search engines show, the link previews and the About page. Examples: "Football intelligence, built for clarity" is now "Football scores and predictions."; "Sharper signals. Less noise." is "Today's predictions"; "See the full signal" is "Unlock every prediction."; "your livescore hub" and "from every major competition" are gone; "signal", "match intelligence" and "one tap away" are replaced by what the thing actually is. Prediction pages and match pages now describe what is on them and how predictions are checked, instead of "follow every score as it happens".
+- **A wrong Help Centre answer is fixed.** It said predictions come from API-Football and that Scoutwave doesn't publish tracked results; both are untrue (the model is Scoutwave's own and results are tracked).
+- **Removed the keyword list** (`meta keywords`). Google has ignored it for years and a long list of search terms reads as keyword stuffing. Titles and descriptions are unchanged where they already named what the page is.
+- A test now fails if the filler phrases come back.
+- Not touched on purpose: the Privacy Policy and Terms (legal wording), and the Premium/coin product names.
+- Service worker cache v20.
+
 # Changes in 0.36.0 — fewer football API requests, one font on every phone
 
 - **Fonts.** The loading screen used a different font list from the app (it named "SF Pro Text"), so the text changed font the moment the app appeared. Both now use one identical list, with the phone's own system font first (Apple fonts on iPhone, the phone's chosen font on Android, Roboto where a browser can't name it). The Apple-only "SF Pro" names are gone. Android Chrome and Samsung Internet also enlarge some text blocks on their own ("font boosting") so that text in different cards ended up different sizes; that is now switched off with `text-size-adjust`.

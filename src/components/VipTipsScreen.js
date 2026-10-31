@@ -76,15 +76,15 @@ export function VipTipsScreen({ isUnlocked }) {
   return h("main", { className: "screen vip-screen" }, [
     h("section", { className: "vip-hero" }, [
       text("span", { className: "section-kicker" }, "Scoutwave Premium"),
-      text("h1", {}, "Sharper signals. Less noise."),
-      text("p", {}, "Premium match intelligence, confidence levels and market signals."),
+      text("h1", {}, "Today's predictions"),
+      text("p", {}, "Our model's prediction and confidence for each match."),
     ]),
     live
       ? h("section", { className: "card sample-notice" }, [h("i", { "data-lucide": "info" }), text("span", {}, "Picks come from Scoutwave's own statistical model, built from this season's league results. They are estimates, not guarantees or betting advice.")])
-      : h("section", { className: "card sample-notice" }, [h("i", { "data-lucide": "info" }), text("span", {}, "Sample signals. The picks below are placeholder data while live predictions are being connected, and no results have been tracked yet.")]),
+      : h("section", { className: "card sample-notice" }, [h("i", { "data-lucide": "info" }), text("span", {}, "Sample picks. The picks below are placeholder data while live predictions are being connected, and no results have been tracked yet.")]),
     live ? accuracyCard() : null,
     h("div", { className: "section-heading vip-heading" }, [
-      h("div", {}, [text("span", { className: "section-kicker" }, "Premium feed"), text("h2", {}, live ? "Today's model picks" : "Sample signals")]),
+      h("div", {}, [text("span", { className: "section-kicker" }, "Predictions"), text("h2", {}, live ? "Today's model picks" : "Sample picks")]),
       live ? model.count : text("span", { className: "muted-count" }, matches.length + " picks"),
     ]),
     live
@@ -94,8 +94,8 @@ export function VipTipsScreen({ isUnlocked }) {
             h("div", { className: "vip-card-top" }, [text("span", { className: "eyebrow" }, m.league), text("span", { className: "badge badge-muted" }, m.confidence + "%")]),
             text("strong", { className: "vip-match" }, m.home + " vs " + m.away),
             isUnlocked(m.id)
-              ? h("div", { className: "vip-pick" }, [text("span", { className: "eyebrow" }, "Signal"), text("strong", {}, m.winner), text("span", { className: "confidence" }, m.confidence + "% confidence")])
-              : h("div", { className: "vip-lock" }, [h("i", { "data-lucide": "lock" }), text("span", {}, "Premium signal locked")]),
+              ? h("div", { className: "vip-pick" }, [text("span", { className: "eyebrow" }, "Pick"), text("strong", {}, m.winner), text("span", { className: "confidence" }, m.confidence + "% confidence")])
+              : h("div", { className: "vip-lock" }, [h("i", { "data-lucide": "lock" }), text("span", {}, "Prediction locked")]),
           ])
         )),
   ]);

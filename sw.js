@@ -8,7 +8,7 @@
 //   - images / fonts: cache first.
 //   - API and auth traffic is never cached here (the app caches API data itself).
 // Bump CACHE to drop every previously cached file.
-const CACHE = "scoutwave-shell-v19";
+const CACHE = "scoutwave-shell-v22";
 const NAV_TIMEOUT_MS = 2500;
 const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png"];
 

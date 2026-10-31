@@ -995,6 +995,11 @@ button.lineup-head:active{background:var(--surface-2);opacity:1}
 .bench-kicker{padding:6px 0 2px}
 .bench-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto auto;align-items:center;gap:10px;width:100%;padding:11px 0;border-top:.5px solid var(--separator);text-align:left;font-size:16px}
 .bench-number{font-size:14px;font-weight:600;color:var(--text-muted)}
+.bench-avatar{position:relative;width:30px;height:30px;display:grid;place-items:center;border-radius:50%}
+.bench-photo{display:none}
+.bench-avatar.photo-ok{background:#fff;box-shadow:0 0 0 1.5px var(--separator)}
+.bench-avatar.photo-ok .bench-photo{display:block;position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:50% 20%}
+.bench-avatar.photo-ok .bench-number{position:absolute;top:-4px;left:-6px;min-width:15px;height:15px;padding:0 3px;display:grid;place-items:center;border-radius:8px;background:var(--surface);color:var(--text);font-size:10px;font-weight:700;line-height:1;box-shadow:0 0 0 1px var(--separator)}
 .bench-name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bench-tag{padding:2px 8px;border-radius:999px;background:rgba(52,199,89,.16);color:var(--success);font-size:12px;font-weight:600}
 .bench-pos{min-width:14px;text-align:right;font-size:13px;color:var(--text-muted)}

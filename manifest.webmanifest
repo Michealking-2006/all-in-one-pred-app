@@ -2,7 +2,7 @@
   "name": "Scoutwave",
   "short_name": "Scoutwave",
   "id": "/",
-  "description": "Live football scores, predictions, odds and football data in one place.",
+  "description": "Live football scores, match predictions and odds.",
   "categories": ["sports", "news"],
   "lang": "en",
   "start_url": "/",

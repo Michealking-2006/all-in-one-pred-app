@@ -4,19 +4,11 @@ import { publicText } from "../utils/errors.js";
 const BASE_URL = "/api/football";
 const REQUEST_TIMEOUT_MS = 12000;
 
-// ---------------------------------------------------------------------------
-// Caching. API-Football requests are the app's scarce resource, so every
-// response is cached in three layers:
-//   1. memory       - this page load (also shares identical in-flight requests)
-//   2. sessionStorage - this browser tab session: reloads / back-forward are free
-//   3. localStorage - long-lived data that rarely changes (venues: one year,
-//                     players: one day), shared across sessions
-// Failures are never cached. Live data is never served stale; slow data may be
-// shown stale while it refreshes. Finished matches stop being re-fetched.
-// ---------------------------------------------------------------------------
+// Caching: provider requests are scarce, so answers live in memory (this page load; identical in-flight requests are
+// shared), sessionStorage (this tab) and localStorage (slow data). Failures are never cached; live data is never
+// served stale; finished matches stop being re-fetched.
 const MIN = 60_000, HOUR = 60 * MIN, DAY = 24 * HOUR;
 const TTL_MS = {
-  // live
   fixtures: 30_000,
   "fixtures/events": 30_000,
   "fixtures/lineups": 30_000,
@@ -24,7 +16,6 @@ const TTL_MS = {
   "fixtures/players": 30_000,
   odds: 30_000,
   standings: 10 * MIN,
-  // slow-changing
   "fixtures/headtohead": 6 * HOUR,
   "fixtures/rounds": 6 * HOUR,
   "teams/statistics": HOUR,
@@ -36,7 +27,6 @@ const TTL_MS = {
   teams: DAY,
   "teams/seasons": DAY,
   coachs: DAY,
-  // players: one day
   players: DAY,
   "players/squads": DAY,
   "players/seasons": DAY,
@@ -397,8 +387,20 @@ export const getLeagueFixtures = (league, season, options = {}) =>
   fetchFootball("fixtures", { league, season, ...options });
 
 // Only the by-date list needs the timezone ("date" = the user's local day); leaving it out elsewhere shares one cached answer worldwide.
-export const getFixturesByDate = (date) => fetchFootball("fixtures", { date, timezone: userTimezone() });
-export const peekFixturesByDate = (date) => peekFootball("fixtures", { date, timezone: userTimezone() });
+// UTC days: one URL, one cached answer worldwide; keep the matches on the user's local day.
+function localDay(date) {
+  const [y, m, d] = String(date).split("-").map(Number), from = new Date(y, m - 1, d).getTime(), to = new Date(y, m - 1, d + 1).getTime();
+  return from < to ? { from, to, days: [...new Set([from, to - 1].map((t) => new Date(t).toISOString().slice(0, 10)))] } : null;
+}
+const inDay = (lists, { from, to }) => lists.flat().filter((fx) => { const t = (fx?.fixture?.timestamp || 0) * 1000 || Date.parse(fx?.fixture?.date); return t >= from && t < to; }).sort((a, b) => a.fixture.timestamp - b.fixture.timestamp);
+export async function getFixturesByDate(date) {
+  const day = localDay(date);
+  return day ? inDay(await Promise.all(day.days.map((utc) => fetchFootball("fixtures", { date: utc }))), day) : fetchFootball("fixtures", { date, timezone: userTimezone() });
+}
+export function peekFixturesByDate(date) {
+  const day = localDay(date), lists = day ? day.days.map((utc) => peekFootball("fixtures", { date: utc })) : [peekFootball("fixtures", { date, timezone: userTimezone() })];
+  return lists.every(Array.isArray) ? (day ? inDay(lists, day) : lists[0]) : null;
+}
 export const getFixtureById = (id) => fetchFootball("fixtures", { id });
 export const getFixtureEvents = (fixture) => fetchFootball("fixtures/events", { fixture });
 export const getFixtureLineups = (fixture) => fetchFootball("fixtures/lineups", { fixture });

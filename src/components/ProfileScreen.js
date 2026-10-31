@@ -24,7 +24,7 @@ export function ProfileScreen({isVip,coins,favoritesCount,onOpenFavorites,onRequ
   h("section",{className:"premium-panel"},[
    h("button",{className:"premium-row",onClick:onRequestUpgrade},[
     h("span",{className:"premium-icon"},[h("i",{"data-lucide":"gem"})]),
-    h("span",{className:"premium-copy"},[text("strong",{},isVip?"Manage Premium":"Upgrade to Premium"),text("small",{},isVip?"Your premium access is active":"Unlock advanced match intelligence")]),
+    h("span",{className:"premium-copy"},[text("strong",{},isVip?"Manage Premium":"Upgrade to Premium"),text("small",{},isVip?"Your premium access is active":"Unlock every prediction")]),
     h("i",{className:"profile-chevron","data-lucide":"chevron-right"})
    ]),
    h("button",{className:"premium-row coins-row",onClick:onOpenCoins},[

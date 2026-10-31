@@ -227,4 +227,11 @@ await test("the app opens the same addresses: /livescores[/date] is Home, /predi
 await test("SEO_SHOW_PICKS is off unless switched on (the pick is what Premium sells)", () => {
   assert.match(fs.readFileSync(path.join(root, "api/_seoPages.js"), "utf8"), /env\("SEO_SHOW_PICKS"\) === "1"/);
 });
+
+await test("copy reads like a person wrote it: no marketing filler in the text people and search engines read", () => {
+  const files = ["index.html", "manifest.webmanifest", "src/seoCore.js", "src/seoEntities.js", "api/_seoPages.js", "src/legalContent.js", "src/data/mockData.js",
+    ...fs.readdirSync(path.join(root, "src/components")).map((f) => "src/components/" + f)];
+  const banned = /match intelligence|premium signals?\b|full signal|sharper signals|one calm|focused experience|hub for the|built for clarity|deserve your attention|one tap away|personalise Scoutwave|football data from every/i;
+  for (const f of files) { const hit = fs.readFileSync(path.join(root, f), "utf8").match(banned); assert.ok(!hit, `${f}: "${hit && hit[0]}"`); }
+});
 console.log(`\n${passed} tests passed`);

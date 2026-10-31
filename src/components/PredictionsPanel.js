@@ -13,7 +13,7 @@ export function PredictionsPanel({ match, isUnlocked, coins, onRequestUpgrade, o
         ? h("div", { className: "prediction-result" }, [text("strong", {}, match.winner), text("span", { className: "confidence" }, match.confidence + "% confidence")])
         : h("div", { className: "prediction-locked" }, [
             text("strong", { className: "prediction-blurred" }, match.winner),
-            text("p", {}, "Unlock the full signal to reveal the predicted winner."),
+            text("p", {}, "Unlock this prediction to see the predicted winner."),
             h("div", { className: "prediction-actions" }, [
               h("button", { className: "primary-button", onClick: onRequestUpgrade }, [h("i", { "data-lucide": "gem" }), text("span", {}, "Unlock with VIP")]),
               h("button", { className: "secondary-button", disabled: !canAfford, onClick: canAfford ? onUnlockWithCoins : null }, [h("i", { "data-lucide": "coins" }), text("span", {}, "Use " + UNLOCK_COST + " coins")]),

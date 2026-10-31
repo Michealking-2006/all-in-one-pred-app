@@ -7,7 +7,7 @@ import { safeMessage } from "../utils/errors.js";
 const PREFS = [
   ["kickoff","Match kickoff","Get notified when a followed match starts.","bell"],
   ["goals","Goal alerts","Stay updated when the score changes.","trophy"],
-  ["vipTips","New VIP tips","Know when new premium signals are published.","sparkles"],
+  ["vipTips","New VIP tips","Know when new predictions are published.","sparkles"],
   ["favourites","Favourite team updates","Updates from clubs you follow.","star"],
   ["priceDrops","Odds price drops","Alerts for tracked market movement.","trending-down"]
 ];
@@ -72,7 +72,7 @@ export function NotificationsScreen({prefs,onTogglePref,onBack}) {
   h("section",{className:"settings-intro"},[
    text("span",{className:"section-kicker"},"Alerts"),
    text("h1",{},"Stay in the loop."),
-   text("p",{},"Choose the moments that deserve your attention.")
+   text("p",{},"Choose which alerts you get.")
   ]),
   pushCard(),
   h("section",{className:"settings-list card"},PREFS.map((def)=>settingsRow(def,prefs,onTogglePref))),

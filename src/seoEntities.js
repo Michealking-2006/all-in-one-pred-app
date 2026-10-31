@@ -64,8 +64,8 @@ export function metaForDay(kind, day, path) {
   const nice = prettyDay(day), short = new Date(day + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
   const cut = (t) => (t.length <= 70 ? t : t.slice(0, 69).replace(/\s+\S*$/, "") + "\u2026");
   return kind === "livescores"
-    ? { path, kind: "page", title: cut(`Football Livescores & Results for ${short} | ${SITE_NAME}`), description: `Football scores and results for ${nice}: every match from the major leagues and cups, with goals, lineups and match stats.` }
-    : { path, kind: "page", title: cut(`Football Predictions for ${short}: Tips & Previews | ${SITE_NAME}`), description: `Football predictions for ${nice}: match previews, model confidence and kick-off times for every major league, from a model graded after every game.` };
+    ? { path, kind: "page", title: cut(`Football Livescores & Results for ${short} | ${SITE_NAME}`), description: `Football scores and results for ${nice}, with goals, lineups and match stats for every match.` }
+    : { path, kind: "page", title: cut(`Football Predictions for ${short}: Tips & Previews | ${SITE_NAME}`), description: `Football predictions for ${nice} from our own model, with kick-off times and how confident it is in each match.` };
 }
 
 // ---------------------------------------------------------------------------

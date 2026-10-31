@@ -100,6 +100,40 @@ function providerErrorMessage(errors) {
     .join("; ");
 }
 
+const inflight = new Map(); // endpoint + query -> the provider request already under way on this instance
+
+// One provider request, turned into what we send back: { status, cache, body }.
+async function ask(apiKey, endpoint, params, settled) {
+  const response = await fetch(API_BASE + "/" + endpoint + (params.toString() ? "?" + params : ""), {
+    headers: { "x-apisports-key": apiKey, Accept: "application/json" },
+  });
+
+  const data = await response.json().catch(() => null);
+  // Every request that reaches here used one provider call (edge-cached answers never get here).
+  await recordUsage("proxy", endpoint, 1, !response.ok || (data?.errors && Object.keys(data.errors).length) ? 1 : 0);
+
+  if (data?.errors && Object.keys(data.errors).length) {
+    const message = providerErrorMessage(data.errors);
+    const rateLimited = /\brequests\b|rate.?limit|request limit|quota|too many/i.test(message);
+    // When the limit is hit every visitor would otherwise hit the provider again; let the edge answer for a minute.
+    return {
+      status: rateLimited ? 429 : 502,
+      cache: rateLimited ? "public, s-maxage=60" : null,
+      body: { error: message, code: rateLimited ? "FOOTBALL_API_RATE_LIMIT" : "FOOTBALL_API_PROVIDER_ERROR", details: data.errors },
+    };
+  }
+
+  if (!response.ok) {
+    console.error("Football data provider answered HTTP", response.status);
+    return { status: response.status, cache: null, body: { error: "Football data is unavailable right now.", code: "FOOTBALL_API_HTTP_ERROR" } };
+  }
+
+  const ttl = ttlFor(endpoint, Object.fromEntries(params), data?.response, Date.now(), settled);
+  // Pass `response` through untouched: it is an array for most endpoints but a
+  // single object for teams/statistics (flattening it to [] hid team stats).
+  return { status: 200, cache: "public, s-maxage=" + ttl + ", stale-while-revalidate=" + Math.min(ttl * 4, 7 * DAY), body: data?.response ?? [] };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -135,37 +169,15 @@ export default async function handler(req, res) {
     }
   }
 
+  const key = endpoint + "?" + params.toString() + (req.query?.settled === "1" ? "&settled" : "");
   try {
-    const response = await fetch(API_BASE + "/" + endpoint + (params.toString() ? "?" + params : ""), {
-      headers: { "x-apisports-key": apiKey, Accept: "application/json" },
-    });
-
-    const data = await response.json().catch(() => null);
-    // Every request that reaches here used one provider call (edge-cached answers never get here).
-    await recordUsage("proxy", endpoint, 1, !response.ok || (data?.errors && Object.keys(data.errors).length) ? 1 : 0);
-
-    if (data?.errors && Object.keys(data.errors).length) {
-      const message = providerErrorMessage(data.errors);
-      const rateLimited = /\brequests\b|rate.?limit|request limit|quota|too many/i.test(message);
-      // When the limit is hit every visitor would otherwise hit the provider again; let the edge answer for a minute.
-      if (rateLimited) res.setHeader("Cache-Control", "public, s-maxage=60");
-      return res.status(rateLimited ? 429 : 502).json({
-        error: message,
-        code: rateLimited ? "FOOTBALL_API_RATE_LIMIT" : "FOOTBALL_API_PROVIDER_ERROR",
-        details: data.errors,
-      });
-    }
-
-    if (!response.ok) {
-      console.error("Football data provider answered HTTP", response.status);
-      return res.status(response.status).json({ error: "Football data is unavailable right now.", code: "FOOTBALL_API_HTTP_ERROR" });
-    }
-
-    const ttl = ttlFor(endpoint, Object.fromEntries(params), data?.response, Date.now(), req.query?.settled === "1");
-    res.setHeader("Cache-Control", "public, s-maxage=" + ttl + ", stale-while-revalidate=" + Math.min(ttl * 4, 7 * DAY));
-    // Pass `response` through untouched: it is an array for most endpoints but a
-    // single object for teams/statistics (flattening it to [] hid team stats).
-    return res.status(200).json(data?.response ?? []);
+    // Many visitors can ask for the same thing in the same second, for example when a cached answer has just
+    // expired. This server instance asks the provider once and gives everyone that answer.
+    let job = inflight.get(key);
+    if (!job) { job = ask(apiKey, endpoint, params, req.query?.settled === "1").finally(() => inflight.delete(key)); inflight.set(key, job); }
+    const answer = await job;
+    if (answer.cache) res.setHeader("Cache-Control", answer.cache);
+    return res.status(answer.status).json(answer.body);
   } catch (error) {
     console.error("Football API proxy error:", error);
     return res.status(502).json({

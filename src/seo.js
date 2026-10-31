@@ -1,7 +1,7 @@
 // Applies per-page SEO in the browser: title, description, canonical, robots,
 // Open Graph / Twitter tags and JSON-LD. Pages with data (match, league) call
 // setPageSeo() once it loads; everything else gets sensible defaults from the URL.
-import { metaForPath, jsonLdSite, DEFAULT_DESCRIPTION, KEYWORDS, SITE_NAME } from "./seoCore.js";
+import { metaForPath, jsonLdSite, DEFAULT_DESCRIPTION, SITE_NAME } from "./seoCore.js";
 
 function upsertMeta(attr, key, content) {
   let el = document.head.querySelector(`meta[${attr}="${key}"]`);
@@ -41,7 +41,6 @@ export function setPageSeo({ title, description, noindex = false, jsonLd = null,
   const finalDescription = description || DEFAULT_DESCRIPTION;
   document.title = finalTitle;
   upsertMeta("name", "description", finalDescription);
-  upsertMeta("name", "keywords", KEYWORDS);
   upsertMeta("name", "robots", noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1");
   upsertLink("canonical", url || origin + "/");
   upsertMeta("property", "og:site_name", SITE_NAME);

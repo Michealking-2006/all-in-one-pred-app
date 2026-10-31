@@ -73,7 +73,7 @@ export function PredictionRow(prediction, fx, { locked = false } = {}) {
     ]),
     text("strong", { className: "vip-match" }, `${fx.teams?.home?.name} vs ${fx.teams?.away?.name}`),
     locked
-      ? h("div", {}, [h("div", { className: "vip-lock" }, [h("i", { "data-lucide": "lock" }), text("span", {}, "Premium signal locked")]), predictionLock(fx.fixture?.id)])
+      ? h("div", {}, [h("div", { className: "vip-lock" }, [h("i", { "data-lucide": "lock" }), text("span", {}, "Prediction locked")]), predictionLock(fx.fixture?.id)])
       : h("div", {}, [
           h("div", { className: "vip-pick" }, [text("span", { className: "eyebrow" }, "Model pick"), text("strong", {}, pickLabel(prediction, fx)), text("span", { className: "confidence" }, prediction.pickProb + "% \u00b7 xG " + prediction.xg.home.toFixed(1) + "\u2013" + prediction.xg.away.toFixed(1))]),
           bar(prediction.probs, fx),

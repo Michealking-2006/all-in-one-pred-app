@@ -3,7 +3,6 @@ import { arrangeRows, layoutSide, kitFor, hexOrNull, shortName } from "../utils/
 import { buildSlug } from "../utils/slug.js";
 import { formatRating, ratingTier } from "../utils/ratings.js";
 import { navigate } from "../router.js";
-import { showPhotos } from "../perf.js";
 
 // ---------------------------------------------------------------------------
 // Events -> per-player badges (goals, cards, substituted off / on)
@@ -104,8 +103,18 @@ function subBadge(info, spot, showSub) {
 
 // The player's face on the pitch. The lineup feed has no picture, but the provider serves every player's photo at
 // a fixed address by id; a rated player's own photo is used when we have it. Until it loads (or when it can't:
-// no photo, slow phone, offline) the numbered shirt shows exactly as before, so a player is never blank.
+// no photo, offline) the numbered shirt shows, so a player is never blank. The photo is NOT lazy-loaded: it sits
+// hidden (display:none) until it has loaded, and browsers never load a lazy image that isn't displayed, so the
+// shirt would have stayed forever. These are 22 small files; they are fetched with the page.
 export const playerPhoto = (id) => (Number.isInteger(id) && id > 0 ? "https://media.api-sports.io/football/players/" + id + ".png" : "");
+
+// A face that replaces the number once it has loaded (class "photo-ok" on the host); a missing or blank picture is dropped.
+function facePhoto(src, className, host) {
+  const img = h("img", { className, src, alt: "", decoding: "async", referrerpolicy: "no-referrer" });
+  img.addEventListener("load", () => { if (img.naturalWidth > 1) host().classList.add("photo-ok"); else img.remove(); });
+  img.addEventListener("error", () => img.remove());
+  return img;
+}
 
 function marker({ player, x, y, span }, kit, gkKit, summary, ratings, showSub) {
   const info = summary.players.get(player.id);
@@ -115,12 +124,7 @@ function marker({ player, x, y, span }, kit, gkKit, summary, ratings, showSub) {
   const src = rated?.photo || playerPhoto(player.id);
   const shirt = h("span", { className: "pitch-shirt", style: { background: colors.primary, color: colors.number, boxShadow: "inset 0 0 0 2px " + colors.border } }, [
     text("b", {}, player.number ?? ""),
-    src && showPhotos() ? (() => {
-      const img = h("img", { className: "pitch-photo", src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
-      img.addEventListener("load", () => { if (img.naturalWidth > 1) shirt.classList.add("photo-ok"); else img.remove(); });
-      img.addEventListener("error", () => img.remove());
-      return img;
-    })() : null,
+    src ? facePhoto(src, "pitch-photo", () => shirt) : null,
     text("i", { className: "pitch-num", style: { background: colors.primary, color: colors.number } }, player.number ?? ""),
     info?.goals ? badge("goal", info.goals) : null,
     info?.red ? badge("red") : info?.yellow ? badge("yellow") : null,
@@ -177,8 +181,12 @@ function benchCard(entry, summary, ratings) {
     subs.length ? text("div", { className: "section-kicker bench-kicker" }, "Substitutes") : null,
     ...subs.slice(0, 15).map((player) => {
       const onAt = summary.cameOn.get(player.id);
+      const face = h("span", { className: "bench-avatar" });
+      face.append(text("span", { className: "mono bench-number" }, player.number ?? "\u2013"));
+      const photo = ratings?.get(player.id)?.photo || playerPhoto(player.id);
+      if (photo) face.append(facePhoto(photo, "bench-photo", () => face));
       return h("button", { type: "button", className: "bench-row", onClick: () => openPlayer(player), "aria-label": player.name + (onAt ? ", came on at " + onAt + "'" : "") + (ratings?.get(player.id) ? ", rated " + formatRating(ratings.get(player.id).rating) : "") }, [
-        text("span", { className: "mono bench-number" }, player.number ?? "\u2013"),
+        face,
         text("span", { className: "bench-name" }, player.name || "Unknown"),
         h("span", { className: "bench-meta" }, [
           onAt ? text("span", { className: "bench-tag" }, "On " + onAt + "'") : null,

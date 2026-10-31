@@ -4,38 +4,36 @@
 export const SITE_NAME = "Scoutwave";
 export const DEFAULT_TITLE = "Scoutwave: Live Football Scores, Predictions & Football Data";
 export const DEFAULT_DESCRIPTION =
-  "Live football scores, fixtures, league tables, lineups, match stats, odds and football data from every major competition. Scoutwave is your livescore hub for the Premier League, La Liga, Serie A, Champions League and more.";
-export const KEYWORDS =
-  "livescore, live football scores, football live score, soccer scores, football predictions, football data, football fixtures, league tables, match stats, lineups, football odds, Premier League, Champions League";
+  "Live football scores, fixtures, tables, lineups and odds for the Premier League, La Liga, Serie A, the Champions League and more, plus our own match predictions.";
 
 export const PAGES = {
   "/": { title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION },
   "/leagues": {
     title: "Football Leagues & Competitions: Tables, Fixtures, Results | Scoutwave",
-    description: "Browse football leagues and cups worldwide. Live tables, fixtures, results, top scorers and football data for every competition.",
+    description: "Tables, fixtures, results and top scorers for football leagues and cups around the world.",
   },
   "/news": {
     title: "Football News: Latest Headlines & Transfer Stories | Scoutwave",
-    description: "The latest football news: match reports, transfer stories and headlines from across the game, with links to the full stories.",
+    description: "Football headlines and transfer news. Every story links to the original article.",
   },
   "/vip": {
     title: "Football Predictions & VIP Tips | Scoutwave",
-    description: "Football predictions and VIP tips with tracked accuracy, odds comparison and match intelligence from Scoutwave.",
+    description: "Football predictions from Scoutwave's own model, with every result tracked and odds compared.",
   },
   "/livescores": {
     title: "Livescores: Live Football Scores, Results & Fixtures | Scoutwave",
-    description: "Football livescores: every live match, today's results and fixtures from the Premier League, La Liga, Serie A, Champions League and more.",
+    description: "Live football scores, today's results and fixtures from the Premier League, La Liga, Serie A, the Champions League and more.",
   },
   "/predictions": {
     title: "Football Predictions Today: Match Previews & Tips | Scoutwave",
-    description: "Football predictions for today's matches from a model graded after every game. Match previews, model confidence and kick-off times.",
+    description: "Predictions for today's football matches from our own model, checked against the final score after every game.",
   },
   "/search": {
     title: "Search Football Matches, Teams, Leagues & Players | Scoutwave",
-    description: "Search live football scores, teams, leagues, venues and players in one place.",
+    description: "Search for football teams, leagues, stadiums, players and today's matches.",
   },
-  "/about": { title: "About Scoutwave: Live Football Scores & Data", description: "Scoutwave brings live football scores, predictions and football data together in one fast app." },
-  "/help-centre": { title: "Help Centre | Scoutwave", description: "Answers to common questions about Scoutwave live scores, notifications, themes and Premium." },
+  "/about": { title: "About Scoutwave: Live Football Scores & Data", description: "Live football scores, stats and odds, plus match predictions from our own model." },
+  "/help-centre": { title: "Help Centre | Scoutwave", description: "Answers about live scores, notifications, themes and Premium." },
   "/contact-us": { title: "Contact Scoutwave", description: "Get in touch with the Scoutwave team." },
   "/privacy-policy": { title: "Privacy Policy | Scoutwave", description: "How Scoutwave handles your data." },
   "/terms-of-use": { title: "Terms of Use | Scoutwave", description: "The terms for using Scoutwave." },
@@ -67,7 +65,7 @@ export function metaForPath(pathname) {
   if (/^(livescores|predictions)$/.test(kind) && slug) return { ...PAGES["/" + kind], path, kind: "page" };
   const name = nameFromSlug(slug);
   if (kind === "league" && name) {
-    return { path, kind, title: `${name}: Live Scores, Table, Fixtures & Top Scorers | ${SITE_NAME}`, description: `${name} live scores, league table, fixtures, results and top scorers. Football data for ${name} updated through the season.` };
+    return { path, kind, title: `${name}: Live Scores, Table, Fixtures & Top Scorers | ${SITE_NAME}`, description: `${name} live scores, league table, fixtures, results and top scorers.` };
   }
   if (kind === "club" && name) {
     return { path, kind, title: `${name}: Fixtures, Results, Squad & Stats | ${SITE_NAME}`, description: `${name} latest results, upcoming fixtures, squad, form and statistics.` };
@@ -106,7 +104,7 @@ export function metaForFixture(fx, path) {
   let title, description;
   if (LIVE.has(status)) {
     title = `${home} ${hasScore ? `${gh}-${ga}` : "vs"} ${away} Live Score | ${SITE_NAME}`;
-    description = `${home} vs ${away} live score${hasScore ? ` (${gh}-${ga})` : ""} in the ${league}. Follow goals, lineups, player ratings and match stats as they happen.`;
+    description = `${home} vs ${away} live score${hasScore ? ` (${gh}-${ga})` : ""} in the ${league}. Goals, lineups, player ratings and match stats.`;
   } else if (FINISHED.has(status)) {
     title = `${home} ${hasScore ? `${gh}-${ga}` : "vs"} ${away}: Final Score, Lineups & Stats | ${SITE_NAME}`;
     description = `${home} ${hasScore ? `${gh}-${ga}` : "vs"} ${away} full-time result in the ${league}${when ? ` (${when})` : ""}. Goal scorers, lineups, player ratings and match statistics.`;
@@ -124,7 +122,7 @@ export function metaForLeague(entry, path) {
   return {
     path, kind: "league",
     title: `${name}${country && country !== "World" ? ` (${country})` : ""}: Live Scores, Table, Fixtures & Top Scorers | ${SITE_NAME}`,
-    description: trim(`${name} live scores, league table, fixtures by round, results, top scorers and football data${country ? ` for ${country}` : ""}.`, 300),
+    description: trim(`${name} live scores, league table, fixtures by round, results and top scorers${country ? ` for ${country}` : ""}.`, 300),
   };
 }
 

@@ -4,8 +4,8 @@ import { navigate, goBack } from "../router.js";
 import { showToast } from "../toast.js";
 
 const MODE_COPY = {
-  login: { title: "Welcome back", subtitle: "Sign in to sync your favourites and personalise Scoutwave.", submit: "Sign in" },
-  signup: { title: "Create your account", subtitle: "Follow clubs, save matches and keep your football profile with you.", submit: "Create account" },
+  login: { title: "Welcome back", subtitle: "Sign in to keep your favourites across devices.", submit: "Sign in" },
+  signup: { title: "Create your account", subtitle: "Follow clubs and save matches. They're waiting when you sign in.", submit: "Create account" },
   reset: { title: "Reset password", subtitle: "Enter your email and we'll send you a link to choose a new password.", submit: "Send reset link" },
   update: { title: "New password", subtitle: "Choose a strong password you haven't used before.", submit: "Update password" },
 };

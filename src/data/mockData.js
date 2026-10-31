@@ -168,10 +168,10 @@ export const newsArticles = [
 ];
 
 export const faqItems = [
-  { q: "Where do match data and predictions come from?", a: "Fixtures, scores, statistics, odds and predictions are provided by API-Football. Scoutwave does not yet publish its own tracked results." },
+  { q: "Where do match data and predictions come from?", a: "Fixtures, scores, lineups, statistics and odds come from API-Football. Predictions come from Scoutwave's own model, which saves each one before kick-off and tracks how it did." },
   { q: "What's the difference between VIP and coins?", a: "VIP unlocks every locked tip for the length of your subscription. Coins unlock one specific tip's result without subscribing." },
-  { q: "Can I get a refund on a coin unlock?", a: "Coin unlocks are final once the locked content is revealed, the same way a paid preview works elsewhere." },
-  { q: "Why is a match missing odds from a bookmaker?", a: "We only show a bookmaker once they've published a firm price for that market — some markets open later than others." },
+  { q: "Can I get a refund on a coin unlock?", a: "Once a tip is revealed it can't be taken back, so coin unlocks are final." },
+  { q: "Why is a match missing odds from a bookmaker?", a: "We only show a bookmaker once they've published a firm price for that market. Some markets open later than others." },
 ];
 
 export const languages = ["English", "Español", "Français", "Português", "Deutsch", "Italiano"];

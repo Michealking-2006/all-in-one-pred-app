@@ -12,14 +12,44 @@ globalThis.fetch = async (url) => { urls.push(String(url)); return new Response(
 const api = await import("../src/api/footballApi.js");
 const asked = () => urls.map((u) => new URL(u, "http://x").searchParams);
 
-await test("only the by-date list carries the time zone; every other fixtures request is the same for the whole world", async () => {
+await test("no fixtures request carries a time zone: every answer is the same URL for the whole world", async () => {
   urls.length = 0;
   await api.getFixturesByDate("2026-10-29"); await api.getFixtureById(5); await api.getTeamFixtures(33, { last: 8 });
   await api.getUpcomingFixtures(39, 2026); await api.getVenueFixtures(556, { next: 5 }); await api.getLeagueFixtures(39, 2026, { round: "x" });
   await api.getTeamSeasonFixtures(33, 2025); await api.getFixturesByIds([1, 2]);
   const q = asked();
-  assert.ok(q[0].has("timezone"), "the by-date list keeps it");
-  for (const p of q.slice(1)) assert.ok(!p.has("timezone"), "no time zone: " + p.toString());
+  for (const p of q) assert.ok(!p.has("timezone"), "no time zone: " + p.toString()); // the by-date list asks for UTC days now
+});
+
+await test("the by-date list asks for UTC days (shared by every time zone) and keeps the matches on the user's local day", async () => {
+  const fx = (id, iso) => ({ fixture: { id, date: iso, timestamp: Date.parse(iso) / 1000, status: { short: "NS" } } });
+  const feed = { "2026-10-28": [fx(1, "2026-10-28T14:00:00Z"), fx(2, "2026-10-28T16:00:00Z")], "2026-10-29": [fx(4, "2026-10-29T16:00:00Z"), fx(3, "2026-10-29T10:00:00Z")] };
+  const seen = [];
+  globalThis.fetch = async (url) => { const p = new URL(url, "http://x").searchParams; seen.push(p); return new Response(JSON.stringify(feed[p.get("date")] || []), { status: 200 }); };
+  api.clearFootballCache({ all: true });
+  process.env.TZ = "Asia/Tokyo"; // UTC+9: the local day 29 October is 15:00 on the 28th to 15:00 on the 29th, UTC
+  const rows = await api.getFixturesByDate("2026-10-29");
+  assert.deepEqual(rows.map((r) => r.fixture.id), [2, 3], "only matches on the local day, in kick-off order");
+  assert.deepEqual(seen.map((p) => p.get("date")).sort(), ["2026-10-28", "2026-10-29"]);
+  assert.ok(seen.every((p) => !p.has("timezone")), "two UTC days, no time zone");
+  seen.length = 0; assert.deepEqual((await api.getFixturesByDate("2026-10-29")).map((r) => r.fixture.id), [2, 3]); assert.equal(seen.length, 0, "second ask is from the cache");
+  assert.deepEqual(api.peekFixturesByDate("2026-10-29").map((r) => r.fixture.id), [2, 3]);
+  assert.equal(api.peekFixturesByDate("2026-10-27"), null, "peek is empty when nothing was fetched");
+  process.env.TZ = "UTC"; api.clearFootballCache({ all: true }); seen.length = 0;
+  assert.deepEqual((await api.getFixturesByDate("2026-10-29")).map((r) => r.fixture.id), [3, 4]);
+  assert.equal(seen.length, 1, "in UTC one list is the whole day");
+  globalThis.fetch = async (url) => { urls.push(String(url)); return new Response("[]", { status: 200 }); };
+});
+await test("the proxy asks the provider once when many visitors ask for the same thing at the same moment", async () => {
+  process.env.SCOUTWAVE_FOOTBALL_API_KEY = "test-key";
+  const { default: proxy } = await import("../api/football.js");
+  let providerCalls = 0;
+  globalThis.fetch = async () => { providerCalls++; await new Promise((r) => setTimeout(r, 30)); return new Response(JSON.stringify({ response: [{ fixture: { id: 1, status: { short: "NS" }, date: "2026-10-29T18:00:00Z" } }], errors: [] }), { status: 200 }); };
+  const call = () => new Promise((resolve) => { const out = { headers: {} }; proxy({ method: "GET", query: { endpoint: "fixtures", date: "2026-10-29" } }, { setHeader: (k, v) => (out.headers[k] = v), status(c) { out.status = c; return this; }, json(b) { out.body = b; resolve(out); } }); });
+  const all = await Promise.all([call(), call(), call(), call(), call()]);
+  assert.equal(providerCalls, 1); assert.ok(all.every((r) => r.status === 200 && r.body.length === 1 && /s-maxage=/.test(r.headers["Cache-Control"])));
+  await call(); assert.equal(providerCalls, 2, "a later request asks again (the edge cache, not this map, keeps answers)");
+  globalThis.fetch = async (url) => { urls.push(String(url)); return new Response("[]", { status: 200 }); };
 });
 await test("pull-to-refresh forgets live data only: a player, a venue or a squad is not re-fetched", async () => {
   urls.length = 0;

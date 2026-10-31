@@ -7,8 +7,8 @@ export function AboutScreen({onBack}){return h("main",{className:"screen info-sc
  h("section",{className:"about-hero"},[
   h("img",{src:"/src/assets/scoutwave-wordmark.png",alt:"Scoutwave",className:"about-logo"}),
   text("span",{className:"section-kicker"},"Scoutwave"),
-  text("h1",{},"Football intelligence, built for clarity."),
-  text("p",{},"Livescores, statistics, match intelligence and tracked prediction signals in one focused experience.")
+  text("h1",{},"Football scores and predictions."),
+  text("p",{},"Live scores, stats and odds, plus predictions from our own model, with every result tracked.")
  ]),
  h("article",{className:"legal-copy card"},renderSections(ABOUT_SECTIONS)),
  h("section",{className:"info-card card"},[text("div",{className:"section-kicker"},"Version"),text("strong",{},APP_VERSION+" (prototype)")])

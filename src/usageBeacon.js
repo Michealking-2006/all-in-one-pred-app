@@ -2,7 +2,10 @@
 // and when the app is hidden, so the admin Usage page can show cache hit rates.
 import { takeUsage } from "./api/footballApi.js";
 
-function send() {
+let last = 0;
+function send(gap) {
+  if (Date.now() - last < gap) return; // counts keep adding up, so reports can be sparse
+  last = Date.now();
   const u = takeUsage();
   if (u.memory + u.stored + u.network === 0) return;
   const body = JSON.stringify(u);
@@ -13,6 +16,6 @@ function send() {
 }
 
 export function initUsageBeacon() {
-  document.addEventListener("visibilitychange", () => { if (document.hidden) send(); });
-  window.setInterval(() => { if (!document.hidden) send(); }, 5 * 60 * 1000);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) send(2 * 60 * 1000); });
+  window.setInterval(() => { if (!document.hidden) send(10 * 60 * 1000); }, 15 * 60 * 1000);
 }

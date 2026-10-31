@@ -5,7 +5,7 @@
 //   { notFound: true }                         a real 404 (the thing does not exist),
 //   { redirect: "/club/42-right-name" }        a 301 to the one correct address,
 //   null                                       "no data right now": the generic page is served and cached briefly.
-import { metaForPath, metaForFixture, metaForLeague, jsonLdSite, jsonLdFixture, normalizePath, KEYWORDS, SITE_NAME } from "../src/seoCore.js";
+import { metaForPath, metaForFixture, metaForLeague, jsonLdSite, jsonLdFixture, normalizePath, SITE_NAME } from "../src/seoCore.js";
 import { jsonLdTeam, jsonLdPerson, jsonLdVenue, jsonLdItemList, isKnownPath, breadcrumbs, isDaySlug, dayInWindow, prettyDay, shiftDay, metaForDay } from "../src/seoEntities.js";
 import { siteOrigin, esc, footballData, slugOf, currentSeasonYear, TOP_LEAGUES } from "./_site.js";
 import { env, sb, supabaseConfigured } from "./_admin.js";
@@ -44,7 +44,7 @@ async function buildHome(origin) {
     jsonLd: jsonLdSite(origin, { sameAs }),
     heading: "Live football scores, predictions and football data",
     cache: 300,
-    body: `<p>Follow live scores, fixtures, league tables, lineups, match statistics and odds from every major competition.</p>` +
+    body: `<p>Live scores, fixtures, league tables, lineups, match stats and odds for the major leagues and cups, plus our own match predictions.</p>` +
       `<h2>Competitions</h2>${list(TOP_LEAGUES.map(([id, name]) => link(`/league/${slugOf(id, name)}`, name)))}` +
       (fixtures.length ? `<h2>Today's matches</h2>${list(fixtures.map(fixtureLine))}` : "") +
       `<h2>More</h2>${list([link("/livescores", "Livescores: live football scores"), link("/predictions", "Football predictions today"), link("/leagues", "All leagues"), link("/news", "Football news")])}`,
@@ -125,8 +125,8 @@ async function buildDay(kind, day, path, origin, requestedPlain) {
       `${live ? `, ${live} live now` : ""}${done ? `, ${done} finished` : ""}${upcoming ? `, ${upcoming} still to play` : ""}.`
     : `No matches are listed for ${nice}.`;
   const intro = kind === "livescores"
-    ? `<p>${esc(summary)} Follow every score as it happens, with goals, lineups, player ratings and match statistics a tap away.</p>`
-    : `<p>${esc(summary)} Each match has a statistical prediction made before kick-off and graded afterwards, so the record is open to check. Predictions are estimates, not betting advice.</p>`;
+    ? `<p>${esc(summary)} Open a match for its goals, lineups, player ratings and stats.</p>`
+    : `<p>${esc(summary)} Each prediction is saved before kick-off and checked against the final score, so anyone can see how the model did. They are estimates, not betting advice.</p>`;
 
   const sections = groups.map((g) => {
     const items = g.fixtures.map((fx) => {
@@ -183,7 +183,7 @@ async function buildMatch(id, path, origin) {
         away?.id ? link(`/club/${slugOf(away.id, away.name)}`, away.name) : "",
       ].filter(Boolean)) +
       (goals.length ? `<h2>Goals</h2>${list(goals.map((e) => `${esc(e.time?.elapsed)}' ${esc(e.player?.name)} (${esc(e.team?.name)})`))}` : "") +
-      (upcoming ? `<h2>${esc(home?.name || "Home")} vs ${esc(away?.name || "Away")} prediction</h2><p>${esc(home?.name || "Home")} host ${esc(away?.name || "Away")} in the ${esc(fx.league?.name || "match")}${fx.fixture?.date ? `, kick-off ${esc(hhmm(fx.fixture.date))}` : ""}. ${predictionText(fx, stored) || "The model's prediction is made before kick-off and graded after the match."}</p>` : "") +
+      (upcoming ? `<h2>${esc(home?.name || "Home")} vs ${esc(away?.name || "Away")} prediction</h2><p>${esc(home?.name || "Home")} host ${esc(away?.name || "Away")} in the ${esc(fx.league?.name || "match")}${fx.fixture?.date ? `, kick-off ${esc(hhmm(fx.fixture.date))}` : ""}. ${predictionText(fx, stored) || "Our model saves its prediction before kick-off and checks it against the result afterwards."}</p>` : "") +
       `<h2>More</h2>${list(dayLinks)}`,
   };
 }
@@ -310,7 +310,6 @@ function shell({ meta, heading, body, jsonLd, origin, path, status = 200 }) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(meta.title)}</title>
 ${m("name", "description", meta.description)}
-${m("name", "keywords", KEYWORDS)}
 ${m("name", "robots", noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1")}
 ${status === 404 ? "" : `<link rel="canonical" href="${esc(url)}">`}
 <link rel="alternate" type="application/rss+xml" title="${SITE_NAME} football news" href="${esc(origin)}/feed.xml">

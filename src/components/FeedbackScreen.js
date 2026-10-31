@@ -12,7 +12,7 @@ export function FeedbackScreen({ onBack, authUser }) {
       placeholder: "Tell us what you think. What would make Scoutwave better for you?",
       submitLabel: "Send feedback",
       successTitle: "Thank you!",
-      successBody: "Your feedback helps shape what we build next.",
+      successBody: "We read all of it.",
       onDone: onBack,
     }),
   ]);

@@ -15,17 +15,17 @@ export function renderSections(sections) {
 
 export const ABOUT_SECTIONS = [
   { h: "Why Scoutwave exists", p: [
-    "Following football has become noisy. Scores sit in one app, statistics in another, news in a third, and predictions are often shouted by people who never show how often they are wrong. Scoutwave brings the useful parts together in one calm, fast place and tries to be honest about what the numbers can and cannot tell you.",
-    "We build for people who love the game and want context, not clutter: the live score, the lineup, the table, the form guide and a clear signal about what might happen next.",
+    "Football is spread over too many apps. Scores are in one, stats in another, news in a third, and tipsters rarely show how often they get it wrong. Scoutwave puts live scores, stats, news and our own predictions in one app, and shows how the predictions actually turn out.",
+    "It is made for people who follow the game closely: the score, the lineup, the table, recent form and a prediction for what happens next.",
   ] },
   { h: "What you can do in Scoutwave", ul: [
     "Follow livescores and fixtures across the major leagues and cups, with a day-by-day view of what is on.",
     "Open a match to see lineups, events, statistics, head-to-head history and a bookmaker odds comparison.",
     "Browse league tables, clubs, players and stadiums, and star the ones you care about as favourites.",
     "Read football news from many publishers in one feed, with links back to the original source.",
-    "See match intelligence and prediction signals, with a record of how past predictions turned out.",
+    "See our predictions for each match, with a record of how past ones turned out.",
     "Turn on notifications for kick-offs, goals and final whistles for the matches and clubs you follow.",
-    "Make the app yours with light and dark modes, club colours and animated themes.",
+    "Switch between light and dark, or pick your club's colours or an animated theme.",
   ] },
   { h: "How our predictions work", p: [
     "Scoutwave predictions come from our own statistical model, not from a third-party tipster. The model starts with league tables, using the goals each team scores and concedes at home and away to estimate the strength of its attack and defence. When a team has played only a few games, those estimates are blended toward the league average so a small sample cannot mislead.",
@@ -39,18 +39,18 @@ export const ABOUT_SECTIONS = [
     "Fixtures, live scores, lineups, statistics and standings come from a professional football data provider. News headlines come from a news data service and always link to the publisher that wrote them. To keep the app fast and respectful of your data allowance, we cache information for short periods, so a number on screen can occasionally lag behind the stadium. For anything that matters, such as a ticket or a bet placed elsewhere, check an official source.",
   ] },
   { h: "Premium and coins", p: [
-    "The core of Scoutwave is free. Premium unlocks the full prediction signals, the complete odds comparison, tracked accuracy by market, an exclusive animated theme and a verified badge on your profile. Premium is bought for a fixed period as a one-time payment. It never renews on its own, so there is nothing to cancel.",
+    "The core of Scoutwave is free. Premium unlocks every prediction in full, the complete odds comparison, tracked accuracy by market, an exclusive animated theme and a verified badge on your profile. Premium is bought for a fixed period as a one-time payment. It never renews on its own, so there is nothing to cancel.",
     "Coins are a lighter option. You can spend them to unlock the tip for a single match or to unlock a theme. Payments are handled by our payment provider, Polar, on its own secure checkout page.",
   ] },
   { h: "What we stand for", ul: [
-    "Clarity over noise: fewer, better numbers, shown simply.",
-    "Honesty about uncertainty: we show confidence levels and publish our record.",
-    "Privacy by default: no advertising trackers and no selling of personal data.",
-    "Speed and care: a light app that works well on ordinary phones and connections.",
-    "Independence: Scoutwave is not a bookmaker, takes no bets, and is not affiliated with or endorsed by any club, league or competition. Club names and crests belong to their owners.",
+    "Few numbers, clearly shown.",
+    "We show how sure the model is and publish its record.",
+    "No advertising trackers, and we don't sell personal data.",
+    "Light enough for ordinary phones and slow connections.",
+    "Scoutwave is not a bookmaker, takes no bets, and is not affiliated with or endorsed by any club, league or competition. Club names and crests belong to their owners.",
   ] },
   { h: "Get in touch", p: [
-    "Questions, bugs, ideas or a score that looks wrong? Write to " + SUPPORT_EMAIL + ", or use Contact us, Report an issue and Feedback from the Profile tab. Every message is read, and your feedback shapes what we build next.",
+    "Questions, bugs, ideas or a score that looks wrong? Write to " + SUPPORT_EMAIL + ", or use Contact us, Report an issue and Feedback from the Profile tab. We read every message.",
   ] },
 ];
 

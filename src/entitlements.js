@@ -10,7 +10,7 @@ import { getAccessToken } from "./api/supabase.js";
 import { REMOTE_EVENT, tipCostOverride } from "./remoteConfig.js";
 import { publicText } from "./utils/errors.js";
 
-const REFRESH_MS = 5 * 60 * 1000;
+const REFRESH_MS = 10 * 60 * 1000;
 export const serverMode = () => isFeatureOn("serverEntitlements") && !!store.getState().authUser;
 export const tipCost = () => tipCostOverride() ?? UNLOCK_COST;
 
