@@ -79,7 +79,7 @@ await test("fonts: the same stack before and after the app starts, no Apple-only
   const css = fs.readFileSync(path.join(root, "src/styles/theme.css"), "utf8"), boot = fs.readFileSync(path.join(root, "src/styles/boot.css"), "utf8");
   const stack = css.match(/--font-display:([^;]+);/)[1];
   assert.ok(boot.includes(stack), "boot.css uses the very same stack, so there is no font swap when the app appears");
-  assert.ok(!/SF Pro/.test(css + boot)); assert.match(stack, /system-ui,Roboto/);
+  assert.ok(!/SF Pro/.test(css + boot)); assert.match(stack, /system-ui,Roboto/); assert.match(stack, /BlinkMacSystemFont,'Inter',system-ui/);
   assert.match(css, /html\{[^}]*\btext-size-adjust:100%/); assert.match(boot, /text-size-adjust:100%/);
 });
 console.log(`\n${passed} tests passed`);

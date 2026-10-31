@@ -280,4 +280,30 @@ await test("forebet import: matches by names, flags late entries, rejects junk",
   assert.equal(saved[0].late, false); assert.deepEqual(saved[0].top_scores, ["2-0", "1-0", "2-1"]);
   globalThis.fetch = origGet;
 });
+
+// ---- safer pick: the likeliest of four high-probability markets, only at 80% or more, graded on its own
+await test("safer pick: the likeliest of home-or-draw, away-or-draw, over 1.5 and under 3.5, and only at 80% or more", () => {
+  const grid = (cells) => { const g = Array.from({ length: 9 }, () => Array(9).fill(0)); for (const [i, j, p] of cells) g[i][j] = p; return g; };
+  assert.deepEqual(m.safePickFromMatrix(grid([[1, 0, 0.5], [2, 0, 0.3], [0, 0, 0.2]])), { market: "1x", prob: 100 }, "the favourite never loses in any of these");
+  assert.deepEqual(m.safePickFromMatrix(grid([[0, 1, 0.45], [1, 1, 0.25], [2, 3, 0.15], [5, 0, 0.15]])), { market: "x2", prob: 85 });
+  assert.equal(m.safePickFromMatrix(grid([[0, 0, 0.25], [1, 0, 0.25], [0, 1, 0.25], [2, 2, 0.25]])), null, "75% is not enough");
+  assert.equal(m.safePickFromMatrix(grid([[1, 0, 0.1]])), null, "a grid that holds only a tenth of the probability says nothing");
+  assert.equal(m.safePickFromMatrix(null), null);
+  const real = predictFromTable({ homeId: 1, awayId: 2, rows: table });
+  assert.deepEqual(real.safe, m.safePickFromMatrix(real.matrix), "the model reports exactly what the stored grid gives, so grading agrees with what was shown");
+  if (real.safe) assert.ok(real.safe.prob >= 80);
+});
+await test("safer pick: each market is graded on the 90-minute score", () => {
+  assert.deepEqual([m.safeHit("1x", 1, 1), m.safeHit("1x", 0, 1), m.safeHit("x2", 0, 0), m.safeHit("x2", 2, 1)], [true, false, true, false]);
+  assert.deepEqual([m.safeHit("over15", 1, 0), m.safeHit("over15", 1, 1), m.safeHit("under35", 2, 2), m.safeHit("under35", 2, 1)], [false, true, false, true]);
+});
+await test("safer pick: grades carry it, and the summary counts and rates it separately from every other pick", () => {
+  const grid = Array.from({ length: 9 }, () => Array(9).fill(0)); grid[1][0] = 0.6; grid[2][0] = 0.3; grid[0][0] = 0.1;
+  const probs = { home: 0.9, draw: 0.1, away: 0, over25: 0.3, btts: 0.1 };
+  const won = m.gradeOne({ probs, matrix: grid }, 2, 0), lost = m.gradeOne({ probs, matrix: grid }, 0, 1), none = m.gradeOne({ probs, matrix: null }, 1, 1);
+  assert.deepEqual([won.safe.market, won.safe.hit, lost.safe.hit, none.safe], ["1x", true, false, null]);
+  const sum = m.summarizeGrades([won, won, lost, none]);
+  assert.equal(sum.safeN, 3); assert.equal(sum.safeAccuracy, 0.667); assert.equal(sum.n, 4);
+  assert.equal(m.summarizeGrades([none]).safeAccuracy, null);
+});
 console.log(`\n${passed} tests passed`);

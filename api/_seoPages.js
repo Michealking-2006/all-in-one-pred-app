@@ -6,7 +6,7 @@
 //   { redirect: "/club/42-right-name" }        a 301 to the one correct address,
 //   null                                       "no data right now": the generic page is served and cached briefly.
 import { metaForPath, metaForFixture, metaForLeague, jsonLdSite, jsonLdFixture, normalizePath, SITE_NAME } from "../src/seoCore.js";
-import { jsonLdTeam, jsonLdPerson, jsonLdVenue, jsonLdItemList, isKnownPath, breadcrumbs, isDaySlug, dayInWindow, prettyDay, shiftDay, metaForDay } from "../src/seoEntities.js";
+import { jsonLdTeam, jsonLdPerson, jsonLdVenue, jsonLdItemList, isKnownPath, breadcrumbs, isDaySlug, dayInWindow, prettyDay, shiftDay, metaForDay, metaForLeaguePredictions } from "../src/seoEntities.js";
 import { siteOrigin, esc, footballData, slugOf, currentSeasonYear, TOP_LEAGUES } from "./_site.js";
 import { env, sb, supabaseConfigured } from "./_admin.js";
 import { q } from "./_query.js";
@@ -85,23 +85,48 @@ async function storedPredictions(ids) {
       const id = Number(r.fixture_id), at = +new Date(r.made_at);
       if (made.has(id) && made.get(id) <= at) continue;
       made.set(id, at);
-      out.set(id, { confidence: r.prediction?.confidence || null, pick: r.prediction?.pick || null, pickProb: r.prediction?.pickProb ?? null });
+      const p = r.prediction || {};
+      out.set(id, { confidence: p.confidence || null, pick: p.pick || null, pickProb: p.pickProb ?? null, safe: p.safe || null, probs: p.probs || null, likelyScore: p.likelyScore || null, over25: p.over25 ?? null });
     }
   } catch { /* predictions are an extra: the page is served without them */ }
   return out;
 }
 
-// What the public sees of a pick. By default only how confident the model is (what a free account sees in the app);
-// SEO_SHOW_PICKS=1 also names the likeliest result, which is a business choice: it makes the pages more useful to
-// search engines and visitors, and the pick itself is what Premium sells.
-const showPicks = () => env("SEO_SHOW_PICKS") === "1";
+// What the public sees of a prediction. By default the whole of it, laid out like a prediction table (chances, pick,
+// likely score, goals), because a page that only says "confidence: high" gives searchers and search engines nothing.
+// SEO_SHOW_PICKS=0 turns it back to confidence only, if you would rather keep the picks for Premium.
+const showPicks = () => env("SEO_SHOW_PICKS") !== "0";
+const SIGN = { home: "1", draw: "X", away: "2" };
+const SAFE_SHORT = { "1x": "1X", x2: "X2", over15: "Over 1.5", under35: "Under 3.5" };
+const DASH = "\u2013";
+
+// A prediction table for a list of fixtures: 1 = home win, X = draw, 2 = away win, with the model's chances, its
+// pick, the likeliest score, the goals call, a safer pick when there is one and, once the match is over, how it went.
+function predictionTable(fixtures, predictions) {
+  const rows = fixtures.map((fx) => {
+    const p = predictions.get(Number(fx.fixture.id)), status = fx.fixture?.status?.short;
+    const over = FINISHED.has(status) && fx.goals?.home != null;
+    const outcome = over ? (fx.goals.home > fx.goals.away ? "home" : fx.goals.home < fx.goals.away ? "away" : "draw") : null;
+    const result = over ? `${fx.goals.home}-${fx.goals.away}${p?.pick ? (outcome === p.pick ? " (pick correct)" : " (pick missed)") : ""}` : LIVE_CODES.has(status) ? "live" : "";
+    const c = (v) => `<td>${v}</td>`;
+    const name = `${fx.teams?.home?.name || "Home"} vs ${fx.teams?.away?.name || "Away"}`;
+    const goals = p?.over25 == null ? DASH : `${p.over25 >= 50 ? "Over" : "Under"} 2.5 (${Math.max(p.over25, 100 - p.over25)}%)`;
+    return `<tr><th scope="row">${link(`/match/${fx.fixture.id}`, name)}</th>${c(NOT_STARTED.has(status) || LIVE_CODES.has(status) ? hhmm(fx.fixture.date) : DASH)}` +
+      `${["home", "draw", "away"].map((k) => c(p?.probs ? esc(p.probs[k]) + "%" : DASH)).join("")}` +
+      `${c(p?.pick ? esc(SIGN[p.pick]) : DASH)}${c(p?.likelyScore ? `${esc(p.likelyScore.home)}-${esc(p.likelyScore.away)}` : DASH)}${c(esc(goals))}` +
+      `${c(p?.safe && SAFE_SHORT[p.safe.market] ? `${SAFE_SHORT[p.safe.market]} (${esc(p.safe.prob)}%)` : DASH)}${c(esc(result) || DASH)}</tr>`;
+  }).join("");
+  return `<table><thead><tr><th>Match</th><th>Kick-off</th><th>1</th><th>X</th><th>2</th><th>Pick</th><th>Score</th><th>Goals</th><th>Safer pick</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+const LEGEND = "<p>1 is a home win, X a draw and 2 an away win. The percentages are the model's chances; Score is its likeliest result.</p>";
 function predictionText(fx, stored) {
   if (!stored) return "";
   const home = fx.teams?.home?.name || "Home", away = fx.teams?.away?.name || "Away";
   const level = stored.confidence ? `Model confidence: ${esc(stored.confidence)}.` : "";
   if (!showPicks() || !stored.pick) return level;
+  const safe = stored.safe ? ` Safer pick: ${stored.safe.market === "1x" ? `${esc(home)} or draw` : stored.safe.market === "x2" ? `${esc(away)} or draw` : stored.safe.market === "over15" ? "over 1.5 goals" : "under 3.5 goals"} (${esc(stored.safe.prob)}%).` : "";
   const label = stored.pick === "draw" ? "a draw" : `${esc(stored.pick === "home" ? home : away)} to win`;
-  return `Most likely result: ${label}${stored.pickProb != null ? ` (${esc(Math.round(stored.pickProb))}%)` : ""}. ${level}`.trim();
+  return `Most likely result: ${label}${stored.pickProb != null ? ` (${esc(Math.round(stored.pickProb))}%)` : ""}.${stored.likelyScore ? ` Likely score ${esc(stored.likelyScore.home)}-${esc(stored.likelyScore.away)}.` : ""} ${level}${safe}`.trim();
 }
 
 async function buildDay(kind, day, path, origin, requestedPlain) {
@@ -138,7 +163,7 @@ async function buildDay(kind, day, path, origin, requestedPlain) {
       return `${link(`/match/${fx.fixture.id}`, `${homeName}${score}${awayName}`)}${kind === "predictions" && NOT_STARTED.has(status) ? " prediction" : ""} (${when})${extra ? ` ${extra}` : ""}`;
     });
     const heading = `${g.id ? link(`/league/${slugOf(g.id, g.name)}`, g.name) : esc(g.name)}${g.country && g.country !== "World" ? ` (${esc(g.country)})` : ""}`;
-    return `<h2>${heading}</h2>${list(items)}`;
+    return `<h2>${heading}</h2>${kind === "predictions" && showPicks() ? predictionTable(g.fixtures, predictions) : list(items)}`;
   }).join("");
 
   const title = kind === "livescores" ? `Football livescores${day === todayUtc() ? " today" : ""}: ${nice}` : `Football predictions${day === todayUtc() ? " today" : ""}: ${nice}`;
@@ -150,11 +175,38 @@ async function buildDay(kind, day, path, origin, requestedPlain) {
     heading: title,
     cache: day === todayUtc() ? 120 : day < todayUtc() ? 21600 : 900,
     jsonLd: [breadcrumbs(origin, [["Home", "/"], [label, base], ...(date ? [[nice, path]] : [])]), itemList.length ? jsonLdItemList(`${label} ${nice}`, itemList) : null],
-    body: intro + sections +
+    body: intro + (kind === "predictions" && showPicks() && fixtures.length ? LEGEND : "") + sections +
       `<h2>More</h2>${list([...navLinks, link(sisterPath, `${sister === "predictions" ? "Football predictions" : "Livescores"} for ${day === todayUtc() ? "today" : nice}`), link("/leagues", "All leagues"), link("/news", "Football news")])}`,
   };
 }
 function n_label(d, from) { return d > from ? "tomorrow's page: " + prettyDay(d) : "the day before: " + prettyDay(d); }
+
+// "Premier League predictions": the next matches of one competition, each with the model's confidence.
+async function buildLeaguePredictions(id, path, origin, requested) {
+  const known = TOP_LEAGUES.find(([lid]) => lid === id);
+  if (!known) return { notFound: true };
+  const moved = slugRedirect("predictions", id, known[1], requested);
+  if (moved) return moved;
+  const entry = ((await footballData("leagues", { id })) || [])[0];
+  const season = (entry?.seasons || []).find((s) => s.current)?.year || currentSeasonYear();
+  const rows = await footballData("fixtures", { league: id, season, next: 12 });
+  if (rows === null) return null;
+  const fixtures = rows.filter((fx) => fx?.fixture?.id && NOT_STARTED.has(fx.fixture?.status?.short));
+  const name = known[1], meta = metaForLeaguePredictions(name, path);
+  const predictions = await storedPredictions(fixtures.map((fx) => fx.fixture.id));
+  const items = fixtures.map((fx) => {
+    const day = new Date(fx.fixture.date).toISOString().slice(0, 10);
+    const extra = predictionText(fx, predictions.get(Number(fx.fixture.id)));
+    return `${link(`/match/${fx.fixture.id}`, `${fx.teams?.home?.name || "Home"} vs ${fx.teams?.away?.name || "Away"} prediction`)} (${esc(prettyDay(day))}, kick-off ${hhmm(fx.fixture.date)})${extra ? ` ${extra}` : ""}`;
+  });
+  return {
+    meta, heading: `${name} predictions`, cache: 1800,
+    jsonLd: [breadcrumbs(origin, [["Home", "/"], ["Predictions", "/predictions"], [name, path]]), fixtures.length ? jsonLdItemList(`${name} predictions`, fixtures.map((fx) => ({ name: `${fx.teams?.home?.name || "Home"} vs ${fx.teams?.away?.name || "Away"}`, url: `${origin}/match/${fx.fixture.id}` }))) : null],
+    body: `<p>${esc(fixtures.length ? `The next ${fixtures.length} ${name} ${fixtures.length === 1 ? "match" : "matches"}, each with a prediction from our own model that is saved before kick-off and checked against the final score. Predictions are estimates, not betting advice.` : `There are no upcoming ${name} matches listed right now. Check back closer to the next round.`)}</p>` +
+      (items.length ? `<h2>Upcoming matches</h2>${showPicks() ? LEGEND + predictionTable(fixtures, predictions) : list(items)}` : "") +
+      `<h2>More</h2>${list([link(`/league/${slugOf(id, name)}`, `${name} table, fixtures and results`), link("/predictions", "Football predictions today"), ...TOP_LEAGUES.filter(([lid]) => lid !== id).slice(0, 8).map(([lid, n]) => link(`/predictions/${slugOf(lid, n)}`, `${n} predictions`))])}`,
+  };
+}
 
 async function buildMatch(id, path, origin) {
   const rows = await footballData("fixtures", { id });
@@ -351,6 +403,7 @@ export async function renderPage(rawPath, origin) {
   try {
     if (path === "/") built = await buildHome(origin);
     else if ((kind === "livescores" || kind === "predictions") && (!slug || isDaySlug(slug))) built = await buildDay(kind, slug || todayUtc(), path, origin, slug);
+    else if (kind === "predictions" && /^\d+/.test(slug || "")) built = await buildLeaguePredictions(parseInt(slug, 10), path, origin, slug);
     else if (kind === "match" && /^\d+$/.test(slug || "")) built = await buildMatch(slug, path, origin);
     else if (kind === "league" && /^\d+/.test(slug || "")) built = await buildLeague(parseInt(slug, 10), path, origin, slug);
     else if (kind === "club" && /^\d+/.test(slug || "")) built = await buildClub(parseInt(slug, 10), path, origin, slug);

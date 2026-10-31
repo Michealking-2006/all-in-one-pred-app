@@ -60,6 +60,11 @@ export const prettyDay = (s) => new Date(s + "T00:00:00Z").toLocaleDateString("e
 export const shiftDay = (s, n) => new Date(Date.parse(s + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
 
 
+export function metaForLeaguePredictions(name, path) {
+  const title = `${name} Predictions: Match Previews & Tips | ${SITE_NAME}`;
+  return { path, kind: "page", title: title.length <= 70 ? title : `${name} Predictions | ${SITE_NAME}`, description: `Predictions for the next ${name} matches from our own model, with kick-off times and how confident it is in each one. Every prediction is checked against the final score.` };
+}
+
 export function metaForDay(kind, day, path) {
   const nice = prettyDay(day), short = new Date(day + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
   const cut = (t) => (t.length <= 70 ? t : t.slice(0, 69).replace(/\s+\S*$/, "") + "\u2026");
@@ -77,7 +82,7 @@ export function isKnownPath(pathname) {
   if (path === "/" || PAGES[path]) return true;
   const [, kind, slug, extra] = path.split("/");
   if (NOINDEX.has("/" + kind)) return true;
-  if ((kind === "livescores" || kind === "predictions") && slug && !extra) return dayInWindow(slug);
+  if ((kind === "livescores" || kind === "predictions") && slug && !extra) return dayInWindow(slug) || (kind === "predictions" && /^\d+(-[a-z][a-z0-9-]*)?$/.test(slug)); // /predictions/39-premier-league
   if (kind === "news" && !slug) return true;
   return ENTITY_KINDS.has(kind) && !!slug && !extra;
 }

@@ -1,6 +1,10 @@
+/* Android (and Windows) get Inter, the closest open font to the iPhone's San Francisco. iPhones and Macs match
+   -apple-system first, so they never download it. Same-origin file: no extra connection, and the service worker
+   caches it after the first visit so there is no font swap on later visits. */
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('/src/assets/fonts/inter-latin-var.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 /* Styles for the page before the app starts (and its error screen). Kept in a file, not inline, so the
    Content-Security-Policy can forbid inline styles. */
-.boot-screen{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,system-ui,Roboto,'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-text-size-adjust:100%;text-size-adjust:100%;color:#111}
+.boot-screen{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,'Inter',system-ui,Roboto,'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-text-size-adjust:100%;text-size-adjust:100%;color:#111}
 .boot-card{width:min(100%,380px);text-align:center}
 .boot-title{display:block;font-size:20px;margin:0 0 8px}
 .boot-lede{margin:0 0 12px;color:#555;font-size:14px}

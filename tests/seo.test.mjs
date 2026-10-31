@@ -44,6 +44,12 @@ const rival = T(40, "Liverpool");
 let outage = false;
 globalThis.fetch = async (url) => {
   const u = new URL(url);
+  if (u.host === "sb.test") {
+    if (u.pathname.endsWith("/predictions")) { const ids = (u.searchParams.get("fixture_id") || "").replace(/[^\d,]/g, "").split(",");
+      const mine = { 12: { home: 2, away: 1, pick: "home", safe: { market: "1x", prob: 81 } }, 21: { home: 0, away: 1, pick: "away", safe: null }, 11: { home: 0, away: 2, pick: "away", safe: null } };
+      return json(ids.filter((i) => mine[i]).map((i) => ({ fixture_id: Number(i), made_at: "2026-10-30T06:00:00Z", prediction: { confidence: "high", pick: mine[i].pick, pickProb: 52, probs: mine[i].pick === "home" ? { home: 52, draw: 26, away: 22 } : { home: 21, draw: 27, away: 52 }, likelyScore: { home: mine[i].home, away: mine[i].away }, over25: 61, safe: mine[i].safe } }))); }
+    return json([]);
+  }
   if (u.host === "v3.football.api-sports.io") {
     const ep = u.pathname.slice(1); const q = Object.fromEntries(u.searchParams); calls.push(ep + "?" + u.searchParams.toString());
     if (outage) return json({ errors: { rateLimit: "x" }, response: [] });
@@ -52,6 +58,7 @@ globalThis.fetch = async (url) => {
     if (ep === "teams") return json({ errors: [], response: q.league ? [{ team: T(Number(q.league) * 10, "Team " + q.league) }] : [] });
     if (ep === "fixtures" && q.team && q.last) return json({ errors: [], response: [fx(1, club, rival, 2, 1, "FT", 1700000000), fx(2, rival, club, 0, 0, "FT", 1700100000)] });
     if (ep === "fixtures" && q.team && q.next) return json({ errors: [], response: [fx(3, club, rival, null, null, "NS", 1800000000)] });
+    if (ep === "fixtures" && q.league === "39" && q.next) return json({ errors: [], response: [fx(21, club, rival, null, null, "NS", Math.floor(Date.now() / 1000) + 86400), fx(22, rival, club, null, null, "NS", Math.floor(Date.now() / 1000) + 172800), fx(23, club, rival, 1, 1, "FT")] });
     if (ep === "fixtures" && q.id === "1") return json({ errors: [], response: [fx(1, club, rival, 2, 1)] });
     if (ep === "fixtures" && q.date) return json({ errors: [], response: [fx(11, club, rival, 1, 0, "FT", Math.floor(Date.now() / 1000)), fx(12, rival, club, null, null, "NS", Math.floor(Date.now() / 1000) + 7200)] });
     if (ep === "fixtures") return json({ errors: [], response: [] });
@@ -224,14 +231,57 @@ await test("the app opens the same addresses: /livescores[/date] is Home, /predi
   assert.match(src, /parts\[0\] === "livescores" \|\| parts\[0\] === "predictions"/); assert.match(src, /tab: home \? "home" : "vip"/);
   assert.match(fs.readFileSync(path.join(root, "index.html"), "utf8"), /href="\/livescores"[\s\S]*href="\/predictions"/);
 });
-await test("SEO_SHOW_PICKS is off unless switched on (the pick is what Premium sells)", () => {
-  assert.match(fs.readFileSync(path.join(root, "api/_seoPages.js"), "utf8"), /env\("SEO_SHOW_PICKS"\) === "1"/);
-});
 
 await test("copy reads like a person wrote it: no marketing filler in the text people and search engines read", () => {
   const files = ["index.html", "manifest.webmanifest", "src/seoCore.js", "src/seoEntities.js", "api/_seoPages.js", "src/legalContent.js", "src/data/mockData.js",
     ...fs.readdirSync(path.join(root, "src/components")).map((f) => "src/components/" + f)];
   const banned = /match intelligence|premium signals?\b|full signal|sharper signals|one calm|focused experience|hub for the|built for clarity|deserve your attention|one tap away|personalise Scoutwave|football data from every/i;
   for (const f of files) { const hit = fs.readFileSync(path.join(root, f), "utf8").match(banned); assert.ok(!hit, `${f}: "${hit && hit[0]}"`); }
+});
+
+await test("/predictions/39-premier-league: the next matches of one competition, linked, with the right title and canonical", async () => {
+  const r = await renderPage("/predictions/39-premier-league", O); assert.equal(r.status, 200);
+  assert.match(r.html, /<title>Premier League Predictions: Match Previews &amp; Tips \| Scoutwave<\/title>/);
+  assert.ok(r.html.includes(`<link rel="canonical" href="${O}/predictions/39-premier-league">`));
+  assert.match(r.html, /href="\/match\/21"/); assert.match(r.html, /href="\/match\/22"/); assert.doesNotMatch(r.html, /href="\/match\/23"/, "a finished match is not a prediction");
+  assert.match(r.html, /The next 2 Premier League matches/); assert.match(r.html, /href="\/league\/39-premier-league"/); assert.match(r.html, /href="\/predictions\/140-la-liga"/);
+  assert.ok(ld(r.html).some((d) => d["@type"] === "ItemList"));
+  assert.deepEqual(auditHtml(r.html, { canonical: O + "/predictions/39-premier-league", indexable: true }).issues.filter((i) => i.level === "error"), []);
+});
+await test("league prediction addresses: a bare id moves to the full address; a competition we don't list, or a made-up one, is a 404", async () => {
+  const moved = await renderPage("/predictions/39", O); assert.equal(moved.status, 301); assert.equal(moved.headers.Location, O + "/predictions/39-premier-league");
+  assert.equal((await renderPage("/predictions/9999-odd-cup", O)).status, 404);
+  assert.ok(!isKnownPath("/predictions/premier-league") && !isKnownPath("/predictions/39-x/extra") && isKnownPath("/predictions/39-premier-league"));
+});
+await test("the sitemap lists a predictions page for each major competition", async () => {
+  const body = (await run(sitemap, { part: "leagues" })).body;
+  assert.ok(body.includes(`${O}/predictions/39-premier-league<`) && body.includes(`${O}/league/39-premier-league<`));
+});
+
+async function withPredictions(fn, { picks = "" } = {}) {
+  const saved = { k: process.env.SUPABASE_SERVICE_ROLE_KEY, u: process.env.SUPABASE_URL, p: process.env.SEO_SHOW_PICKS };
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "k"; process.env.SUPABASE_URL = "https://sb.test"; if (picks) process.env.SEO_SHOW_PICKS = picks; else delete process.env.SEO_SHOW_PICKS;
+  try { return await fn(); } finally { for (const [name, v] of [["SUPABASE_SERVICE_ROLE_KEY", saved.k], ["SUPABASE_URL", saved.u], ["SEO_SHOW_PICKS", saved.p]]) { if (v === undefined) delete process.env[name]; else process.env[name] = v; } }
+}
+await test("prediction pages list every match as a prediction table: 1 X 2 chances, pick, likely score, goals, safer pick", async () => {
+  await withPredictions(async () => {
+    const r = await renderPage("/predictions", O); assert.equal(r.status, 200);
+    assert.match(r.html, /<th>1<\/th><th>X<\/th><th>2<\/th><th>Pick<\/th><th>Score<\/th><th>Goals<\/th><th>Safer pick<\/th><th>Result<\/th>/);
+    const row = r.html.match(/<tr><th scope="row"><a href="\/match\/12">[\s\S]*?<\/tr>/)[0];
+    assert.match(row, /52%<\/td><td>26%<\/td><td>22%<\/td><td>1<\/td><td>2-1<\/td><td>Over 2\.5 \(61%\)<\/td><td>1X \(81%\)<\/td>/);
+    assert.match(r.html, /1 is a home win, X a draw and 2 an away win/);
+    const done = r.html.match(/<tr><th scope="row"><a href="\/match\/11">[\s\S]*?<\/tr>/)[0]; // finished 1-0, the model said away: shown honestly
+    assert.match(done, /1-0 \(pick missed\)/);
+  });
+});
+await test("the league prediction page is a table too, and SEO_SHOW_PICKS=0 puts it back to confidence only", async () => {
+  await withPredictions(async () => {
+    const r = await renderPage("/predictions/39-premier-league", O);
+    assert.match(r.html, /<tr><th scope="row"><a href="\/match\/21">[\s\S]*?<td>2<\/td><td>0-1<\/td>/);
+  });
+  await withPredictions(async () => {
+    const r = await renderPage("/predictions/39-premier-league", O);
+    assert.doesNotMatch(r.html, /<table>|Most likely result|Safer pick/); assert.match(r.html, /Model confidence: high/);
+  }, { picks: "0" });
 });
 console.log(`\n${passed} tests passed`);

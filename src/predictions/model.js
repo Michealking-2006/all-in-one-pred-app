@@ -22,6 +22,7 @@
 // The server records poisson-v1 beside this model on the same matches so the two can be compared
 // honestly (Admin > Predictions); keep a change only if it wins there.
 // A statistical estimate, not a guarantee, and not betting advice.
+import { safePickFromMatrix } from "./metrics.js";
 export const MODEL_VERSION = "poisson-v2";
 
 const MAX_GOALS = 8;
@@ -268,8 +269,11 @@ export function predictFromTable({ homeId, awayId, rows, form = {} }) {
   const r2 = (v) => Math.round(v * 100) / 100;
   const r3 = (v) => Math.round(v * 1000) / 1000;
 
+  const matrix = grid.map((row) => row.map((p) => Math.round(p * 10000) / 10000));
+
   return {
     model: MODEL_VERSION,
+    safe: safePickFromMatrix(matrix),
     probs: { home: probs.home, draw: probs.draw, away: probs.away },
     pick, pickProb, confidence,
     xg: { home: r2(xg.home), away: r2(xg.away) },
@@ -278,7 +282,7 @@ export function predictFromTable({ homeId, awayId, rows, form = {} }) {
     over25: probs.over25, under25: 100 - probs.over25, btts: probs.btts,
     top5: all.slice(0, 5).map((s) => ({ home: s.home, away: s.away, p: Math.round(s.p * 1000) / 10 })),
     exact: { home: h, draw: d, away: a, over25: o, btts: b },
-    matrix: grid.map((row) => row.map((p) => Math.round(p * 10000) / 10000)),
+    matrix,
     basis: {
       gamesHome: home.homePlayed, gamesAway: away.awayPlayed, leagueAvgHome: r2(avg.home), leagueAvgAway: r2(avg.away),
       formUsed: !!(form.home?.length || form.away?.length),

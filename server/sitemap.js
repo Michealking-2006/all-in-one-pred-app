@@ -26,7 +26,7 @@ export async function sitemapUrls(part, origin) {
   const out = [];
   if (part === "pages") STATIC.forEach((p) => add(out, origin + p));
   if (part === "leagues") {
-    TOP_LEAGUES.forEach(([id, name]) => add(out, `${origin}/league/${slugOf(id, name)}`));
+    TOP_LEAGUES.forEach(([id, name]) => { add(out, `${origin}/league/${slugOf(id, name)}`); add(out, `${origin}/predictions/${slugOf(id, name)}`); });
     for (const e of ((await footballData("leagues", { current: "true" })) || []).slice(0, 1500)) if (e?.league?.id && e.league.name) add(out, `${origin}/league/${slugOf(e.league.id, e.league.name)}`);
   }
   if (part === "clubs" && env("SITEMAP_CLUBS") === "1") {

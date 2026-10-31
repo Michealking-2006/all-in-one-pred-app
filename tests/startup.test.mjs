@@ -32,14 +32,16 @@ await test("things that aren't needed for the first screen are not in the startu
     assert.ok(!inStartup(rel), `${rel} loads at startup`);
   for (const rel of ["themeFxData.js", "store.js", "router.js", "components/HomeScreen.js"]) assert.ok(inStartup(rel), `${rel} should be part of startup`);
 });
-await test("one font everywhere: the phone's own font, no web font loaded or listed in the stack", () => {
+await test("one font everywhere: the iPhone's own font on Apple devices, self-hosted Inter elsewhere, nothing from another site", () => {
   const html = read("index.html");
   const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)].map((m) => m[0]);
   assert.ok(sheets.length >= 1 && sheets.every((l) => /href="\/src\/styles\//.test(l)), "only the app's own stylesheets: " + sheets.join("\n"));
   assert.ok(!/fonts\.googleapis|fonts\.js/.test(html), "the page loads no web font");
   const css = read("src/styles/theme.css");
   const stack = css.match(/--font-display:([^;]+);/)[1];
-  assert.match(stack, /^-apple-system,/); assert.ok(!/DM Sans|Space Mono/.test(stack), "no web font in the stack: " + stack);
+  assert.match(stack, /^-apple-system,BlinkMacSystemFont,'Inter',/); assert.ok(!/DM Sans|Space Mono/.test(stack), "no other web font in the stack: " + stack);
+  const boot = read("src/styles/boot.css");
+  assert.match(boot, /@font-face\{font-family:'Inter'[^}]*url\('\/src\/assets\/fonts\/inter-latin-var\.woff2'\)/, "Inter is declared once, from our own server");
   assert.ok(!/Space Mono/.test(css));
   const families = [...css.matchAll(/font-family:([^;}]+)/g)].map((m) => m[1].trim()).filter((f) => f !== "var(--font-display)");
   assert.deepEqual(families, [], "every font-family comes from the one variable: " + families.join(" | "));

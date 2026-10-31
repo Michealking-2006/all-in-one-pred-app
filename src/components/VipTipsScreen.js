@@ -24,35 +24,27 @@ function loadModelFeed() {
   });
 }
 
-// Server-tracked accuracy (all matches, shown once enough are graded) replaces the on-device figure.
-function accuracyCard() {
+// Tracked accuracy: three plain numbers. Server-tracked (all matches, shown once enough are graded) replaces the on-device figure.
+function accuracyCard(rows) {
+  const stat = (label, value) => h("div", { className: "pred-stat" }, [text("span", {}, label), text("strong", { className: "mono" }, value)]);
+  return h("section", { className: "card pred-accuracy" }, [
+    h("div", { className: "pred-accuracy-head" }, [text("span", { className: "section-kicker" }, "Tracked accuracy"), text("p", {}, "Every pick is saved before kick-off and graded after the match.")]),
+    h("div", { className: "pred-stats" + (rows.length > 3 ? " pred-stats-4" : "") }, rows.map(([label, value]) => stat(label, value))),
+  ]);
+}
+
+function accuracySection() {
   const holder = h("div", {}, []);
   const local = accuracySummary();
-  if (local.total) holder.append(localAccuracyCard(local));
+  if (local.total) holder.append(accuracyCard([["Winner picks", local.winnerAccuracy + "%"], ["Over/under 2.5", local.overUnderAccuracy + "%"], ["Matches graded", String(local.total)]]));
   serverAccuracy().then((a) => {
     if (!a) return;
     const pct = (v) => Math.round(v * 100) + "%";
-    holder.replaceChildren(h("section", { className: "card pred-accuracy" }, [
-      text("span", { className: "section-kicker" }, "Tracked accuracy"),
-      h("div", { className: "pred-stats" }, [
-        h("div", { className: "pred-stat" }, [text("span", {}, "Winner picks"), text("strong", { className: "mono" }, pct(a.winnerAccuracy))]),
-        h("div", { className: "pred-stat" }, [text("span", {}, "Over/under 2.5"), text("strong", { className: "mono" }, pct(a.overUnderAccuracy))]),
-        h("div", { className: "pred-stat" }, [text("span", {}, "Matches graded"), text("strong", { className: "mono" }, String(a.sample))]),
-      ]),
-    ]));
+    // The safer-pick figure is shown only once it rests on enough picks to mean something.
+    const safe = a.safeN >= 30 && a.safeAccuracy != null ? [["Safer picks", pct(a.safeAccuracy)]] : [];
+    holder.replaceChildren(accuracyCard([["Winner picks", pct(a.winnerAccuracy)], ["Over/under 2.5", pct(a.overUnderAccuracy)], ...safe, ["Matches graded", String(a.sample)]]));
   });
   return holder;
-}
-
-function localAccuracyCard(a) {
-  return h("section", { className: "card pred-accuracy" }, [
-    text("span", { className: "section-kicker" }, "Tracked accuracy"),
-    h("div", { className: "pred-stats" }, [
-      h("div", { className: "pred-stat" }, [text("span", {}, "Winner picks"), text("strong", { className: "mono" }, a.winnerAccuracy + "%")]),
-      h("div", { className: "pred-stat" }, [text("span", {}, "Over/under 2.5"), text("strong", { className: "mono" }, a.overUnderAccuracy + "%")]),
-      h("div", { className: "pred-stat" }, [text("span", {}, "Matches graded"), text("strong", { className: "mono" }, String(a.total))]),
-    ]),
-  ]);
 }
 
 function modelFeed(isUnlocked) {
@@ -79,16 +71,14 @@ export function VipTipsScreen({ isUnlocked }) {
       text("h1", {}, "Today's predictions"),
       text("p", {}, "Our model's prediction and confidence for each match."),
     ]),
-    live
-      ? h("section", { className: "card sample-notice" }, [h("i", { "data-lucide": "info" }), text("span", {}, "Picks come from Scoutwave's own statistical model, built from this season's league results. They are estimates, not guarantees or betting advice.")])
-      : h("section", { className: "card sample-notice" }, [h("i", { "data-lucide": "info" }), text("span", {}, "Sample picks. The picks below are placeholder data while live predictions are being connected, and no results have been tracked yet.")]),
-    live ? accuracyCard() : null,
+    live ? null : h("section", { className: "card sample-notice" }, [h("i", { "data-lucide": "info" }), text("span", {}, "Sample picks. The picks below are placeholder data while live predictions are being connected, and no results have been tracked yet.")]),
+    live ? accuracySection() : null,
     h("div", { className: "section-heading vip-heading" }, [
       h("div", {}, [text("span", { className: "section-kicker" }, "Predictions"), text("h2", {}, live ? "Today's model picks" : "Sample picks")]),
       live ? model.count : text("span", { className: "muted-count" }, matches.length + " picks"),
     ]),
     live
-      ? model.feed
+      ? h("div", {}, [model.feed, h("p", { className: "pred-footnote" }, [h("i", { "data-lucide": "info" }), text("span", {}, "Picks come from Scoutwave's own statistical model, built from this season's league results. They are estimates, not guarantees or betting advice.")])])
       : h("div", { className: "vip-list" }, matches.map((m) =>
           h("article", { className: "vip-card " + (isUnlocked(m.id) ? "unlocked" : "locked") }, [
             h("div", { className: "vip-card-top" }, [text("span", { className: "eyebrow" }, m.league), text("span", { className: "badge badge-muted" }, m.confidence + "%")]),

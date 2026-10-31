@@ -13,6 +13,21 @@ export const logLoss1x2 = (probs, outcome) => -Math.log(clampP(probs[outcome] ??
 export const binaryBrier = (p, hit) => (p - (hit ? 1 : 0)) ** 2;
 export const binaryLogLoss = (p, hit) => -Math.log(clampP(hit ? p : 1 - p));
 
+// The "safer pick": of four markets that are often very likely (home or draw, away or draw, over 1.5 goals, under 3.5
+// goals) the likeliest one, kept only when the model puts it at 80% or more. Not every match has one. matrix[i][j] =
+// P(home scores i, away scores j). Worked out from the stored score grid, so past predictions can be graded on it.
+export const SAFE_MIN = 0.8;
+export function safePickFromMatrix(matrix, min = SAFE_MIN) {
+  if (!Array.isArray(matrix) || !matrix.length) return null;
+  let home = 0, draw = 0, away = 0, over15 = 0, under35 = 0, total = 0;
+  matrix.forEach((row, i) => row.forEach((p, j) => { total += p; if (i > j) home += p; else if (i === j) draw += p; else away += p; if (i + j >= 2) over15 += p; if (i + j <= 3) under35 += p; }));
+  if (!(total > 0.9)) return null; // an incomplete grid says nothing
+  // Ties (and float noise) resolve in the order listed, so the same grid always gives the same pick.
+  const [market, p] = [["1x", home + draw], ["x2", draw + away], ["over15", over15], ["under35", under35]].map(([m, v]) => [m, Math.round((v / total) * 1e4) / 1e4]).sort((a, b) => b[1] - a[1])[0];
+  return p >= min ? { market, prob: Math.round(p * 100) } : null;
+}
+export const safeHit = (market, h, a) => (market === "1x" ? h >= a : market === "x2" ? a >= h : market === "over15" ? h + a >= 2 : h + a <= 3);
+
 // matrix[i][j] = P(home scores i, away scores j). 1-based rank of the real score (null if outside the grid).
 export function scoreRank(matrix, h, a) {
   if (!Array.isArray(matrix) || !matrix[h] || matrix[h][a] === undefined) return null;
@@ -30,7 +45,9 @@ export function gradeOne({ probs, matrix }, h, a) {
   const pick = Object.entries(p).sort((x, y) => y[1] - x[1])[0][0];
   const over = h + a > 2, btts = h > 0 && a > 0;
   const rank = scoreRank(matrix, h, a);
+  const safe = safePickFromMatrix(matrix);
   return {
+    safe: safe ? { ...safe, hit: safeHit(safe.market, h, a) } : null,
     outcome, pick, pickCorrect: pick === outcome,
     brier: round(brier1x2(p, outcome), 4), logLoss: round(logLoss1x2(p, outcome), 4),
     overCorrect: (probs.over25 >= 0.5) === over, bttsCorrect: (probs.btts >= 0.5) === btts,
@@ -52,6 +69,7 @@ export function summarizeGrades(grades) {
     winnerAccuracy: round(share(g.map((x) => x.pickCorrect))),
     overUnderAccuracy: round(share(g.map((x) => x.overCorrect))),
     bttsAccuracy: round(share(g.map((x) => x.bttsCorrect))),
+    safeN: g.filter((x) => x.safe).length, safeAccuracy: round(share(g.filter((x) => x.safe).map((x) => x.safe.hit))),
     brier: round(avg(g.map((x) => x.brier)), 4),
     logLoss: round(avg(g.map((x) => x.logLoss)), 4),
     exactScore: round(share(g.map((x) => x.exact))),

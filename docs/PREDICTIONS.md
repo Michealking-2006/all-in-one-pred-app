@@ -4,6 +4,15 @@ Scoutwave does **not** use API-Football's predictions (the endpoint is removed f
 client and from the `api/football.js` allow-list). Predictions come from our own model in
 `src/predictions/`.
 
+## Setup checklist (do these in order)
+1. **Database.** Supabase SQL editor: run `supabase/migrations/002_entitlements.sql` (if not run) and `004_predictions.sql`.
+2. **Keys in Vercel** (Settings > Environment Variables, then redeploy): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SCOUTWAVE_FOOTBALL_API_KEY`, `CRON_SECRET` (16+ random characters), `SITE_URL` (your https address). Optional: `PREDICT_LEAGUES` (limit to some competitions), `PREDICT_ODDS=1` (benchmark against a bookmaker), `OPENAI_API_KEY` (wording only).
+3. **Check it is connected.** Admin > Overview shows "Server-side prediction tracking" green. In Admin > Predictions press *Record predictions now*; matches for today and tomorrow should appear as pending.
+4. **Let it run for a week.** The 06:00 UTC job records, the 04:30 UTC job grades. Admin > Predictions shows winner accuracy, over/under, calibration and the safer-pick figure. Nothing is public until `PREDICT_MIN_PUBLISH` (200) matches are graded.
+5. **Switch the app on.** Admin > Remote config: turn on *Predictions*. If you sell Premium, also turn on *Account Premium and coins* so the server enforces the lock.
+6. **Public pages.** `/predictions`, the dated pages and `/predictions/39-premier-league` show the full prediction table as soon as step 3 works (`SEO_SHOW_PICKS=0` shows only confidence). Submit `/sitemap.xml` in Google Search Console.
+7. **Tune only with evidence.** Read the calibration tables, change one constant in `src/predictions/model.js` or `SAFE_MIN`, bump `MODEL_VERSION`, and keep the change only if the new version wins on the same matches.
+
 ## Status
 Built and tested, **switched off by default**: the match page shows "Predictions are coming
 soon" and the VIP tab shows its sample notice. Turn it on for one device to try it:
@@ -36,6 +45,12 @@ records `poisson-v1` (frozen in `src/predictions/poisson-v1.js`, server-only) on
 so the two are compared on identical data in Admin > Predictions. Keep a change only if it wins there.
 `api/_models.js` lists what is recorded. To retire the old model, remove it from `SHADOWS`; to
 try a new one, make `poisson-v3` the current model and move v2 into `SHADOWS`.
+
+## Safer pick (0.40.0)
+Picking the winner of every match cannot be right 80% of the time: bookmakers, with far more data than we have, call about 50 to 55% of match winners. What a model can do honestly is say *when* it is sure. For each match the model looks at four markets that are often very likely (home team wins or draws, away team wins or draws, over 1.5 goals, under 3.5 goals) and, if the likeliest of them is at 80% or more, shows it as the **safer pick**. Many matches have none.
+- It uses the same score grid as everything else, so no probability changed. It is worked out in `safePickFromMatrix` (`src/predictions/metrics.js`) from the stored grid, so every past prediction can be graded on it.
+- It is graded on its own (`safe` on each grade; `safeN` and `safeAccuracy` in the accuracy summary). The app shows the hit rate only after 30 graded safer picks. **The test of the model is whether that figure lands near 80% or above.** If it is lower (say 70%), the model's probabilities are too confident for that kind of match: raise `SAFE_MIN` (for example 0.85) or fix the calibration; do not hide the figure.
+- Admin > Predictions already has calibration tables; use them to see where the model is over-confident before changing anything.
 
 ## ratings-v3 (shadow)
 `src/predictions/ratings.js` fits attack, defence and home advantage from the season's finished matches with time decay and a ridge pull toward average. It is recorded beside v2 (never shown) at the cost of one extra `fixtures` call per competition; `PREDICT_RATINGS=0` turns it off. Promote it by making it the current model in `api/_models.js` only if it beats v2 on log loss over a few hundred shared matches.

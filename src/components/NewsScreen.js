@@ -199,7 +199,7 @@ export function NewsScreen() {
       page = next;
       const fresh = data.articles.filter((a) => !seen.has(a.id));
       fresh.forEach((a) => seen.add(a.id));
-      body.replaceChildren();
+      if (first) body.replaceChildren(); // the featured story lives in body: clearing it on page 2 made it vanish
       more.replaceChildren();
 
       if (first && !fresh.length) {

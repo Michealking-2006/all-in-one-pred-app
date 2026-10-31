@@ -1,3 +1,44 @@
+# Changes in 0.41.1 — the iPhone look on Android too
+
+- **Android now uses Inter, the font closest to the iPhone's San Francisco.** iPhones and Macs still use their own San Francisco (it is listed first, so they never download anything). San Francisco itself can't be put on Android: Apple's licence only allows it on Apple devices.
+- Inter is served from our own site (`/src/assets/fonts/inter-latin-var.woff2`, latin, one file for every weight), not from Google, and cached by the service worker. The loading screen and the app use the same stack, so nothing changes font when the app appears.
+- **You need to add the font file** (it isn't in this zip): download Inter from https://rsms.me/inter/ (free, SIL Open Font License), make a latin woff2 variable-font subset, and save it as `src/assets/fonts/inter-latin-var.woff2`. Until it's there, Android falls back to Roboto as before.
+- Tests updated (`startup`, `api-usage`). Service worker cache v27.
+- Not changed: share images still draw in DM Sans.
+
+# Changes in 0.41.0 — predictions shown on the match lists (prediction tables)
+
+- **The pages that list matches now show the predictions in the same table.** `/predictions`, the dated pages and each league's `/predictions/39-premier-league` list every match as a row: kick-off, the model's chances for a home win (1), draw (X) and away win (2), its pick, the likeliest score, over or under 2.5 goals, the safer pick when there is one, and, once the match is over, the real score with "pick correct" or "pick missed". Misses are shown, not hidden: that is what makes the table believable.
+- **This is on by default now.** Before, public pages showed only the model's confidence. If you would rather keep the picks for Premium, set `SEO_SHOW_PICKS=0` in Vercel. Match pages for upcoming games also show the pick and likely score.
+- A setup checklist is at the top of `docs/PREDICTIONS.md`. `.env.example` lists `SEO_SHOW_PICKS`.
+- 3 new tests (they use a faked database). Service worker cache v26.
+- Not done: the lists inside the app (Home, match rows) don't show predictions; the in-app predictions tab still shows picks only to Premium and unlocked matches. Say if you want a pick next to each match on Home too.
+
+# Changes in 0.40.0 — safer picks, prediction pages for each league
+
+**About "80% right".** Picking the winner of every match can't reach 80%: bookmakers, with far more data than Scoutwave has, get about 50 to 55%, and no change to constants could honestly change that (there is also no match history in this project to test a change on). What can be 80% right is a pick the model is *sure* about, and the figure can be measured instead of promised. So:
+
+- **Safer pick.** For each match the model checks four markets that are often very likely: home team wins or draws, away team wins or draws, over 1.5 goals, under 3.5 goals. If the likeliest is at 80% or more, it is shown as "Safer pick" (green box, on the prediction row and on the match page, for people who can see that match's prediction). Many matches have none, by design. No existing probability or pick changed.
+- **It is graded separately.** Every stored prediction can be graded on its safer pick from its score grid. The accuracy card shows "Safer picks" once 30 have been graded. That number is the real test: near 80% or above means the model's 80% is honest; clearly below means raise `SAFE_MIN` in `src/predictions/metrics.js` (see `docs/PREDICTIONS.md`). Predictions made before this update have no safer pick on screen but count in the figure.
+- **SEO: a predictions page for each major competition**, e.g. `/predictions/39-premier-league`: the next matches, kick-off times, the model's confidence for each (the pick too if `SEO_SHOW_PICKS=1`), links to the league and to the other competitions. Listed in the sitemap, one cached request each. A bare id (`/predictions/39`) moves to the full address, a competition we don't list is a 404.
+- 7 new tests (4 in predictions, 3 in SEO). Service worker cache v25.
+
+# Changes in 0.39.0 — VIP tips retouched
+
+- **Prediction rows are rebuilt around the match.** League logo and name on the left, a confidence chip with a three-bar meter on the right (all three bars for high, two for medium, one for low). Below, the two teams with their crests either side of the kick-off time, like a fixture card, instead of "A vs B" in one line. A team with no crest gets a quiet placeholder, never a broken image.
+- **The pick is easier to read.** "Model pick", the pick in larger type, then two small labels in words ("52% chance", "Expected goals 1.8 to 1.1") instead of one line joined with a middle dot, which you had rejected. The outcome bar is unchanged.
+- **Locked rows** keep the same teams and time, so you can see what is being predicted, and show only the lock and the unlock button.
+- **Tracked accuracy** is one card now (it was duplicated for the on-device and the server figures), with a line that says how the picks are graded and bigger numbers.
+- **The orange notice at the top is gone** from the live predictions. The "estimates, not guarantees or betting advice" line moved to a small footnote under the list. The orange notice stays only on the sample screen.
+- 3 new tests in `tests/vip-rows.test.mjs` (they render the rows with a tiny fake DOM). Service worker cache v24.
+- Not seen on a real phone: please check the row at narrow widths and with long team names (two lines are allowed).
+
+# Changes in 0.38.1 — featured news fixes
+
+- **The featured story disappeared as soon as the next page of news loaded** (which happens by itself when you scroll, and when you come back to the page). Loading page 2 cleared the box the featured story lives in. Only the first page clears it now.
+- **The featured title could be invisible with an advanced theme (fire, water, ice, bubbles):** the theme painted the heading with a colour gradient, on top of a red card or a photo where that colour disappears. The featured title stays white.
+- 2 new tests in `tests/news-featured.test.mjs`. Service worker cache v23.
+
 # Changes in 0.38.0 — ready for a lot more visitors
 
 The thing that limits Scoutwave under heavy traffic is the football provider's daily request quota, not the servers (Vercel serves the cached answers). The changes protect that quota:
