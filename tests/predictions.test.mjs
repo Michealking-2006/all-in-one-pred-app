@@ -243,6 +243,47 @@ await test("predict job: refuses to run without quota", async () => {
   const s = await runPredict({ now: NOW });
   assert.ok(s.skipped); globalThis.fetch = keep;
 });
+await test("budget: spends what is left minus one, looks seven days ahead, and a low quota still predicts", async () => {
+  const { clearMemo } = await import("../api/_predict.js");
+  const keep = globalThis.fetch, savedRows = db.predictions.slice(), savedBench = db.prediction_benchmarks.slice();
+  const withQuota = (used) => { globalThis.fetch = async (url, init) => String(url).endsWith("/status") ? json({ response: { requests: { current: used, limit_day: 100 } } }) : keep(url, init); };
+  try {
+    // 19 requests left -> at most 18 may be spent, and the seven day lists are all asked for
+    db.predictions.length = 0; db.prediction_benchmarks.length = 0; clearMemo();
+    withQuota(81); const from = calls.football.length;
+    const s = await runPredict({ now: NOW });
+    const used = calls.football.slice(from);
+    assert.equal(s.budget, 18); assert.equal(s.reserve, 1); assert.ok(used.length <= 18 && s.callsUsed === used.length, JSON.stringify(s));
+    assert.equal(used.filter((c) => c.startsWith("fixtures") && c.includes("status=NS")).length, 7, "seven day lists");
+    assert.ok(s.predicted >= 1, "the quota is low, not empty: predictions are still made");
+
+    // 3 requests left -> 2 may be spent: one day list and one table, enough for the current model
+    db.predictions.length = 0; db.prediction_benchmarks.length = 0; clearMemo();
+    withQuota(97); const from2 = calls.football.length;
+    const low = await runPredict({ now: NOW });
+    assert.equal(low.budget, 2); assert.equal(calls.football.length - from2, 2, calls.football.slice(from2).join(" "));
+    assert.equal(low.predicted, 1); assert.equal(low.skipped, undefined);
+
+    // Competitions are ranked: the bigger one gets the single table request. One day list fetched, nothing else bought.
+    db.predictions.length = 0; db.prediction_benchmarks.length = 0; clearMemo();
+    const mk = (id, lg) => ({ fixture: { id, date: "2026-10-20T15:00:00Z", status: { short: "NS" } }, league: { id: lg, name: "L" + lg, season: 2026 }, teams: { home: { id: id * 10, name: "H" + id }, away: { id: id * 10 + 1, name: "A" + id } } });
+    const list = [mk(1, 201), mk(2, 202), mk(3, 205), mk(4, 205), mk(5, 205), mk(6, 203)];
+    globalThis.fetch = async (url, init) => {
+      const u = new URL(url);
+      if (u.host === "v3.football.api-sports.io" && u.pathname === "/fixtures" && u.searchParams.get("status") === "NS" && u.searchParams.get("date") === "2026-10-20") { calls.football.push("fixtures?" + u.searchParams.toString()); return json({ response: list, errors: [] }); }
+      return String(url).endsWith("/status") ? json({ response: { requests: { current: 97, limit_day: 100 } } }) : keep(url, init);
+    };
+    const from3 = calls.football.length;
+    await runPredict({ now: NOW });
+    const standingsAsked = calls.football.slice(from3).filter((c) => c.startsWith("standings"));
+    assert.equal(standingsAsked.length, 1); assert.ok(standingsAsked[0].includes("league=205"), standingsAsked[0]);
+
+    // No requests left at all: nothing breaks, it says so
+    db.predictions.length = 0; clearMemo(); withQuota(100);
+    const none = await runPredict({ now: NOW });
+    assert.ok(none.skipped && none.predicted === 0 && none.budget === 0);
+  } finally { globalThis.fetch = keep; clearMemo(); db.predictions.length = 0; db.predictions.push(...savedRows); db.prediction_benchmarks.length = 0; db.prediction_benchmarks.push(...savedBench); }
+});
 await test("grade job: grades on the 90-minute score and is idempotent", async () => {
   const s = await runGrade({ now: Date.parse("2026-10-21T06:00:00Z") });
   assert.equal(s.graded, 2); // one row per model

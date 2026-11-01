@@ -1,9 +1,13 @@
-# Changes (unreleased) — DeepSeek replaces OpenAI for prediction notes
+# Changes (unreleased) — DeepSeek replaces OpenAI; 7-day predictions that use the whole quota
 
 - **The plain-language note on each prediction now comes from DeepSeek** (`deepseek-v4-pro`, the advanced model) instead of OpenAI. It is still given only our own numbers and **never changes a probability**.
 - **New environment variables:** `DEEPSEEK_API_KEY` (replaces `OPENAI_API_KEY`) and optional `DEEPSEEK_MODEL` (empty = `deepseek-v4-pro`; `deepseek-flash` is the cheaper, faster choice). `OPENAI_API_KEY` and `OPENAI_MODEL` are no longer read: **add the DeepSeek key in Vercel and redeploy**. `PREDICT_EXPLAIN_MAX` works as before.
 - Thinking mode is switched off for these notes (DeepSeek's V4 models think by default; that would use up the token limit and slow each run for a two-sentence answer). The request timeout is 20 s instead of 12 s.
 - The admin Overview line now reads "AI notes on/off". Files: `api/_predict.js`, `api/mingt.js`, `.env.example`, `docs/PREDICTIONS.md`, comment in `supabase/migrations/004_predictions.sql`, `src/utils/errors.js` (DeepSeek is never named in user-facing errors) and its test.
+- **Predictions look 7 days ahead** (was today and tomorrow): `PREDICT_DAYS`, up to 14.
+- **The football API quota is used, not guarded.** The run spends what is left today minus 1 (`PREDICT_RESERVE`): 19 left, up to 18 used. It used to refuse when under 3 requests were affordable and held 65% back by default; a low quota no longer stops predictions, they simply cover the most important matches first and tomorrow's run continues. Even with no requests left it uses saved tables.
+- **Smarter spending.** Every competition gets its table first (largest and soonest first); season results for the comparison model and odds only use requests that are spare. Day lists for days 3-7 are remembered for 12 hours. Each competition is saved the moment it is done, notes are added afterwards, and the run stops cleanly before Vercel's 60 s limit. The admin message says how many matches wait for the next run.
+- The statistical model itself (poisson-v2) is unchanged: it is compared against the older models on real results, and a change should only ship when it wins there.
 - Not changed: the statistical model, accuracy figures, locking, database tables.
 
 # Changes in 0.43.0 — match list, match page and predictions polished

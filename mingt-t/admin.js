@@ -746,7 +746,7 @@ async function viewPredictions(main) {
     button.disabled = true;
     try {
       const { result } = await api("predictions_run", { task });
-      toast(task === "predict" ? `Recorded ${result.predicted} predictions (${result.callsUsed} football API calls).` : `Graded ${result.graded} of ${result.pending} waiting matches (${result.callsUsed} calls).`);
+      toast(task === "predict" ? (result.skipped ? `Nothing recorded: ${result.skipped}.` : `Recorded ${result.predicted} predictions for the next ${result.days} days (${result.callsUsed} football API calls${result.uncovered ? `; ${result.uncovered} matches wait for tomorrow's run` : ""}).`) : `Graded ${result.graded} of ${result.pending} waiting matches (${result.callsUsed} calls).`);
       route();
     } catch (err) { toast(err.message, true); button.disabled = false; }
   };

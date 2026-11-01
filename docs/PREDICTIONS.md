@@ -71,9 +71,14 @@ A scheduled job now records a prediction for **every** upcoming match, so accura
 
 **What runs** (Vercel cron, see `vercel.json`; Vercel's Hobby plan allows one run per day per job):
 - `04:30 UTC grade`: fetches finished matches and grades each recorded prediction on the 90-minute score (not extra time).
-- `06:00 UTC predict`: fetches today's and tomorrow's not-started fixtures, one standings call per competition (largest first), and records a prediction for each at least 10 minutes before kick-off. **The first prediction for a match and model version is final** and never overwritten, so there is no hindsight.
+- `06:00 UTC predict`: fetches the not-started fixtures for the next 7 days (`PREDICT_DAYS`), one standings call per competition (largest and soonest first), and records a prediction for each at least 10 minutes before kick-off. Each competition is saved as soon as it is done, so a timeout or an empty quota loses nothing; matches not reached are picked up by the next daily run. **The first prediction for a match and model version is final** and never overwritten, so there is no hindsight.
 
-**API cost.** Hard-capped per run by `PREDICT_MAX_CALLS` (40) and by `PREDICT_QUOTA_SHARE` (35%) of what is left of today's quota, whichever is smaller; if less than 3 calls are affordable the run does nothing. Typical run: 2 fixture calls plus 1 per competition (plus odds if `PREDICT_ODDS=1`). Recent form is free: it comes from the standings rows.
+**API cost.** The job spends what is left of today's football API quota minus a reserve of 1 (`PREDICT_RESERVE`): with 19 requests left it may use 18. `PREDICT_MAX_CALLS` (300) is only a safety ceiling and `PREDICT_QUOTA_SHARE` (1 = all) can hold some back. A low quota never switches predicting off. Requests are spent in order of importance:
+1. The day lists of not-started matches, nearest day first (at most about 40% of the budget; days 3 to 7 are remembered for 12 hours, `PREDICT_LIST_CACHE_MINUTES`).
+2. One league table per competition, which unlocks the current model for every match of that league: so one request can cover many matches. Competitions are ranked by how many matches they hold, counting the soonest kick-offs most.
+3. Only when requests are spare after every competition has its table: the season's results (ratings-v3 comparison model) and, with `PREDICT_ODDS=1`, bookmaker odds.
+
+Saved data costs nothing, so even with 0 requests left the run uses any table already saved in `api_cache`. The run stops starting new work after `PREDICT_TIME_BUDGET_MS` (45 s; Vercel stops functions at 60 s) and says how many matches are waiting (`uncovered`). Recent form is free: it comes from the standings rows. A match is predicted the first time a run reaches it and that prediction is final, so a match 7 days out is predicted from the table as it stands then.
 
 **What is stored** (`supabase/migrations/004_predictions.sql`): the prediction as the app shows it, the full 9x9 score matrix, the unrounded probabilities used for scoring, a snapshot of the inputs, and the grade. Stored inputs are what a future ratings model will be trained and back-tested on.
 

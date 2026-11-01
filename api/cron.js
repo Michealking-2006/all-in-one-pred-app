@@ -1,7 +1,7 @@
 // Scheduled jobs (see vercel.json "crons"). Vercel calls this with
 //   Authorization: Bearer <CRON_SECRET>
 // so set CRON_SECRET in the project's environment variables. Nobody else can run it.
-//   /api/cron?task=predict   record predictions for the next two days
+//   /api/cron?task=predict   record predictions for the next 7 days (PREDICT_DAYS)
 //   /api/cron?task=grade     grade matches that have finished
 //   /api/cron?task=push      send goal / kick-off / half-time / full-time alerts (needs to run every minute, see docs/NOTIFICATIONS.md)
 //   /api/cron?task=all       grade, then predict
