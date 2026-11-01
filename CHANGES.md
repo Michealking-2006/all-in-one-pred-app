@@ -1,8 +1,7 @@
 # Changes in 0.41.1 — the iPhone look on Android too
 
 - **Android now uses Inter, the font closest to the iPhone's San Francisco.** iPhones and Macs still use their own San Francisco (it is listed first, so they never download anything). San Francisco itself can't be put on Android: Apple's licence only allows it on Apple devices.
-- Inter is served from our own site (`/src/assets/fonts/inter-latin-var.woff2`, latin, one file for every weight), not from Google, and cached by the service worker. The loading screen and the app use the same stack, so nothing changes font when the app appears.
-- **You need to add the font file** (it isn't in this zip): download Inter from https://rsms.me/inter/ (free, SIL Open Font License), make a latin woff2 variable-font subset, and save it as `src/assets/fonts/inter-latin-var.woff2`. Until it's there, Android falls back to Roboto as before.
+- Inter comes from Google Fonts (already allowed by our security policy and already cached by the service worker after the first visit). The loading screen and the app use the same font list. iPhones match San Francisco first, so they only fetch the tiny stylesheet, never the font.
 - Tests updated (`startup`, `api-usage`). Service worker cache v27.
 - Not changed: share images still draw in DM Sans.
 
