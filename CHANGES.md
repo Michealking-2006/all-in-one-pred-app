@@ -1,7 +1,47 @@
+# Changes in 0.43.0 — match list, match page and predictions polished
+
+Styles only: no markup, data or behaviour changed. I checked each screen in a phone-sized browser (light and dark, 390 px and 320 px wide) with sample matches; real matches from your API are the final check.
+
+- **Match list:** live matches now have a thin red bar and a faint tint across the whole row (the old fade stopped halfway and looked patchy). Scores and kick-off times line up in columns, league cards have a finer outline and a bolder league name, and the time column is wide enough for "11:12 AM".
+- **Match page:** the score area is now one white card with the league, a live/status pill, the score, form, and scorers inside it, instead of floating on the grey page. Bigger score, steadier numbers, roomier event rows and info rows.
+- **Predictions (VIP):** "Scoutwave Premium" is a small pill, the heading is tighter, the repeated small "Predictions" label above "Today's model picks" is gone, the pick count is a pill, accuracy numbers are bigger with the winner figure highlighted, and the pick cards and locked cards have more room.
+- **Small phones (320 px):** the earlier smaller crests and score are kept so the favourite stars never touch the crests.
+- Service worker cache v31.
+- Not changed: lineups, other tabs' content, colours of the brand, themes.
+
+# Changes in 0.42.2 — Inter font now served from our own site
+
+- **The Inter font file is in the project** (`src/assets/fonts/inter-latin-var.woff2`, latin, one file for every weight, free under the SIL Open Font License). Android loads it from our own server instead of Google Fonts, so there is no outside request, it is cached by the service worker, and it works offline after the first visit. iPhones and Macs still use their own San Francisco and never download it.
+- The Google Fonts links in `index.html` are gone again. Everything else from 0.42.1 is unchanged (lineup polish, control room restyle). Service worker cache v30.
+
+# Changes in 0.42.1 — Android font from a CDN, control room restyle
+
+- **Android gets Inter from Google Fonts**, so there is no font file to add and `npm run font` / `scripts/get-inter.mjs` are gone. Google Fonts was already allowed by our security policy and cached by the service worker. iPhones and Macs match San Francisco first and only fetch the tiny stylesheet, never the font. The loading screen and the app use the same font list.
+- **Control room (`/mingt-t`) restyled, styles only.** Sidebar with a marker on the open section, softer cards and shadows, steadier numbers in stats and tables, calmer table headers (no all-caps), better buttons, toggles, filters and focus rings, a polished login, and a sidebar that scrolls sideways on phones. No behaviour changed; the page still uses no web fonts or inline styles.
+- Includes the 0.42.0 lineup layout polish unchanged. Tests updated (`startup`). Service worker cache v29.
+- Not changed: share images still draw in DM Sans.
+
+# Changes in 0.42.0 — lineup layout polished
+
+I could not look at a phone screen, so instead of guessing I worked out where every player of both teams lands (14 common formations, phone widths 320 to 430) from the real numbers in the code and the stylesheet. That found real overlaps, now fixed and guarded by `tests/lineup-layout.test.mjs`:
+
+- **Players and names overlapped on the pitch.** With photos and ratings on, a player takes about 56 px of height, but the five lines of a 4-3-3 or 4-2-3-1 were only about 57 px apart, and the six lines of a 4-1-2-1-2 about 45 px, so shirts sat on the names of the line behind. The pitch is taller (a normal one now 100:206, a six-line formation 100:232), the keeper stands at 92% and the front line at 55% of the height, so the two teams' front lines are 10% (about 65 px) apart.
+- **The goalkeeper's shirt ran under the team name pill** at the top and bottom edge on most phones; there is room for it now.
+- **On narrow phones (under 360 px) the photo shirts stayed 40 px** because a more specific rule beat the "smaller shirts" rule. Both shirt kinds are 32 px there, and the pitch is taller for them.
+- **Rating pills** sit 1 px closer to the shirt and the gap under the shirt is smaller, so a rated player no longer pushes its name into the next line.
+- 3 new tests. Service worker cache v28.
+- Not changed: colours, the pitch lines, the substitute lists and the popups. Please look at a real match on your phone, a 4-1-2-1-2 especially, and tell me what still looks wrong: a screenshot is the fastest way.
+
+# Changes in 0.41.2 — one command to get the Inter font
+
+- **Android still showed Roboto because the Inter file was never added** (the 0.41.1 notes said it had to be). This build can't include it (no internet access when it was made), so `scripts/get-inter.mjs` downloads it: run `npm run font` once on your computer, commit `src/assets/fonts/inter-latin-var.woff2`, deploy. It checks that what it got is really a font and tries a second source if the first fails.
+- Nothing else changed. iPhones and Macs are unaffected: they use their own San Francisco (listed first) and never download Inter.
+
 # Changes in 0.41.1 — the iPhone look on Android too
 
 - **Android now uses Inter, the font closest to the iPhone's San Francisco.** iPhones and Macs still use their own San Francisco (it is listed first, so they never download anything). San Francisco itself can't be put on Android: Apple's licence only allows it on Apple devices.
-- Inter comes from Google Fonts (already allowed by our security policy and already cached by the service worker after the first visit). The loading screen and the app use the same font list. iPhones match San Francisco first, so they only fetch the tiny stylesheet, never the font.
+- Inter is served from our own site (`/src/assets/fonts/inter-latin-var.woff2`, latin, one file for every weight), not from Google, and cached by the service worker. The loading screen and the app use the same stack, so nothing changes font when the app appears.
+- **You need to add the font file** (it isn't in this zip): download Inter from https://rsms.me/inter/ (free, SIL Open Font License), make a latin woff2 variable-font subset, and save it as `src/assets/fonts/inter-latin-var.woff2`. Until it's there, Android falls back to Roboto as before.
 - Tests updated (`startup`, `api-usage`). Service worker cache v27.
 - Not changed: share images still draw in DM Sans.
 

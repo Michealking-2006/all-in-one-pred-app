@@ -941,7 +941,7 @@ button.lineup-head:active{background:var(--surface-2);opacity:1}
 .lineup-head-copy strong{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lineup-head-copy span{font-size:13px;color:var(--text-muted)}
 
-.pitch{position:relative;width:100%;aspect-ratio:100/178;border-radius:18px;overflow:hidden;
+.pitch{position:relative;width:100%;aspect-ratio:100/206;border-radius:18px;overflow:hidden;
   background:repeating-linear-gradient(180deg,#3aa960 0,#3aa960 8.3333%,#32a058 8.3333%,#32a058 16.6666%);
   box-shadow:0 12px 28px rgba(20,90,45,.26),inset 0 0 0 1px rgba(255,255,255,.14)}
 .pitch-field{position:absolute;inset:2.4% 4%;border:2px solid rgba(255,255,255,.72);border-radius:2px;pointer-events:none}
@@ -972,12 +972,12 @@ button.lineup-head:active{background:var(--surface-2);opacity:1}
 .pitch-shirt b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 /* Player photos: the picture covers the numbered shirt once it has loaded; the number moves to a small chip. */
 .pitch-photo,.pitch-num{display:none}
-.pitch-shirt.photo-ok{width:40px;height:40px;background:#fff !important;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.35) !important}
+.pitch-shirt.photo-ok{width:38px;height:38px;background:#fff !important;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.35) !important}
 .pitch-shirt.photo-ok b{display:none}
 .pitch-shirt.photo-ok .pitch-photo{display:block;position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:50% 20%}
 .pitch-shirt.photo-ok .pitch-num{display:grid;place-items:center;position:absolute;top:-5px;left:-7px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;font:700 10px/1 var(--font-display);font-style:normal;font-variant-numeric:tabular-nums;box-shadow:0 0 0 1.5px #fff}
 .pitch-shirt.photo-ok .pitch-badge.yellow,.pitch-shirt.photo-ok .pitch-badge.red{top:12px;left:auto;right:-8px}
-.pitch-name{max-width:100%;font-size:10.5px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pitch-name{max-width:100%;font-size:10.5px;line-height:12px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pitch-badge{position:absolute;display:grid;place-items:center;font-size:9px;font-weight:700;color:#111}
 .pitch-badge.goal{top:-6px;right:-8px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px #111}
 .pitch-badge.goal:empty{background:radial-gradient(circle,#111 0 30%,#fff 34%)}
@@ -1148,9 +1148,12 @@ span.entity-row-image{background:var(--fill)}
 .stat-tiles[data-count="5"]>.stat-tile:nth-child(n+4){grid-column:span 3}
 .pitch-player.tight .pitch-name{font-size:10px;letter-spacing:-.02em}
 /* Narrow phones: a slightly taller pitch and smaller shirts keep five-line formations from overlapping */
+/* A formation with six lines (4-1-2-1-2) needs a taller pitch so its lines don't touch */
+.pitch.deep{aspect-ratio:100/232}
 @media (max-width:359px){
-  .pitch{aspect-ratio:100/192}
-  .pitch-shirt{width:30px;height:30px}
+  .pitch{aspect-ratio:100/220}
+  .pitch.deep{aspect-ratio:100/250}
+  .pitch-shirt,.pitch-shirt.photo-ok{width:32px;height:32px}
   .pitch-shirt b{font-size:12px}
 }
 .form-strip{flex-wrap:wrap;row-gap:10px}
@@ -1260,7 +1263,7 @@ span.entity-row-image{background:var(--fill)}
 .rating-pill.tier-good{background:#23883f}
 .rating-pill.tier-ok{background:#a86200}
 .rating-pill.tier-poor{background:#d03a2f}
-.rating-pill.on-pitch{position:absolute;bottom:-5px;left:-12px;min-width:24px;height:15px;padding:0 4px;border-radius:5px;font-size:10px;box-shadow:0 0 0 1.5px #fff}
+.rating-pill.on-pitch{position:absolute;bottom:-4px;left:-12px;min-width:24px;height:15px;padding:0 4px;border-radius:5px;font-size:10px;box-shadow:0 0 0 1.5px #fff}
 .bench-meta{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
 .ratings-view{display:grid;gap:12px}
 .ratings-card{padding:14px 16px 6px}
@@ -1846,7 +1849,7 @@ img{image-rendering:auto}
 /* Dark mode: the sign-in fields used the same black as the page, so they had no visible box. */
 :root[data-theme="dark"] .auth-field{background:var(--surface)}
 /* Pitch: the rating chip sat on the first letters of every player name. */
-.pitch-player:has(.rating-pill){gap:8px}
+.pitch-player:has(.rating-pill){gap:6px}
 /* Match header: long scorer names ran off the screen, and on 320 px phones the score collided with the crests. */
 .match-scoreboard{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
 .match-scorers{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr)}
@@ -1907,3 +1910,99 @@ img{image-rendering:auto}
 .pred-safe strong{font-size:16px}
 .pred-safe .pred-fact{margin-left:auto}
 .pred-accuracy .pred-stats-4{grid-template-columns:1fr 1fr}
+
+/* ==========================================================================
+   0.43.0 polish: match list, match page, predictions.
+   Only colours, spacing, type and shape: no markup or behaviour changes.
+   ========================================================================== */
+
+/* ---- Match list ---- */
+.ios-home-content{padding:2px 16px 0}
+.ios-league-section{margin-bottom:14px;border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 0 0 .5px var(--separator)}
+.ios-league-header{padding:12px 14px 10px;background:var(--surface)}
+.ios-league-logo,.ios-league-dot{width:24px;height:24px;flex-basis:24px}
+.ios-league-name span:first-child{font-size:15px;font-weight:700}
+.ios-league-name span+span{font-size:12.5px}
+.ios-league-count{min-width:24px;height:24px;font-variant-numeric:tabular-nums}
+.ios-match-main{grid-template-columns:68px minmax(0,1fr);padding:13px 0 13px 6px}
+.ios-match-row+.ios-match-row::before{left:74px}
+.ios-match-time{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.005em}
+.ios-match-teams{gap:10px}
+.team-name{font-size:16px;font-weight:500}
+.ios-score{font-variant-numeric:tabular-nums;font-weight:700;padding-right:6px}
+.ios-score.muted-score{font-weight:500}
+/* Live: a thin red bar and a faint wash across the whole row, instead of a gradient that stopped halfway */
+.ios-match-row.is-live{background:color-mix(in srgb,var(--accent) 4.5%,transparent)}
+.ios-match-row.is-live::after{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+.ios-live-status{gap:6px;font-weight:700}
+.ios-favorite{width:46px;flex-basis:46px}
+.ios-favorite svg{width:20px;height:20px}
+
+/* ---- Match page ---- */
+.match-hero{margin:12px 16px 14px;padding:14px 8px 16px;border-radius:22px;background:var(--surface);box-shadow:0 1px 2px rgba(16,24,40,.05),0 0 0 .5px var(--separator)}
+.match-league-line{gap:8px;font-size:13px;font-weight:600;color:var(--text-muted)}
+.match-status,.match-live-label{margin-top:8px;padding:4px 12px;border-radius:999px;background:var(--fill);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.match-live-label{background:var(--accent-soft)}
+.match-scoreboard{margin-top:16px;gap:4px}
+.match-side{gap:10px;font-size:15px}
+.match-team-logo{width:58px;height:58px}
+.match-score-big{padding-top:8px;font-size:44px;font-weight:800;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.match-form{margin-top:4px}
+.form-chip{width:19px;height:19px;border-radius:6px}
+.match-scorers{margin-top:16px;padding-top:12px;border-top:.5px solid var(--separator);font-size:12.5px}
+.match-scorers-ball{background:var(--text-faint);box-shadow:none}
+.match-countdown-value{font-size:28px;font-weight:800}
+.match-countdown-label{letter-spacing:0}
+
+.match-summary-card{padding:16px 18px}
+.match-summary-status{font-size:20px;font-weight:700}
+.match-info-row{padding:12px 0;font-size:15px}
+.match-info-row strong{font-variant-numeric:tabular-nums}
+.h2h-pill{border-radius:14px;padding:12px 6px}
+.h2h-pill strong{font-variant-numeric:tabular-nums}
+.match-events{border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 0 0 .5px var(--separator)}
+.match-event-row{grid-template-columns:40px 40px minmax(0,1fr) auto;padding:13px 16px}
+.match-event-minute{font-variant-numeric:tabular-nums}
+.match-stat-bar{height:6px;border-radius:3px}
+.match-stat-values{font-variant-numeric:tabular-nums}
+.odds-cell{font-variant-numeric:tabular-nums}
+
+/* ---- Predictions (VIP tab) ---- */
+.vip-hero{padding-bottom:6px}
+.vip-hero .section-kicker{display:inline-flex;align-items:center;margin-bottom:10px;padding:4px 12px;border-radius:999px;background:var(--accent-soft);font-size:12.5px;font-weight:700}
+.vip-hero h1{font-size:32px;font-weight:800;letter-spacing:-.035em}
+.vip-hero p{max-width:34ch;font-size:15.5px}
+.vip-heading{align-items:center;padding-top:20px}
+.vip-heading .section-kicker{display:none}
+.vip-heading h2{font-size:21px}
+.vip-heading .muted-count{padding:3px 11px;border-radius:999px;background:var(--fill);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.pred-accuracy{margin-top:12px;padding:16px;border-radius:20px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 0 0 .5px var(--separator)}
+.pred-accuracy .pred-stat{padding:12px 14px;border-radius:14px;background:var(--surface-2)}
+.pred-accuracy .pred-stat strong{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.pred-accuracy .pred-stat:first-child{background:var(--accent-wash)}
+.vip-list{gap:12px}
+.vip-card{border-radius:20px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 0 0 .5px var(--separator)}
+.pred-row{gap:14px;padding:16px 16px 18px}
+.pred-row .pred-conf{padding:4px 11px}
+.pred-matchup{padding:6px 0 2px}
+.pred-crest{width:40px;height:40px}
+.pred-team{font-size:15px;font-weight:600}
+.pred-time strong{font-size:19px;font-weight:800}
+.pred-row .vip-pick{padding:14px 16px;border-radius:14px}
+.pred-row .vip-pick strong{font-size:21px;font-weight:800}
+.pred-row .pred-bar{height:50px;gap:3px}
+.pred-seg{border-radius:12px}
+.pred-seg strong{font-variant-numeric:tabular-nums}
+.vip-lock{padding:13px 16px;border-radius:14px;font-weight:500}
+.pred-fact{font-variant-numeric:tabular-nums}
+.pred-footnote{margin:16px 24px 8px}
+/* Small phones (320 px): keep the earlier smaller crest and score so the favourite stars never touch the crests */
+@media (max-width:359px){
+  .match-hero{margin-left:12px;margin-right:12px;padding-left:4px;padding-right:4px}
+  .match-team-logo{width:44px;height:44px}
+  .match-score-big{font-size:34px}
+  .match-side{font-size:14px}
+  .ios-home-content{padding-left:12px;padding-right:12px}
+  .ios-match-main{grid-template-columns:62px minmax(0,1fr)}
+  .ios-match-row+.ios-match-row::before{left:68px}
+}

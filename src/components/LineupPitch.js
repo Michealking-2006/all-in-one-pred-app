@@ -258,7 +258,8 @@ export function LineupPitch({ fixture, lineups, events, ratings = null }) {
     ? h("div", { className: "pitch-team " + side }, [text("span", {}, entry.team?.name || ""), text("span", { className: "mono pitch-formation" }, entry.formation || "")])
     : null;
 
-  const pitch = h("div", { className: "pitch", role: "group", "aria-label": "Starting lineups on the pitch" }, [
+  const deep = Math.max(arrangeRows(home?.startXI, home?.formation).length, arrangeRows(away?.startXI, away?.formation).length) >= 6;
+  const pitch = h("div", { className: "pitch" + (deep ? " deep" : ""), role: "group", "aria-label": "Starting lineups on the pitch" }, [
     pitchLines(),
     label(home, "home"),
     label(away, "away"),

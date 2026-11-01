@@ -51,12 +51,16 @@ export function arrangeRows(startXI, formation) {
 // the AWAY side defends the bottom goal and attacks up (standard orientation),
 // the HOME side is the same picture rotated 180° at the top, so both teams face
 // each other and each keeper stands in front of his own goal.
+// The keeper stands at 92% of the pitch height and the most advanced line at 55%; the home side mirrors that, so the two
+// front lines are 10% of the pitch apart (about 65 px on a phone) and never touch. A formation with six lines is
+// drawn on a taller pitch (see LineupPitch, `deep`), so its lines have room too.
+export const GK_Y = 92, FRONT_Y = 55;
 export function layoutSide(rows, side) {
   const out = [];
   const count = rows.length;
   rows.forEach((row, r) => {
     const depth = count <= 1 ? 0 : r / (count - 1); // 0 = keeper, 1 = most advanced line
-    const yStd = 91 - depth * 35.5;
+    const yStd = GK_Y - depth * (GK_Y - FRONT_Y);
     row.forEach((player, i) => {
       const xStd = 5 + ((i + 1) / (row.length + 1)) * 90;
       // `span` = horizontal room (percent of pitch width) this marker may use, so
