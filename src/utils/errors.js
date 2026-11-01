@@ -10,7 +10,7 @@ const TECHNICAL = new RegExp([
   "syntaxerror", "typeerror", "referenceerror", "rangeerror", "networkerror", "failed to fetch", "load failed", "aborterror",
   "chunk", "dynamically imported", "importing a module", "missing screen", "\\bmodule\\b", "stack", "\\bat \\w+ \\(",
   // services, settings and secrets
-  "api[ _-]?key", "apikey", "secret", "token", "supabase", "vercel", "postgres", "polar", "formspree", "openai", "api-?football", "api-?sports",
+  "api[ _-]?key", "apikey", "secret", "token", "supabase", "vercel", "postgres", "polar", "formspree", "openai", "deepseek", "api-?football", "api-?sports",
   "thenewsapi", "news_access", "scoutwave_", "\\benv", "\\.env", "readme", "docs/", "migration", "service[ _-]?role", "\\brls\\b", "webhook",
   "\\bcron\\b", "proxy", "endpoint", "serverless", "function logs", "deploy", "configur", "not set", "set up yet", "credentials? (is|are) ",
   "\\brelation\\b", "does not exist", "\\bcolumn\\b", "constraint", "violates", "duplicate key", "permission denied", "row[- ]level", "\\bschema\\b", "\\bquery\\b",

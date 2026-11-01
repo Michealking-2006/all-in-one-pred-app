@@ -23,7 +23,7 @@ create table if not exists public.predictions (
   probs       jsonb       not null,                 -- unrounded probabilities used for scoring: home, draw, away, over25, btts
   inputs      jsonb       not null default '{}',    -- snapshot of what the model saw (for later retraining / backtests)
   analysis    jsonb,                                -- market comparison (edge vs bookmaker). Admin only, never sent to the app
-  note        text,                                 -- optional plain-language explanation (OpenAI), never changes the numbers
+  note        text,                                 -- optional plain-language explanation (DeepSeek), never changes the numbers
   status      text        not null default 'pending' check (status in ('pending','graded','void')),
   home_goals  integer,
   away_goals  integer,

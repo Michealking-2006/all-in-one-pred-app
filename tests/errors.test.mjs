@@ -21,7 +21,7 @@ await test("technical messages never reach the screen; plain ones do", () => {
   assert.equal(safeMessage(null), GENERIC_ERROR); assert.equal(safeMessage("Plain words."), "Plain words.");
 });
 await test("no server message names a technology, a setting, a file or a setup step", () => {
-  const FORBIDDEN = /vercel|supabase|polar|formspree|openai|api-?football|api-?sports|thenewsapi|readme|docs\/|\.md\b|migration|environment variable|env var|set [A-Z][A-Z0-9_]{4,}|[A-Z]{3,}_[A-Z0-9_]{3,}|not set up|not configured|api key|\btoken\b|service role|totp|two-factor|webhook secret|admin-setup/i;
+  const FORBIDDEN = /vercel|supabase|polar|formspree|openai|deepseek|api-?football|api-?sports|thenewsapi|readme|docs\/|\.md\b|migration|environment variable|env var|set [A-Z][A-Z0-9_]{4,}|[A-Z]{3,}_[A-Z0-9_]{3,}|not set up|not configured|api key|\btoken\b|service role|totp|two-factor|webhook secret|admin-setup/i;
   const offenders = [];
   for (const file of [...walk("api"), ...walk("server")].filter((f) => f.endsWith(".js"))) {
     const src = read(file);

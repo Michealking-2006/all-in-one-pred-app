@@ -1,3 +1,11 @@
+# Changes (unreleased) — DeepSeek replaces OpenAI for prediction notes
+
+- **The plain-language note on each prediction now comes from DeepSeek** (`deepseek-v4-pro`, the advanced model) instead of OpenAI. It is still given only our own numbers and **never changes a probability**.
+- **New environment variables:** `DEEPSEEK_API_KEY` (replaces `OPENAI_API_KEY`) and optional `DEEPSEEK_MODEL` (empty = `deepseek-v4-pro`; `deepseek-flash` is the cheaper, faster choice). `OPENAI_API_KEY` and `OPENAI_MODEL` are no longer read: **add the DeepSeek key in Vercel and redeploy**. `PREDICT_EXPLAIN_MAX` works as before.
+- Thinking mode is switched off for these notes (DeepSeek's V4 models think by default; that would use up the token limit and slow each run for a two-sentence answer). The request timeout is 20 s instead of 12 s.
+- The admin Overview line now reads "AI notes on/off". Files: `api/_predict.js`, `api/mingt.js`, `.env.example`, `docs/PREDICTIONS.md`, comment in `supabase/migrations/004_predictions.sql`, `src/utils/errors.js` (DeepSeek is never named in user-facing errors) and its test.
+- Not changed: the statistical model, accuracy figures, locking, database tables.
+
 # Changes in 0.43.0 — match list, match page and predictions polished
 
 Styles only: no markup, data or behaviour changed. I checked each screen in a phone-sized browser (light and dark, 390 px and 320 px wide) with sample matches; real matches from your API are the final check.

@@ -6,7 +6,7 @@ client and from the `api/football.js` allow-list). Predictions come from our own
 
 ## Setup checklist (do these in order)
 1. **Database.** Supabase SQL editor: run `supabase/migrations/002_entitlements.sql` (if not run) and `004_predictions.sql`.
-2. **Keys in Vercel** (Settings > Environment Variables, then redeploy): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SCOUTWAVE_FOOTBALL_API_KEY`, `CRON_SECRET` (16+ random characters), `SITE_URL` (your https address). Optional: `PREDICT_LEAGUES` (limit to some competitions), `PREDICT_ODDS=1` (benchmark against a bookmaker), `OPENAI_API_KEY` (wording only).
+2. **Keys in Vercel** (Settings > Environment Variables, then redeploy): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SCOUTWAVE_FOOTBALL_API_KEY`, `CRON_SECRET` (16+ random characters), `SITE_URL` (your https address). Optional: `PREDICT_LEAGUES` (limit to some competitions), `PREDICT_ODDS=1` (benchmark against a bookmaker), `DEEPSEEK_API_KEY` (wording only).
 3. **Check it is connected.** Admin > Overview shows "Server-side prediction tracking" green. In Admin > Predictions press *Record predictions now*; matches for today and tomorrow should appear as pending.
 4. **Let it run for a week.** The 06:00 UTC job records, the 04:30 UTC job grades. Admin > Predictions shows winner accuracy, over/under, calibration and the safer-pick figure. Nothing is public until `PREDICT_MIN_PUBLISH` (200) matches are graded.
 5. **Switch the app on.** Admin > Remote config: turn on *Predictions*. If you sell Premium, also turn on *Account Premium and coins* so the server enforces the lock.
@@ -83,7 +83,7 @@ A scheduled job now records a prediction for **every** upcoming match, so accura
 - *Bookmaker market* (`PREDICT_ODDS=1`): odds from one bookmaker, margin removed. This is the strongest yardstick there is: a model that can't beat or match the closing market has no edge. The edge and a quarter-Kelly figure are stored for the admin only; the app never shows stakes or betting advice.
 - *Forebet*: not read automatically. Scoutwave does not scrape Forebet: it breaks their terms, breaks without warning, and would mean republishing their numbers. Instead, type in what their public page showed **before kick-off** for a sample of matches (admin > Predictions); lines entered after kick-off are kept but never counted.
 
-**OpenAI** (optional, `OPENAI_API_KEY`, `PREDICT_EXPLAIN_MAX`): writes a one-or-two-sentence plain-language note for the most confident matches. It is given only our numbers, may not invent injuries or news, and **never changes a probability**. A language model is a poor source of probabilities (it can't be calibrated or back-tested the way a statistical model can), so it is used where it is good: wording.
+**DeepSeek** (optional, `DEEPSEEK_API_KEY`, `PREDICT_EXPLAIN_MAX`, model `deepseek-v4-pro` unless `DEEPSEEK_MODEL` says otherwise; thinking mode is switched off because a two-sentence note needs no reasoning): writes a one-or-two-sentence plain-language note for the most confident matches. It is given only our numbers, may not invent injuries or news, and **never changes a probability**. A language model is a poor source of probabilities (it can't be calibrated or back-tested the way a statistical model can), so it is used where it is good: wording.
 
 **Honest scope: what is not built yet** (your lists, mapped to what the data allows):
 
@@ -98,7 +98,7 @@ A scheduled job now records a prediction for **every** upcoming match, so accura
 
 ## Switching on server-side tracking
 1. Run `supabase/migrations/004_predictions.sql` in the Supabase SQL editor.
-2. In Vercel add `CRON_SECRET` (any long random string, 16+ characters) and redeploy. Optional: `PREDICT_LEAGUES`, `PREDICT_ODDS=1`, `OPENAI_API_KEY` + `PREDICT_EXPLAIN_MAX`, see `.env.example`.
+2. In Vercel add `CRON_SECRET` (any long random string, 16+ characters) and redeploy. Optional: `PREDICT_LEAGUES`, `PREDICT_ODDS=1`, `DEEPSEEK_API_KEY` + `PREDICT_EXPLAIN_MAX`, see `.env.example`.
 3. Admin > Overview should show "Server-side prediction tracking" green. In admin > Predictions press *Record predictions now* to try it without waiting for 06:00 UTC.
 4. Predictions stay hidden from users until the **Predictions** flag is turned on (Admin > Remote config). Turn it on once you have a few days of graded matches.
 5. **Locking is enforced by the server** (when the *Account Premium and coins* flag is on). `GET /api/predictions` returns the full pick only to a signed-in person with active Premium or who unlocked that match with coins; everyone else gets a teaser for each match (how confident the model is and its rank among the matches asked for), never the pick, probabilities, score, expected goals, reasoning or note. Not signed in, an expired token, a suspended account and a sign-in outage all count as signed out (fails closed). Answers are `private, no-store`, so they are never shared between people. The app shows a lock with "Get Premium", "Unlock for N coins" or "Sign in to unlock", and never computes a pick on the device for someone who hasn't unlocked it. With the flag off the app is a demo and everything is open.

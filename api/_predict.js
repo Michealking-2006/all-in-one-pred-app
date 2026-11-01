@@ -4,7 +4,7 @@
 //
 // The numbers come only from our own statistical model (src/predictions/model.js). Older model
 // versions (api/_models.js) are recorded beside it on the same matches, never shown, only compared.
-// OpenAI, when enabled, only writes a short plain-language note about numbers it
+// DeepSeek, when enabled, only writes a short plain-language note about numbers it
 // is given; it never changes a probability. No third-party prediction service is read.
 import { env, sb, HttpError } from "./_admin.js";
 import { tableFor, MODEL_VERSION } from "../src/predictions/model.js";
@@ -145,12 +145,15 @@ export function valueAnalysis(exact, odds) {
 }
 
 // ---------------------------------------------------------------------------
-// Optional: OpenAI writes one or two plain sentences about numbers it is given.
+// Optional: DeepSeek writes one or two plain sentences about numbers it is given.
+// Model ids per DeepSeek's API docs: "deepseek-v4-pro" (flagship) and "deepseek-flash". The old "deepseek-chat" /
+// "deepseek-reasoner" names are retired. Thinking mode is on by default for these models, so it is switched off here:
+// a 45-word note needs no reasoning, and thinking tokens would eat the max_tokens budget and slow every run.
 // ---------------------------------------------------------------------------
 const clean = (s, n = 60) => String(s || "").replace(/[^\p{L}\p{N} .'&-]/gu, "").slice(0, n);
 
 export async function explain(row) {
-  const key = env("OPENAI_API_KEY");
+  const key = env("DEEPSEEK_API_KEY");
   if (!key) return null;
   const p = row.prediction;
   const facts = {
@@ -161,20 +164,21 @@ export async function explain(row) {
     recentForm: row.inputs?.form || null,
   };
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: env("OPENAI_MODEL") || "gpt-4o-mini",
+        model: env("DEEPSEEK_MODEL") || "deepseek-v4-pro",
+        thinking: { type: "disabled" },
         temperature: 0.2,
-        max_tokens: 140,
+        max_tokens: 200,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: "You explain a football statistical forecast in one or two plain sentences, at most 45 words. Use ONLY the numbers in the data. Never invent injuries, line-ups, news or head-to-head facts. Do not mention odds, stakes or betting, and do not guarantee outcomes. Reply as JSON: {\"note\": \"...\"}." },
           { role: "user", content: JSON.stringify(facts) },
         ],
       }),
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(20000),
     });
     const data = await res.json().catch(() => null);
     const note = JSON.parse(data?.choices?.[0]?.message?.content || "{}").note;
@@ -290,7 +294,7 @@ export async function runPredict({ now = Date.now() } = {}) {
 
   // Optional plain-language notes, most confident matches first, capped.
   const maxNotes = Math.max(0, Math.floor(num("PREDICT_EXPLAIN_MAX", 0)));
-  if (maxNotes && env("OPENAI_API_KEY")) {
+  if (maxNotes && env("DEEPSEEK_API_KEY")) {
     const rank = { high: 0, medium: 1, low: 2 };
     const chosen = rows.filter((r) => r.model === MODEL_VERSION).sort((a, b) => rank[a.prediction.confidence] - rank[b.prediction.confidence]).slice(0, maxNotes);
     await inBatches(chosen, 5, async (row) => { row.note = await explain(row); if (row.note) summary.notes++; });
