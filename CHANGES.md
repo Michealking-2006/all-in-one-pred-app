@@ -1,4 +1,4 @@
-# Changes (unreleased) — DeepSeek replaces OpenAI; 7-day predictions that use the whole quota
+# Changes (unreleased) — DeepSeek replaces OpenAI; 7-day predictions; admin redesign with Insights and Broadcast
 
 - **The plain-language note on each prediction now comes from DeepSeek** (`deepseek-v4-pro`, the advanced model) instead of OpenAI. It is still given only our own numbers and **never changes a probability**.
 - **New environment variables:** `DEEPSEEK_API_KEY` (replaces `OPENAI_API_KEY`) and optional `DEEPSEEK_MODEL` (empty = `deepseek-v4-pro`; `deepseek-flash` is the cheaper, faster choice). `OPENAI_API_KEY` and `OPENAI_MODEL` are no longer read: **add the DeepSeek key in Vercel and redeploy**. `PREDICT_EXPLAIN_MAX` works as before.
@@ -8,6 +8,14 @@
 - **The football API quota is used, not guarded.** The run spends what is left today minus 1 (`PREDICT_RESERVE`): 19 left, up to 18 used. It used to refuse when under 3 requests were affordable and held 65% back by default; a low quota no longer stops predictions, they simply cover the most important matches first and tomorrow's run continues. Even with no requests left it uses saved tables.
 - **Smarter spending.** Every competition gets its table first (largest and soonest first); season results for the comparison model and odds only use requests that are spare. Day lists for days 3-7 are remembered for 12 hours. Each competition is saved the moment it is done, notes are added afterwards, and the run stops cleanly before Vercel's 60 s limit. The admin message says how many matches wait for the next run.
 - The statistical model itself (poisson-v2) is unchanged: it is compared against the older models on real results, and a change should only ship when it wins there.
+- **Admin retouched.** The control room now uses the app's Inter font (same site, no outside host), a tidier spacing and type scale, and a responsive layout: slimmer sidebar on tablets, a swipeable tab strip on phones with larger touch targets, two-column stat cards on small phones, dialogs that slide up as a sheet, safe-area padding for notched phones, and long text that wraps instead of stretching the page. All existing pages and class names are unchanged.
+- **Polar removed from the admin.** The Overview no longer has a "Payments (Polar)" health check (and no longer queries the payments table). The in-app checkout, webhook and `003_payments` migration were left alone.
+- **Admin redesign and new capabilities.** Grouped navigation with icons, a page header with actions, KPI cards with trend lines, "Needs attention" on the Overview, loading skeletons, and **Search and jump (Ctrl/Cmd K)**.
+- **New Insights page:** audience growth and activity, last-seen and sign-in breakdowns, feedback and ratings, alert-device stats, and prediction coverage for the next 7 days (`insights` action, `api/_insights.js`).
+- **Users:** server-side search across up to 5,000 accounts, filters, and CSV export. **Audit log:** search, filters, CSV export. **Messages:** mark all new as read.
+- **Broadcast:** send a team notification to all or part of the alert devices, with preview, confirmation, a 10-minute cooldown and audit trail. The service worker always shows these, even while the app is open.
+- **Maintenance:** clear old (or all) saved football data from the Overview.
+- New tests: `tests/admin-tools.test.mjs`.
 - Not changed: the statistical model, accuracy figures, locking, database tables.
 
 # Changes in 0.43.0 — match list, match page and predictions polished

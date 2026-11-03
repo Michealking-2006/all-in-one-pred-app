@@ -71,8 +71,17 @@ flag on (Remote config, off by default) it works like this for **signed-in** use
 - Spending (unlocking a theme or a tip) is decided on the server: price from Remote config, balance checked,
   charged exactly once even on a double tap or two devices at once (optimistic concurrency), never below zero.
 - You grant or revoke Premium and coins in **Users**. Premium can have an end date.
-- Buying Premium or coins inside the app goes through Polar: see `docs/PAYMENTS.md`. Until Polar is set up,
-  the buy buttons tell signed-in users that payments aren't set up yet; you can still add Premium and coins by hand.
+- The admin no longer shows payment (Polar) status. You can always add Premium and coins by hand under Users.
+  The in-app checkout itself is described in `docs/PAYMENTS.md`.
 - Signing out clears account Premium and coins from the device.
 Turn the flag on only after running migration 002 (Overview shows a green check for it) and granting yourself
 Premium to try it.
+
+## Insights, Broadcast and tools
+
+- **Insights** (Monitor): total accounts, new accounts per day, who was active in the last 1, 7 and 30 days, when people were last seen, how they sign in, feedback volume and ratings, alert devices, and how many matches have a prediction for each of the next 7 days. Each part loads on its own, so one missing table never blanks the page. Account figures cover the first 5,000 accounts.
+- **Overview** now has a "Needs attention" list (failing checks, waiting messages, maintenance mode, quota nearly used, failing alert devices) and quick tools: send a broadcast, mark all messages read, clear old saved football data.
+- **Users**: search by email or id on the server (not just the current page), filter Premium / Banned / Inactive 30d+ / Unconfirmed, and **Export CSV** (recorded in the audit log). Spreadsheet formulas in exported text are neutralised.
+- **Broadcast** (Manage): send a notification to everyone with alerts on, or only goal, kick-off, half/full-time or signed-in devices. Title up to 60 characters, message up to 140, optional page of the app to open. A preview shows how it looks, a confirmation shows how many devices will get it, and only one broadcast can go out every 10 minutes. Dead devices are removed automatically. It is recorded in the audit log.
+- **Audit log**: search, filter (sign-ins, changes, warnings) and export.
+- **Search and jump**: press Ctrl K (or Cmd K) anywhere to jump to a section or look up a user.

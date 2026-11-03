@@ -96,7 +96,8 @@ self.addEventListener("push", (event) => {
   const title = typeof data.title === "string" && data.title ? data.title.slice(0, 80) : "Scoutwave";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
-      if (windows.some((w) => w.visibilityState === "visible")) return undefined;
+      // Match alerts are skipped while the app is open (it shows its own banner); an announcement from the team is always shown.
+      if (data.type !== "announce" && windows.some((w) => w.visibilityState === "visible")) return undefined;
       return self.registration.showNotification(title, {
         body: typeof data.body === "string" ? data.body.slice(0, 160) : "",
         tag: typeof data.tag === "string" ? data.tag.slice(0, 64) : undefined,

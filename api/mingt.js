@@ -7,10 +7,10 @@ import {
 } from "./_admin.js";
 import { adminSet, effective, getRow, isUuid, hasStorage } from "./_account.js";
 import { APP_VERSION } from "../src/config.js";
-import { CATALOGUE } from "./_polar.js";
 import { runPredict, runGrade } from "./_predict.js";
 import { adminReport, importForebet } from "./_report.js";
 import { pushConfigured } from "./_push.js";
+import { insightsReport, searchUsers, exportUsers, broadcastPreview, broadcastSend, purgeCache, markAllRead } from "./_insights.js";
 import { renderPage } from "./_seoPages.js";
 import { siteOrigin, spentToday, seoCap } from "./_site.js";
 import { auditHtml } from "../src/seoAudit.js";
@@ -58,13 +58,12 @@ async function overview() {
     supabaseConfigured() ? sb("/rest/v1/support_messages?select=id&limit=1", { raw: true, headers: { Prefer: "count=exact", Range: "0-0" } }).then(countFrom) : Promise.resolve(null),
     supabaseConfigured() ? sb("/auth/v1/admin/users?page=1&per_page=1", { raw: true }).then((res) => { const n = Number(res.headers.get("x-total-count")); return Number.isFinite(n) && n > 0 ? n : null; }) : Promise.resolve(null),
     supabaseConfigured() ? sb("/rest/v1/entitlements?select=user_id&limit=1").then(() => true) : Promise.resolve(false),
-    supabaseConfigured() ? sb("/rest/v1/payment_events?select=order_id&limit=1").then(() => true) : Promise.resolve(false),
     supabaseConfigured() ? sb("/rest/v1/predictions?select=fixture_id&limit=1").then(() => true) : Promise.resolve(false),
     supabaseConfigured() ? sb("/rest/v1/push_subscriptions?select=endpoint&limit=1000").catch(() => null) : Promise.resolve(null),
     supabaseConfigured() ? storageReady() : Promise.resolve(false),
   ]);
   const seoOk = env("SITE_URL").startsWith("https://");
-  const [football, config, newMessages, totalMessages, users, accountsTable, paymentsTable, predictionsTable, pushRows, adminSecReady] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
+  const [football, config, newMessages, totalMessages, users, accountsTable, predictionsTable, pushRows, adminSecReady] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
   const supabaseOk = settled[1].status === "fulfilled" && supabaseConfigured();
   const flag = (name) => !!env(name);
   return {
@@ -75,7 +74,6 @@ async function overview() {
       { id: "news", label: "News API", ok: flag("NEWS_ACCESS"), detail: flag("NEWS_ACCESS") ? "NEWS_ACCESS is set" : "NEWS_ACCESS is not set" },
       { id: "storage", label: "Database (Supabase)", ok: supabaseOk, detail: !supabaseConfigured() ? "SUPABASE_SERVICE_ROLE_KEY is not set" : supabaseOk ? "Reachable" : "Could not read app_config (did you run supabase/migrations/001_admin.sql?)" },
       { id: "accounts", label: "Account Premium & coins table", ok: accountsTable === true, detail: accountsTable === true ? "Ready" : "Run supabase/migrations/002_entitlements.sql (needed for Premium and coins on accounts)" },
-      { id: "payments", label: "Payments (Polar)", ok: paymentsTable === true && flag("POLAR_ACCESS_TOKEN") && flag("POLAR_WEBHOOK_SECRET"), detail: paymentsTable !== true ? "Run supabase/migrations/003_payments.sql" : !flag("POLAR_ACCESS_TOKEN") ? "POLAR_ACCESS_TOKEN is not set" : !flag("POLAR_WEBHOOK_SECRET") ? "POLAR_WEBHOOK_SECRET is not set" : `Ready${env("POLAR_SERVER") === "sandbox" ? " (sandbox mode)" : ""} · ${Object.values(CATALOGUE).filter((c) => env(c.envVar)).length}/${Object.keys(CATALOGUE).length} products linked` },
       { id: "predtrack", label: "Server-side prediction tracking", ok: predictionsTable === true && flag("CRON_SECRET"), detail: predictionsTable !== true ? "Run supabase/migrations/004_predictions.sql" : !flag("CRON_SECRET") ? "CRON_SECRET is not set (the scheduled jobs can't run)" : `Ready · AI notes ${flag("DEEPSEEK_API_KEY") && Number(env("PREDICT_EXPLAIN_MAX")) > 0 ? "on" : "off"} · bookmaker odds ${env("PREDICT_ODDS") === "1" ? "on" : "off"}` },
       { id: "push", label: "Push notifications", ok: Array.isArray(pushRows) && pushConfigured() && flag("CRON_SECRET"), detail: !Array.isArray(pushRows) ? "Run supabase/migrations/005_usage_and_push.sql" : !pushConfigured() ? "Generate keys: node scripts/generate-vapid.mjs, then set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT" : !flag("CRON_SECRET") ? "CRON_SECRET is not set" : `Ready · ${pushRows.length} device${pushRows.length === 1 ? "" : "s"} signed up · the alert job must be scheduled every minute (docs/NOTIFICATIONS.md)` },
       { id: "adminsec", label: "Admin sign-in protection", ok: adminSecReady === true && twoFactorConfigured(), detail: !twoFactorConfigured() ? "Two-factor is required: set ADMIN_TOTP_SECRET" : adminSecReady !== true ? "Run supabase/migrations/006_admin_security.sql (lockout and session controls are reduced until then)" : `Two-factor required, database lockout and ${Math.round(idleMs() / 60000)}-minute idle sessions active` },
@@ -351,6 +349,30 @@ const ACTIONS = {
     await sb(`/auth/v1/admin/users/${Q.uuid(body.id)}`, { method: "PUT", body: { ban_duration: "none" } });
     await audit(ctx.actor, "user.unban", { id: body.id }, ctx.ip);
     return { ok: true };
+  },
+  insights: async () => insightsReport(),
+  users_search: async (body) => searchUsers(body),
+  users_export: async (body, ctx) => {
+    const out = await exportUsers(body);
+    await audit(ctx.actor, "users.export", { count: out.total, filter: String(body.filter || "all"), search: Boolean(String(body.q || "").trim()) }, ctx.ip);
+    return out;
+  },
+  broadcast_preview: async (body) => broadcastPreview(body),
+  broadcast_send: async (body, ctx) => {
+    if (body.confirm !== true) throw new HttpError(400, "Confirm the broadcast first.");
+    const out = await broadcastSend(body);
+    await audit(ctx.actor, "broadcast.send", { title: out.title, body: out.body.slice(0, 100), audience: out.audience, sent: out.sent, failed: out.failed }, ctx.ip);
+    return out;
+  },
+  cache_purge: async (body, ctx) => {
+    const out = await purgeCache(body);
+    await audit(ctx.actor, "cache.purge", { scope: out.scope, removed: out.removed }, ctx.ip);
+    return out;
+  },
+  messages_mark_read: async (_body, ctx) => {
+    const out = await markAllRead();
+    await audit(ctx.actor, "message.mark_all_read", { updated: out.updated }, ctx.ip);
+    return out;
   },
   audit_list: async (body) => {
     const lim = Math.min(Math.max(parseInt(body.limit, 10) || 100, 1), 300);

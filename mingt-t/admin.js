@@ -88,7 +88,13 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 // ---------------------------------------------------------------- state
 let overviewCache = null;
 let view = "overview";
-const VIEWS = [["overview", "Overview"], ["config", "Remote config"], ["messages", "Messages"], ["users", "Users"], ["usage", "Usage"], ["placements", "Placements"], ["seo", "SEO"], ["security", "Security"], ["predictions", "Predictions"], ["audit", "Audit log"]];
+const NAV = [
+  ["Monitor", [["overview", "Overview", "home"], ["insights", "Insights", "chart"], ["usage", "Usage", "pulse"]]],
+  ["Manage", [["messages", "Messages", "mail"], ["users", "Users", "users"], ["broadcast", "Broadcast", "bell"], ["config", "Remote config", "sliders"]]],
+  ["Grow", [["predictions", "Predictions", "target"], ["placements", "Placements", "layout"], ["seo", "SEO", "search"]]],
+  ["Protect", [["security", "Security", "shield"], ["audit", "Audit log", "list"]]],
+];
+const VIEWS = NAV.flatMap(([, items]) => items.map(([id, label]) => [id, label]));
 
 // notice: why the person was signed out (shown on the sign-in screen). Passing nothing is a deliberate
 // sign-out, which also ends the session on the server so the token is dead everywhere.
@@ -150,9 +156,14 @@ function renderLogin(notice = "", notConfigured = false) {
 let sessionTimer = null;
 
 function renderShell() {
+  const mac = /Mac|iPhone|iPad/.test(navigator.platform || "");
   const nav = el("nav", { class: "side", "aria-label": "Sections" }, [
-    el("div", { class: "brand" }, [el("span", { class: "brand-dot" }), "Control room"]),
-    ...VIEWS.map(([id, label]) => el("button", { class: "nav-btn", type: "button", "data-view": id, "aria-current": id === view ? "page" : null, onClick: () => { location.hash = "#/" + id; } }, [label, id === "messages" ? el("span", { class: "count", id: "msg-count", hidden: true }) : null])),
+    el("div", { class: "brand" }, [el("span", { class: "brand-dot" }), el("span", { class: "brand-name", text: "Control room" })]),
+    el("button", { class: "search-btn", type: "button", "aria-label": "Search and jump", onClick: () => openPalette() }, [icon("search"), el("span", { class: "search-text", text: "Search or jump to…" }), el("kbd", { text: mac ? "⌘K" : "Ctrl K" })]),
+    ...NAV.flatMap(([group, items]) => [
+      el("div", { class: "nav-group", text: group }),
+      ...items.map(([id, label, ic]) => el("button", { class: "nav-btn", type: "button", "data-view": id, "aria-current": id === view ? "page" : null, onClick: () => { location.hash = "#/" + id; } }, [icon(ic), el("span", { class: "nav-label", text: label }), id === "messages" ? el("span", { class: "count", id: "msg-count", hidden: true }) : null])),
+    ]),
     el("div", { class: "side-foot" }, [
       el("span", { id: "session-left" }),
       el("button", { class: "btn small", type: "button", text: "Sign out", onClick: () => logout() }),
@@ -178,15 +189,17 @@ function route() {
   document.querySelectorAll(".nav-btn").forEach((b) => b.setAttribute("aria-current", b.dataset.view === view ? "page" : "false"));
   const main = $("#main");
   if (!main) return;
-  main.replaceChildren(el("p", { class: "boot", text: "Loading…" }));
-  const render = { overview: viewOverview, config: viewConfig, messages: viewMessages, users: viewUsers, usage: viewUsage, placements: viewPlacements, seo: viewSeo, security: viewSecurity, predictions: viewPredictions, audit: viewAudit }[view];
+  main.replaceChildren(skeleton());
+  window.scrollTo(0, 0);
+  const render = { overview: viewOverview, insights: viewInsights, broadcast: viewBroadcast, config: viewConfig, messages: viewMessages, users: viewUsers, usage: viewUsage, placements: viewPlacements, seo: viewSeo, security: viewSecurity, predictions: viewPredictions, audit: viewAudit }[view];
   render(main).catch((err) => main.replaceChildren(el("div", { class: "error", role: "alert", text: err.message || "Could not load this section." })));
   main.focus({ preventScroll: true });
 }
 
-function header(title, subtitle) {
-  return [el("h1", { text: title }), el("p", { class: "sub", text: subtitle })];
+function header(title, subtitle, actions) {
+  return [el("div", { class: "page-head" }, [el("div", { class: "page-title" }, [el("h1", { text: title }), el("p", { class: "sub", text: subtitle })]), actions && actions.length ? el("div", { class: "page-actions" }, actions) : null])];
 }
+const refreshButton = () => el("button", { class: "btn small", type: "button", onClick: () => route() }, [icon("refresh"), "Refresh"]);
 
 function updateInboxCount(n) {
   const badge = $("#msg-count");
@@ -197,7 +210,7 @@ function updateInboxCount(n) {
 
 // ---------------------------------------------------------------- overview
 async function viewOverview(main) {
-  const data = await api("overview");
+  const [data, ins] = await Promise.all([api("overview"), api("insights").catch(() => null)]);
   overviewCache = data;
   updateInboxCount(data.inbox?.new);
   const f = data.football || {};
@@ -205,21 +218,48 @@ async function viewOverview(main) {
   const cfg = data.config || {};
   const bar = el("div", { class: "bar" + (pct >= 85 ? " hot" : ""), role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": pct ?? 0, "aria-label": "Football API requests used today" }, [el("span")]);
   bar.firstChild.style.width = (pct ?? 0) + "%";
+  const u = ins?.users, m = ins?.messages, pr = ins?.predictions;
+
+  // What needs a person's attention right now.
+  const todo = [];
+  for (const h of data.health || []) if (!h.ok) todo.push({ tone: "bad", title: h.label, detail: h.detail });
+  if (data.inbox?.new > 0) todo.push({ tone: "warn", title: `${data.inbox.new} new message${data.inbox.new === 1 ? "" : "s"} waiting`, detail: "Feedback and issue reports from the app.", to: "messages" });
+  if (cfg.maintenance?.on) todo.push({ tone: "bad", title: "Maintenance mode is on", detail: "Users see the maintenance screen.", to: "config" });
+  if (pct != null && pct >= 85) todo.push({ tone: "warn", title: `Football API quota is ${pct}% used`, detail: "Prediction runs keep working but cover fewer matches.", to: "usage" });
+  if (ins?.push?.failing > 0) todo.push({ tone: "warn", title: `${ins.push.failing} device${ins.push.failing === 1 ? "" : "s"} failing to receive alerts`, detail: "They are removed automatically after repeated failures.", to: "insights" });
+  const attention = el("div", { class: "card" }, [
+    el("div", { class: "card-head" }, [el("h2", { text: "Needs attention" }), el("span", { class: "chip " + (todo.length ? "warn" : "ok"), text: todo.length ? String(todo.length) : "All clear" })]),
+    todo.length
+      ? el("div", { class: "todo" }, todo.map((t) => el(t.to ? "button" : "div", { class: "todo-row", ...(t.to ? { type: "button", onClick: () => { location.hash = "#/" + t.to; } } : {}) }, [el("span", { class: "dot " + (t.tone === "bad" ? "" : "warn"), "aria-hidden": "true" }), el("div", {}, [el("strong", { text: t.title }), el("small", { text: t.detail })]), t.to ? icon("chevron") : null])))
+      : el("p", { class: "sub", text: "Every check passes and nothing is waiting for you." }),
+  ]);
+
+  const tools = el("div", { class: "card" }, [
+    el("h2", { text: "Quick tools" }),
+    el("div", { class: "tools" }, [
+      tool("bell", "Send a broadcast", "Notify every device that has alerts on.", () => { location.hash = "#/broadcast"; }),
+      tool("mail", "Mark all messages read", "Clears the new-message badge. Nothing is deleted.", async () => {
+        try { const r = await api("messages_mark_read"); toast(`${r.updated} message${r.updated === 1 ? "" : "s"} marked read`); route(); } catch (e) { toast(e.message, true); }
+      }),
+      tool("refresh", "Clear old saved football data", "Drops saved tables and results older than 6 hours.", async () => {
+        if (!(await confirmDialog({ title: "Clear old saved football data?", message: "The next prediction run fetches fresh copies. It may use more football API requests.", ok: "Clear" }))) return;
+        try { const r = await api("cache_purge", { scope: "old" }); toast(`${r.removed} saved item${r.removed === 1 ? "" : "s"} cleared`); } catch (e) { toast(e.message, true); }
+      }),
+      tool("target", "Open predictions", "Run the prediction job now and check accuracy.", () => { location.hash = "#/predictions"; }),
+    ]),
+  ]);
 
   main.replaceChildren(
-    ...header("Overview", "Health, usage and what is live right now."),
+    ...header("Overview", `Health, audience and what needs you · v${data.version} · ${data.deploy.env}${data.deploy.commit ? " · " + data.deploy.commit : ""}`, [refreshButton()]),
     el("div", { class: "stack" }, [
       el("div", { class: "grid" }, [
-        el("div", { class: "card stat" }, [el("div", { class: "num", text: data.version }), el("div", { class: "lbl", text: `App version · ${data.deploy.env}${data.deploy.commit ? " · " + data.deploy.commit : ""}` })]),
-        el("div", { class: "card stat" }, [el("div", { class: "num", text: data.users == null ? "–" : String(data.users) }), el("div", { class: "lbl", text: "Registered users" })]),
-        el("div", { class: "card stat" }, [el("div", { class: "num", text: data.inbox?.new == null ? "–" : String(data.inbox.new) }), el("div", { class: "lbl", text: `New messages${data.inbox?.total != null ? " · " + data.inbox.total + " total" : ""}` })]),
-        el("div", { class: "card stat" }, [
-          el("div", { class: "num", text: pct == null ? "–" : pct + "%" }),
-          el("div", { class: "lbl", text: f.ok ? `Football API today: ${f.used} of ${f.limit}` : "Football API quota unavailable" }),
-          pct == null ? null : bar,
-        ]),
+        kpi("Registered users", data.users == null ? "–" : String(data.users), u ? `+${u.new7} this week · ${u.active7} active in 7 days` : "", u?.signups.slice(-14).map((d) => d.signups)),
+        kpi("New messages", data.inbox?.new == null ? "–" : String(data.inbox.new), data.inbox?.total != null ? `${data.inbox.total} in total` : "", m?.perDay.slice(-14).map((d) => d.messages)),
+        el("div", { class: "card kpi" }, [el("div", { class: "kpi-top" }, [el("span", { class: "lbl", text: "Football API today" })]), el("div", { class: "num", text: pct == null ? "–" : pct + "%" }), el("div", { class: "kpi-sub", text: f.ok ? `${f.used} of ${f.limit} requests` : "Quota unavailable" }), pct == null ? null : bar]),
+        kpi("Predictions, next 7 days", pr ? String(pr.upcomingTotal) : "–", pr ? "matches with a prediction" : "", pr?.upcoming.map((d) => d.predictions)),
       ]),
-      el("div", { class: "grid" }, [
+      attention,
+      el("div", { class: "grid wide" }, [
         el("div", { class: "card" }, [el("h2", { text: "Health checks" }), el("div", { class: "health" }, data.health.map((h) =>
           el("div", { class: "health-row" }, [el("span", { class: "dot" + (h.ok ? " ok" : ""), role: "img", "aria-label": h.ok ? "OK" : "Needs attention" }), el("div", {}, [el("strong", { text: h.label }), el("small", { text: h.detail })])])))]),
         el("div", { class: "card" }, [el("h2", { text: "Live right now" }), el("div", { class: "health" }, [
@@ -230,8 +270,13 @@ async function viewOverview(main) {
           liveRow("Advanced themes", cfg.flags?.advancedThemes === false ? "bad" : "ok", cfg.flags?.advancedThemes === false ? "Disabled (kill switch)" : "Enabled"),
         ]), el("div", { class: "row" }, [el("button", { class: "btn small", type: "button", text: "Edit remote config", onClick: () => { location.hash = "#/config"; } })])]),
       ]),
+      tools,
     ])
   );
+}
+
+function tool(ic, title, detail, run) {
+  return el("button", { class: "tool", type: "button", onClick: run }, [el("span", { class: "tool-ico" }, [icon(ic)]), el("span", { class: "tool-text" }, [el("strong", { text: title }), el("small", { text: detail })])]);
 }
 
 function liveRow(label, tone, detail) {
@@ -242,7 +287,7 @@ function liveRow(label, tone, detail) {
 const FLAG_INFO = {
   predictions: ["Predictions", "Show Scoutwave's own prediction model on match pages and the VIP tab."],
   advancedThemes: ["Advanced themes", "Kill switch for Fire, Water, Ice and Bubbles. Turn off if they ever misbehave."],
-  serverEntitlements: ["Account Premium and coins", "Signed-in users get Premium, coins and unlocks from their account (granted here, spent through the server). Guests keep the local demo. Needs migration 002 and payments are not connected yet."],
+  serverEntitlements: ["Account Premium and coins", "Signed-in users get Premium, coins and unlocks from their account (granted here, spent through the server). Guests keep the local demo. Needs migration 002."],
 };
 
 const PLACEMENT_SLOTS = [
@@ -427,25 +472,45 @@ async function viewMessages(main) {
     ]);
   }
 
-  main.replaceChildren(...header("Messages", "Feedback, issue reports and contact messages from the app."), el("div", { class: "filters" }, [...pills, search]), list, more);
+  main.replaceChildren(...header("Messages", "Feedback, issue reports and contact messages from the app."), el("div", { class: "filters" }, [...pills, search, el("button", { class: "btn small", type: "button", text: "Mark all new as read", onClick: async () => {
+    if (!(await confirmDialog({ title: "Mark every new message as read?", message: "Nothing is deleted.", ok: "Mark all read" }))) return;
+    try { const r = await api("messages_mark_read"); toast(`${r.updated} marked read`); updateInboxCount(0); load(true); } catch (e) { toast(e.message, true); }
+  } })]), list, more);
   await load(true);
 }
 
 // ---------------------------------------------------------------- users
 async function viewUsers(main) {
-  const st = { page: 1, total: null, users: [], q: "" };
+  const params = new URLSearchParams(location.hash.split("?")[1] || "");
+  const st = { page: 1, total: null, users: [], q: params.get("q") || "", filter: "all", capped: false };
   const body = el("div", { class: "card tablewrap" });
   const pager = el("div", { class: "row" });
-  const filter = el("input", { type: "search", placeholder: "Filter this page by email…", "aria-label": "Filter users" });
-  filter.addEventListener("input", () => { st.q = filter.value.toLowerCase(); draw(); });
+  const filter = el("input", { type: "search", placeholder: "Search by email or id…", "aria-label": "Search users", value: st.q });
+  let typing;
+  filter.addEventListener("input", () => { clearTimeout(typing); typing = setTimeout(() => { st.q = filter.value; st.page = 1; load(); }, 300); });
+  const FILTERS = [["all", "All"], ["premium", "Premium"], ["banned", "Banned"], ["inactive", "Inactive 30d+"], ["unconfirmed", "Unconfirmed"]];
+  const pills = FILTERS.map(([id, label]) => el("button", { class: "pill", type: "button", "aria-pressed": String(id === st.filter), text: label, onClick: () => { st.filter = id; st.page = 1; pills.forEach((p, i) => p.setAttribute("aria-pressed", String(FILTERS[i][0] === id))); load(); } }));
+  const exportBtn = el("button", { class: "btn small", type: "button" }, [icon("download"), "Export CSV"]);
+  exportBtn.addEventListener("click", async () => {
+    exportBtn.disabled = true;
+    try {
+      const out = await api("users_export", { q: st.q, filter: st.filter });
+      const rows = [["Email", "Signed up", "Last sign-in", "Sign-in methods", "Premium", "Premium until", "Coins", "Confirmed", "Banned until"]];
+      for (const x of out.users) rows.push([x.email, x.createdAt, x.lastSignInAt || "", x.providers.join(" "), x.premium ? "yes" : "no", x.premiumUntil || "", x.coins ?? "", x.confirmed ? "yes" : "no", x.bannedUntil || ""]);
+      downloadCsv(`scoutwave-users-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+      toast(`${out.users.length} user${out.users.length === 1 ? "" : "s"} exported`);
+    } catch (e) { toast(e.message, true); } finally { exportBtn.disabled = false; }
+  });
 
   async function load() {
     body.replaceChildren(el("p", { class: "boot", text: "Loading…" }));
-    const data = await api("users_list", { page: st.page });
-    st.users = data.users; st.total = data.total; draw();
+    try {
+      const data = await api("users_search", { q: st.q, filter: st.filter, page: st.page });
+      st.users = data.users; st.total = data.total; st.capped = data.capped; draw();
+    } catch (e) { body.replaceChildren(el("div", { class: "error", role: "alert", text: e.message })); }
   }
   function draw() {
-    const rows = st.users.filter((u) => !st.q || u.email.toLowerCase().includes(st.q));
+    const rows = st.users;
     const banned = (u) => u.bannedUntil && new Date(u.bannedUntil).getTime() > Date.now();
     body.replaceChildren(rows.length ? el("table", {}, [
       el("thead", {}, [el("tr", {}, ["Email", "Sign-in", "Joined", "Last seen", "Premium", "Coins", "Status", ""].map((h) => el("th", { text: h })))]),
@@ -464,11 +529,12 @@ async function viewUsers(main) {
             : el("button", { class: "btn small danger", type: "button", text: "Ban…", onClick: () => ban(u) }),
         ])]),
       ]))),
-    ]) : el("div", { class: "empty", text: "No users on this page." }));
+    ]) : el("div", { class: "empty", text: "No users match." }));
+    const pages = Math.max(1, Math.ceil((st.total || 0) / 50));
     pager.replaceChildren(
       el("button", { class: "btn small", type: "button", text: "Previous", disabled: st.page <= 1, onClick: () => { st.page--; load(); } }),
-      el("span", { class: "sub", text: `Page ${st.page}${st.total ? " · " + st.total + " users" : ""}` }),
-      el("button", { class: "btn small", type: "button", text: "Next", disabled: st.users.length < 50, onClick: () => { st.page++; load(); } })
+      el("span", { class: "sub", text: `Page ${st.page} of ${pages} · ${st.total ?? 0} user${st.total === 1 ? "" : "s"}${st.capped ? " (first 5,000 accounts only)" : ""}` }),
+      el("button", { class: "btn small", type: "button", text: "Next", disabled: st.page >= pages, onClick: () => { st.page++; load(); } })
     );
   }
   async function act(u, action, extra = {}) {
@@ -500,25 +566,44 @@ async function viewUsers(main) {
     if (ok) act(u, "user_ban", sel.value === "perm" ? { permanent: true } : { hours: Number(sel.value) });
   }
 
-  main.replaceChildren(...header("Users", "Everyone who has created a Scoutwave account."), el("div", { class: "filters" }, [filter]), body, pager);
+  main.replaceChildren(...header("Users", "Find anyone who has created a Scoutwave account, grant Premium or coins, or export a list.", [exportBtn]), el("div", { class: "filters" }, [filter]), el("div", { class: "filters" }, pills), body, pager);
   await load();
 }
 
 // ---------------------------------------------------------------- audit
 async function viewAudit(main) {
-  const { items } = await api("audit_list", { limit: 150 });
-  main.replaceChildren(
-    ...header("Audit log", "Every sign-in and change made from this dashboard."),
-    el("div", { class: "card tablewrap" }, [items.length ? el("table", {}, [
+  const { items } = await api("audit_list", { limit: 300 });
+  const st = { q: "", kind: "all" };
+  const KINDS = [["all", "All"], ["login", "Sign-ins"], ["change", "Changes"], ["alert", "Warnings"]];
+  const isLogin = (a) => a.action.startsWith("login") || a.action.startsWith("session");
+  const isAlert = (a) => /failed|locked|replayed|rejected|ip_changed/.test(a.action);
+  const keep = (a) => {
+    const kind = st.kind === "all" || (st.kind === "login" && isLogin(a)) || (st.kind === "change" && !isLogin(a)) || (st.kind === "alert" && isAlert(a));
+    return kind && (!st.q || `${a.action} ${JSON.stringify(a.detail || {})} ${a.ip || ""}`.toLowerCase().includes(st.q));
+  };
+  const body = el("div", { class: "card tablewrap" });
+  const count = el("span", { class: "sub" });
+  function draw() {
+    const rows = items.filter(keep);
+    count.textContent = `${rows.length} of ${items.length} shown`;
+    body.replaceChildren(rows.length ? el("table", {}, [
       el("thead", {}, [el("tr", {}, ["When", "Action", "Details", "IP"].map((h) => el("th", { text: h })))]),
-      el("tbody", {}, items.map((a) => el("tr", {}, [
+      el("tbody", {}, rows.map((a) => el("tr", {}, [
         el("td", { title: when(a.at), text: ago(a.at) }),
         el("td", {}, [el("code", { text: a.action })]),
         el("td", { class: "audit-detail", text: a.detail && Object.keys(a.detail).length ? JSON.stringify(a.detail).slice(0, 300) : "" }),
         el("td", { class: "mono", text: a.ip || "" }),
       ]))),
-    ]) : el("div", { class: "empty", text: "Nothing recorded yet." })])
-  );
+    ]) : el("div", { class: "empty", text: items.length ? "Nothing matches." : "Nothing recorded yet." }));
+  }
+  const pills = KINDS.map(([id, label]) => el("button", { class: "pill", type: "button", "aria-pressed": String(id === st.kind), text: label, onClick: () => { st.kind = id; pills.forEach((p, i) => p.setAttribute("aria-pressed", String(KINDS[i][0] === id))); draw(); } }));
+  const search = el("input", { type: "search", placeholder: "Search actions, details, IP addresses…", "aria-label": "Search the audit log" });
+  search.addEventListener("input", () => { st.q = search.value.toLowerCase(); draw(); });
+  const exportBtn = el("button", { class: "btn small", type: "button", onClick: () => {
+    downloadCsv(`scoutwave-audit-${new Date().toISOString().slice(0, 10)}.csv`, [["When", "Action", "Details", "IP"], ...items.filter(keep).map((a) => [a.at, a.action, a.detail && Object.keys(a.detail).length ? JSON.stringify(a.detail) : "", a.ip || ""])]);
+  } }, [icon("download"), "Export CSV"]);
+  main.replaceChildren(...header("Audit log", "Every sign-in and change made from this dashboard.", [exportBtn]), el("div", { class: "filters" }, [...pills, search]), body, count);
+  draw();
 }
 
 // ---------------------------------------------------------------- security
@@ -845,6 +930,224 @@ async function viewPredictions(main) {
 }
 
 // ---------------------------------------------------------------- boot
+// ---------------------------------------------------------------- shared pieces
+const SVG_NS = "http://www.w3.org/2000/svg";
+// Small line icons (24x24 grid). Several shapes in one icon are separated by "|".
+const ICONS = {
+  home: "M3 11l9-8 9 8|M5 10v10h14V10",
+  chart: "M4 20V10|M10 20V4|M16 20v-7|M22 20H2",
+  pulse: "M3 12h4l3-8 4 16 3-8h4",
+  mail: "M4 5h16v14H4z|M4 6l8 7 8-7",
+  users: "M16 20v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1|M9.5 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7|M21 20v-1a4 4 0 00-3-3.9|M16 4.2a3.5 3.5 0 010 6.6",
+  bell: "M6 16v-5a6 6 0 1112 0v5l2 2H4z|M10 20a2 2 0 004 0",
+  sliders: "M4 6h10|M18 6h2|M4 12h4|M12 12h8|M4 18h12|M14 4v4|M8 10v4|M16 16v4",
+  target: "M12 21a9 9 0 100-18 9 9 0 000 18|M12 16a4 4 0 100-8 4 4 0 000 8",
+  layout: "M4 4h16v16H4z|M4 10h16|M10 10v10",
+  search: "M11 18a7 7 0 100-14 7 7 0 000 14|M21 21l-5-5",
+  shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
+  list: "M8 6h13|M8 12h13|M8 18h13|M3 6h.01|M3 12h.01|M3 18h.01",
+  refresh: "M20 11a8 8 0 00-14.5-4M4 4v4h4|M4 13a8 8 0 0014.5 4M20 20v-4h-4",
+  download: "M12 4v11|M7 11l5 5 5-5|M5 20h14",
+  chevron: "M9 6l6 6-6 6",
+};
+function icon(name) {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("class", "ico"); svg.setAttribute("aria-hidden", "true");
+  for (const d of (ICONS[name] || "").split("|")) { const path = document.createElementNS(SVG_NS, "path"); path.setAttribute("d", d); svg.append(path); }
+  return svg;
+}
+
+// A tiny trend line for a card (values oldest to newest).
+function sparkline(values) {
+  const w = 120, h = 36, max = Math.max(1, ...values), step = values.length > 1 ? w / (values.length - 1) : w;
+  const pts = values.map((v, i) => `${(i * step).toFixed(1)},${(h - 3 - (v / max) * (h - 8)).toFixed(1)}`);
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("class", "spark"); svg.setAttribute("aria-hidden", "true");
+  const area = document.createElementNS(SVG_NS, "path"); area.setAttribute("class", "spark-area"); area.setAttribute("d", `M0,${h} L${pts.join(" L")} L${w},${h} Z`);
+  const line = document.createElementNS(SVG_NS, "polyline"); line.setAttribute("class", "spark-line"); line.setAttribute("points", pts.join(" "));
+  svg.append(area, line);
+  return svg;
+}
+
+// A headline number with an optional trend line.
+function kpi(label, value, sub, trend) {
+  return el("div", { class: "card kpi" }, [
+    el("div", { class: "kpi-top" }, [el("span", { class: "lbl", text: label })]),
+    el("div", { class: "num", text: value }),
+    sub ? el("div", { class: "kpi-sub", text: sub }) : null,
+    trend && trend.length > 1 ? sparkline(trend) : null,
+  ]);
+}
+
+// Horizontal bars: [{ label, value }], each as a share of the total (or of `of`).
+function hbars(items, of) {
+  const total = Math.max(1, of ?? items.reduce((t, i) => t + i.value, 0));
+  if (!items.length) return el("p", { class: "sub", text: "Nothing to show yet." });
+  return el("div", { class: "hbars" }, items.map((i) => {
+    const bar = el("div", { class: "bar" }, [el("span")]);
+    bar.firstChild.style.width = Math.round(Math.min(100, (i.value / total) * 100)) + "%";
+    return el("div", { class: "hbar" }, [el("span", { class: "hbar-label", text: i.label }), bar, el("span", { class: "hbar-val", text: String(i.value) })]);
+  }));
+}
+
+const skeleton = () => el("div", { class: "stack", "aria-busy": "true", "aria-label": "Loading" }, [
+  el("div", { class: "skel skel-title" }),
+  el("div", { class: "grid" }, [1, 2, 3, 4].map(() => el("div", { class: "card skel skel-card" }))),
+  el("div", { class: "card skel skel-block" }),
+]);
+
+// A CSV that opens cleanly in a spreadsheet, and can't run a formula when opened there.
+const csvCell = (v) => {
+  let t = v == null ? "" : String(v);
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+  return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+};
+function downloadCsv(name, rows) {
+  const blob = new Blob(["\ufeff" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = el("a", { href: url, download: name });
+  document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+// Search and jump (Ctrl/Cmd + K): sections, a user lookup, and sign out.
+function openPalette() {
+  if (!session.token || document.querySelector("dialog.palette")) return;
+  const input = el("input", { type: "search", placeholder: "Jump to a section, or type an email to find a user…", "aria-label": "Search and jump", autocomplete: "off" });
+  const list = el("div", { class: "palette-list", role: "listbox" });
+  const dlg = el("dialog", { class: "palette", "aria-label": "Search and jump" }, [input, list]);
+  let items = [], sel = 0;
+  const go = (it) => { dlg.close(); it.run(); };
+  const build = () => {
+    const raw = input.value.trim(), t = raw.toLowerCase();
+    items = [];
+    for (const [id, label, ic] of NAV.flatMap(([, i]) => i)) if (!t || label.toLowerCase().includes(t) || id.includes(t)) items.push({ label: "Go to " + label, ic, run: () => { location.hash = "#/" + id; } });
+    if (raw) items.push({ label: `Find users matching “${raw}”`, ic: "users", run: () => { location.hash = "#/users?q=" + encodeURIComponent(raw); route(); } });
+    if (!t || "sign out".includes(t)) items.push({ label: "Sign out", ic: "shield", run: () => logout() });
+    sel = Math.max(0, Math.min(sel, items.length - 1));
+    list.replaceChildren(...(items.length ? items.map((it, i) => el("button", { class: "palette-item", type: "button", role: "option", "aria-selected": String(i === sel), onClick: () => go(it) }, [icon(it.ic), el("span", { text: it.label })])) : [el("p", { class: "empty", text: "Nothing matches." })]));
+  };
+  input.addEventListener("input", () => { sel = 0; build(); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" && items.length) { e.preventDefault(); sel = (sel + 1) % items.length; build(); }
+    else if (e.key === "ArrowUp" && items.length) { e.preventDefault(); sel = (sel - 1 + items.length) % items.length; build(); }
+    else if (e.key === "Enter" && items[sel]) { e.preventDefault(); go(items[sel]); }
+  });
+  dlg.addEventListener("close", () => dlg.remove());
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  document.body.append(dlg);
+  build(); dlg.showModal(); input.focus();
+}
+document.addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openPalette(); } });
+
+// ---------------------------------------------------------------- insights
+async function viewInsights(main) {
+  const r = await api("insights");
+  let range = 30;
+  const body = el("div", { class: "stack" });
+  const unavailable = (title) => el("div", { class: "card" }, [el("h2", { text: title }), el("p", { class: "sub", text: "Not available yet. The data for this part can't be read right now." })]);
+  const ranges = [[7, "7 days"], [30, "30 days"]];
+  const pills = ranges.map(([n, label]) => el("button", { class: "pill", type: "button", "aria-pressed": String(n === range), text: label, onClick: () => { range = n; pills.forEach((p, i) => p.setAttribute("aria-pressed", String(ranges[i][0] === n))); draw(); } }));
+
+  function draw() {
+    const u = r.users, m = r.messages, pr = r.predictions, ps = r.push;
+    const share = (n, of) => (of ? Math.round((n / of) * 100) + "%" : "–");
+    const parts = [];
+    parts.push(u ? el("div", { class: "grid six" }, [
+      kpi("Total accounts", String(u.total), u.capped ? "First 5,000 accounts" : "Everyone who signed up", u.signups.map((d) => d.signups)),
+      kpi(`New in ${range} days`, String(range === 7 ? u.new7 : u.new30), range === 7 ? `${u.new30} in 30 days` : `${u.new7} in the last 7`),
+      kpi("Active in 7 days", String(u.active7), `${share(u.active7, u.total)} of accounts · ${u.active1} today`),
+      kpi("Active in 30 days", String(u.active30), `${share(u.active30, u.total)} of accounts`),
+      kpi("Premium", String(u.premium), `${share(u.premium, u.total)} of accounts · ${u.coins} coins held`),
+      kpi("Alert devices", ps ? String(ps.devices) : "–", ps ? `${ps.signedIn} signed in` : ""),
+    ]) : unavailable("Audience"));
+    if (u) parts.push(barChart({ title: `New accounts per day, last ${range} days`, days: u.signups.slice(-range), stacks: [{ label: "New accounts", key: "signups", tone: "tone-a" }] }));
+    if (u) parts.push(el("div", { class: "grid wide" }, [
+      el("div", { class: "card" }, [el("h2", { text: "When people were last seen" }), hbars([
+        { label: "In the last 24 hours", value: u.lastSeen.today }, { label: "2 to 7 days ago", value: u.lastSeen.week }, { label: "8 to 30 days ago", value: u.lastSeen.month },
+        { label: "More than 30 days ago", value: u.lastSeen.older }, { label: "Never signed in", value: u.lastSeen.never }], u.total)]),
+      el("div", { class: "card" }, [el("h2", { text: "How people sign in" }), hbars(Object.entries(u.providers).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value })), u.total),
+        el("div", { class: "row" }, [el("span", { class: "chip " + (u.unconfirmed ? "warn" : ""), text: `${u.unconfirmed} unconfirmed` }), el("span", { class: "chip " + (u.banned ? "bad" : ""), text: `${u.banned} banned` })])]),
+    ]));
+    parts.push(m ? barChart({ title: `Messages received per day, last ${range} days`, days: m.perDay.slice(-range), stacks: [{ label: "Messages", key: "messages", tone: "tone-b" }] }) : unavailable("Messages"));
+    if (m) parts.push(el("div", { class: "grid wide" }, [
+      el("div", { class: "card" }, [el("h2", { text: "Feedback, last 30 days" }),
+        el("div", { class: "row" }, [el("span", { class: "chip " + (m.status.new ? "warn" : ""), text: `${m.status.new} new` }), el("span", { class: "chip", text: `${m.status.read} read` }), el("span", { class: "chip ok", text: `${m.status.resolved} resolved` })]),
+        el("p", { class: "sub", text: m.avgRating == null ? "No star ratings yet." : `Average rating ${m.avgRating} of 5, from ${m.rated} rating${m.rated === 1 ? "" : "s"}.` }),
+        hbars(Object.entries(m.kinds).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value })), m.total)]),
+      el("div", { class: "card" }, [el("h2", { text: "Alert devices" }), ps ? hbars([
+        { label: "Goal alerts", value: ps.goals }, { label: "Kick-off alerts", value: ps.kickoff }, { label: "Half-time and full-time", value: ps.whistles }, { label: "Signed-in users", value: ps.signedIn }, { label: "Failing to receive", value: ps.failing }], ps.devices)
+        : el("p", { class: "sub", text: "Not available yet." }),
+        ps && !ps.configured ? el("p", { class: "sub", text: "Alerts are switched off for this site, so nothing is being sent." }) : null]),
+    ]));
+    parts.push(pr ? barChart({ title: "Matches with a prediction, next 7 days", days: pr.upcoming, stacks: [{ label: "Predictions recorded", key: "predictions", tone: "tone-c" }], hint: "Fills up as the daily run reaches each day. Matches not yet reached are picked up by the next run." }) : unavailable("Predictions"));
+    if (pr) parts.push(el("div", { class: "grid wide" }, [
+      el("div", { class: "card" }, [el("h2", { text: "Prediction pipeline" }), hbars([{ label: "Waiting for the result", value: pr.status.pending }, { label: "Graded", value: pr.status.graded }, { label: "Voided", value: pr.status.void }]), el("p", { class: "sub", text: `Model ${pr.model}. Accuracy is on the Predictions page.` })]),
+      el("div", { class: "card" }, [el("h2", { text: "Busiest leagues ahead" }), hbars(pr.topLeagues.map((l) => ({ label: l.league, value: l.count })))]),
+    ]));
+    body.replaceChildren(...parts);
+  }
+  main.replaceChildren(...header("Insights", "Who is using Scoutwave, what they say, and how predictions and alerts are doing.", [...pills, refreshButton()]), body);
+  draw();
+}
+
+// ---------------------------------------------------------------- broadcast
+async function viewBroadcast(main) {
+  const first = await api("broadcast_preview", { audience: "all" });
+  let recipients = first.count;
+  const aud = el("select", { id: "bc-aud", "aria-label": "Who gets this" }, Object.entries(first.audiences).map(([v, l]) => el("option", { value: v, text: l })));
+  const title = el("input", { id: "bc-title", type: "text", maxlength: "60", placeholder: "e.g. Predictions are live", autocomplete: "off" });
+  const text = el("textarea", { id: "bc-body", maxlength: "140", placeholder: "One or two short sentences." });
+  const link = el("input", { id: "bc-url", type: "text", maxlength: "200", placeholder: "/ (home), or a page like /news", autocomplete: "off" });
+  const count = el("span", { class: "chip", text: `${first.count} device${first.count === 1 ? "" : "s"}` });
+  const send = el("button", { class: "btn primary", type: "button" }, [icon("bell"), "Send broadcast"]);
+  const result = el("div");
+  const pvTitle = el("strong", { text: "Your title" }), pvBody = el("span", { text: "Your message appears here." });
+  const counter = (input, max) => el("span", { class: "hint", text: `0 / ${max}` });
+  const titleCount = counter(title, 60), textCount = counter(text, 140);
+  const sync = () => {
+    pvTitle.textContent = title.value.trim() || "Your title"; pvBody.textContent = text.value.trim() || "Your message appears here.";
+    titleCount.textContent = `${title.value.length} / 60`; textCount.textContent = `${text.value.length} / 140`;
+    send.disabled = !first.configured || !title.value.trim() || !text.value.trim() || !recipients;
+  };
+  title.addEventListener("input", sync); text.addEventListener("input", sync);
+  aud.addEventListener("change", async () => {
+    count.textContent = "Counting…"; recipients = 0; sync();
+    try { const c = await api("broadcast_preview", { audience: aud.value }); recipients = c.count; count.textContent = `${c.count} device${c.count === 1 ? "" : "s"}`; } catch (e) { count.textContent = "–"; toast(e.message, true); }
+    sync();
+  });
+  send.addEventListener("click", async () => {
+    const ok = await confirmDialog({ title: `Send to ${recipients} device${recipients === 1 ? "" : "s"}?`, message: `“${title.value.trim()}”\n${text.value.trim()}\n\nIt goes out right away and can't be recalled.`, ok: "Send now", danger: true });
+    if (!ok) return;
+    send.disabled = true;
+    try {
+      const out = await api("broadcast_send", { audience: aud.value, title: title.value, body: text.value, url: link.value, confirm: true });
+      toast(`Sent to ${out.sent} device${out.sent === 1 ? "" : "s"}`);
+      result.replaceChildren(el("div", { class: "card" }, [el("h2", { text: "Sent" }), el("div", { class: "row" }, [el("span", { class: "chip ok", text: `${out.sent} delivered` }), el("span", { class: "chip " + (out.failed ? "warn" : ""), text: `${out.failed} failed` }), el("span", { class: "chip", text: `${out.removed} dead devices removed` })]), el("p", { class: "sub", text: "“Delivered” means the push service accepted it. Devices that are off or offline get it when they are back." })]));
+      title.value = ""; text.value = ""; link.value = "";
+    } catch (e) { toast(e.message, true); }
+    sync();
+  });
+  main.replaceChildren(
+    ...header("Broadcast", "Send a notification from the team to devices that have alerts turned on."),
+    el("div", { class: "split" }, [
+      el("div", { class: "card stack" }, [
+        first.configured ? null : el("div", { class: "preview warn", text: "Alerts are switched off for this site, so nothing can be sent yet." }),
+        el("div", { class: "field" }, [el("label", { for: "bc-aud", text: "Who gets it" }), aud, el("div", { class: "row" }, [count, el("span", { class: "hint", text: "currently reachable" })])]),
+        el("div", { class: "field" }, [el("label", { for: "bc-title", text: "Title" }), title, titleCount]),
+        el("div", { class: "field" }, [el("label", { for: "bc-body", text: "Message" }), text, textCount]),
+        el("div", { class: "field" }, [el("label", { for: "bc-url", text: "Opens this page (optional)" }), link, el("span", { class: "hint", text: "A page of the app, starting with /. Leave empty for the home screen." })]),
+        el("div", { class: "row" }, [send, el("span", { class: "hint", text: "One broadcast every 10 minutes." })]),
+      ]),
+      el("div", { class: "stack" }, [
+        el("div", { class: "card" }, [el("h2", { text: "Preview" }), el("div", { class: "notif" }, [el("span", { class: "brand-dot" }), el("div", {}, [el("small", { text: "Scoutwave · now" }), pvTitle, pvBody])]), el("p", { class: "sub", text: "Phones and computers show it like this, even when the app is closed." })]),
+        result,
+      ]),
+    ])
+  );
+  sync();
+}
+
 window.addEventListener("hashchange", () => { if (session.token) route(); });
 (async function start() {
   if (session.token && session.expires > Date.now()) {
