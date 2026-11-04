@@ -831,7 +831,11 @@ async function viewPredictions(main) {
     button.disabled = true;
     try {
       const { result } = await api("predictions_run", { task });
-      toast(task === "predict" ? (result.skipped ? `Nothing recorded: ${result.skipped}.` : `Recorded ${result.predicted} predictions for the next ${result.days} days (${result.callsUsed} football API calls${result.uncovered ? `; ${result.uncovered} matches wait for tomorrow's run` : ""}).`) : `Graded ${result.graded} of ${result.pending} waiting matches (${result.callsUsed} calls).`);
+      toast(task === "predict"
+        ? (result.skipped
+          ? `Nothing recorded: ${result.skipped}.`
+          : `Recorded ${result.predicted} prediction${result.predicted === 1 ? "" : "s"} for the next ${result.daysReached || result.days} day${(result.daysReached || result.days) === 1 ? "" : "s"} (${result.callsUsed} football API calls${result.mode === "match" ? ", one per match" : ""}${result.uncovered ? `; ${result.uncovered} match${result.uncovered === 1 ? "" : "es"} wait for the next run` : ""}).${result.daysNote ? " " + result.daysNote + "." : ""}`)
+        : `Graded ${result.graded} of ${result.pending} waiting matches (${result.callsUsed} calls).`, task === "predict" && result.skipped ? true : undefined);
       route();
     } catch (err) { toast(err.message, true); button.disabled = false; }
   };

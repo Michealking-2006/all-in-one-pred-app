@@ -125,3 +125,14 @@ Saved data costs nothing, so even with 0 requests left the run uses any table al
 Run `node` against the model in isolation: it has no DOM and no network, so it is easy to
 test (probabilities sum to 100, stronger sides are favoured, thin data is shrunk, missing
 data returns `null`, tracker never records after kick-off, extra time is ignored).
+
+## Plans that cannot read league tables
+
+Some football data plans (the free one, for example) refuse league tables for the current season and any dates beyond about tomorrow. The job notices and adapts:
+- It asks for one league table first. If the plan refuses ("plan: Free plans do not have access to this season..."), it stops asking, remembers that for 12 hours (then tries again, in case the plan changed) and switches to **per-match mode**.
+- **Per-match mode** costs one football API request per match. The answer carries each team's season goals for and against and recent form, which is everything the current model needs. Matches are predicted soonest first, so with 19 requests left the 18 nearest matches are done (one request is kept in reserve). The older ratings comparison model needs a whole season of results and is not recorded in this mode.
+- Day lists stop at the first date the plan refuses (`daysNote` says how many days could be read).
+- A per-minute refusal ("rateLimit") is waited out and retried once (`PREDICT_RATE_WAIT_MS`, default 7000). Free plans allow about 10 requests a minute, so one run can only do a handful of matches: press **Record predictions now** again, or run the job more often, to work through the rest.
+- Grading asks for results by match id (20 per request) when a date is refused.
+- `PREDICT_SOURCE` forces a mode: `table`, `match`, or `auto` (default).
+- Why a run recorded nothing is shown in the admin message and kept in the audit log (`apiErrors`, `skipped`): for example `the football data service refused 2 "predictions" requests: plan: ...`.

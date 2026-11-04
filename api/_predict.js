@@ -61,7 +61,9 @@ const memoable = (endpoint, params) => endpoint === "standings" || (endpoint ===
 const keepMinutes = () => { const v = Number(env("PREDICT_CACHE_MINUTES")); return env("PREDICT_CACHE_MINUTES") !== "" && Number.isFinite(v) ? v : 180; };
 const compact = (endpoint, data) => (endpoint === "fixtures"
   ? { response: (data.response || []).map((fx) => ({ fixture: { id: fx.fixture?.id, date: fx.fixture?.date, status: { short: fx.fixture?.status?.short } }, league: { id: fx.league?.id, name: fx.league?.name, season: fx.league?.season }, teams: { home: { id: fx.teams?.home?.id, name: fx.teams?.home?.name }, away: { id: fx.teams?.away?.id, name: fx.teams?.away?.name } }, goals: fx.goals, score: { fulltime: fx.score?.fulltime } })) }
-  : { response: data.response });
+  : endpoint === "predictions"
+    ? { response: (data.response || []).slice(0, 1).map((it) => { const slim = (t) => ({ id: t?.id, name: t?.name, league: { form: t?.league?.form, fixtures: t?.league?.fixtures && { played: t.league.fixtures.played, wins: t.league.fixtures.wins, draws: t.league.fixtures.draws, loses: t.league.fixtures.loses }, goals: t?.league?.goals && { for: { total: t.league.goals.for?.total }, against: { total: t.league.goals.against?.total } } } }); return { predictions: { percent: it.predictions?.percent }, teams: { home: slim(it.teams?.home), away: slim(it.teams?.away) } }; }) }
+    : { response: data.response });
 const storedGet = async (key, minutes = keepMinutes()) => {
   if (minutes <= 0 || !env("SUPABASE_SERVICE_ROLE_KEY")) return null;
   try {
@@ -92,18 +94,65 @@ export async function football(budget, endpoint, params, source = "cron", opts =
   return data;
 }
 
+// Why a football API call failed, in plain terms. The API answers 200 with an "errors" object (for example
+// { plan: "Free plans do not have access to this season..." } or { rateLimit: "Too many requests..." }).
+//   plan  = the subscription does not cover this request (a season, a date range, an endpoint): retrying cannot help
+//   rate  = too many requests per minute: wait a few seconds
+//   quota = the daily allowance is used up
+export function classifyError(errors, status) {
+  const entries = Array.isArray(errors) ? errors.map((m, i) => [String(i), m]) : Object.entries(errors || {});
+  const text = entries.map(([k, v]) => `${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`).join("; ").slice(0, 240);
+  const keys = entries.map(([k]) => k.toLowerCase()).join(" ");
+  let kind = "other";
+  if (/plan|subscription/.test(keys) || /free plan|do not have access|upgrade|subscription|not available for your/i.test(text)) kind = "plan";
+  else if (/ratelimit/.test(keys) || /too many requests|rate limit|per minute/i.test(text) || status === 429) kind = "rate";
+  else if (/^requests|request/.test(keys) && /limit|reached|exceed/i.test(text)) kind = "quota";
+  else if (/token|key|access/.test(keys) || status === 401 || status === 403) kind = "key";
+  return { kind, text: text || (status ? `HTTP ${status}` : "no answer") };
+}
+
 async function footballFresh(budget, endpoint, params, source) {
   if (budget.spent >= budget.calls) return null; // out of budget: caller carries on with what it has
   budget.spent++;
   const query = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null)).toString();
+  const note = (kind, text) => {
+    budget.lastError = { endpoint, kind, text };
+    const log = (budget.errorLog ||= {});
+    const row = (log[endpoint] ||= { count: 0, kind, message: text });
+    row.count++;
+  };
   let res;
   try {
     res = await fetch(`${BASE}/${endpoint}?${query}`, { headers: { "x-apisports-key": env("SCOUTWAVE_FOOTBALL_API_KEY"), Accept: "application/json" }, signal: AbortSignal.timeout(10000) });
-  } catch { await recordUsage(source, endpoint, 1, 1); return null; }
+  } catch { note("other", "no answer from the football data service"); await recordUsage(source, endpoint, 1, 1); return null; }
   const data = await res.json().catch(() => null);
-  const failed = !res.ok || !data || (data.errors && !Array.isArray(data.errors) && Object.keys(data.errors).length);
+  const hasErrors = data?.errors && (Array.isArray(data.errors) ? data.errors.length : Object.keys(data.errors).length);
+  const failed = !res.ok || !data || hasErrors;
+  // The per-minute allowance, when the service reports it: lets a caller slow down before being refused.
+  const perMinute = Number(res.headers?.get?.("x-ratelimit-remaining"));
+  budget.minuteLeft = Number.isFinite(perMinute) ? perMinute : null;
+  if (failed) { const why = classifyError(data?.errors, res.status); note(why.kind, why.text); } else budget.lastError = null;
   await recordUsage(source, endpoint, 1, failed ? 1 : 0);
   return failed ? null : data;
+}
+
+// A season's goals for / against for the two teams of a match, from the per-match prediction answer, shaped like
+// league table rows so the same model can use them. One request per match instead of one per league: this is
+// how predictions work when the plan cannot read league tables.
+export function rowsFromPredictions(item) {
+  const out = [];
+  const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  for (const side of ["home", "away"]) {
+    const t = item?.teams?.[side], lg = t?.league;
+    if (!t?.id || !lg?.fixtures?.played || !lg?.goals?.for?.total || !lg?.goals?.against?.total) continue;
+    const split = (k) => ({
+      played: n(lg.fixtures.played[k]), win: n(lg.fixtures.wins?.[k]), draw: n(lg.fixtures.draws?.[k]), lose: n(lg.fixtures.loses?.[k]),
+      goals: { for: n(lg.goals.for.total[k]), against: n(lg.goals.against.total[k]) },
+    });
+    const row = { team: { id: t.id, name: t.name }, home: split("home"), away: split("away"), all: split("total"), form: String(lg.form || "").toUpperCase().replace(/[^WDL]/g, "").slice(-5) };
+    if (row.all.played >= 1) out.push(row);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,6 +276,14 @@ export async function runPredict({ now = Date.now() } = {}) {
   const days = Math.max(1, Math.min(14, Math.floor(num("PREDICT_DAYS", 7))));
   const summary = { job: "predict", model: MODEL_VERSION, days, budget: budget.calls, reserve: budget.reserve, quotaLeft: budget.quotaLeft, fixtures: 0, predicted: 0, shadow: 0, noTable: 0, already: 0, uncovered: 0, odds: 0, notes: 0, leaguesSkipped: 0, writeErrors: 0, callsUsed: 0 };
 
+  const source = (env("PREDICT_SOURCE") || "auto").toLowerCase(); // auto | table | match
+  const BLOCKED = "flag:tables-blocked"; // remembered for 12 hours, then tables are tried again (the plan may have changed)
+  let mode = source === "match" ? "match" : "table";
+  if (source === "auto" && (await storedGet(BLOCKED, 720))) mode = "match";
+  // The ratings comparison model needs a whole season of results: not available per match, so it is only
+  // wanted when league tables are read, and a match is not "unfinished" just because that model is missing.
+  let ratingsOn = env("PREDICT_RATINGS") !== "0" && mode === "table";
+
   const wanted = new Set(env("PREDICT_LEAGUES").split(",").map((s) => Number(s.trim())).filter(Boolean));
   const fixtures = [];
   const listAllowance = Math.max(1, Math.min(days, Math.ceil(budget.calls * 0.4)));
@@ -235,6 +292,8 @@ export async function runPredict({ now = Date.now() } = {}) {
     const date = utcDate(now + i * DAY);
     const allowed = budget.spent < listAllowance; // past its share, a day list can still come from a saved copy (free) but is not bought
     const data = await football(allowed ? budget : { calls: 0, spent: 0 }, "fixtures", { date, timezone: "UTC", status: "NS" }, "cron", i >= 2 ? { cacheMinutes: listCache } : {});
+    if (!data && allowed && budget.lastError?.kind === "plan") { summary.daysNote = `Only ${i} day${i === 1 ? "" : "s"} ahead can be read with this football data plan`; break; } // later dates would be refused too
+    if (data) summary.daysReached = i + 1;
     for (const fx of data?.response || []) {
       const kickoff = new Date(fx.fixture?.date).getTime();
       // Only genuine pre-match predictions: at least 10 minutes before kick-off.
@@ -247,7 +306,13 @@ export async function runPredict({ now = Date.now() } = {}) {
   summary.fixtures = fixtures.length;
   const finish = () => {
     summary.callsUsed = budget.spent;
-    if (!summary.predicted && !summary.shadow && budget.calls === 0) summary.skipped = `no football API requests left today (${budget.reserve} kept in reserve); only saved data could be used`;
+    const log = budget.errorLog || {};
+    if (Object.keys(log).length) summary.apiErrors = Object.fromEntries(Object.entries(log).map(([k, v]) => [k, { count: v.count, kind: v.kind, message: v.message }]));
+    if (!summary.predicted && !summary.shadow) {
+      const first = Object.entries(log).sort((a, b) => b[1].count - a[1].count)[0];
+      if (budget.calls === 0) summary.skipped = `no football API requests left today (${budget.reserve} kept in reserve); only saved data could be used`;
+      else if (first) summary.skipped = `the football data service refused ${first[1].count} "${first[0]}" request${first[1].count === 1 ? "" : "s"}: ${first[1].message}`;
+    }
     return summary;
   };
   if (!fixtures.length) return finish();
@@ -261,7 +326,7 @@ export async function runPredict({ now = Date.now() } = {}) {
     const rows = await sb(`/rest/v1/predictions?model=eq.${q.word(model)}&fixture_id=in.(${q.ints(chunk)})&select=fixture_id`);
     for (const r of rows || []) have.get(model).add(Number(r.fixture_id));
   });
-  const lacking = (fx) => ALL_MODELS.filter((m) => !have.get(m.model).has(fx.fixture.id));
+  const lacking = (fx) => ALL_MODELS.filter((m) => !have.get(m.model).has(fx.fixture.id) && (ratingsOn || !m.needsMatches));
   const todo = fixtures.filter((f) => lacking(f).length);
   summary.already = fixtures.length - todo.length;
 
@@ -282,15 +347,65 @@ export async function runPredict({ now = Date.now() } = {}) {
   // A request beyond the tables is only spent if every competition still waiting for its table can still get one.
   const spare = () => budget.calls - budget.spent > waitingForTable;
 
+  const doneLeagues = new Set();
+  let tablesRead = 0;
+
+  // Turn one fixture + the team rows that cover it into prediction rows (one per model still missing).
+  const makeRows = (fx, table, matches, odds, rows, benchmarks) => {
+    const homeId = fx.teams.home.id, awayId = fx.teams.away.id;
+    // The last five results ("WDLWW", newest last) come with each team's row: free recent form.
+    const formOf = (id) => String(table?.find((r) => r.team?.id === id)?.form || "").toUpperCase().replace(/[^WDL]/g, "").split("");
+    const form = { home: formOf(homeId), away: formOf(awayId) };
+    for (const { model, predict, needsMatches } of lacking(fx)) {
+      const primary = model === MODEL_VERSION;
+      if (needsMatches && !matches) continue; // no season results this run: try again next run
+      const prediction = predict({ homeId, awayId, rows: table, form, matches, now });
+      if (!prediction) { if (primary) summary.noTable++; continue; }
+      const { matrix, exact, ...shown } = prediction;
+      shown.fixtureId = fx.fixture.id;
+      const row = {
+        fixture_id: fx.fixture.id, model, made_at: new Date(now).toISOString(), kickoff: new Date(fx.fixture.date).toISOString(),
+        league_id: fx.league.id, league_name: String(fx.league.name || "").slice(0, 80), season: fx.league.season,
+        home_id: homeId, home_name: String(fx.teams.home.name || "").slice(0, 80), away_id: awayId, away_name: String(fx.teams.away.name || "").slice(0, 80),
+        prediction: shown, matrix, probs: exact,
+        inputs: { form: { home: form.home.join(""), away: form.away.join("") }, basis: prediction.basis, drivers: prediction.drivers },
+        analysis: primary && odds ? valueAnalysis(exact, odds) : null,
+      };
+      rows.push(row);
+      if (primary && odds) benchmarks.push({ fixture_id: fx.fixture.id, source: "market", made_at: row.made_at, late: false, probs: marketProbs(odds), odds });
+    }
+  };
+
+  // Never overwrite: the first prediction for a fixture and model is the one that is graded. Saved as soon as it is made.
+  const saveRows = async (rows, benchmarks, covers) => {
+    try {
+      for (let i = 0; i < rows.length; i += 100) {
+        await sb("/rest/v1/predictions?on_conflict=fixture_id,model", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }, body: rows.slice(i, i + 100) });
+      }
+      if (benchmarks.length) {
+        await sb("/rest/v1/prediction_benchmarks?on_conflict=fixture_id,source", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }, body: benchmarks });
+        summary.odds += benchmarks.length;
+      }
+      saved.push(...rows);
+      const primaryRows = rows.filter((r) => r.model === MODEL_VERSION).length;
+      summary.predicted += primaryRows; summary.shadow += rows.length - primaryRows;
+      return true;
+    } catch { summary.writeErrors++; summary.uncovered += covers; return false; }
+  };
+
+  // Mode 1, one request per competition: the league table covers every match of that league.
   const doLeague = async (lg) => {
-    if (overTime()) { waitingForTable--; summary.leaguesSkipped++; summary.uncovered += lg.fixtures.length; return; }
+    if (overTime()) { waitingForTable--; summary.leaguesSkipped++; summary.uncovered += lg.fixtures.length; return "time"; }
     const standings = await football(budget, "standings", { league: lg.id, season: lg.season });
     waitingForTable--;
-    if (!standings) { summary.leaguesSkipped++; summary.uncovered += lg.fixtures.length; return; }
+    // This plan cannot read league tables: not a failure of this competition, so don't count it; the caller switches mode.
+    if (!standings && !tablesRead && source !== "table" && budget.errorLog?.standings?.kind === "plan") return "denied";
+    if (!standings) { summary.leaguesSkipped++; summary.uncovered += lg.fixtures.length; return "nodata"; }
+    tablesRead++;
 
     // Season results for the ratings model: only if something still needs them and requests are spare.
     let matches = null;
-    if (env("PREDICT_RATINGS") !== "0" && lg.fixtures.some((fx) => lacking(fx).some((m) => m.needsMatches))) {
+    if (ratingsOn && lg.fixtures.some((fx) => lacking(fx).some((m) => m.needsMatches))) {
       // A saved copy is free, so look for it even when nothing is spare; only a fresh request needs spare budget.
       const done = await football(spare() ? budget : { calls: 0, spent: 0 }, "fixtures", { league: lg.id, season: lg.season, status: FINISHED });
       matches = done ? matchesFrom(done.response) : null;
@@ -306,50 +421,63 @@ export async function runPredict({ now = Date.now() } = {}) {
         }
       }
     }
-
     const rows = [], benchmarks = [];
-    for (const fx of lg.fixtures) {
-      const homeId = fx.teams.home.id, awayId = fx.teams.away.id;
-      const table = tableFor(standings.response, homeId, awayId);
-      // The standings row carries the last five results ("WDLWW", newest last): free recent form.
-      const formOf = (id) => String(table?.find((r) => r.team?.id === id)?.form || "").toUpperCase().replace(/[^WDL]/g, "").split("");
-      const form = { home: formOf(homeId), away: formOf(awayId) };
-      const odds = oddsByFixture.get(fx.fixture.id) || null;
-      for (const { model, predict, needsMatches } of lacking(fx)) {
-        const primary = model === MODEL_VERSION;
-        if (needsMatches && !matches) continue; // no season results this run: try again next run
-        const prediction = predict({ homeId, awayId, rows: table, form, matches, now });
-        if (!prediction) { if (primary) summary.noTable++; continue; }
-        const { matrix, exact, ...shown } = prediction;
-        shown.fixtureId = fx.fixture.id;
-        const row = {
-          fixture_id: fx.fixture.id, model, made_at: new Date(now).toISOString(), kickoff: new Date(fx.fixture.date).toISOString(),
-          league_id: fx.league.id, league_name: String(fx.league.name || "").slice(0, 80), season: fx.league.season,
-          home_id: homeId, home_name: String(fx.teams.home.name || "").slice(0, 80), away_id: awayId, away_name: String(fx.teams.away.name || "").slice(0, 80),
-          prediction: shown, matrix, probs: exact,
-          inputs: { form: { home: form.home.join(""), away: form.away.join("") }, basis: prediction.basis, drivers: prediction.drivers },
-          analysis: primary && odds ? valueAnalysis(exact, odds) : null,
-        };
-        rows.push(row);
-        if (primary && odds) benchmarks.push({ fixture_id: fx.fixture.id, source: "market", made_at: row.made_at, late: false, probs: marketProbs(odds), odds });
-      }
-    }
-
-    // Never overwrite: the first prediction for a fixture and model is the one that is graded. Saved now, per competition.
-    try {
-      for (let i = 0; i < rows.length; i += 100) {
-        await sb("/rest/v1/predictions?on_conflict=fixture_id,model", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }, body: rows.slice(i, i + 100) });
-      }
-      if (benchmarks.length) {
-        await sb("/rest/v1/prediction_benchmarks?on_conflict=fixture_id,source", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }, body: benchmarks });
-        summary.odds += benchmarks.length;
-      }
-      saved.push(...rows);
-      const primaryRows = rows.filter((r) => r.model === MODEL_VERSION).length;
-      summary.predicted += primaryRows; summary.shadow += rows.length - primaryRows;
-    } catch { summary.writeErrors++; summary.uncovered += lg.fixtures.length; }
+    for (const fx of lg.fixtures) makeRows(fx, tableFor(standings.response, fx.teams.home.id, fx.teams.away.id), matches, oddsByFixture.get(fx.fixture.id) || null, rows, benchmarks);
+    await saveRows(rows, benchmarks, lg.fixtures.length);
+    doneLeagues.add(`${lg.id}:${lg.season}`);
+    return "saved";
   };
-  await inBatches(ordered, 3, doLeague);
+
+  // Mode 2, one request per match: for football data plans that cannot read league tables. The per-match answer
+  // carries each team's season goals for and against, which is all the model reads. Soonest matches first, so
+  // with 19 requests left the 18 nearest matches are predicted.
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const rateWait = Math.max(0, num("PREDICT_RATE_WAIT_MS", 7000)); // free football data plans allow about 10 requests a minute
+  const doMatches = async (pool) => {
+    const rank = new Map(ordered.map((lg, i) => [`${lg.id}:${lg.season}`, i]));
+    const keyOf = (fx) => `${fx.league.id}:${fx.league.season}`;
+    pool = [...pool].sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date) || (rank.get(keyOf(a)) ?? 0) - (rank.get(keyOf(b)) ?? 0));
+    const seen = new Map(); // competition -> team id -> that team's row, built up as matches are read
+    let rows = [], benchmarks = [], covers = 0, refused = 0, empty = 0, done = 0;
+    const flush = async () => { if (rows.length || covers) await saveRows(rows, benchmarks, covers); rows = []; benchmarks = []; covers = 0; };
+    for (const fx of pool) {
+      if (budget.spent >= budget.calls || overTime(3000)) break;
+      if (budget.minuteLeft === 0 && !overTime(10000)) await sleep(rateWait); // this minute's allowance is used: wait it out rather than be refused
+      let data = await football(budget, "predictions", { fixture: fx.fixture.id }, "cron", { cacheMinutes: 360 });
+      if (!data && budget.lastError?.kind === "rate" && !overTime(10000)) { await sleep(rateWait); data = await football(budget, "predictions", { fixture: fx.fixture.id }, "cron", { cacheMinutes: 360 }); }
+      if (!data) {
+        // Two refusals in a row for the same plan reason: stop, don't burn the rest of the allowance.
+        if (budget.lastError?.kind === "plan" || budget.lastError?.kind === "key" || budget.lastError?.kind === "quota") { if (++refused >= 2) break; } else if (++empty >= 5) break;
+        continue;
+      }
+      refused = 0; empty = 0;
+      const key = keyOf(fx);
+      if (!seen.has(key)) seen.set(key, new Map());
+      const teams = seen.get(key);
+      for (const r of rowsFromPredictions(data.response?.[0])) teams.set(r.team.id, r);
+      done++;
+      const before = rows.length;
+      makeRows(fx, [...teams.values()], null, null, rows, benchmarks);
+      covers += 1;
+      if (rows.length === before) summary.noTable++;
+      if (done % 10 === 0) await flush();
+    }
+    await flush();
+    summary.matchesRead = done;
+    summary.uncovered += Math.max(0, pool.length - done);
+  };
+  if (mode === "table") {
+    // Ask the first competition alone: if the plan cannot read tables, only one request is spent finding out.
+    const [probe, ...rest] = ordered;
+    let outcome = probe ? await doLeague(probe) : "saved";
+    for (let i = 0; outcome !== "denied" && i < rest.length; i += 3) {
+      if (!tablesRead && (budget.errorLog?.standings?.count || 0) >= 3) { outcome = "denied"; break; } // three refusals and no table at all
+      await Promise.all(rest.slice(i, i + 3).map(doLeague));
+    }
+    if (outcome === "denied" && source === "auto") { mode = "match"; ratingsOn = false; await storedPut(BLOCKED, { at: new Date(now).toISOString() }, 720); }
+  }
+  summary.mode = mode;
+  if (mode === "match") await doMatches(todo.filter((fx) => lacking(fx).length && !doneLeagues.has(`${fx.league.id}:${fx.league.season}`)));
 
   // Optional plain-language notes, most confident matches first, capped. They are added to rows already saved,
   // and skipped when the run is close to its time limit.
@@ -392,8 +520,19 @@ export async function runGrade({ now = Date.now() } = {}) {
 
   for (const [date, rows] of [...byDate.entries()].sort()) {
     const data = await football(budget, "fixtures", { date, timezone: "UTC", status: FINISHED });
-    if (!data) continue; // out of budget or API trouble: try again on the next run
-    const finished = new Map((data.response || []).map((fx) => [fx.fixture?.id, fx]));
+    let finished;
+    if (data) finished = new Map((data.response || []).map((fx) => [fx.fixture?.id, fx]));
+    else if (budget.lastError?.kind === "plan") {
+      // This plan cannot list that date (old dates are often outside it): ask for the matches by id instead, 20 per request.
+      finished = new Map();
+      const ids = [...new Set(rows.map((r) => Number(r.fixture_id)))];
+      for (let i = 0; i < ids.length; i += 20) {
+        const part = await football(budget, "fixtures", { ids: ids.slice(i, i + 20).join("-") });
+        if (!part) break;
+        for (const fx of part.response || []) if (["FT", "AET", "PEN"].includes(fx.fixture?.status?.short)) finished.set(fx.fixture?.id, fx); // only finished matches count
+      }
+      if (!finished.size) continue;
+    } else continue; // out of budget or API trouble: try again on the next run
     // Each match now has a row per model, so there are more rows to write: ten at a time.
     await inBatches(rows, 10, async (row) => {
       const fx = finished.get(Number(row.fixture_id));
