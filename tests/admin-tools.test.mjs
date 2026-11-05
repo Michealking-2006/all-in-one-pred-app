@@ -19,8 +19,8 @@ const db = {
     { created_at: iso(-10 * DAY), status: "resolved", rating: null, kind: "contact" },
   ],
   predictions: [
-    { kickoff: iso(3600000), league_name: "Premier League", status: "pending" }, { kickoff: iso(2 * DAY), league_name: "Premier League", status: "pending" },
-    { kickoff: iso(2 * DAY), league_name: "La Liga", status: "pending" }, { kickoff: iso(-3 * DAY), league_name: "La Liga", status: "graded" },
+    { fixture_id: 11, kickoff: iso(3600000), league_name: "Premier League", home_name: "Arsenal", away_name: "Chelsea", status: "pending", made_at: iso(-3600000), prediction: { pick: "home", probs: { home: 52, draw: 25, away: 23 }, confidence: "high", xg: { home: 1.7, away: 1 }, likelyScore: { home: 2, away: 1 }, over25: 55.4, btts: 50 }, home_goals: null, away_goals: null }, { kickoff: iso(2 * DAY), league_name: "Premier League", status: "pending" },
+    { kickoff: iso(2 * DAY), league_name: "La Liga", status: "pending" }, { fixture_id: 12, kickoff: iso(-3 * DAY), league_name: "La Liga", home_name: "Real", away_name: "Betis", status: "graded", prediction: { pick: "away", probs: { home: 30, draw: 30, away: 40 }, confidence: "low" }, home_goals: 2, away_goals: 0, grade: { pickCorrect: false } },
   ],
   push: [
     { endpoint: "https://push/1", p256dh: "a", auth: "b", prefs: { goals: true, kickoff: true }, fail_count: 0, user_id: "00000000-0000-4000-8000-000000000001" },
@@ -36,7 +36,7 @@ globalThis.fetch = async (url, init = {}) => {
   if (t === "bump_usage") { db.usage.push(JSON.parse(init.body)); return json(null, 204); }
   if (t === "entitlements") return json(db.entitlements);
   if (t === "support_messages") { if (m === "PATCH") { const r = db.messages.filter((x) => x.status === "new"); r.forEach((x) => (x.status = "read")); return json(r); } return json(db.messages); }
-  if (t === "predictions") return db.predictionsDown ? json({ message: "relation does not exist" }, 404) : json(db.predictions);
+  if (t === "predictions") { db.lastPredictionsUrl = String(url); return db.predictionsDown ? json({ message: "relation does not exist" }, 404) : json(db.predictions); }
   if (t === "push_subscriptions") { if (m === "DELETE") { db.deleted.push(decodeURIComponent(u.searchParams.get("endpoint").slice(3))); return json(null, 204); } return json(db.push); }
   if (t === "admin_audit") return json(db.audit);
   if (t === "api_cache") return json(db.cache);
@@ -77,6 +77,20 @@ await test("users: search, filters and paging", async () => {
   await assert.rejects(mod.searchUsers({ filter: "everyone" }), /Unknown filter/);
   const csv = await mod.exportUsers({ filter: "premium", now: NOW });
   assert.equal(csv.total, 1);
+});
+await test("predicted matches: listed with pick, odds and result, newest or soonest first, with a safe search", async () => {
+  const up = await mod.listPredictions({ status: "upcoming", now: NOW });
+  assert.match(db.lastPredictionsUrl, /model=eq\.poisson-v2/); assert.match(db.lastPredictionsUrl, /order=kickoff\.asc/); assert.match(db.lastPredictionsUrl, /kickoff=gte\./);
+  const m = up.matches.find((x) => x.id === 11);
+  assert.deepEqual([m.home, m.away, m.pick, m.confidence, m.result, m.correct], ["Arsenal", "Chelsea", "home", "high", null, null]);
+  assert.deepEqual(m.probs, { home: 52, draw: 25, away: 23 }); assert.deepEqual(m.score, { home: 2, away: 1 });
+  const done = (await mod.listPredictions({ status: "graded", now: NOW })).matches.find((x) => x.id === 12);
+  assert.deepEqual([done.result, done.correct], ["2-0", false]);
+  assert.match(db.lastPredictionsUrl, /status=eq\.graded/); assert.match(db.lastPredictionsUrl, /order=kickoff\.desc/);
+  await mod.listPredictions({ status: "all", q: 'arse"),or=(id.gt.0', now: NOW });
+  assert.ok(!db.lastPredictionsUrl.includes('),or=('), "a search can't add filters"); assert.match(db.lastPredictionsUrl, /home_name\.ilike\./);
+  await assert.rejects(mod.listPredictions({ status: "everything" }), /Unknown filter/);
+  assert.equal((await mod.listPredictions({ page: 9999, now: NOW })).page, 200);
 });
 await test("broadcast: the text and the link are checked", () => {
   assert.deepEqual(mod.checkBroadcast({ title: " Hi ", body: "Body", url: "" }), { title: "Hi", body: "Body", url: "/" });

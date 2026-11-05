@@ -29,7 +29,7 @@ export async function footballStatus() {
   const res = await fetch(BASE + "/status", { headers: { "x-apisports-key": key }, signal: AbortSignal.timeout(6000) }).catch(() => null); // free: not counted
   const r = (await res?.json().catch(() => null))?.response;
   if (!r || Array.isArray(r)) throw new HttpError(502, "Football data is unavailable right now.");
-  return { used: Number(r.requests?.current) || 0, limit: Number(r.requests?.limit_day) || 0 };
+  return { used: Number(r.requests?.current) || 0, limit: Number(r.requests?.limit_day) || 0, plan: String(r.subscription?.plan || "") };
 }
 
 // Budget = everything the football API still has today, minus a small reserve (PREDICT_RESERVE, default 1).
@@ -38,15 +38,15 @@ export async function footballStatus() {
 // recorded are skipped). PREDICT_MAX_CALLS (default 300) is only a safety ceiling, PREDICT_QUOTA_SHARE
 // (default 1 = all of it) can still hold some back. Saved data (the api_cache table) costs no requests.
 export async function makeBudget() {
-  let left = null;
-  try { const { used, limit } = await footballStatus(); left = Math.max(0, limit - used); }
+  let left = null, plan = "";
+  try { const status = await footballStatus(); left = Math.max(0, status.limit - status.used); plan = status.plan; }
   catch (e) { if (e?.status === 503) throw e; /* no key: nothing can work; any other failure: carry on below */ }
   const ceiling = Math.max(0, Math.floor(num("PREDICT_MAX_CALLS", 300)));
   const reserve = Math.max(0, Math.floor(num("PREDICT_RESERVE", 1)));
   const share = Math.max(0, Math.min(1, num("PREDICT_QUOTA_SHARE", 1)));
   // If the quota counter can't be read, assume little rather than nothing (the API refuses politely when it is really out).
   const calls = left === null ? Math.min(ceiling, 20) : Math.max(0, Math.min(ceiling, Math.floor((left - reserve) * share)));
-  return { calls, spent: 0, quotaLeft: left, reserve };
+  return { calls, spent: 0, quotaLeft: left, reserve, plan };
 }
 
 // Slow-moving answers are remembered for a few minutes inside a running function instance, so pressing "Record
@@ -273,13 +273,17 @@ export async function runPredict({ now = Date.now() } = {}) {
   const timeLimit = Math.max(5000, num("PREDICT_TIME_BUDGET_MS", 45000)); // Vercel stops the job at 60 s (vercel.json)
   const overTime = (margin = 0) => Date.now() - started > timeLimit - margin;
   const budget = await makeBudget();
-  const days = Math.max(1, Math.min(14, Math.floor(num("PREDICT_DAYS", 7))));
-  const summary = { job: "predict", model: MODEL_VERSION, days, budget: budget.calls, reserve: budget.reserve, quotaLeft: budget.quotaLeft, fixtures: 0, predicted: 0, shadow: 0, noTable: 0, already: 0, uncovered: 0, odds: 0, notes: 0, leaguesSkipped: 0, writeErrors: 0, callsUsed: 0 };
-
   const source = (env("PREDICT_SOURCE") || "auto").toLowerCase(); // auto | table | match
+  // A free football data plan cannot read the current season's league tables, and only sees today and tomorrow.
+  // The plan name comes with the free status check, so such a plan is never sent a request it can only refuse.
+  const freePlan = /free/i.test(budget.plan || "") && source !== "table";
+  const asked = Math.max(1, Math.min(14, Math.floor(num("PREDICT_DAYS", 7))));
+  const days = freePlan ? Math.min(asked, 2) : asked;
+  const summary = { job: "predict", model: MODEL_VERSION, days, budget: budget.calls, reserve: budget.reserve, quotaLeft: budget.quotaLeft, plan: budget.plan || null, fixtures: 0, predicted: 0, shadow: 0, noTable: 0, already: 0, uncovered: 0, odds: 0, notes: 0, leaguesSkipped: 0, writeErrors: 0, callsUsed: 0 };
+
   const BLOCKED = "flag:tables-blocked"; // remembered for 12 hours, then tables are tried again (the plan may have changed)
   let mode = source === "match" ? "match" : "table";
-  if (source === "auto" && (await storedGet(BLOCKED, 720))) mode = "match";
+  if (source === "auto" && (freePlan || (await storedGet(BLOCKED, 720)))) mode = "match";
   // The ratings comparison model needs a whole season of results: not available per match, so it is only
   // wanted when league tables are read, and a match is not "unfinished" just because that model is missing.
   let ratingsOn = env("PREDICT_RATINGS") !== "0" && mode === "table";
@@ -292,7 +296,7 @@ export async function runPredict({ now = Date.now() } = {}) {
     const date = utcDate(now + i * DAY);
     const allowed = budget.spent < listAllowance; // past its share, a day list can still come from a saved copy (free) but is not bought
     const data = await football(allowed ? budget : { calls: 0, spent: 0 }, "fixtures", { date, timezone: "UTC", status: "NS" }, "cron", i >= 2 ? { cacheMinutes: listCache } : {});
-    if (!data && allowed && budget.lastError?.kind === "plan") { summary.daysNote = `Only ${i} day${i === 1 ? "" : "s"} ahead can be read with this football data plan`; break; } // later dates would be refused too
+    if (!data && allowed && budget.lastError?.kind === "plan") { summary.daysNote = `Only ${i} day${i === 1 ? "" : "s"} ahead can be read with this football data plan`; delete budget.errorLog?.fixtures; break; } // later dates would be refused too; handled, so not reported as a failure
     if (data) summary.daysReached = i + 1;
     for (const fx of data?.response || []) {
       const kickoff = new Date(fx.fixture?.date).getTime();
@@ -304,6 +308,7 @@ export async function runPredict({ now = Date.now() } = {}) {
     }
   }
   summary.fixtures = fixtures.length;
+  if (freePlan && asked > days) summary.daysNote = "Free football data plan: today and tomorrow";
   const finish = () => {
     summary.callsUsed = budget.spent;
     const log = budget.errorLog || {};
@@ -474,7 +479,7 @@ export async function runPredict({ now = Date.now() } = {}) {
       if (!tablesRead && (budget.errorLog?.standings?.count || 0) >= 3) { outcome = "denied"; break; } // three refusals and no table at all
       await Promise.all(rest.slice(i, i + 3).map(doLeague));
     }
-    if (outcome === "denied" && source === "auto") { mode = "match"; ratingsOn = false; await storedPut(BLOCKED, { at: new Date(now).toISOString() }, 720); }
+    if (outcome === "denied" && source === "auto") { delete budget.errorLog?.standings; mode = "match"; ratingsOn = false; await storedPut(BLOCKED, { at: new Date(now).toISOString() }, 720); }
   }
   summary.mode = mode;
   if (mode === "match") await doMatches(todo.filter((fx) => lacking(fx).length && !doneLeagues.has(`${fx.league.id}:${fx.league.season}`)));
@@ -519,10 +524,11 @@ export async function runGrade({ now = Date.now() } = {}) {
     sb(`/rest/v1/predictions?fixture_id=eq.${q.int(row.fixture_id)}&model=eq.${q.word(row.model)}&status=eq.pending`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body });
 
   for (const [date, rows] of [...byDate.entries()].sort()) {
-    const data = await football(budget, "fixtures", { date, timezone: "UTC", status: FINISHED });
+    const byId = /free/i.test(budget.plan || "");
+    const data = byId ? null : await football(budget, "fixtures", { date, timezone: "UTC", status: FINISHED });
     let finished;
     if (data) finished = new Map((data.response || []).map((fx) => [fx.fixture?.id, fx]));
-    else if (budget.lastError?.kind === "plan") {
+    else if (byId || budget.lastError?.kind === "plan") {
       // This plan cannot list that date (old dates are often outside it): ask for the matches by id instead, 20 per request.
       finished = new Map();
       const ids = [...new Set(rows.map((r) => Number(r.fixture_id)))];

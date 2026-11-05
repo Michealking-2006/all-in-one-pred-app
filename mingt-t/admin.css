@@ -302,3 +302,8 @@ button.todo-row:hover{background:var(--panel-2)}
   .tool{padding:12px}
   .page-actions .btn,.page-actions .pill{flex:1 1 auto}
 }
+
+/* Predicted matches list */
+.block{display:block}
+.muted{color:var(--muted)}
+.card .tablewrap{padding:0;margin:0 -4px 12px}

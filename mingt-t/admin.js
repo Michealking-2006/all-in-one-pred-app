@@ -910,6 +910,7 @@ async function viewPredictions(main) {
         stat(pc(h.exactScore), "Exact score"), stat(pc(h.top3Score), "Real score in top 3"), stat(pc(h.top5Score), "Real score in top 5"),
         stat(`${pc(h.overUnderAccuracy)} / ${pc(h.bttsAccuracy)}`, "Over/under 2.5 / both teams score"),
       ]),
+      predictedMatchesCard(),
       el("div", { class: "card" }, [
         el("h2", { text: "Publishing" }),
         el("p", { class: "sub", text: r.publishReady ? `Enough matches graded (${r.publishNeeds}+). The app can show a real accuracy figure.` : `${h.n || 0} of ${r.publishNeeds} graded matches needed before the app shows an accuracy figure. Until then it only shows the count.` }),
@@ -931,6 +932,53 @@ async function viewPredictions(main) {
       ]) : el("div", { class: "empty", text: "Nothing graded yet." })]),
     ])
   );
+}
+
+// The matches the server has predicted: what we said, and (once played) how it turned out.
+function predictedMatchesCard() {
+  const st = { status: "upcoming", q: "", page: 1 };
+  const FILTERS = [["upcoming", "Upcoming"], ["pending", "Waiting for result"], ["graded", "Graded"], ["all", "All"]];
+  const body = el("div", { class: "tablewrap-inner" });
+  const pager = el("div", { class: "row" });
+  const pills = FILTERS.map(([id, label]) => el("button", { class: "pill", type: "button", "aria-pressed": String(id === st.status), text: label, onClick: () => { st.status = id; st.page = 1; pills.forEach((p, i) => p.setAttribute("aria-pressed", String(FILTERS[i][0] === id))); load(); } }));
+  const search = el("input", { type: "search", placeholder: "Search a team or league…", "aria-label": "Search predicted matches" });
+  let typing;
+  search.addEventListener("input", () => { clearTimeout(typing); typing = setTimeout(() => { st.q = search.value; st.page = 1; load(); }, 300); });
+  const pickText = (m) => (m.pick === "home" ? m.home : m.pick === "away" ? m.away : m.pick === "draw" ? "Draw" : "–");
+  const conf = (c) => el("span", { class: "chip " + (c === "high" ? "ok" : c === "low" ? "" : "warn"), text: c || "–" });
+
+  async function load() {
+    body.replaceChildren(el("div", { class: "empty", text: "Loading…" }));
+    try {
+      const data = await api("predictions_list", { status: st.status, q: st.q, page: st.page });
+      body.replaceChildren(data.matches.length ? el("div", { class: "tablewrap" }, [el("table", {}, [
+        el("thead", {}, [el("tr", {}, ["Kick-off", "Match", "Our pick", "Home / Draw / Away", "Likely score", "Goals O2.5 · BTTS", "Confidence", "Result"].map((h) => el("th", { text: h })))]),
+        el("tbody", {}, data.matches.map((m) => el("tr", {}, [
+          el("td", { title: `Predicted ${when(m.madeAt)}`, text: when(m.kickoff) }),
+          el("td", {}, [el("strong", { text: `${m.home} v ${m.away}` }), el("small", { class: "block muted", text: m.league || "" })]),
+          el("td", { text: m.pick ? `${pickText(m)}${m.probs?.[m.pick] != null ? ` (${m.probs[m.pick]}%)` : ""}` : "–" }),
+          el("td", { class: "mono", text: m.probs ? `${m.probs.home}% / ${m.probs.draw}% / ${m.probs.away}%` : "–" }),
+          el("td", { class: "mono", text: m.score ? `${m.score.home}-${m.score.away}` : "–" }),
+          el("td", { class: "mono", text: m.over25 != null ? `${Math.round(m.over25)}% · ${Math.round(m.btts)}%` : "–" }),
+          el("td", {}, [conf(m.confidence)]),
+          el("td", {}, [m.status === "graded"
+            ? el("span", { class: "chip " + (m.correct ? "ok" : "bad"), text: `${m.result} ${m.correct ? "✓" : "✗"}` })
+            : m.status === "void" ? el("span", { class: "chip", text: "Voided" }) : el("span", { class: "chip", text: "Waiting" })]),
+        ]))),
+      ])]) : el("div", { class: "empty", text: st.q ? "No predicted match fits that search." : "No predicted matches here yet. They appear after a prediction run." }));
+      pager.replaceChildren(
+        el("button", { class: "btn small", type: "button", text: "Previous", disabled: st.page <= 1, onClick: () => { st.page--; load(); } }),
+        el("span", { class: "sub", text: `Page ${data.page}${data.hasMore ? "" : " (last)"}` }),
+        el("button", { class: "btn small", type: "button", text: "Next", disabled: !data.hasMore, onClick: () => { st.page++; load(); } })
+      );
+    } catch (err) { body.replaceChildren(el("div", { class: "error", role: "alert", text: err.message })); pager.replaceChildren(); }
+  }
+  load();
+  return el("div", { class: "card" }, [
+    el("div", { class: "card-head" }, [el("h2", { text: "Predicted matches" })]),
+    el("p", { class: "sub", text: "Every match the server has predicted, with the pick, the probabilities and, once played, the real score." }),
+    el("div", { class: "filters" }, [...pills, search]), body, pager,
+  ]);
 }
 
 // ---------------------------------------------------------------- boot

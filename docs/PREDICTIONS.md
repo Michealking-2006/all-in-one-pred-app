@@ -128,7 +128,7 @@ data returns `null`, tracker never records after kick-off, extra time is ignored
 
 ## Plans that cannot read league tables
 
-Some football data plans (the free one, for example) refuse league tables for the current season and any dates beyond about tomorrow. The job notices and adapts:
+Some football data plans (the free one, for example) refuse league tables for the current season ("Free plans do not have access to this season, try from 2022 to 2024") and any dates beyond tomorrow. The plan name comes with the free status check, so **a free plan is never sent a request it can only refuse**: the job goes straight to per-match mode and reads today and tomorrow only. If the plan name is not reported, the job adapts after one probe instead:
 - It asks for one league table first. If the plan refuses ("plan: Free plans do not have access to this season..."), it stops asking, remembers that for 12 hours (then tries again, in case the plan changed) and switches to **per-match mode**.
 - **Per-match mode** costs one football API request per match. The answer carries each team's season goals for and against and recent form, which is everything the current model needs. Matches are predicted soonest first, so with 19 requests left the 18 nearest matches are done (one request is kept in reserve). The older ratings comparison model needs a whole season of results and is not recorded in this mode.
 - Day lists stop at the first date the plan refuses (`daysNote` says how many days could be read).
@@ -136,3 +136,7 @@ Some football data plans (the free one, for example) refuse league tables for th
 - Grading asks for results by match id (20 per request) when a date is refused.
 - `PREDICT_SOURCE` forces a mode: `table`, `match`, or `auto` (default).
 - Why a run recorded nothing is shown in the admin message and kept in the audit log (`apiErrors`, `skipped`): for example `the football data service refused 2 "predictions" requests: plan: ...`.
+
+## Predicted matches in the admin
+
+Admin > Predictions lists every match the server has predicted: kick-off, teams and league, our pick, home/draw/away percentages, likely score, over 2.5 goals and both-teams-to-score chances, confidence and, once played, the real score with a tick or cross. Filters: Upcoming, Waiting for result, Graded, All. Search by team or league.

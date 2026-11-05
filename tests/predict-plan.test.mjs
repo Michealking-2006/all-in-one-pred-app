@@ -19,7 +19,7 @@ globalThis.fetch = async (url, init = {}) => {
   const u = new URL(url), method = init.method || "GET";
   if (u.host === "v3.football.api-sports.io") {
     const ep = u.pathname.slice(1);
-    if (ep === "status") return json({ response: { requests: { current: mode.used ?? 10, limit_day: 100 } } });
+    if (ep === "status") return json({ response: { ...(mode.plan ? { subscription: { plan: mode.plan, active: true } } : {}), requests: { current: mode.used ?? 10, limit_day: 100 } } });
     calls.push(ep + "?" + u.searchParams.toString());
     if (ep === "fixtures" && u.searchParams.get("ids")) return json({ errors: [], response: u.searchParams.get("ids").split("-").map((id) => ({ fixture: { id: Number(id), status: { short: Number(id) === 101 ? "NS" : "FT" } }, goals: { home: 2, away: 0 }, score: { fulltime: { home: 2, away: 0 } } })) });
     if (ep === "fixtures" && u.searchParams.get("status") === "FT-AET-PEN") return json({ errors: { plan: "Free plans can only access a range of dates around today." }, response: [] });
@@ -78,9 +78,9 @@ await test("tables refused by the plan: one probe, then predictions are made per
   const s = await runPredict({ now: NOW });
   assert.equal(s.mode, "match", JSON.stringify(s));
   assert.equal(calls.filter((c) => c.startsWith("standings")).length, 1, "only one request finds out the plan cannot read tables");
-  assert.equal(s.apiErrors.standings.kind, "plan"); assert.match(s.apiErrors.standings.message, /Free plans do not have access/);
+  assert.equal(s.apiErrors, undefined, "a refusal that is handled by switching mode is not reported as a failure");
   assert.equal(calls.filter((c) => c.startsWith("fixtures")).length, 3, "two days read, the third refused, no further days asked");
-  assert.equal(s.daysReached, 2); assert.match(s.daysNote, /Only 2 days/);
+  assert.equal(s.daysReached, 2); assert.match(s.daysNote, /Only 2 days/); assert.equal(s.apiErrors, undefined);
   assert.equal(s.budget, 18); assert.equal(s.callsUsed, 18);
   assert.equal(s.predicted, 14); assert.equal(s.uncovered, 16);
   const done = new Set(db.predictions.filter((r) => r.model === "poisson-v2").map((r) => r.fixture_id));
@@ -95,6 +95,26 @@ await test("next run: no table request at all, and the matches already recorded 
   assert.equal(s.mode, "match"); assert.equal(calls.filter((c) => c.startsWith("standings")).length, 0);
   assert.equal(s.already, 14); assert.equal(s.predicted, 16, JSON.stringify(s));
   assert.equal(calls.filter((c) => c.startsWith("predictions")).length, 16);
+});
+await test("free plan: the plan name is read from the status check, so no season or far-date request is ever made", async () => {
+  reset({ fixtures: list(6), plan: "Free" }); clearMemo();
+  const s = await runPredict({ now: NOW });
+  assert.equal(s.mode, "match"); assert.equal(s.plan, "Free");
+  assert.equal(calls.filter((c) => c.startsWith("standings")).length, 0, "no league table request");
+  assert.deepEqual(calls.filter((c) => c.startsWith("fixtures")).map((c) => new URLSearchParams(c.split("?")[1]).get("date")), ["2026-10-20", "2026-10-21"], "today and tomorrow only");
+  assert.equal(s.apiErrors, undefined, JSON.stringify(s.apiErrors));
+  assert.equal(s.predicted, 6); assert.equal(s.callsUsed, 8);
+  assert.match(s.daysNote, /Free football data plan/);
+  assert.ok(!db.cache.some((r) => r.key === "flag:tables-blocked"), "nothing to remember: the plan told us");
+});
+await test("free plan: results are fetched by match id, never by date", async () => {
+  reset({ fixtures: list(2), plan: "Free" }); clearMemo();
+  await runPredict({ now: NOW });
+  db.predictions.forEach((r) => { r.kickoff = new Date(NOW - 30 * 3600000).toISOString(); r.status = "pending"; });
+  calls.length = 0; clearMemo();
+  await runGrade({ now: NOW });
+  assert.ok(calls.every((c) => c.startsWith("fixtures?ids=")), calls.join(" | "));
+  assert.ok(db.predictions.some((r) => r.status === "graded"));
 });
 await test("a per-minute refusal is waited out and retried once", async () => {
   reset({ fixtures: list(3), rateOnce: true }); clearMemo();

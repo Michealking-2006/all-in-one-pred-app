@@ -10,7 +10,7 @@ import { APP_VERSION } from "../src/config.js";
 import { runPredict, runGrade } from "./_predict.js";
 import { adminReport, importForebet } from "./_report.js";
 import { pushConfigured } from "./_push.js";
-import { insightsReport, searchUsers, exportUsers, broadcastPreview, broadcastSend, purgeCache, markAllRead } from "./_insights.js";
+import { insightsReport, searchUsers, exportUsers, broadcastPreview, broadcastSend, purgeCache, markAllRead, listPredictions } from "./_insights.js";
 import { renderPage } from "./_seoPages.js";
 import { siteOrigin, spentToday, seoCap } from "./_site.js";
 import { auditHtml } from "../src/seoAudit.js";
@@ -287,6 +287,7 @@ const ACTIONS = {
   },
   usage_overview: async () => usageOverview(),
   predictions_overview: async () => adminReport(),
+  predictions_list: async (body) => listPredictions(body),
   predictions_run: async (body, ctx) => {
     if (!["predict", "grade"].includes(body.task)) throw new HttpError(400, "Unknown job.");
     const result = body.task === "predict" ? await runPredict() : await runGrade();

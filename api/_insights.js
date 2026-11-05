@@ -223,3 +223,32 @@ export async function markAllRead() {
   return { updated: Array.isArray(rows) ? rows.length : 0 };
 }
 
+// ---------------------------------------------------------------- predicted matches
+// The matches the server has predicted (current model), for the admin's Predictions page.
+export const PREDICTION_FILTERS = ["upcoming", "pending", "graded", "void", "all"];
+export async function listPredictions({ status = "upcoming", q: text = "", page = 1, now = Date.now() } = {}) {
+  if (!PREDICTION_FILTERS.includes(status)) throw new HttpError(400, "Unknown filter.");
+  const p = Math.min(Math.max(parseInt(page, 10) || 1, 1), 200), per = 40;
+  const filters = [`model=eq.${q.word(MODEL_VERSION)}`];
+  let order = "kickoff.desc";
+  if (status === "upcoming") { filters.push(`kickoff=gte.${q.iso(now)}`); order = "kickoff.asc"; }
+  else if (status === "pending") { filters.push("status=eq.pending"); order = "kickoff.asc"; }
+  else if (status === "graded" || status === "void") filters.push(`status=eq.${q.word(status)}`);
+  const like = q.like(text);
+  if (like) filters.push(`or=(home_name.ilike.${like},away_name.ilike.${like},league_name.ilike.${like})`);
+  // every value above went through a query helper (or is a fixed word); the pieces are joined here
+  const query = [...filters, "select=fixture_id,league_name,home_name,away_name,kickoff,status,made_at,prediction,home_goals,away_goals,grade,note", `order=${q.word(order)}`, `limit=${q.int(per + 1)}`, `offset=${q.int((p - 1) * per)}`].join("&");
+  const base = "/rest/v1/predictions";
+  const rows = await sb(`${base}?${query}`);
+  const list = Array.isArray(rows) ? rows : [];
+  return {
+    page: p, perPage: per, hasMore: list.length > per,
+    matches: list.slice(0, per).map((r) => ({
+      id: r.fixture_id, league: r.league_name, home: r.home_name, away: r.away_name, kickoff: r.kickoff, status: r.status, madeAt: r.made_at,
+      pick: r.prediction?.pick ?? null, probs: r.prediction?.probs ?? null, confidence: r.prediction?.confidence ?? null,
+      xg: r.prediction?.xg ?? null, score: r.prediction?.likelyScore ?? null, over25: r.prediction?.over25 ?? null, btts: r.prediction?.btts ?? null,
+      result: r.home_goals != null && r.away_goals != null ? `${r.home_goals}-${r.away_goals}` : null,
+      correct: r.status === "graded" ? !!r.grade?.pickCorrect : null, note: r.note || null,
+    })),
+  };
+}

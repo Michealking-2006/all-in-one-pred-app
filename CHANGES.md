@@ -17,6 +17,8 @@
 - **Maintenance:** clear old (or all) saved football data from the Overview.
 - New tests: `tests/admin-tools.test.mjs`.
 - **Fix: predictions recorded nothing.** On a football data plan that cannot read this season's league tables (every `standings` request had been refused since Oct 29) or dates beyond tomorrow, the job spent the whole daily allowance on refused requests and saved nothing. Now it finds out with one request, remembers it for 12 hours, and predicts **per match** instead (one request per match, soonest first, from each team's season goals for and against). Day lists stop at the first refused date, per-minute limits are waited out and retried, grading falls back to asking by match id, and the admin message and audit log say exactly why when a run records nothing. New tests: `tests/predict-plan.test.mjs`.
+- **Admin lists the predicted matches.** Predictions page: every predicted match with pick, probabilities, likely score, goals chances, confidence and the real result once played; filters and search (`predictions_list`).
+- **Predictions no longer touch the "Free plans do not have access to this season" error.** The plan name is read from the free status check; a free plan goes straight to per-match mode, asks for today and tomorrow only, and grades by match id. Plans that don't report their name still adapt after one probe, and handled refusals are no longer reported as failures.
 - Not changed: the statistical model, accuracy figures, locking, database tables.
 
 # Changes in 0.43.0 — match list, match page and predictions polished
