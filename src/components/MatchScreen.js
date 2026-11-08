@@ -230,7 +230,7 @@ function loadTab(tab, fixture) {
     if (!isFeatureOn("predictions")) return Promise.resolve(emptyNode("Predictions are coming soon."));
     if (fixture.fixture?.status?.short !== "NS") return Promise.resolve(emptyNode("Predictions are shown before kick-off."));
     return predictFixture(fixture, { form: formOf(fixture) }).then((prediction) =>
-      !prediction ? emptyNode("Not enough data to predict this match yet.") : prediction.locked ? PredictionLockedCard(prediction, fixture) : PredictionCard(prediction, fixture)
+      !prediction ? emptyNode("No prediction has been recorded for this match yet.") : prediction.locked ? PredictionLockedCard(prediction, fixture) : PredictionCard(prediction, fixture)
     );
   }
   return Promise.resolve(renderSummary(fixture));
@@ -300,6 +300,7 @@ function countdown(kickoffMs) {
   tick();
   const timer = window.setInterval(() => {
     if (!node.isConnected) { window.clearInterval(timer); return; }
+    if (document.hidden) return; // no per-second redraw while the app is in the background
     tick();
   }, 1000);
   return node;
@@ -509,7 +510,7 @@ function renderRatings(payload, fixture) {
     if (!rows.length) return null;
     return h("section", { className: "card ratings-card" }, [
       h("div", { className: "bench-head" }, [
-        team.logo ? h("img", { className: "bench-logo", src: team.logo, alt: "" }) : null,
+        team.logo ? h("img", { className: "bench-logo", src: team.logo, alt: "", loading: "lazy", decoding: "async" }) : null,
         h("div", { className: "bench-title" }, [text("strong", {}, team.name || "Team")]),
       ]),
       ...rows.map((entry) => ratingRow(entry, entry.id === best.id)),

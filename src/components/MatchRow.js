@@ -31,7 +31,7 @@ export function MatchRow(fx, { isFavorite, onOpen, onToggleFavorite }) {
     },
   }, [h("i", { "data-lucide": "star", fill: isFavorite ? "currentColor" : "none" })]);
 
-  return h("article", { className: "ios-match-row" + (live ? " is-live" : "") }, [
+  const row = h("article", { className: "ios-match-row" + (live ? " is-live" : "") }, [
     h("button", {
       type: "button",
       className: "match-main ios-match-main",
@@ -50,4 +50,6 @@ export function MatchRow(fx, { isFavorite, onOpen, onToggleFavorite }) {
     ]),
     star,
   ]);
+  import("./predictionRow.js").then((m) => m.showPrediction(row, fx, label)).catch(() => {});
+  return row;
 }

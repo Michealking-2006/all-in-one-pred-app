@@ -29,8 +29,8 @@ function matchResultRow(fx) {
   const score = finished || live ? `${fx.goals?.home ?? 0}\u2013${fx.goals?.away ?? 0}` : statusLabel(fx);
   return h("button", { type: "button", className: "search-result-row search-match-row", onClick: () => navigate("/match/" + fx.fixture.id) }, [
     h("div", { className: "search-match-crests" }, [
-      home?.logo ? h("img", { src: home.logo, alt: "", className: "search-match-crest" }) : h("span", { className: "search-match-crest" }),
-      away?.logo ? h("img", { src: away.logo, alt: "", className: "search-match-crest" }) : h("span", { className: "search-match-crest" }),
+      home?.logo ? h("img", { src: home.logo, alt: "", className: "search-match-crest", loading: "lazy", decoding: "async" }) : h("span", { className: "search-match-crest" }),
+      away?.logo ? h("img", { src: away.logo, alt: "", className: "search-match-crest", loading: "lazy", decoding: "async" }) : h("span", { className: "search-match-crest" }),
     ]),
     h("div", { className: "search-result-copy" }, [
       text("div", { className: "search-result-title" }, `${home?.name || "TBD"} vs ${away?.name || "TBD"}`),

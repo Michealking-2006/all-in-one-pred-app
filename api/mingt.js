@@ -10,6 +10,7 @@ import { APP_VERSION } from "../src/config.js";
 import { runPredict, runGrade } from "./_predict.js";
 import { adminReport, importForebet } from "./_report.js";
 import { pushConfigured } from "./_push.js";
+import { classifyError, KIND_LABELS } from "./_errors.js";
 import { insightsReport, searchUsers, exportUsers, broadcastPreview, broadcastSend, purgeCache, markAllRead, listPredictions } from "./_insights.js";
 import { renderPage } from "./_seoPages.js";
 import { siteOrigin, spentToday, seoCap } from "./_site.js";
@@ -36,7 +37,7 @@ async function footballStatus() {
     const r = data?.response;
     const value = r && !Array.isArray(r)
       ? { configured: true, ok: true, plan: r.subscription?.plan || "", active: r.subscription?.active ?? null, ends: r.subscription?.end || null, used: r.requests?.current ?? null, limit: r.requests?.limit_day ?? null }
-      : { configured: true, ok: false, error: "Football data account details are unavailable." };
+      : { configured: true, ok: false, ...(await statusProblem(data, res.status)) };
     footballStatusCache = { at: Date.now(), value };
     return value;
   } catch {
@@ -61,16 +62,17 @@ async function overview() {
     supabaseConfigured() ? sb("/rest/v1/predictions?select=fixture_id&limit=1").then(() => true) : Promise.resolve(false),
     supabaseConfigured() ? sb("/rest/v1/push_subscriptions?select=endpoint&limit=1000").catch(() => null) : Promise.resolve(null),
     supabaseConfigured() ? storageReady() : Promise.resolve(false),
+    supabaseConfigured() ? sb(`/rest/v1/service_errors?last_at=gte.${encodeURIComponent(new Date(Date.now() - 6 * 3600000).toISOString())}&select=source,kind,endpoint,reason,count,last_at&order=last_at.desc&limit=50`).catch(() => null) : Promise.resolve(null),
   ]);
   const seoOk = env("SITE_URL").startsWith("https://");
-  const [football, config, newMessages, totalMessages, users, accountsTable, predictionsTable, pushRows, adminSecReady] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
+  const [football, config, newMessages, totalMessages, users, accountsTable, predictionsTable, pushRows, adminSecReady, recentErrors] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
   const supabaseOk = settled[1].status === "fulfilled" && supabaseConfigured();
   const flag = (name) => !!env(name);
   return {
     version: APP_VERSION,
     deploy: { env: env("VERCEL_ENV") || "local", region: env("VERCEL_REGION") || "", commit: env("VERCEL_GIT_COMMIT_SHA").slice(0, 7) },
     health: [
-      { id: "football", label: "Football data API", ok: !!football?.ok, detail: football?.configured === false ? "SCOUTWAVE_FOOTBALL_API_KEY is not set" : football?.ok ? `${football.plan || "plan"} · ${football.used ?? "?"}/${football.limit ?? "?"} requests today` : football?.error || "No answer" },
+      { id: "football", label: "Football data API", ok: !!football?.ok, detail: football?.configured === false ? "SCOUTWAVE_FOOTBALL_API_KEY is not set" : football?.ok ? `${football.plan || "plan"} · ${football.used ?? "?"}/${football.limit ?? "?"} requests today` : football?.problem || football?.error || "No answer" },
       { id: "news", label: "News API", ok: flag("NEWS_ACCESS"), detail: flag("NEWS_ACCESS") ? "NEWS_ACCESS is set" : "NEWS_ACCESS is not set" },
       { id: "storage", label: "Database (Supabase)", ok: supabaseOk, detail: !supabaseConfigured() ? "SUPABASE_SERVICE_ROLE_KEY is not set" : supabaseOk ? "Reachable" : "Could not read app_config (did you run supabase/migrations/001_admin.sql?)" },
       { id: "accounts", label: "Account Premium & coins table", ok: accountsTable === true, detail: accountsTable === true ? "Ready" : "Run supabase/migrations/002_entitlements.sql (needed for Premium and coins on accounts)" },
@@ -82,6 +84,7 @@ async function overview() {
       { id: "twofa", label: "Admin two-factor sign-in", ok: flag("ADMIN_TOTP_SECRET"), detail: flag("ADMIN_TOTP_SECRET") ? "Enabled" : "Not enabled: strongly recommended (ADMIN_TOTP_SECRET)" },
     ],
     football: football || { configured: false },
+    recentErrors: Array.isArray(recentErrors) ? recentErrors.map((r) => ({ ...r, label: KIND_LABELS[r.kind] || KIND_LABELS.other })) : [],
     inbox: { new: newMessages, total: totalMessages },
     users,
     config,
@@ -192,6 +195,34 @@ async function usageOverview() {
   };
 }
 
+// The Errors page: what the services we depend on have been refusing, in their own words (admin only).
+async function errorsOverview() {
+  const since = new Date(Date.now() - 13 * 86400000).toISOString().slice(0, 10);
+  const rows = await sb(`/rest/v1/service_errors?day=gte.${Q.day(since)}&select=day,source,kind,endpoint,reason,status,count,first_at,last_at&order=last_at.desc&limit=1000`).catch(() => null);
+  if (!Array.isArray(rows)) return { ready: false, note: "Run supabase/migrations/010_service_errors.sql in the Supabase SQL editor. From then on every failure is saved here with the provider's real reason.", days: [], problems: [], last24h: 0, total14d: 0 };
+  const list = (Array.isArray(rows) ? rows : []).map((r) => ({ ...r, label: KIND_LABELS[r.kind] || KIND_LABELS.other }));
+  const days = [];
+  for (let i = 13; i >= 0; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+  const perDay = days.map((day) => ({ day, errors: list.filter((r) => r.day === day).reduce((t, r) => t + r.count, 0) }));
+  // One line per problem (service + kind + endpoint) across the days, newest first.
+  const grouped = new Map();
+  for (const r of list) {
+    const key = r.source + "|" + r.kind + "|" + r.endpoint;
+    const g = grouped.get(key);
+    if (!g) grouped.set(key, { source: r.source, kind: r.kind, label: r.label, endpoint: r.endpoint, reason: r.reason, status: r.status, count: r.count, firstAt: r.first_at, lastAt: r.last_at });
+    else { g.count += r.count; if (r.first_at < g.firstAt) g.firstAt = r.first_at; }
+  }
+  const problems = [...grouped.values()].sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+  const dayAgo = Date.now() - 86400000;
+  return { ready: true, days: perDay, problems, last24h: problems.filter((p) => new Date(p.lastAt).getTime() >= dayAgo).length, total14d: perDay.reduce((t, d) => t + d.errors, 0) };
+}
+
+// Why the provider's /status check gave no account details: its own words, for the admin health card.
+async function statusProblem(data, status) {
+  const why = classifyError(data?.errors, status);
+  return { error: "Football data account details are unavailable.", problem: `${KIND_LABELS[why.kind]}: ${why.text}`, kind: why.kind };
+}
+
 const LOGIN_EVENTS = ["login", "login.failed", "login.locked", "login.replayed_code", "session.rejected", "session.ip_changed", "sessions.revoke_all", "session.revoked"];
 
 // Pages checked by the SEO audit when none are typed in: the home page, hubs, and one of each kind that has data.
@@ -286,6 +317,7 @@ const ACTIONS = {
     return { ok: true };
   },
   usage_overview: async () => usageOverview(),
+  errors_overview: async () => errorsOverview(),
   predictions_overview: async () => adminReport(),
   predictions_list: async (body) => listPredictions(body),
   predictions_run: async (body, ctx) => {

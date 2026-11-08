@@ -3,6 +3,7 @@
 // Variables (and in a local .env for `vercel dev`).
 
 import { recordUsage } from "./_usage.js";
+import { classifyError, recordServiceError } from "./_errors.js";
 
 const API_BASE = "https://v3.football.api-sports.io";
 
@@ -89,17 +90,6 @@ const ALLOWED_PARAMS = new Set([
 
 const MAX_PARAM_LENGTH = 120;
 
-function providerErrorMessage(errors) {
-  if (!errors) return "The football data provider rejected the request.";
-  if (typeof errors === "string") return errors;
-  if (Array.isArray(errors)) {
-    return errors.map((item) => (typeof item === "string" ? item : JSON.stringify(item))).filter(Boolean).join("; ");
-  }
-  return Object.entries(errors)
-    .map(([key, value]) => key + ": " + (Array.isArray(value) ? value.join(", ") : String(value)))
-    .join("; ");
-}
-
 const inflight = new Map(); // endpoint + query -> the provider request already under way on this instance
 
 // One provider request, turned into what we send back: { status, cache, body }.
@@ -113,19 +103,25 @@ async function ask(apiKey, endpoint, params, settled) {
   await recordUsage("proxy", endpoint, 1, !response.ok || (data?.errors && Object.keys(data.errors).length) ? 1 : 0);
 
   if (data?.errors && Object.keys(data.errors).length) {
-    const message = providerErrorMessage(data.errors);
-    const rateLimited = /\brequests\b|rate.?limit|request limit|quota|too many/i.test(message);
+    // The provider's own words ("account suspended", "limit reached", ...) go to the admin panel only. The visitor
+    // gets a generic message: nothing about our provider, plan or account leaves the server.
+    const why = classifyError(data.errors, response.status);
+    await recordServiceError("football", why.kind, endpoint, why.text, response.status);
+    console.error("Football data provider refused a request:", why.kind);
+    const rateLimited = why.kind === "rate" || why.kind === "quota";
     // When the limit is hit every visitor would otherwise hit the provider again; let the edge answer for a minute.
     return {
       status: rateLimited ? 429 : 502,
       cache: rateLimited ? "public, s-maxage=60" : null,
-      body: { error: message, code: rateLimited ? "FOOTBALL_API_RATE_LIMIT" : "FOOTBALL_API_PROVIDER_ERROR", details: data.errors },
+      body: { error: "Football data is unavailable right now.", code: rateLimited ? "FOOTBALL_API_RATE_LIMIT" : "FOOTBALL_API_PROVIDER_ERROR" },
     };
   }
 
   if (!response.ok) {
+    const why = classifyError(null, response.status);
+    await recordServiceError("football", why.kind, endpoint, why.text, response.status);
     console.error("Football data provider answered HTTP", response.status);
-    return { status: response.status, cache: null, body: { error: "Football data is unavailable right now.", code: "FOOTBALL_API_HTTP_ERROR" } };
+    return { status: response.status >= 500 ? 502 : response.status === 429 ? 429 : 502, cache: null, body: { error: "Football data is unavailable right now.", code: "FOOTBALL_API_HTTP_ERROR" } };
   }
 
   const ttl = ttlFor(endpoint, Object.fromEntries(params), data?.response, Date.now(), settled);
@@ -143,6 +139,7 @@ export default async function handler(req, res) {
   const apiKey = String(process.env.SCOUTWAVE_FOOTBALL_API_KEY || "").trim();
   if (!apiKey) {
     console.error("Football data is not configured: the provider key is missing.");
+    await recordServiceError("football", "config", "-", "SCOUTWAVE_FOOTBALL_API_KEY is not set in Vercel", 503);
     return res.status(503).json({ error: "Football data is unavailable right now.", code: "MISSING_FOOTBALL_API_KEY" });
   }
 
@@ -180,6 +177,7 @@ export default async function handler(req, res) {
     return res.status(answer.status).json(answer.body);
   } catch (error) {
     console.error("Football API proxy error:", error);
+    await recordServiceError("football", "network", endpoint, String(error?.message || error), null);
     return res.status(502).json({
       error: "Football data is unavailable right now.",
       code: "FOOTBALL_API_NETWORK_ERROR",

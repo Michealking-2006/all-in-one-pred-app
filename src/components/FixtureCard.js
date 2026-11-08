@@ -24,9 +24,9 @@ export function FixtureCard(fx, { teamId = null, showLeague = false, showRound =
       result ? resultBadge(result) : text("span", { className: "fixture-time mono" + (live ? " live" : "") }, statusLabel(fx)),
     ]),
     h("div", { className: "fixture-teams" }, [
-      h("div", { className: "fixture-team" }, [home.logo ? h("img", { className: "fixture-logo", src: home.logo, alt: "" }) : null, text("span", {}, home.name || "TBD")]),
+      h("div", { className: "fixture-team" }, [home.logo ? h("img", { className: "fixture-logo", src: home.logo, alt: "", loading: "lazy", decoding: "async" }) : null, text("span", {}, home.name || "TBD")]),
       text("strong", { className: "mono fixture-vs" }, score),
-      h("div", { className: "fixture-team away" }, [text("span", {}, away.name || "TBD"), away.logo ? h("img", { className: "fixture-logo", src: away.logo, alt: "" }) : null]),
+      h("div", { className: "fixture-team away" }, [text("span", {}, away.name || "TBD"), away.logo ? h("img", { className: "fixture-logo", src: away.logo, alt: "", loading: "lazy", decoding: "async" }) : null]),
     ]),
     showLeague ? metaLine([fx.league?.name, roundLabel(fx.league?.round)], "meta-line fixture-league")
       : showRound && fx.league?.round ? metaLine([roundLabel(fx.league.round)], "meta-line fixture-league") : null,

@@ -89,7 +89,7 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 let overviewCache = null;
 let view = "overview";
 const NAV = [
-  ["Monitor", [["overview", "Overview", "home"], ["insights", "Insights", "chart"], ["usage", "Usage", "pulse"]]],
+  ["Monitor", [["overview", "Overview", "home"], ["insights", "Insights", "chart"], ["usage", "Usage", "pulse"], ["errors", "Errors", "alert"]]],
   ["Manage", [["messages", "Messages", "mail"], ["users", "Users", "users"], ["broadcast", "Broadcast", "bell"], ["config", "Remote config", "sliders"]]],
   ["Grow", [["predictions", "Predictions", "target"], ["placements", "Placements", "layout"], ["seo", "SEO", "search"]]],
   ["Protect", [["security", "Security", "shield"], ["audit", "Audit log", "list"]]],
@@ -191,7 +191,7 @@ function route() {
   if (!main) return;
   main.replaceChildren(skeleton());
   window.scrollTo(0, 0);
-  const render = { overview: viewOverview, insights: viewInsights, broadcast: viewBroadcast, config: viewConfig, messages: viewMessages, users: viewUsers, usage: viewUsage, placements: viewPlacements, seo: viewSeo, security: viewSecurity, predictions: viewPredictions, audit: viewAudit }[view];
+  const render = { overview: viewOverview, insights: viewInsights, broadcast: viewBroadcast, config: viewConfig, messages: viewMessages, users: viewUsers, usage: viewUsage, errors: viewErrors, placements: viewPlacements, seo: viewSeo, security: viewSecurity, predictions: viewPredictions, audit: viewAudit }[view];
   render(main).catch((err) => main.replaceChildren(el("div", { class: "error", role: "alert", text: err.message || "Could not load this section." })));
   main.focus({ preventScroll: true });
 }
@@ -223,6 +223,14 @@ async function viewOverview(main) {
   // What needs a person's attention right now.
   const todo = [];
   for (const h of data.health || []) if (!h.ok) todo.push({ tone: "bad", title: h.label, detail: h.detail });
+  // Why a service is failing, in the provider's own words (users only ever see "try again").
+  const seen = new Set();
+  for (const e of data.recentErrors || []) {
+    const key = e.source + e.kind + e.endpoint;
+    if (seen.has(key) || seen.size >= 4) continue;
+    seen.add(key);
+    todo.push({ tone: ["banned", "key", "config", "quota"].includes(e.kind) ? "bad" : "warn", title: `${SERVICE_NAMES[e.source] || e.source}: ${e.label}`, detail: `${e.reason} · ${e.count} time${e.count === 1 ? "" : "s"}, last ${when(e.last_at)}`, to: "errors" });
+  }
   if (data.inbox?.new > 0) todo.push({ tone: "warn", title: `${data.inbox.new} new message${data.inbox.new === 1 ? "" : "s"} waiting`, detail: "Feedback and issue reports from the app.", to: "messages" });
   if (cfg.maintenance?.on) todo.push({ tone: "bad", title: "Maintenance mode is on", detail: "Users see the maintenance screen.", to: "config" });
   if (pct != null && pct >= 85) todo.push({ tone: "warn", title: `Football API quota is ${pct}% used`, detail: "Prediction runs keep working but cover fewer matches.", to: "usage" });
@@ -762,6 +770,37 @@ async function viewSeo(main) {
   );
 }
 
+// ---------------------------------------------------------------- errors
+const SERVICE_NAMES = { football: "Football data API", news: "News API", predict: "Prediction job", ai: "AI notes" };
+async function viewErrors(main) {
+  const r = await api("errors_overview");
+  if (!r.ready) {
+    main.replaceChildren(...header("Errors", "Why the services we depend on failed.", [refreshButton()]), el("div", { class: "card" }, [el("h2", { text: "Not recording yet" }), el("p", { class: "sub", text: r.note })]));
+    return;
+  }
+  const stat = (num, lbl) => el("div", { class: "card stat" }, [el("div", { class: "num", text: num }), el("div", { class: "lbl", text: lbl })]);
+  const tone = (k) => (["banned", "key", "config", "quota"].includes(k) ? "bad" : k === "other" ? "" : "warn");
+  main.replaceChildren(
+    ...header("Errors", "Why the services we depend on failed, in their own words. People using the app only ever see a plain “try again” message; the real reason is shown here and nowhere else.", [refreshButton()]),
+    el("div", { class: "stack" }, [
+      el("div", { class: "grid" }, [
+        stat(String(r.last24h), "Different problems in the last 24 hours"),
+        stat(String(r.total14d), "Failed requests, 14 days"),
+      ]),
+      barChart({ title: "Failed requests per day", days: r.days, stacks: [{ label: "Errors", key: "errors", tone: "tone-d" }], hint: "Counted on the server whenever the football, news or AI provider refuses or doesn't answer." }),
+      el("div", { class: "card tablewrap" }, [el("h2", { text: "Problems, last 14 days" }), r.problems.length ? el("table", {}, [
+        el("thead", {}, [el("tr", {}, ["What", "Reason from the provider", "Times", "Last seen"].map((x) => el("th", { text: x })))]),
+        el("tbody", {}, r.problems.map((p) => el("tr", {}, [
+          el("td", {}, [el("strong", { text: SERVICE_NAMES[p.source] || p.source }), el("br"), el("span", { class: "chip " + tone(p.kind), text: p.label }), " ", el("code", { text: p.endpoint })]),
+          el("td", {}, [el("span", { text: p.reason }), p.status ? el("small", { class: "sub", text: " (HTTP " + p.status + ")" }) : null]),
+          el("td", { text: String(p.count) }),
+          el("td", { text: when(p.lastAt) }),
+        ]))),
+      ]) : el("div", { class: "empty", text: "No failures recorded. If something looks broken, the next failure will show up here with its reason." })]),
+    ])
+  );
+}
+
 // ---------------------------------------------------------------- usage
 // A bar chart made of plain elements (the page's CSP forbids inline styles and scripts; setting
 // style from script is allowed). stacks: [{ label, key, tone }] drawn bottom to top.
@@ -989,6 +1028,7 @@ const ICONS = {
   home: "M3 11l9-8 9 8|M5 10v10h14V10",
   chart: "M4 20V10|M10 20V4|M16 20v-7|M22 20H2",
   pulse: "M3 12h4l3-8 4 16 3-8h4",
+  alert: "M12 3l10 18H2z|M12 10v5|M12 18h.01",
   mail: "M4 5h16v14H4z|M4 6l8 7 8-7",
   users: "M16 20v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1|M9.5 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7|M21 20v-1a4 4 0 00-3-3.9|M16 4.2a3.5 3.5 0 010 6.6",
   bell: "M6 16v-5a6 6 0 1112 0v5l2 2H4z|M10 20a2 2 0 004 0",

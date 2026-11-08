@@ -8,12 +8,22 @@
 //   - images / fonts: cache first.
 //   - API and auth traffic is never cached here (the app caches API data itself).
 // Bump CACHE to drop every previously cached file.
-const CACHE = "scoutwave-shell-v31";
+const CACHE = "scoutwave-shell-v32";
 const NAV_TIMEOUT_MS = 2500;
 const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png"];
+// Saved fresh at install (straight from the server, never from the browser's own cache) so the font, and the
+// stylesheets that declare it, always come from the same release. A failure here never blocks the install.
+const WARM = ["/src/assets/fonts/inter-latin-var.woff2", "/src/styles/boot.css", "/src/styles/theme.css"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(async (cache) => {
+        await cache.addAll(SHELL);
+        await Promise.all(WARM.map((url) => cache.add(new Request(url, { cache: "reload" })).catch(() => {})));
+      })
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (event) => {
@@ -46,12 +56,12 @@ self.addEventListener("fetch", (event) => {
   const isStaticAsset = isFont || /\.(png|jpg|jpeg|webp|svg|ico|woff2?)$/i.test(url.pathname);
   if (isStaticAsset) {
     event.respondWith(
-      caches.match(request).then((hit) =>
+      caches.match(request, { ignoreVary: true }).then((hit) =>
         hit ||
         fetch(request).then((response) => {
-          if (response.ok || response.type === "opaque") {
+          if (response.status === 200 || response.type === "opaque") {
             const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy));
+            event.waitUntil(caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {}));
           }
           return response;
         })
@@ -64,7 +74,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       caches.open(CACHE).then(async (cache) => {
         const hit = await cache.match(request);
-        const refresh = fetch(request).then((response) => save(request, response));
+        const refresh = fetch(request, { cache: "no-cache" }).then((response) => save(request, response));
         if (hit) { event.waitUntil(refresh.catch(() => {})); return hit; }
         return refresh;
       })

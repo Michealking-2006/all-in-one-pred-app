@@ -8,6 +8,7 @@ import { tagQuery } from "../src/newsTags.js";
 import crypto from "node:crypto";
 import { safeUrl } from "../src/utils/safeUrl.js";
 import { isProviderId } from "../src/newsArticle.js";
+import { classifyText, recordServiceError } from "../api/_errors.js";
 
 const API_URL = "https://api.thenewsapi.com/v1/news/all";
 
@@ -62,6 +63,7 @@ export default async function handler(req, res) {
   const token = String(process.env.NEWS_ACCESS || "").trim();
   if (!token) {
     console.error("News is not configured: the provider token is missing.");
+    await recordServiceError("news", "config", "news", "NEWS_ACCESS is not set in Vercel", 503);
     return res.status(503).json({ error: "News is unavailable right now.", code: "MISSING_NEWS_ACCESS" });
   }
 
@@ -72,11 +74,13 @@ export default async function handler(req, res) {
     try {
       const r = await fetch(`https://api.thenewsapi.com/v1/news/uuid/${rawId}?` + new URLSearchParams({ api_token: token }), { headers: { Accept: "application/json" } });
       const d = await r.json().catch(() => null);
+      if (!r.ok) { const why = classifyText(d?.error?.message || d?.error?.code || d?.message, r.status); await recordServiceError("news", why.kind, "news/uuid", why.text, r.status); }
       const article = r.ok ? cleanArticle(d) : null;
       if (!article) return res.status(r.status === 429 || r.status === 402 ? 429 : 404).json({ error: "Story not found.", code: "NEWS_NOT_FOUND" });
       res.setHeader("Cache-Control", "public, s-maxage=21600, stale-while-revalidate=86400");
       return res.status(200).json({ article });
-    } catch {
+    } catch (error) {
+      await recordServiceError("news", "network", "news/uuid", String(error?.message || error), null);
       return res.status(502).json({ error: "News is unavailable right now.", code: "NEWS_NETWORK_ERROR" });
     }
   }
@@ -97,6 +101,8 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const providerCode = String(data?.error?.code || "");
+      const why = classifyText(data?.error?.message || providerCode || data?.message, response.status);
+      await recordServiceError("news", why.kind, "news/all", why.text, response.status);
       const limited = response.status === 402 || response.status === 429 || /limit/i.test(providerCode);
       return res.status(limited ? 429 : 502).json({
         error: limited ? "News is busy right now. Please try again later." : "News is unavailable right now.",
@@ -117,6 +123,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("News proxy error:", error?.message || error);
+    await recordServiceError("news", "network", "news/all", String(error?.message || error), null);
     return res.status(502).json({ error: "News is unavailable right now.", code: "NEWS_NETWORK_ERROR" });
   }
 }

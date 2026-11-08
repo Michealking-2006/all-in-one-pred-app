@@ -140,3 +140,9 @@ Some football data plans (the free one, for example) refuse league tables for th
 ## Predicted matches in the admin
 
 Admin > Predictions lists every match the server has predicted: kick-off, teams and league, our pick, home/draw/away percentages, likely score, over 2.5 goals and both-teams-to-score chances, confidence and, once played, the real score with a tick or cross. Filters: Upcoming, Waiting for result, Graded, All. Search by team or league.
+
+## Predictions in the match list
+
+Each match row in the app shows its prediction under the team names: the three chances (1 / X / 2) with the pick filled in, and the likely score. After full time it turns green with a tick if the pick was right, or is struck through with a cross if not (graded on the 90-minute score). For someone who has not unlocked it, the row shows a lock with how sure the model is, never the pick or any number.
+
+**The app only reads what the server has stored.** Rows ask `GET /api/predictions?fixtures=...` (all rows in view go out as one request, and only rows near the screen ask). It never asks the football data service for a table or a prediction and never works out a pick on the phone: the old on-phone fallback was removed. A match with no stored prediction simply shows no strip, and the match page says no prediction has been recorded yet. Predictions are recorded by the scheduled job (or **Record predictions now** in the admin), before kick-off. The strip follows the *Predictions* flag.

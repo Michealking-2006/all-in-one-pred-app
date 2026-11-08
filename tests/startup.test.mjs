@@ -43,6 +43,11 @@ await test("one font everywhere: the iPhone's own font on Apple devices, self-ho
   const boot = read("src/styles/boot.css");
   assert.match(boot, /@font-face\{font-family:'Inter'[^}]*url\('\/src\/assets\/fonts\/inter-latin-var\.woff2'\)/, "Inter is declared once, from our own server");
   assert.ok(fs.existsSync(new URL("../src/assets/fonts/inter-latin-var.woff2", import.meta.url)), "the Inter font file is in the project");
+  assert.match(read("index.html"), /<link rel="preload" href="\/src\/assets\/fonts\/inter-latin-var\.woff2" as="font" type="font\/woff2" crossorigin \/>/, "the font is fetched early, in the same CORS mode the page uses for it");
+  const sw = read("sw.js");
+  assert.match(sw, /fetch\(request, \{ cache: "no-cache" \}\)/, "the background refresh asks the server, so a stale browser copy can't be saved again");
+  assert.match(sw, /WARM = \[[^\]]*inter-latin-var\.woff2[^\]]*boot\.css[^\]]*theme\.css/, "the font and the stylesheets that declare it are saved together at install");
+  assert.match(sw, /response\.status === 200/, "only a complete font response is kept");
   assert.ok(!/Space Mono/.test(css));
   const families = [...css.matchAll(/font-family:([^;}]+)/g)].map((m) => m[1].trim()).filter((f) => f !== "var(--font-display)");
   assert.deepEqual(families, [], "every font-family comes from the one variable: " + families.join(" | "));

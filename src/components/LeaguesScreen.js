@@ -13,7 +13,7 @@ const MIN_QUERY = 3; // API-Football requires at least 3 characters for league s
 function leagueRow(entry) {
   const { league, country } = entry;
   return h("button", { className: "league-row", onClick: () => navigate("/league/" + buildSlug(league.id, league.name)), "aria-label": "Open " + league.name }, [
-    h("img", { src: league.logo, alt: league.name, className: "league-logo" }),
+    h("img", { src: league.logo, alt: league.name, className: "league-logo", loading: "lazy", decoding: "async" }),
     h("span", { className: "league-row-copy" }, [text("strong", {}, league.name), text("small", {}, country?.name || "")]),
     h("i", { "data-lucide": "chevron-right", "aria-hidden": "true" }),
   ]);

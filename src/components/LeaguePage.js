@@ -254,7 +254,7 @@ function standingsTable(table) {
     h("button", { type: "button", className: "standings-row team zone-" + (ZONE_LABEL[zoneOf(row.description)] || "none"), onClick: () => navigate(clubPath(row.team)), "aria-label": "Open " + row.team.name }, [
       text("span", { className: "mono st-rank" }, row.rank),
       h("span", { className: "st-team" }, [
-        h("img", { src: row.team.logo, alt: "", className: "standings-team-logo" }),
+        h("img", { src: row.team.logo, alt: "", className: "standings-team-logo", loading: "lazy", decoding: "async" }),
         h("span", { className: "st-team-copy" }, [text("strong", { className: "standings-team-name" }, row.team.name), formDots(row.form)]),
       ]),
       text("span", { className: "mono st-p" }, row.all?.played ?? "\u2013"),

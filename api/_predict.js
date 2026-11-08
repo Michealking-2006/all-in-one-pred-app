@@ -12,6 +12,7 @@ import { ALL_MODELS } from "./_models.js";
 import { matchesFrom } from "../src/predictions/ratings.js";
 import { gradeOne } from "../src/predictions/metrics.js";
 import { recordUsage } from "./_usage.js";
+import { classifyError, classifyText, recordServiceError } from "./_errors.js";
 import { q } from "./_query.js";
 
 const BASE = "https://v3.football.api-sports.io";
@@ -99,17 +100,7 @@ export async function football(budget, endpoint, params, source = "cron", opts =
 //   plan  = the subscription does not cover this request (a season, a date range, an endpoint): retrying cannot help
 //   rate  = too many requests per minute: wait a few seconds
 //   quota = the daily allowance is used up
-export function classifyError(errors, status) {
-  const entries = Array.isArray(errors) ? errors.map((m, i) => [String(i), m]) : Object.entries(errors || {});
-  const text = entries.map(([k, v]) => `${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`).join("; ").slice(0, 240);
-  const keys = entries.map(([k]) => k.toLowerCase()).join(" ");
-  let kind = "other";
-  if (/plan|subscription/.test(keys) || /free plan|do not have access|upgrade|subscription|not available for your/i.test(text)) kind = "plan";
-  else if (/ratelimit/.test(keys) || /too many requests|rate limit|per minute/i.test(text) || status === 429) kind = "rate";
-  else if (/^requests|request/.test(keys) && /limit|reached|exceed/i.test(text)) kind = "quota";
-  else if (/token|key|access/.test(keys) || status === 401 || status === 403) kind = "key";
-  return { kind, text: text || (status ? `HTTP ${status}` : "no answer") };
-}
+export { classifyError };
 
 async function footballFresh(budget, endpoint, params, source) {
   if (budget.spent >= budget.calls) return null; // out of budget: caller carries on with what it has
@@ -120,6 +111,7 @@ async function footballFresh(budget, endpoint, params, source) {
     const log = (budget.errorLog ||= {});
     const row = (log[endpoint] ||= { count: 0, kind, message: text });
     row.count++;
+    if (row.count === 1) recordServiceError("predict", kind, endpoint, text, null); // once per endpoint per run: the admin Errors page
   };
   let res;
   try {
@@ -243,9 +235,10 @@ export async function explain(row) {
       signal: AbortSignal.timeout(20000),
     });
     const data = await res.json().catch(() => null);
+    if (!res.ok || data?.error) { const why = classifyText(data?.error?.message || data?.error, res.status); recordServiceError("ai", why.kind, "notes", why.text, res.status); }
     const note = JSON.parse(data?.choices?.[0]?.message?.content || "{}").note;
     return typeof note === "string" && note.trim() ? note.replace(/\s+/g, " ").trim().slice(0, 300) : null;
-  } catch { return null; }
+  } catch { recordServiceError("ai", "network", "notes", "no answer from the AI service", null); return null; }
 }
 
 // ---------------------------------------------------------------------------
