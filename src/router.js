@@ -4,7 +4,7 @@ import { parseArticleId } from "./newsArticle.js";
 const VALID_TABS = new Set([
   "home","vip","leagues","profile","auth","favorites","edit-profile","change-password",
   "news","notifications","help-centre","report-issue","feedback","contact-us","privacy-policy",
-  "terms-of-use","about","language","appearance","themes","premium","coins","avatar","search"
+  "terms-of-use","about","language","appearance","themes","premium","coins","avatar","search","diary","hub","recap","my-club"
 ]);
 
 const AUTH_MODES = ["signup", "reset", "login", "update"];
@@ -51,10 +51,10 @@ function syncFromPath() {
     }
   }
 
-  if (["league", "club", "venue", "player"].includes(parts[0]) && parts[1]) {
-    const id = parseInt(parts[1], 10);
-    if (Number.isInteger(id) && id > 0) {
-      store.setState({ openEntity: { type: parts[0], id }, openFixtureId: null, modal });
+  if (["league", "club", "venue", "player", "h2h"].includes(parts[0]) && parts[1]) {
+    const id = parseInt(parts[1], 10), vs = parts[0] === "h2h" ? parseInt(parts[1].split("-")[1], 10) : 0; // /h2h/<team>-<team>
+    if (Number.isInteger(id) && id > 0 && (parts[0] !== "h2h" || vs > 0)) {
+      store.setState({ openEntity: { type: parts[0], id, ...(vs ? { vs } : {}) }, openFixtureId: null, modal });
       return;
     }
   }

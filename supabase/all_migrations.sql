@@ -449,3 +449,10 @@ returns void language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.bump_service_error(date, text, text, text, text, integer) from public, anon, authenticated;
 grant execute on function public.bump_service_error(date, text, text, text, text, integer) to service_role;
+
+-- 011_lineup_alerts.sql
+alter table public.push_fixture_state add column if not exists lineup_sent boolean not null default false;
+
+-- 012_follow_players.sql
+alter table public.push_subscriptions add column if not exists players jsonb not null default '{}'::jsonb;
+alter table public.push_fixture_state add column if not exists event_keys text[];

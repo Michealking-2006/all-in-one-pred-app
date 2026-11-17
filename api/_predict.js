@@ -14,11 +14,14 @@ import { gradeOne } from "../src/predictions/metrics.js";
 import { recordUsage } from "./_usage.js";
 import { classifyError, classifyText, recordServiceError } from "./_errors.js";
 import { q } from "./_query.js";
+import { leaguePriority } from "../src/predictions/tiers.js";
 
 const BASE = "https://v3.football.api-sports.io";
 const FINISHED = "FT-AET-PEN";
 const DAY = 86400000;
 const num = (name, fallback) => { const v = Number(env(name)); return Number.isFinite(v) && env(name) !== "" ? v : fallback; };
+// A numeric response header, or null when it is missing (Number(null) would be 0, which reads as "none left").
+const headerNum = (res, name) => { const raw = res?.headers?.get?.(name); if (raw === null || raw === undefined || String(raw).trim() === "") return null; const n = Number(raw); return Number.isFinite(n) ? n : null; };
 const utcDate = (ms) => new Date(ms).toISOString().slice(0, 10);
 
 // ---------------------------------------------------------------------------
@@ -33,21 +36,31 @@ export async function footballStatus() {
   return { used: Number(r.requests?.current) || 0, limit: Number(r.requests?.limit_day) || 0, plan: String(r.subscription?.plan || "") };
 }
 
-// Budget = everything the football API still has today, minus a small reserve (PREDICT_RESERVE, default 1).
-// With 19 requests left the job may spend 18; with 3 left, 2. A low quota never switches predicting off: the job
-// spends what it can on the matches that matter most and the next daily run carries on (matches already
-// recorded are skipped). PREDICT_MAX_CALLS (default 300) is only a safety ceiling, PREDICT_QUOTA_SHARE
-// (default 1 = all of it) can still hold some back. Saved data (the api_cache table) costs no requests.
-export async function makeBudget() {
-  let left = null, plan = "";
-  try { const status = await footballStatus(); left = Math.max(0, status.limit - status.used); plan = status.plan; }
+// Budget = what the football API still has today, minus what must stay free for the app (live scores, match pages,
+// push alerts). The daily limit comes from the status check, so the same rules fit any plan:
+//   PREDICT_KEEP_FREE_SHARE (default 0.3)  share of the day's limit that is never touched by these jobs
+//   PREDICT_MAX_SHARE       (default 0.4)  most one prediction run may spend, as a share of the day's limit
+//   GRADE_MAX_SHARE         (default 0.15) the same for the grading run
+//   PREDICT_RESERVE         (default 1)    a few extra requests held back on top
+//   PREDICT_MAX_CALLS       (default 300)  safety ceiling per run; PREDICT_QUOTA_SHARE (default 1) can hold more back
+// A low quota never crashes anything: the job spends what it may on the most important matches and tomorrow's run
+// carries on (matches already recorded are skipped). Saved data (the api_cache table) costs no requests.
+// While the run goes on, every answer reports how many requests are left today (visitors use the same quota),
+// and footballFresh stops at the floor, so the day's limit is never reached by these jobs.
+export async function makeBudget({ job = "predict" } = {}) {
+  let left = null, limit = 0, plan = "";
+  try { const status = await footballStatus(); limit = status.limit; left = Math.max(0, status.limit - status.used); plan = status.plan; }
   catch (e) { if (e?.status === 503) throw e; /* no key: nothing can work; any other failure: carry on below */ }
   const ceiling = Math.max(0, Math.floor(num("PREDICT_MAX_CALLS", 300)));
   const reserve = Math.max(0, Math.floor(num("PREDICT_RESERVE", 1)));
   const share = Math.max(0, Math.min(1, num("PREDICT_QUOTA_SHARE", 1)));
+  const keepShare = Math.max(0, Math.min(0.9, num("PREDICT_KEEP_FREE_SHARE", 0.3)));
+  const maxShare = Math.max(0, Math.min(1, job === "grade" ? num("GRADE_MAX_SHARE", 0.15) : num("PREDICT_MAX_SHARE", 0.4)));
+  const keep = limit > 0 ? Math.ceil(limit * keepShare) : 0;
+  const floor = keep + reserve; // requests that must still be left when the job stops
   // If the quota counter can't be read, assume little rather than nothing (the API refuses politely when it is really out).
-  const calls = left === null ? Math.min(ceiling, 20) : Math.max(0, Math.min(ceiling, Math.floor((left - reserve) * share)));
-  return { calls, spent: 0, quotaLeft: left, reserve, plan };
+  const calls = left === null ? Math.min(ceiling, 20) : Math.max(0, Math.min(ceiling, Math.floor((left - floor) * share), Math.floor(limit * maxShare)));
+  return { calls, spent: 0, quotaLeft: left, dayLeft: left, dailyLimit: limit || null, keptFree: keep, floor: left === null ? null : floor, reserve, plan };
 }
 
 // Slow-moving answers are remembered for a few minutes inside a running function instance, so pressing "Record
@@ -104,6 +117,8 @@ export { classifyError };
 
 async function footballFresh(budget, endpoint, params, source) {
   if (budget.spent >= budget.calls) return null; // out of budget: caller carries on with what it has
+  // Visitors share the day's quota: if what is left has fallen to the floor, stop buying (free, no request needed).
+  if (budget.floor != null && budget.dayLeft != null && budget.dayLeft <= budget.floor) { budget.stoppedForQuota = true; budget.lastError = { endpoint, kind: "quota", text: "kept free for the app" }; return null; }
   budget.spent++;
   const query = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null)).toString();
   const note = (kind, text) => {
@@ -121,8 +136,9 @@ async function footballFresh(budget, endpoint, params, source) {
   const hasErrors = data?.errors && (Array.isArray(data.errors) ? data.errors.length : Object.keys(data.errors).length);
   const failed = !res.ok || !data || hasErrors;
   // The per-minute allowance, when the service reports it: lets a caller slow down before being refused.
-  const perMinute = Number(res.headers?.get?.("x-ratelimit-remaining"));
-  budget.minuteLeft = Number.isFinite(perMinute) ? perMinute : null;
+  budget.minuteLeft = headerNum(res, "x-ratelimit-remaining");
+  const dayLeft = headerNum(res, "x-ratelimit-requests-remaining"); // the whole day's remaining requests, visitors included
+  if (dayLeft !== null) budget.dayLeft = dayLeft; else if (budget.dayLeft != null) budget.dayLeft = Math.max(0, budget.dayLeft - 1);
   if (failed) { const why = classifyError(data?.errors, res.status); note(why.kind, why.text); } else budget.lastError = null;
   await recordUsage(source, endpoint, 1, failed ? 1 : 0);
   return failed ? null : data;
@@ -272,7 +288,7 @@ export async function runPredict({ now = Date.now() } = {}) {
   const freePlan = /free/i.test(budget.plan || "") && source !== "table";
   const asked = Math.max(1, Math.min(14, Math.floor(num("PREDICT_DAYS", 7))));
   const days = freePlan ? Math.min(asked, 2) : asked;
-  const summary = { job: "predict", model: MODEL_VERSION, days, budget: budget.calls, reserve: budget.reserve, quotaLeft: budget.quotaLeft, plan: budget.plan || null, fixtures: 0, predicted: 0, shadow: 0, noTable: 0, already: 0, uncovered: 0, odds: 0, notes: 0, leaguesSkipped: 0, writeErrors: 0, callsUsed: 0 };
+  const summary = { job: "predict", model: MODEL_VERSION, days, budget: budget.calls, reserve: budget.reserve, quotaLeft: budget.quotaLeft, dailyLimit: budget.dailyLimit, keptFree: budget.keptFree, plan: budget.plan || null, fixtures: 0, predicted: 0, shadow: 0, noTable: 0, already: 0, uncovered: 0, odds: 0, notes: 0, leaguesSkipped: 0, writeErrors: 0, callsUsed: 0 };
 
   const BLOCKED = "flag:tables-blocked"; // remembered for 12 hours, then tables are tried again (the plan may have changed)
   let mode = source === "match" ? "match" : "table";
@@ -304,11 +320,12 @@ export async function runPredict({ now = Date.now() } = {}) {
   if (freePlan && asked > days) summary.daysNote = "Free football data plan: today and tomorrow";
   const finish = () => {
     summary.callsUsed = budget.spent;
+    if (budget.stoppedForQuota) summary.stoppedForQuota = true;
     const log = budget.errorLog || {};
     if (Object.keys(log).length) summary.apiErrors = Object.fromEntries(Object.entries(log).map(([k, v]) => [k, { count: v.count, kind: v.kind, message: v.message }]));
     if (!summary.predicted && !summary.shadow) {
       const first = Object.entries(log).sort((a, b) => b[1].count - a[1].count)[0];
-      if (budget.calls === 0) summary.skipped = `no football API requests left today (${budget.reserve} kept in reserve); only saved data could be used`;
+      if (budget.calls === 0) summary.skipped = `no football API requests to spare today (${budget.keptFree + budget.reserve} are kept free for the app); only saved data could be used`;
       else if (first) summary.skipped = `the football data service refused ${first[1].count} "${first[0]}" request${first[1].count === 1 ? "" : "s"}: ${first[1].message}`;
     }
     return summary;
@@ -328,17 +345,19 @@ export async function runPredict({ now = Date.now() } = {}) {
   const todo = fixtures.filter((f) => lacking(f).length);
   summary.already = fixtures.length - todo.length;
 
-  // Rank competitions: most matches first, soonest kick-offs counting most (a match tomorrow is worth more than one in 6 days,
+  // Rank competitions: top leagues first; within a league level, most matches first, soonest kick-offs counting most (a match tomorrow is worth more than one in 6 days,
   // because the later one will be seen again by tomorrow's run).
   const leagues = new Map();
   for (const fx of todo) {
     const key = `${fx.league.id}:${fx.league.season}`;
-    if (!leagues.has(key)) leagues.set(key, { id: fx.league.id, season: fx.league.season, fixtures: [], score: 0 });
+    if (!leagues.has(key)) leagues.set(key, { id: fx.league.id, name: fx.league.name, season: fx.league.season, fixtures: [], score: 0 });
     const lg = leagues.get(key);
     lg.fixtures.push(fx);
     lg.score += 1 / (1 + Math.max(0, Math.floor((new Date(fx.fixture.date).getTime() - now) / DAY)));
   }
-  const ordered = [...leagues.values()].sort((a, b) => b.score - a.score || b.fixtures.length - a.fixtures.length);
+  // Top leagues first, then lower ones (src/predictions/tiers.js); inside a tier, as before: soonest and biggest first.
+  const boost = env("PREDICT_PRIORITY").split(",").map((v) => Number(v.trim())).filter(Boolean);
+  const ordered = [...leagues.values()].sort((a, b) => leaguePriority(a, boost) - leaguePriority(b, boost) || b.score - a.score || b.fixtures.length - a.fixtures.length);
   const wantOdds = env("PREDICT_ODDS") === "1";
   const saved = [];                     // rows that really reached the database, for the notes
   let waitingForTable = ordered.length; // competitions that have not had their table yet
@@ -432,35 +451,41 @@ export async function runPredict({ now = Date.now() } = {}) {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const rateWait = Math.max(0, num("PREDICT_RATE_WAIT_MS", 7000)); // free football data plans allow about 10 requests a minute
   const doMatches = async (pool) => {
-    const rank = new Map(ordered.map((lg, i) => [`${lg.id}:${lg.season}`, i]));
-    const keyOf = (fx) => `${fx.league.id}:${fx.league.season}`;
-    pool = [...pool].sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date) || (rank.get(keyOf(a)) ?? 0) - (rank.get(keyOf(b)) ?? 0));
-    const seen = new Map(); // competition -> team id -> that team's row, built up as matches are read
-    let rows = [], benchmarks = [], covers = 0, refused = 0, empty = 0, done = 0;
-    const flush = async () => { if (rows.length || covers) await saveRows(rows, benchmarks, covers); rows = []; benchmarks = []; covers = 0; };
-    for (const fx of pool) {
-      if (budget.spent >= budget.calls || overTime(3000)) break;
-      if (budget.minuteLeft === 0 && !overTime(10000)) await sleep(rateWait); // this minute's allowance is used: wait it out rather than be refused
-      let data = await football(budget, "predictions", { fixture: fx.fixture.id }, "cron", { cacheMinutes: 360 });
-      if (!data && budget.lastError?.kind === "rate" && !overTime(10000)) { await sleep(rateWait); data = await football(budget, "predictions", { fixture: fx.fixture.id }, "cron", { cacheMinutes: 360 }); }
-      if (!data) {
-        // Two refusals in a row for the same plan reason: stop, don't burn the rest of the allowance.
-        if (budget.lastError?.kind === "plan" || budget.lastError?.kind === "key" || budget.lastError?.kind === "quota") { if (++refused >= 2) break; } else if (++empty >= 5) break;
-        continue;
+    const inPool = new Set(pool);
+    let refused = 0, empty = 0, done = 0, stop = false;
+    // One competition at a time, top leagues first. A match is predicted only once its whole competition has been read,
+    // so every match of a league is judged against the same league averages (not against whichever teams happened to
+    // be read before it). Long competitions are saved every 30 matches, by which point most of their teams are known.
+    for (const lg of ordered) {
+      if (stop) break;
+      const mine = lg.fixtures.filter((fx) => inPool.has(fx)).sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+      if (!mine.length) continue;
+      const teams = new Map(); // team id -> that team's row, built up as this competition's matches are read
+      let waiting = [];
+      const flush = async () => {
+        if (!waiting.length) return;
+        const rows = [], benchmarks = [];
+        for (const fx of waiting) { const before = rows.length; makeRows(fx, [...teams.values()], null, null, rows, benchmarks); if (rows.length === before) summary.noTable++; }
+        const covers = waiting.length; waiting = [];
+        await saveRows(rows, benchmarks, covers);
+      };
+      for (const fx of mine) {
+        if (budget.spent >= budget.calls || overTime(3000)) { stop = true; break; }
+        if (budget.minuteLeft === 0 && !overTime(10000)) await sleep(rateWait); // this minute's allowance is used: wait it out rather than be refused
+        let data = await football(budget, "predictions", { fixture: fx.fixture.id }, "cron", { cacheMinutes: 360 });
+        if (!data && budget.lastError?.kind === "rate" && !overTime(10000)) { await sleep(rateWait); data = await football(budget, "predictions", { fixture: fx.fixture.id }, "cron", { cacheMinutes: 360 }); }
+        if (!data) {
+          // Two refusals in a row for the same plan reason: stop, don't burn the rest of the allowance.
+          if (budget.lastError?.kind === "plan" || budget.lastError?.kind === "key" || budget.lastError?.kind === "quota") { if (++refused >= 2 || budget.stoppedForQuota) { stop = true; break; } } else if (++empty >= 5) { stop = true; break; }
+          continue;
+        }
+        refused = 0; empty = 0;
+        for (const r of rowsFromPredictions(data.response?.[0])) teams.set(r.team.id, r);
+        done++; waiting.push(fx);
+        if (waiting.length >= 30) await flush();
       }
-      refused = 0; empty = 0;
-      const key = keyOf(fx);
-      if (!seen.has(key)) seen.set(key, new Map());
-      const teams = seen.get(key);
-      for (const r of rowsFromPredictions(data.response?.[0])) teams.set(r.team.id, r);
-      done++;
-      const before = rows.length;
-      makeRows(fx, [...teams.values()], null, null, rows, benchmarks);
-      covers += 1;
-      if (rows.length === before) summary.noTable++;
-      if (done % 10 === 0) await flush();
+      await flush();
     }
-    await flush();
     summary.matchesRead = done;
     summary.uncovered += Math.max(0, pool.length - done);
   };
@@ -506,7 +531,7 @@ export async function runGrade({ now = Date.now() } = {}) {
   summary.pending = pending?.length || 0;
   if (!summary.pending) return summary;
 
-  const budget = await makeBudget();
+  const budget = await makeBudget({ job: "grade" });
   const byDate = new Map();
   for (const row of pending) {
     const d = utcDate(new Date(row.kickoff).getTime());

@@ -14,11 +14,17 @@ export function PlayerPage({ id, onBack, isFavorite, onToggleFavorite }) {
   // `state.profile` is what the Overview / Stats tabs render; the season bar swaps it.
   const state = { profile: getPlayerProfile(id) };
   const seasonBar = seasonSlot();
+  if (isFavorite) import("../followedPlayers.js").then((m) => getPlayerProfile(id).then(m.rememberPlayer)).catch(() => {}); // a transfer updates the club (always the current season's club)
   const page = createTabbedPage({
     title: "Player",
     onBack,
     action: headerActions(
-      favoriteStarButton({ isFavorite, onToggle: onToggleFavorite }),
+      favoriteStarButton({ isFavorite, onToggle: () => {
+        const on = onToggleFavorite();
+        // Following a player: remember their club (goal, assist and card alerts need it); say so.
+        import("../followedPlayers.js").then((m) => (on ? getPlayerProfile(id).then((entry) => { m.rememberPlayer(entry); if (entry) showToast(`Following ${entry.player.name}: alerts for goals, assists and cards`, "success", 3200); }) : m.forgetPlayer(id))).catch(() => {});
+        return on;
+      } }),
       // Reads state.profile at click time (not capturing it now), so this
       // always shares whichever season is currently selected.
       h("button", { type: "button", className: "icon-button share-header-button", "aria-label": "Share player", onClick: () => {

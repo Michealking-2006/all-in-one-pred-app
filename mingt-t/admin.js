@@ -229,7 +229,7 @@ async function viewOverview(main) {
     const key = e.source + e.kind + e.endpoint;
     if (seen.has(key) || seen.size >= 4) continue;
     seen.add(key);
-    todo.push({ tone: ["banned", "key", "config", "quota"].includes(e.kind) ? "bad" : "warn", title: `${SERVICE_NAMES[e.source] || e.source}: ${e.label}`, detail: `${e.reason} · ${e.count} time${e.count === 1 ? "" : "s"}, last ${when(e.last_at)}`, to: "errors" });
+    todo.push({ tone: ["banned", "key", "config", "quota"].includes(e.kind) ? "bad" : "warn", title: `${SERVICE_NAMES[e.source] || e.source}: ${e.label}`, detail: `${e.reason}. Happened ${e.count} time${e.count === 1 ? "" : "s"}, last ${when(e.last_at)}.`, to: "errors" });
   }
   if (data.inbox?.new > 0) todo.push({ tone: "warn", title: `${data.inbox.new} new message${data.inbox.new === 1 ? "" : "s"} waiting`, detail: "Feedback and issue reports from the app.", to: "messages" });
   if (cfg.maintenance?.on) todo.push({ tone: "bad", title: "Maintenance mode is on", detail: "Users see the maintenance screen.", to: "config" });

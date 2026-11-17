@@ -1,6 +1,7 @@
 // Push alerts on this device: ask permission, subscribe, and keep the server's copy of
 // "which matches and clubs does this device care about" up to date.
 import { store } from "./store.js";
+import { playerTeams } from "./followedPlayers.js";
 
 export const pushSupported = () =>
   typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
@@ -28,9 +29,11 @@ function interests() {
   const s = store.getState();
   const prefs = s.notificationPrefs || {};
   return {
-    prefs: { goals: !!prefs.goals, kickoff: !!prefs.kickoff, whistles: !!prefs.whistles },
+    prefs: { goals: !!prefs.goals, kickoff: !!prefs.kickoff, whistles: !!prefs.whistles, lineups: !!prefs.lineups, players: !!prefs.players },
     fixtures: s.favorites?.match || [],
     teams: s.favorites?.club || [],
+    players: playerTeams(s.favorites?.player), // { playerId: clubId } for followed players
+
   };
 }
 
@@ -63,7 +66,7 @@ export async function disablePush() {
 let timer = null, last = "";
 export function initPush() {
   if (!pushSupported()) return;
-  store.subscribe(() => {
+  const check = () => {
     const snapshot = JSON.stringify(interests());
     if (snapshot === last) return;
     last = snapshot;
@@ -72,6 +75,18 @@ export function initPush() {
       const sub = await current().catch(() => null);
       if (sub && Notification.permission === "granted") post({ action: "update", subscription: sub.toJSON(), ...interests() }).catch(() => {});
     }, 3000);
-  });
+  };
+  store.subscribe(check);
+  window.addEventListener("scoutwave:players", check); // a followed player's club became known (or changed)
   last = JSON.stringify(interests());
+  // Devices signed up before "Lineup alerts" / "Followed players" existed don't have those on the server yet: send them once.
+  try {
+    if (!localStorage.getItem("scoutwave.push.sync2")) {
+      localStorage.setItem("scoutwave.push.sync2", "1");
+      window.setTimeout(async () => {
+        const sub = await current().catch(() => null);
+        if (sub && Notification.permission === "granted") post({ action: "update", subscription: sub.toJSON(), ...interests() }).catch(() => {});
+      }, 4000);
+    }
+  } catch { /* storage unavailable: the next change to a switch or a star updates it */ }
 }

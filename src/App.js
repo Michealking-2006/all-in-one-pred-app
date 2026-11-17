@@ -13,7 +13,7 @@ import { initThemeFx, activeFxTheme, fxThemeById, fxPriceOf } from "./themeFxDat
 import { initRemoteConfig, REMOTE_EVENT } from "./remoteConfig.js";
 import { initEntitlements, serverMode, spendCoins, startCheckout, tipCost } from "./entitlements.js";
 import { blockingNotice, blockingScreen, announcementBar } from "./components/RemoteNotices.js";
-import { initClubTheme, clubById } from "./clubTheme.js";
+import { clubById, CLUB_IDS } from "./clubs.js";
 import { initLiveAlerts } from "./liveAlerts.js";
 import { applyRouteSeo } from "./seo.js";
 import { initPerf } from "./perf.js";
@@ -23,10 +23,7 @@ import { whenIdle } from "./idle.js";
 import { safeMessage } from "./utils/errors.js";
 import { publicText } from "./utils/errors.js";
 
-// Screens with free-text fields the user might be mid-typing into: a pull
-// gesture there would rebuild the screen (via render()) and silently wipe
-// whatever they'd entered, since these inputs are uncontrolled DOM nodes, not
-// tracked in the store. Excluded from pull-to-refresh entirely.
+// Screens with free-text fields: a pull would rebuild them and wipe what was typed (uncontrolled inputs). No pull-to-refresh there.
 const NO_REFRESH_TABS = new Set(["auth", "edit-profile", "change-password", "report-issue", "contact-us", "feedback"]);
 
 const lazyModules = new Map();
@@ -76,8 +73,10 @@ function lazyScreen(key, loader, props = {}) {
 const PROFILE_SUBPAGES = [
   "favorites", "edit-profile", "change-password", "notifications",
   "help-centre", "report-issue", "feedback", "contact-us", "privacy-policy",
-  "terms-of-use", "about", "language", "appearance", "themes", "premium", "coins", "avatar",
+  "terms-of-use", "about", "language", "appearance", "themes", "premium", "coins", "avatar", "diary", "hub", "recap",
 ];
+// Screens that only need onBack (and the signed-in user): tab -> component file. Loaded on demand.
+const PLAIN = { "help-centre": "HelpCentreScreen", "report-issue": "ReportIssueScreen", feedback: "FeedbackScreen", "contact-us": "ContactUsScreen", "privacy-policy": "PrivacyPolicyScreen", "terms-of-use": "TermsOfUseScreen", about: "AboutScreen", diary: "DiaryScreen", hub: "HubScreen", recap: "RecapScreen", "my-club": "MyClubScreen" };
 
 // Actions — the only functions that touch the store or the URL. Components
 // never call store.setState or history directly, they receive these as
@@ -132,11 +131,7 @@ const actions = {
       };
     });
   },
-  // Silent: the calling component updates its own star, so favouriting never
-  // re-renders the app (no scroll jump, no refetch). Returns the new state.
-  // Silent: the calling row/button updates its own star in place (see
-  // utils/ui.js's setStarState), so favouriting never re-renders the whole
-  // app (no scroll jump, no refetch). Returns the new favourite state.
+  // Silent: the caller updates its own star (utils/ui.js setStarState), so no re-render, scroll jump or refetch. Returns the new state.
   toggleFavorite: (type, id) => {
     const { favorites } = store.getState();
     const list = favorites[type] || [];
@@ -161,10 +156,16 @@ const actions = {
   // checkmark moves to the new choice.
   setTheme: (theme) => store.setState({ theme }),
   setPerfMode: (perfMode) => store.setState({ perfMode }),
+  // One of the four clubs, or null for the standard colours. Remembered on the account too, so it follows the
+  // person to a new phone. Choosing "no club" also stops the "which club do you support?" card for good.
   setClubTheme: (club) => {
-    store.setState({ clubTheme: club ? { id: club.id, primary: club.primary } : null });
-    showToast(club ? `${club.name || "Custom"} colours applied` : "Standard colours restored", "success");
+    clubWelcomeOpen = false;
+    store.setState({ clubTheme: club ? { id: club.id, primary: club.primary } : null, clubPromptUntil: club ? 0 : Number.MAX_SAFE_INTEGER });
+    showToast(club ? `${club.name} colours applied` : "Standard colours restored", "success");
+    if (store.getState().authUser) import("./clubSync.js").then((m) => m.saveClubToAccount(club ? club.id : "none")).catch(() => {});
   },
+  // "Not now" on the Home card: ask again in a week.
+  snoozeClubPrompt: () => { clubWelcomeOpen = false; store.setState({ clubPromptUntil: Date.now() + 7 * 86400000 }); },
   applyFxTheme: (id) => {
     store.setState({ fxTheme: id });
     showToast(id ? `${fxThemeById(id)?.name} theme applied` : "Standard theme restored", "success");
@@ -207,6 +208,17 @@ const actions = {
   },
 };
 
+// Right after signing in, someone whose account has no club saved is asked once (full screen, same step as in sign-up).
+// Once it has opened it stays until they answer, even if the club preview changes the saved colours underneath it.
+let clubWelcomeOpen = false;
+// Has this person already answered "which club?" on their account (a club, or "no club")?
+const clubAnsweredOnAccount = (state) => { const remote = state.authUser?.user_metadata?.club; return CLUB_IDS.includes(remote) || remote === "none"; };
+// Should we still ask? Not when a club is chosen, when they said "no club" (here or on their account), or during a snooze.
+const clubAskable = (state) => !state.clubTheme && !clubAnsweredOnAccount(state) && Date.now() >= state.clubPromptUntil;
+function needsClubWelcome(state) {
+  return !!state.authUser && state.tab === "home" && !state.openFixtureId && !state.openEntity && !state.modal && clubAskable(state);
+}
+
 function App(state) {
   const isUnlocked = (matchId) => state.isVip || state.unlockedMatchIds.includes(matchId);
   const isFavorite = (type, id) => (state.favorites[type] || []).includes(id);
@@ -215,7 +227,11 @@ function App(state) {
   const signIn = () => actions.goTo("auth");
 
   let content;
-  if (state.openFixtureId) {
+  const clubWelcome = clubWelcomeOpen || needsClubWelcome(state);
+  if (clubWelcome) clubWelcomeOpen = true;
+  if (clubWelcome) {
+    content = lazyScreen("ClubWelcome", () => import("./components/ClubWelcome.js"), { onChoose: actions.setClubTheme, onSkip: actions.snoozeClubPrompt });
+  } else if (state.openFixtureId) {
     content = lazyScreen("MatchScreen", () => import("./components/MatchScreen.js"), {
       fixtureId: state.openFixtureId,
       matchTab: state.matchTab,
@@ -233,6 +249,7 @@ function App(state) {
     else if (type === "club") content = lazyScreen("ClubPage", () => import("./components/ClubPage.js"), { id, onBack: actions.closeSubpage, isFavorite: isFavorite("club", id), onToggleFavorite: () => actions.toggleFavorite("club", id) });
     else if (type === "venue") content = lazyScreen("VenuePage", () => import("./components/VenuePage.js"), { id, onBack: actions.closeSubpage, isFavorite: isFavorite("venue", id), onToggleFavorite: () => actions.toggleFavorite("venue", id) });
     else if (type === "article") content = lazyScreen("ArticlePage", () => import("./components/ArticlePage.js"), { id, onBack: () => goBack("/news") });
+    else if (type === "h2h") content = lazyScreen("RivalryScreen", () => import("./components/RivalryScreen.js"), { a: id, b: state.openEntity.vs, onBack });
     else if (type === "player") content = lazyScreen("PlayerPage", () => import("./components/PlayerPage.js"), { id, onBack: actions.closeSubpage, isFavorite: isFavorite("player", id), onToggleFavorite: () => actions.toggleFavorite("player", id) });
   } else if (state.tab === "auth") {
     content = lazyScreen("AuthScreen", () => import("./components/AuthScreen.js"), { mode: state.authMode || "login" });
@@ -245,6 +262,11 @@ function App(state) {
       onSelectDay: actions.selectDay,
       onOpenProfile: () => actions.goTab("profile"),
       onOpenSearch: () => actions.goTo("search"),
+      club: state.clubTheme ? clubById(state.clubTheme.id) : null,
+      showClubPrompt: clubAskable(state),
+      onPickClub: actions.setClubTheme,
+      onSnoozeClub: actions.snoozeClubPrompt,
+      onOpenAppearance: () => actions.goTo("appearance"),
     });
   } else if (state.tab === "leagues") {
     content = lazyScreen("LeaguesScreen", () => import("./components/LeaguesScreen.js"));
@@ -271,22 +293,10 @@ function App(state) {
     content = lazyScreen("ChangePasswordScreen", () => import("./components/ChangePasswordScreen.js"), { onBack, authUser: state.authUser, onSignIn: signIn });
   } else if (state.tab === "news") {
     content = lazyScreen("NewsScreen", () => import("./components/NewsScreen.js"));
+  } else if (PLAIN[state.tab]) {
+    content = lazyScreen(PLAIN[state.tab], () => import(`./components/${PLAIN[state.tab]}.js`), { onBack, authUser: state.authUser });
   } else if (state.tab === "notifications") {
     content = lazyScreen("NotificationsScreen", () => import("./components/NotificationsScreen.js"), { prefs: state.notificationPrefs, onTogglePref: actions.toggleNotificationPref, onBack });
-  } else if (state.tab === "help-centre") {
-    content = lazyScreen("HelpCentreScreen", () => import("./components/HelpCentreScreen.js"), { onBack });
-  } else if (state.tab === "report-issue") {
-    content = lazyScreen("ReportIssueScreen", () => import("./components/ReportIssueScreen.js"), { onBack, authUser: state.authUser });
-  } else if (state.tab === "feedback") {
-    content = lazyScreen("FeedbackScreen", () => import("./components/FeedbackScreen.js"), { onBack, authUser: state.authUser });
-  } else if (state.tab === "contact-us") {
-    content = lazyScreen("ContactUsScreen", () => import("./components/ContactUsScreen.js"), { onBack, authUser: state.authUser });
-  } else if (state.tab === "privacy-policy") {
-    content = lazyScreen("PrivacyPolicyScreen", () => import("./components/PrivacyPolicyScreen.js"), { onBack });
-  } else if (state.tab === "terms-of-use") {
-    content = lazyScreen("TermsOfUseScreen", () => import("./components/TermsOfUseScreen.js"), { onBack });
-  } else if (state.tab === "about") {
-    content = lazyScreen("AboutScreen", () => import("./components/AboutScreen.js"), { onBack });
   } else if (state.tab === "language") {
     content = lazyScreen("LanguageScreen", () => import("./components/LanguageScreen.js"), { current: state.language, onSelect: actions.setLanguage, onBack });
   } else if (state.tab === "appearance") {
@@ -318,7 +328,10 @@ function App(state) {
       currentLanguage: state.language,
       theme: state.theme,
       fxThemeName: fxThemeById(activeFxTheme(state))?.name || "",
-      clubName: state.clubTheme ? (clubById(state.clubTheme.id)?.name || "Custom") : "",
+      clubName: state.clubTheme ? (clubById(state.clubTheme.id)?.name || "") : "",
+      club: state.clubTheme ? clubById(state.clubTheme.id) : null,
+      showClubPrompt: !state.clubTheme && !clubAnsweredOnAccount(state) && state.clubPromptUntil !== Number.MAX_SAFE_INTEGER,
+      onPickClub: actions.setClubTheme,
       onNavigate: actions.goTo,
       avatarSrc,
       authUser: state.authUser,
@@ -337,7 +350,7 @@ function App(state) {
 
   return h("div", { className: "app-shell" }, [
     content,
-    state.tab === "auth" && !inEntity ? null : BottomNav({ active: navActive, onChange: actions.goTab }),
+    (state.tab === "auth" && !inEntity) || clubWelcome ? null : BottomNav({ active: navActive, onChange: actions.goTab }),
   ]);
 }
 
@@ -395,6 +408,13 @@ function render() {
   }
 }
 
+// The club is also kept on the account (src/clubSync.js, loaded once someone is signed in).
+let clubSync = null;
+function syncClub(state) {
+  if (clubSync) return clubSync.syncClubWithAccount(state);
+  if (state.authUser) import("./clubSync.js").then((m) => { clubSync = m; m.syncClubWithAccount(store.getState()); }).catch(() => {});
+}
+
 // A signed-in user has no business on the sign-in / sign-up screens (e.g. after
 // returning from Google). Password reset and "set new password" stay reachable.
 function guardAuthRoute(state) {
@@ -404,6 +424,7 @@ function guardAuthRoute(state) {
 }
 
 store.subscribe(guardAuthRoute);
+store.subscribe(syncClub);
 // Several state changes in the same moment (a tap that sets the tab, the day and a toast) rebuild the
 // screen once, not once per change: less work and less memory churn, and no visible difference.
 let renderQueued = false;
@@ -436,8 +457,18 @@ initEntitlements();
 whenIdle(() => {
   import("./usageBeacon.js").then((m) => m.initUsageBeacon()).catch(() => {});
   import("./push.js").then((m) => m.initPush()).catch(() => {});
+  import("./liveWatch.js").then((m) => m.initLiveWatch()).catch(() => {});
 }, 3000);
-initClubTheme();
+// The colour maths and palettes (src/clubTheme.js) load only for someone who has picked a club; the boot script has
+// already set the accent before first paint, so there is no flash.
+let clubThemeLoading = false;
+function loadClubTheme(state) {
+  if (clubThemeLoading || !state.clubTheme) return;
+  clubThemeLoading = true;
+  import("./clubTheme.js").then((m) => m.initClubTheme()).catch(() => { clubThemeLoading = false; });
+}
+loadClubTheme(store.getState());
+store.subscribe(loadClubTheme);
 initThemeFx();
 initLiveAlerts();
 const authBoot = initializeAuth();

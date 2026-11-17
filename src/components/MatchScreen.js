@@ -63,6 +63,15 @@ export function MatchScreen({ fixtureId, matchTab = "summary", isFavorite, onBac
     });
   } }, [h("i", { "data-lucide": "share-2" })]);
 
+  // Diary: log this match (once it has kicked off) as attended or watched, with a rating and a note.
+  const diary = h("button", { type: "button", className: "icon-button share-header-button", "aria-label": "Add to match diary", onClick: () => {
+    fixturePromise.then(async (fixture) => {
+      if (!fixture) { showToast("This match isn't available yet.", "error"); return; }
+      if (["NS", "TBD", "PST", "CANC"].includes(fixture.fixture?.status?.short)) { showToast("You can add a match to your diary once it has kicked off."); return; }
+      (await import("./DiarySheet.js")).openDiarySheet(fixture);
+    });
+  } }, [h("i", { "data-lucide": "calendar" })]);
+
   // Everything the header shows beyond the score lives in `view`, so a refresh
   // can redraw it without losing what has already been loaded.
   const view = { fixture: null, events: null, form: { home: null, away: null } };
@@ -93,7 +102,7 @@ export function MatchScreen({ fixtureId, matchTab = "summary", isFavorite, onBac
   const page = createTabbedPage({
     title: "Match",
     onBack,
-    action: headerActions(star, share),
+    action: headerActions(star, diary, share),
     hero,
     defaultTab: matchTab,
     onTabChange,
@@ -414,6 +423,7 @@ function renderSummary(fx) {
     h("div", { className: "card match-summary-card" }, [
       text("span", { className: "section-kicker" }, "Head to head"),
       h2hSlot,
+      home.id && away.id ? h("button", { type: "button", className: "secondary-button rivalry-link", onClick: () => navigate("/h2h/" + home.id + "-" + away.id) }, "Full rivalry: record, biggest wins, form") : null,
     ]),
   ]);
 

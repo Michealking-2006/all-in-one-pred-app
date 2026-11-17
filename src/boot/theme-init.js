@@ -11,8 +11,14 @@
     }
     var dark = pref === "dark" || (pref === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.theme = dark ? "dark" : "light";
-    // Club colours: set the accent right away so there is no flash of red; src/clubTheme.js refines it.
-    if (saved && saved.clubTheme && /^#[0-9a-f]{6}$/i.test(saved.clubTheme.primary || "")) document.documentElement.style.setProperty("--accent", saved.clubTheme.primary);
+    // An advanced theme that this phone already owns (Water needs Premium, the rest were bought with coins): switch it on
+    // before first paint so the page doesn't flash plain and then change. src/themeFxData.js stays the authority and
+    // corrects this at once if the entitlement or the admin kill switch says otherwise.
+    var fx = saved && saved.fxTheme;
+    var fxOn = (fx === "water" && saved.isVip === true) || ((fx === "fire" || fx === "ice" || fx === "bubbles") && Array.isArray(saved.unlockedThemes) && saved.unlockedThemes.indexOf(fx) !== -1);
+    if (fxOn) document.documentElement.dataset.fx = fx;
+    // Club colours: set the accent right away so there is no flash of red; src/clubTheme.js refines it. (Not under an advanced theme: it brings its own colours.)
+    if (!fxOn && saved && saved.clubTheme && /^(barcelona|real-madrid|chelsea|man-united)$/.test(saved.clubTheme.id) && /^#[0-9a-f]{6}$/i.test(saved.clubTheme.primary || "")) document.documentElement.style.setProperty("--accent", saved.clubTheme.primary);
     document.documentElement.dataset.themePref = pref;
     // Lighter mode for low-end phones, decided before first paint (same rules as src/perf.js).
     var nav = navigator, mem = nav.deviceMemory, conn = nav.connection || {};

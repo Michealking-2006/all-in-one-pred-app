@@ -1,25 +1,23 @@
-// Live-match feedback: vibrate on a goal, blow a whistle at half time and full
-// time. Works while the app is open, on the match page being watched and on
-// starred matches in the Games list (there is no background push yet).
+// Live-match feedback while the app is open: goal toast, vibration and own-club celebration, half-time and full-time whistles.
 import { store } from "./store.js";
 import { showToast } from "./toast.js";
 import { isLive, isFinished } from "./utils/fixtures.js";
 
-const seen = new Map(); // fixtureId -> { status, goals }
+const seen = new Map();
 
-// First sighting of a fixture only records it; alerts need a change between two
-// sightings, so opening an old match never replays its goals.
+// The first sighting only records a fixture: alerts need a change, so an old match never replays.
 export function detectEvents(rows, { only = null } = {}) {
   const events = [];
   for (const fx of Array.isArray(rows) ? rows : []) {
     const id = fx?.fixture?.id;
     if (!id || (only && !only.includes(id))) continue;
     const status = fx.fixture?.status?.short || "";
-    const goals = (fx.goals?.home ?? 0) + (fx.goals?.away ?? 0);
+    const gh = fx.goals?.home ?? 0, ga = fx.goals?.away ?? 0;
+    const goals = gh + ga;
     const prev = seen.get(id);
-    seen.set(id, { status, goals });
+    seen.set(id, { status, goals, gh, ga });
     if (!prev) continue;
-    if (goals > prev.goals && (isLive(status) || isFinished(status))) events.push({ type: "goal", fx });
+    if (goals > prev.goals && (isLive(status) || isFinished(status))) events.push({ type: "goal", fx, side: gh > prev.gh && ga > prev.ga ? "both" : gh > prev.gh ? "home" : "away" });
     if (status !== prev.status) {
       if (status === "HT" && isLive(prev.status) && prev.status !== "HT") events.push({ type: "half", fx });
       else if (isFinished(status) && isLive(prev.status)) events.push({ type: "full", fx });
@@ -41,8 +39,10 @@ export function observeFixtures(rows, options) {
   let vibrated = false, whistled = false;
   for (const event of events) {
     if (event.type === "goal") {
-      showToast("Goal! " + scoreLine(event.fx), "success", 4000);
-      if (prefs.goalVibration !== false && !vibrated) vibrated = vibrate([180, 90, 180, 90, 420]);
+      const plain = () => { showToast("Goal! " + scoreLine(event.fx), "success", 4000); if (prefs.goalVibration !== false) vibrate([180, 90, 180, 90, 420]); };
+      if (prefs.goalCelebration !== false && store.getState().clubTheme?.id) { // the lazy module decides if it was your club
+        import("./goalCelebration.js").then((m) => m.onGoal(event, store.getState().clubTheme.id, { plain, buzz: prefs.goalVibration !== false ? vibrate : () => false })).catch(plain);
+      } else if (!vibrated) { plain(); vibrated = prefs.goalVibration !== false; }
     } else if (event.type === "half") {
       showToast("Half time: " + scoreLine(event.fx), "default", 4000);
       if (prefs.whistles !== false && !whistled) whistled = whistle("half");
@@ -54,9 +54,7 @@ export function observeFixtures(rows, options) {
   return events;
 }
 
-// ---------------------------------------------------------------------------
 // Haptics + sound
-// ---------------------------------------------------------------------------
 export function vibrate(pattern) {
   try {
     return typeof navigator.vibrate === "function" ? !!navigator.vibrate(pattern) : false;

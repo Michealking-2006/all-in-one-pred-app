@@ -1,6 +1,7 @@
 import { h, text } from "../utils/h.js";
 import { PageHeader } from "./PageHeader.js";
-import { CLUBS, isHex } from "../clubTheme.js";
+import { clubById } from "../clubs.js";
+import { ClubTiles } from "./ClubPicker.js";
 
 const OPTIONS = [
   { id: "system", icon: "smartphone", title: "System", subtitle: "Matches your device setting" },
@@ -14,21 +15,28 @@ const PERF_OPTIONS = [
   { id: "off", icon: "sparkles", title: "Full effects", subtitle: "Blur, animations and all theme effects" },
 ];
 
-function swatch(club) {
-  const secondary = club.secondary && club.secondary.toLowerCase() !== "#ffffff" ? club.secondary : null;
-  return h("span", { className: "club-swatch", "aria-hidden": "true", style: { background: secondary ? `linear-gradient(135deg, ${club.primary} 50%, ${secondary} 50%)` : club.primary } });
-}
-
 export function AppearanceScreen({ current, club, perfMode = "auto", onPerfMode = () => {}, fxActive = "", onSelect, onSelectClub, onBack }) {
   const activeId = club?.id || null;
-  const customValue = club?.id === "custom" && isHex(club.primary) ? club.primary : "#d50000";
+  const active = clubById(activeId);
 
-  const custom = h("input", { type: "color", className: "club-color-input", value: customValue, "aria-label": "Pick your own colour" });
-  // `change` (not `input`): applying a theme re-renders the app, which would close the picker mid-drag.
-  custom.addEventListener("change", () => onSelectClub({ id: "custom", name: "Custom", primary: custom.value }));
+  const clubSection = [
+    text("div", { className: "profile-section-label" }, "Your club"),
+    fxActive ? text("p", { className: "screen-note club-paused" }, "The " + fxActive + " theme is active, so club colours are paused. They come back when you switch it off in Advanced themes.") : null,
+    h("div", { className: "club-grid-wrap" }, [ClubTiles({ selectedId: activeId, onSelect: onSelectClub })]),
+    h("section", { className: "selection-list card" }, [
+      h("button", { type: "button", className: "selection-row appearance-row", onClick: () => onSelectClub(null) }, [
+        h("i", { "data-lucide": "circle-dashed" }),
+        h("span", { className: "appearance-copy" }, [text("span", {}, "No club"), text("small", {}, "Scoutwave's standard red")]),
+        !activeId ? h("i", { "data-lucide": "check" }) : null,
+      ]),
+    ]),
+    text("p", { className: "screen-note" }, active ? active.motto + ". The whole app wears " + active.name + " colours and crest." : "Pick the club you support and the whole app wears its colours and crest."),
+  ];
 
   return h("main", { className: "screen language-screen" }, [
     PageHeader({ title: "Appearance", onBack }),
+    ...clubSection,
+    text("div", { className: "profile-section-label" }, "Mode"),
     h("section", { className: "selection-list card" }, OPTIONS.map((opt) =>
       h("button", { type: "button", className: "selection-row appearance-row", onClick: () => onSelect(opt.id) }, [
         h("i", { "data-lucide": opt.icon }),
@@ -47,36 +55,5 @@ export function AppearanceScreen({ current, club, perfMode = "auto", onPerfMode 
       ])
     )),
     text("p", { className: "screen-note" }, "Lighter mode removes blur and animated theme effects, keeps smaller caches and refreshes less often. It is what phones with 2 GB of memory or less need to stay smooth."),
-
-    text("div", { className: "profile-section-label" }, "Club colours"),
-    fxActive ? text("p", { className: "screen-note club-paused" }, "The " + fxActive + " theme is active, so club colours are paused. They come back when you switch it off in Advanced themes.") : null,
-    h("section", { className: "card club-preview" }, [
-      text("p", {}, "Support your club? The app's colours follow it: buttons, tabs, links and live scores."),
-      h("div", { className: "club-preview-row" }, [
-        h("span", { className: "club-preview-button" }, "Follow"),
-        h("span", { className: "club-preview-chip" }, [h("span", { className: "live-dot" }), text("span", {}, "Live 67'")]),
-        text("span", { className: "club-preview-link" }, "See all"),
-      ]),
-    ]),
-    h("section", { className: "selection-list card" }, [
-      h("button", { type: "button", className: "selection-row appearance-row", onClick: () => onSelectClub(null) }, [
-        h("i", { "data-lucide": "circle-dashed" }),
-        h("span", { className: "appearance-copy" }, [text("span", {}, "Scoutwave red"), text("small", {}, "The standard colours")]),
-        !activeId ? h("i", { "data-lucide": "check" }) : null,
-      ]),
-      h("label", { className: "selection-row appearance-row club-custom-row" }, [
-        h("i", { "data-lucide": "palette" }),
-        h("span", { className: "appearance-copy" }, [text("span", {}, "Your own colour"), text("small", {}, "Pick any colour for a club that isn't listed")]),
-        activeId === "custom" ? h("i", { "data-lucide": "check" }) : custom,
-        activeId === "custom" ? custom : null,
-      ]),
-    ]),
-    h("div", { className: "club-grid-themes", role: "list" }, CLUBS.map((c) =>
-      h("button", { type: "button", role: "listitem", className: "club-chip" + (c.id === activeId ? " selected" : ""), "aria-pressed": String(c.id === activeId), onClick: () => onSelectClub(c) }, [
-        swatch(c),
-        text("span", { className: "club-chip-name" }, c.name),
-        c.id === activeId ? h("i", { "data-lucide": "check" }) : null,
-      ])
-    )),
   ]);
 }

@@ -1,4 +1,4 @@
-import { drawMatchCard, drawPlayerCard, drawClubCard, drawVenueCard, drawLeagueCard, canvasToBlob } from "./cards.js";
+import { drawMatchCard, drawPlayerCard, drawClubCard, drawVenueCard, drawLeagueCard, drawRecapCard, canvasToBlob } from "./cards.js";
 
 const DRAWERS = {
   match: drawMatchCard,
@@ -6,6 +6,7 @@ const DRAWERS = {
   club: drawClubCard,
   venue: drawVenueCard,
   league: drawLeagueCard,
+  recap: drawRecapCard,
 };
 
 // Builds the branded PNG for one entity. `data` is whatever raw shape that

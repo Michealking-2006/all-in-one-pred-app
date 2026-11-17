@@ -3,7 +3,10 @@
   "short_name": "Scoutwave",
   "id": "/",
   "description": "Live football scores, match predictions and odds.",
-  "categories": ["sports", "news"],
+  "categories": [
+    "sports",
+    "news"
+  ],
   "lang": "en",
   "start_url": "/",
   "scope": "/",
@@ -12,8 +15,77 @@
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live scores",
+      "short_name": "Live",
+      "description": "Today's matches and live scores",
+      "url": "/livescores",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "My club",
+      "short_name": "My club",
+      "description": "Your club's live score or next match",
+      "url": "/my-club",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "News",
+      "short_name": "News",
+      "description": "Football news and transfers",
+      "url": "/news",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Match diary",
+      "short_name": "Diary",
+      "description": "Games you've been to or watched",
+      "url": "/diary",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

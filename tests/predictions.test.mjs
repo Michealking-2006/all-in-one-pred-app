@@ -1,6 +1,6 @@
 // Run with:  node tests/predictions.test.mjs   (no network: football API and Supabase are faked)
 import assert from "node:assert/strict";
-process.env.SUPABASE_SERVICE_ROLE_KEY = "k"; process.env.SCOUTWAVE_FOOTBALL_API_KEY = "f"; process.env.PREDICT_ODDS = "1";
+process.env.SUPABASE_SERVICE_ROLE_KEY = "k"; process.env.SCOUTWAVE_FOOTBALL_API_KEY = "f"; process.env.PREDICT_ODDS = "1"; Object.assign(process.env, { PREDICT_KEEP_FREE_SHARE: "0", PREDICT_MAX_SHARE: "1", GRADE_MAX_SHARE: "1" }); // old spend-it-all rules; the new defaults are tested in predict-priority.test.mjs
 const { predictFromTable, tableFor } = await import("../src/predictions/model.js");
 const m = await import("../src/predictions/metrics.js");
 
@@ -267,7 +267,7 @@ await test("budget: spends what is left minus one, looks seven days ahead, and a
     // Competitions are ranked: the bigger one gets the single table request. One day list fetched, nothing else bought.
     db.predictions.length = 0; db.prediction_benchmarks.length = 0; clearMemo();
     const mk = (id, lg) => ({ fixture: { id, date: "2026-10-20T15:00:00Z", status: { short: "NS" } }, league: { id: lg, name: "L" + lg, season: 2026 }, teams: { home: { id: id * 10, name: "H" + id }, away: { id: id * 10 + 1, name: "A" + id } } });
-    const list = [mk(1, 201), mk(2, 202), mk(3, 205), mk(4, 205), mk(5, 205), mk(6, 203)];
+    const list = [mk(1, 9101), mk(2, 9102), mk(3, 9105), mk(4, 9105), mk(5, 9105), mk(6, 9103)];
     globalThis.fetch = async (url, init) => {
       const u = new URL(url);
       if (u.host === "v3.football.api-sports.io" && u.pathname === "/fixtures" && u.searchParams.get("status") === "NS" && u.searchParams.get("date") === "2026-10-20") { calls.football.push("fixtures?" + u.searchParams.toString()); return json({ response: list, errors: [] }); }
@@ -276,7 +276,7 @@ await test("budget: spends what is left minus one, looks seven days ahead, and a
     const from3 = calls.football.length;
     await runPredict({ now: NOW });
     const standingsAsked = calls.football.slice(from3).filter((c) => c.startsWith("standings"));
-    assert.equal(standingsAsked.length, 1); assert.ok(standingsAsked[0].includes("league=205"), standingsAsked[0]);
+    assert.equal(standingsAsked.length, 1); assert.ok(standingsAsked[0].includes("league=9105"), standingsAsked[0]);
 
     // No requests left at all: nothing breaks, it says so
     db.predictions.length = 0; clearMemo(); withQuota(100);

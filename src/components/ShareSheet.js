@@ -5,7 +5,7 @@ import { createSheet } from "./Sheet.js";
 import { buildSlug } from "../utils/slug.js";
 import { safeMessage } from "../utils/errors.js";
 
-const TITLES = { match: "Share match", player: "Share player", club: "Share club", venue: "Share venue", league: "Share league" };
+const TITLES = { match: "Share match", player: "Share player", club: "Share club", venue: "Share venue", league: "Share league", recap: "Share recap" };
 
 // The drawer itself (drag to dismiss, Escape, Back button, focus handling) lives in Sheet.js.
 // #share-sheet-root sits outside #root (like #toast-root), so App.js's full re-render on every
@@ -20,6 +20,7 @@ function linkFor(type, data) {
     case "club": return data?.team?.id ? `/club/${buildSlug(data.team.id, data.team.name || "club")}` : "";
     case "venue": return data?.id ? `/venue/${buildSlug(data.id, data.name || "venue")}` : "";
     case "league": return data?.league?.id ? `/league/${buildSlug(data.league.id, data.league.name || "league")}` : "";
+    case "recap": return "/recap";
     default: return id("");
   }
 }

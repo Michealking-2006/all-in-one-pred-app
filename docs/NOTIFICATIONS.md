@@ -1,5 +1,22 @@
 # Push notifications and usage charts
 
+## Lineup alerts (about an hour before kick-off)
+A push "Lineups are in" (with both formations and the minutes to kick-off) the moment both team sheets are published, for **starred matches and clubs**, to devices with the *Lineup alerts* switch on. Same job as the other alerts (`/api/cron?task=push`), nothing else to schedule.
+- **Run `supabase/migrations/011_lineup_alerts.sql` once.** It adds the column that remembers a match has had its alert, so it is sent once. Until it is run, lineup alerts stay off and the job's summary says so; every other alert works as before.
+- Cost: one request for the day's match list (remembered 30 minutes), then one lineup lookup per watched match that starts within `PUSH_LINEUP_MINUTES` (default 75), remembered 4 minutes whether or not the sheets are out; at most `PUSH_LINEUP_MAX_CHECKS` (default 8) lookups per run. Nothing is requested when nobody has the switch on and a watched match coming up. `api_cache` (migration 009) makes the remembering shared between runs; without it each run may repeat a lookup.
+- Devices signed up before this update send the new switch to the server once, the next time the app is opened.
+
+## Followed players (goals, assists, cards)
+Starring a player (the star on their page) follows them. The app remembers their club (updated whenever you visit their page, so a transfer is picked up) and sends `{ playerId: clubId }` to the push service with the *Followed players* switch. While one of those clubs is playing, the push job reads the match's events (`fixtures/events`) and sends one alert per goal ("Palmer scored", "set up a goal", "scored a penalty", "scored an own goal"), yellow card ("was booked") or red/second yellow ("was sent off").
+- **Run `supabase/migrations/012_follow_players.sql` once.** Until then signups still work (the players are simply not stored) and the job skips player alerts and says so in its summary; every other alert is unaffected.
+- Nothing old is announced: the first time a match is looked at it only records what has already happened, and the events of *every* player are recorded, so someone who starts following a player mid-match never gets earlier events.
+- Cost: only matches where a club has a follower are looked at, at most `PUSH_PLAYER_MAX_CHECKS` (default 6) per run, each remembered for a minute. Goals therefore reach the phone within about a minute or two.
+- With the app open, the same events show as banners (the push service stays silent while the app is on screen). Missed penalties and substitutions are never alerts.
+
+## In the app (no push needed)
+- **Goal celebration**: when the club a person supports (Appearance) scores in a match the app can see (an open match page, a starred match, or their club's match while the app is open), the crest pops with the score and confetti in the club's colours, plus a longer buzz. Other goals keep the usual banner. Switch: Notifications > Goal celebration. Reduced-motion and low-end phones get the crest only, without confetti.
+- **Live match card**: starred matches that are in play are pinned above the tab bar on every screen (crests, score, minute, tap to open, cross to hide until the next goal). It asks the football service only when a match is live or about to start (or every 5 minutes), sharing the app's cache. Switch: Notifications > Live match card.
+
 ## What people get
 Goals, kick-offs, half-time and full-time for the **matches and clubs they have starred**, delivered even when Scoutwave is closed. They turn it on under Profile > Notifications > "Alerts on this device". It follows the existing switches: *Match kickoff*, *Goal alerts* and *Half-time and full-time whistle*. VIP tips, favourite-team news and odds alerts are not sent yet. While the app is open and in view it shows its own banner, so no second alert appears.
 

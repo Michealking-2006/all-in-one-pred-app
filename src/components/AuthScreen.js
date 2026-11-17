@@ -2,6 +2,8 @@ import { h, text } from "../utils/h.js";
 import { supabase, authErrorMessage } from "../api/supabase.js";
 import { navigate, goBack } from "../router.js";
 import { showToast } from "../toast.js";
+import { store } from "../store.js";
+import { ClubStep } from "./ClubStep.js";
 
 const MODE_COPY = {
   login: { title: "Welcome back", subtitle: "Sign in to keep your favourites across devices.", submit: "Sign in" },
@@ -214,6 +216,40 @@ export function AuthScreen({ mode = "login" } = {}) {
     topbar.replaceChildren(h("span", {}));
   }
 
+  // ---- Sign-up step 2: the club ---------------------------------------------------------
+  const glow = h("div", { className: "auth-glow", "aria-hidden": "true" });
+  function showForm() { container.replaceChildren(glow, topbar, content); }
+  async function createAccount(club) {
+    const email = emailInput.value.trim();
+    const redirectTo = window.location.origin + "/auth";
+    const step = clubContent.firstChild;
+    step.setBusy(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password: passwordCtl.input.value, options: { emailRedirectTo: redirectTo, data: club ? { club: club.id } : undefined } });
+      if (error) throw error;
+      // Someone who skipped is not asked again straight away (here or on the Home card) for a week.
+      if (club) store.setState({ clubTheme: { id: club.id, primary: club.primary }, clubPromptUntil: 0 });
+      else store.setState({ clubPromptUntil: Date.now() + 7 * 86400000 });
+      if (data.session) { navigate("/"); return; }
+      showForm();
+      showSent({ heading: "Check your email", email, tip: "Tap it to confirm your account, then come back to sign in.",
+        resend: () => supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: redirectTo } }) });
+    } catch (error) {
+      if (!container.isConnected) return;
+      showForm();
+      setMessage("error", authErrorMessage(error));
+    }
+  }
+  const clubTopbar = h("div", { className: "auth-topbar" }, [
+    h("button", { type: "button", className: "back-button", "aria-label": "Back", onClick: showForm }, [h("i", { "data-lucide": "chevron-left", "aria-hidden": "true" }), text("span", {}, "Back")]),
+    h("span", {}),
+  ]);
+  const clubContent = h("div", { className: "auth-content" });
+  function showClubStep() {
+    clubContent.replaceChildren(ClubStep({ initialId: store.getState().clubTheme?.id || null, primaryLabel: "Create account", onConfirm: createAccount, onSkip: () => createAccount(null) }));
+    container.replaceChildren(glow, clubTopbar, clubContent);
+  }
+
   // ---- Actions ---------------------------------------------------------------------
   googleButton.addEventListener("click", async () => {
     googleButton.disabled = true;
@@ -233,16 +269,11 @@ export function AuthScreen({ mode = "login" } = {}) {
     setMessage(null);
     const email = emailInput.value.trim();
     const redirectTo = window.location.origin + "/auth";
+    // Sign-up has a second step: which club do you support? The account is created when that step is answered, so the
+    // choice is saved on it from the start (even when the account has to be confirmed by email first).
+    if (isSignup) { showClubStep(); return; }
     setBusy(true);
     try {
-      if (isSignup) {
-        const { data, error } = await supabase.auth.signUp({ email, password: passwordCtl.input.value, options: { emailRedirectTo: redirectTo } });
-        if (error) throw error;
-        if (data.session) { navigate("/"); return; }
-        showSent({ heading: "Check your email", email, tip: "Tap it to confirm your account, then come back to sign in.",
-          resend: () => supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: redirectTo } }) });
-        return;
-      }
       if (isReset) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
         if (error) throw error;
@@ -290,7 +321,7 @@ export function AuthScreen({ mode = "login" } = {}) {
   if (footer) content.append(footer);
   if (legal) content.append(legal);
 
-  container.append(h("div", { className: "auth-glow", "aria-hidden": "true" }), topbar, content);
+  container.append(glow, topbar, content);
   refresh();
   return container;
 }

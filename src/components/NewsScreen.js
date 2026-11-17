@@ -6,6 +6,7 @@ import { placement } from "./Placement.js";
 import { showPhotos } from "../perf.js";
 import { NEWS_TAGS, tagById, tagsOf } from "../newsTags.js";
 import { store } from "../store.js";
+import { navigate } from "../router.js";
 import { safeMessage } from "../utils/errors.js";
 
 // Every story opens on our own address (/news/<words>-<id>). That page shows the briefing and sends
@@ -64,7 +65,7 @@ function featuredCard(article, onPickTag) {
   ]);
 }
 
-function itemCard(article, onPickTag) {
+export function itemCard(article, onPickTag) {
   return storyLink(article, "news-item", [
     thumb(article, "news-thumb"),
     h("div", { className: "news-copy" }, [
@@ -130,7 +131,7 @@ export function NewsScreen() {
   const root = h("main", { className: "screen news-screen" }, [
     h("header", { className: "page-intro" }, [
       text("span", { className: "section-kicker" }, "Football"),
-      h("div", { className: "page-intro-row" }, [text("h1", {}, "News")]),
+      h("div", { className: "page-intro-row" }, [text("h1", {}, "News"), h("button", { type: "button", className: "text-action", onClick: () => navigate("/hub") }, "Transfers & injuries")]),
       text("p", {}, "Football headlines. Tap a story for the summary; the full article opens on the publisher's site."),
     ]),
     tagRow,

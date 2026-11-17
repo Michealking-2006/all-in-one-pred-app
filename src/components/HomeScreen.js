@@ -5,6 +5,7 @@ import { observeFixtures } from "../liveAlerts.js";
 import { store } from "../store.js";
 import { pollMs } from "../perf.js";
 import { DateStrip } from "./DateStrip.js";
+import { ClubWordmark } from "../utils/wordmark.js";
 import { MatchRow } from "./MatchRow.js";
 import { metaLine } from "../utils/ui.js";
 import { SkeletonMatchList } from "./Skeleton.js";
@@ -31,6 +32,23 @@ function leagueSection(group, props) {
   ]);
 }
 
+// Shown until the person picks the club they support (or says "Not now", which hides it for a week).
+function clubPrompt(props) {
+  const slot = h("div", { className: "club-tiles-slot" });
+  import("./ClubPicker.js").then((m) => slot.replaceChildren(m.ClubTiles({ onSelect: props.onPickClub, variant: "row" }))).catch(() => {});
+  return h("section", { className: "club-prompt card" }, [
+    h("div", { className: "club-prompt-copy" }, [
+      text("strong", {}, "Which club do you support?"),
+      text("p", {}, "Pick yours and the whole app wears its colours and crest."),
+    ]),
+    slot,
+    h("button", { type: "button", className: "club-prompt-skip", onClick: props.onSnoozeClub }, "Not now"),
+  ]);
+}
+
+// "Your club": next match, live score or result as a card (loads after the page, only for supporters).
+const clubWidget = () => { const slot = h("div", { className: "club-widget-slot" }); import("./ClubWidget.js").then((m) => m.mountClubWidget(slot)).catch(() => {}); return slot; };
+
 export function HomeScreen(props) {
   const offset = props.selectedDayOffset || 0;
   const date = localDateISO(offset);
@@ -41,12 +59,16 @@ export function HomeScreen(props) {
       h("div", { className: "home-title-wrap", "aria-label": "Scoutwave" }, [
         h("img", { className: "home-logo logo-on-light", src: "/src/assets/scoutwave-wordmark.png", alt: "", width: "181", height: "28", decoding: "async" }),
         h("img", { className: "home-logo logo-on-dark", src: "/src/assets/scoutwave-wordmark-dark.png", alt: "", width: "181", height: "28", decoding: "async" }),
+        ClubWordmark(178),
       ]),
       h("div", { className: "header-actions" }, [
+        props.club ? h("button", { className: "header-icon header-crest", onClick: props.onOpenAppearance, "aria-label": "Your club: " + props.club.name }, [h("img", { className: "club-crest", src: props.club.logo, alt: "", width: "28", height: "28", decoding: "async" })]) : null,
         h("button", { className: "header-icon", onClick: props.onOpenSearch, "aria-label": "Search" }, [h("i", { "data-lucide": "search" })]),
         h("button", { className: "header-icon", onClick: props.onOpenProfile, "aria-label": "Profile" }, [h("i", { "data-lucide": "circle-user-round" })]),
       ]),
     ]),
+    props.showClubPrompt ? clubPrompt(props) : null,
+    props.club && !offset ? clubWidget() : null,
     DateStrip({ selectedOffset: offset, onSelectDay: props.onSelectDay }),
     content,
   ]);

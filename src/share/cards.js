@@ -340,3 +340,46 @@ export async function canvasToBlob(canvas) {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Could not create the image."))), "image/png", 0.95);
   });
 }
+
+// ---------------------------------------------------------------------------
+// Season recap: { name, club: { name, logo, primary }, season, summary (src/recap.js), inProgress }
+// ---------------------------------------------------------------------------
+const ordinalOf = (n) => { const t = ["th", "st", "nd", "rd"], v = n % 100; return n + (t[(v - 20) % 10] || t[v] || t[0]); };
+
+export async function drawRecapCard(data) {
+  const { canvas, ctx, mark } = await newCanvas();
+  const panel = await drawChrome(ctx, mark);
+  const cx = CARD_W / 2, { club = {}, summary: r = {}, season, inProgress } = data || {};
+  const record = r.record || {};
+  const accent = /^#[0-9a-f]{6}$/i.test(club.primary || "") ? club.primary : RED;
+  const label = `${season}/${String(Number(season) + 1).slice(2)}`;
+
+  const logo = await loadImage(club.logo).catch(() => null);
+  drawImageContain(ctx, logo, cx - 110, panel.y + 56, 220, 220);
+  let y = panel.y + 56 + 220 + 84;
+  drawTextCenter(ctx, club.name || "Club", cx, y, "700", 58, INK, panel.w - 120);
+  y += 54;
+  drawTextCenter(ctx, label + (inProgress ? " so far" : " season"), cx, y, "500", 34, INK_DIM);
+
+  y += 150; // won / drawn / lost
+  const col = panel.w / 3;
+  [["Won", record.won, FORM_COLOUR.W], ["Drawn", record.drawn, FORM_COLOUR.D], ["Lost", record.lost, FORM_COLOUR.L]].forEach(([name, value, colour], i) => {
+    const x = panel.x + col * i + col / 2;
+    drawTextCenter(ctx, String(value ?? 0), x, y, "800", 130, colour);
+    drawTextCenter(ctx, name, x, y + 48, "600", 30, INK_DIM);
+  });
+
+  y += 120;
+  ctx.strokeStyle = "rgba(60,60,67,.14)"; ctx.beginPath(); ctx.moveTo(panel.x + 60, y); ctx.lineTo(panel.x + panel.w - 60, y); ctx.stroke();
+  y += 100;
+  const four = [["Played", record.played], ["Scored", record.goalsFor], ["Conceded", record.goalsAgainst], ["Clean sheets", record.cleanSheets]];
+  four.forEach(([name, value], i) => { const x = panel.x + (panel.w / 4) * i + panel.w / 8; drawTextCenter(ctx, String(value ?? 0), x, y, "700", 62, accent); drawTextCenter(ctx, name, x, y + 42, "500", 24, INK_DIM); });
+
+  y += 130;
+  const line = (small, big) => { drawTextCenter(ctx, small, cx, y, "500", 28, INK_DIM, panel.w - 120); drawTextCenter(ctx, big, cx, y + 56, "700", 44, INK, panel.w - 120); y += 150; };
+  if (r.standing) line(`${r.league?.name || "League"}, ${r.standing.points} points`, `${inProgress ? "Currently" : "Finished"} ${ordinalOf(r.standing.rank)}`);
+  if (r.best) line("Best result", `${r.best.gf}\u2013${r.best.ga} ${r.best.home ? "v" : "at"} ${r.best.opponent?.name || ""}`);
+  if (r.topScorer?.goals) line("Top scorer", `${r.topScorer.name}, ${r.topScorer.goals} goals`);
+  if (r.unbeaten >= 3) line("Longest unbeaten run", `${r.unbeaten} games`);
+  return canvas;
+}

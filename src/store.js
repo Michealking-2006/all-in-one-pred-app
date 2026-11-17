@@ -1,8 +1,10 @@
+import { clubById } from "./clubs.js";
+
 const STORAGE_KEY = "scoutwave.app.state.v2";
 const PERSISTED_KEYS = [
   "isVip", "coins", "unlockedMatchIds", "favorites",
   "selectedDayOffset", "language", "avatarId", "notificationPrefs", "theme",
-  "unlockedThemes", "fxTheme", "clubTheme", "perfMode"
+  "unlockedThemes", "fxTheme", "clubTheme", "clubPromptUntil", "perfMode"
 ];
 const THEME_VALUES = new Set(["system", "light", "dark"]);
 
@@ -20,6 +22,10 @@ export const DEFAULT_NOTIFICATION_PREFS = {
   priceDrops: false,
   goalVibration: true,
   whistles: true,
+  goalCelebration: true,
+  liveCard: true,
+  lineups: true,
+  players: true,
 };
 
 // Real fixture ids are large; ids below this were the old mock matches.
@@ -74,11 +80,12 @@ function readPersisted() {
     }
     if (parsed.fxTheme === null || FX_THEME_IDS.includes(parsed.fxTheme)) safe.fxTheme = parsed.fxTheme;
     if (["auto", "on", "off"].includes(parsed.perfMode)) safe.perfMode = parsed.perfMode;
-    const club = parsed.clubTheme;
-    if (club === null) safe.clubTheme = null;
-    else if (club && typeof club === "object" && /^#[0-9a-f]{6}$/i.test(club.primary || "") && typeof club.id === "string" && club.id.length <= 40) {
-      safe.clubTheme = { id: club.id, primary: club.primary };
-    }
+    // Only the four supported clubs; anything older (another club, a custom colour) goes back to the standard colours.
+    // The colour always comes from our own table, never from what was saved.
+    const club = parsed.clubTheme && typeof parsed.clubTheme === "object" ? clubById(parsed.clubTheme.id) : null;
+    safe.clubTheme = club ? { id: club.id, primary: club.primary } : null;
+    // When to ask "which club do you support?" again (0 = now). Choosing "no club" snoozes it for good.
+    if (Number.isFinite(parsed.clubPromptUntil) && parsed.clubPromptUntil >= 0) safe.clubPromptUntil = parsed.clubPromptUntil;
     return safe;
   } catch {
     return {};
@@ -157,6 +164,7 @@ export const store = createStore({
   unlockedThemes: [],
   fxTheme: null,
   clubTheme: null,
+  clubPromptUntil: 0,
   perfMode: "auto",
 });
 

@@ -327,6 +327,7 @@ export function cleanSearch(query) {
 // ---------------------------------------------------------------------------
 // Endpoints
 // ---------------------------------------------------------------------------
+export const footballRaw = fetchFootball; // for the lazily loaded extras (src/api/footballExtras.js)
 export const searchLeagues = (query) => fetchFootball("leagues", { search: cleanSearch(query) });
 export const searchTeams = (query) => fetchFootball("teams", { search: cleanSearch(query) });
 // Name search across all players (profiles only: no league needed, unlike the stats endpoint).

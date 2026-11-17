@@ -7,13 +7,17 @@ import { safeMessage } from "../utils/errors.js";
 const PREFS = [
   ["kickoff","Match kickoff","Get notified when a followed match starts.","bell"],
   ["goals","Goal alerts","Stay updated when the score changes.","trophy"],
+  ["players","Followed players","Goals, assists and cards for players you've starred, in the app and by push.","user-round"],
+  ["lineups","Lineup alerts","A push about an hour before kick-off, when the team sheets are out, for starred matches and clubs.","users"],
   ["vipTips","New VIP tips","Know when new predictions are published.","sparkles"],
   ["favourites","Favourite team updates","Updates from clubs you follow.","star"],
   ["priceDrops","Odds price drops","Alerts for tracked market movement.","trending-down"]
 ];
 const LIVE_PREFS = [
   ["goalVibration","Goal vibration","Vibrate when a goal goes in on a match you're watching or have starred.","vibrate"],
-  ["whistles","Half-time and full-time whistle","Blow the whistle when the half or the match ends.","volume-2"]
+  ["whistles","Half-time and full-time whistle","Blow the whistle when the half or the match ends.","volume-2"],
+  ["goalCelebration","Goal celebration","Confetti and your club's crest when the club you support scores.","sparkles"],
+  ["liveCard","Live match card","Pin starred matches that are in play above the tab bar, wherever you are in the app.","eye"]
 ];
 const canVibrate = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 
@@ -79,6 +83,6 @@ export function NotificationsScreen({prefs,onTogglePref,onBack}) {
   text("div",{className:"profile-section-label"},"Live matches"),
   h("section",{className:"settings-list card"},LIVE_PREFS.map((def)=>settingsRow(def,prefs,onTogglePref))),
   text("p",{className:"screen-note"},"Vibration and whistles work while Scoutwave is open. "+(canVibrate?"":"This device doesn't support vibration, so you'll still see a goal banner. ")+"Whistles need a tap on the app first so your browser allows sound."),
-  text("p",{className:"screen-note"},"Alerts when the app is closed follow the Match kickoff, Goal alerts and Half-time and full-time whistle switches, for matches and clubs you've starred. VIP tips, favourite team news and odds alerts aren't sent yet.")
+  text("p",{className:"screen-note"},"Alerts when the app is closed follow the Match kickoff, Goal alerts, Lineup alerts, Followed players and Half-time and full-time whistle switches, for matches and clubs you've starred. VIP tips, favourite team news and odds alerts aren't sent yet.")
  ]);
 }

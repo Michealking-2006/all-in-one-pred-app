@@ -2,7 +2,7 @@
 // A football data plan that cannot read league tables or far-off dates: predictions must still be made, per match,
 // without burning the day's requests on calls that can only be refused.
 import assert from "node:assert/strict";
-Object.assign(process.env, { SUPABASE_SERVICE_ROLE_KEY: "k", SCOUTWAVE_FOOTBALL_API_KEY: "f", PREDICT_RATE_WAIT_MS: "5", PREDICT_ODDS: "0", PREDICT_RATINGS: "0" });
+Object.assign(process.env, { SUPABASE_SERVICE_ROLE_KEY: "k", SCOUTWAVE_FOOTBALL_API_KEY: "f", PREDICT_RATE_WAIT_MS: "5", PREDICT_ODDS: "0", PREDICT_RATINGS: "0", PREDICT_KEEP_FREE_SHARE: "0", PREDICT_MAX_SHARE: "1", GRADE_MAX_SHARE: "1" });
 let passed = 0; const test = async (name, fn) => { await fn(); passed++; console.log("ok  " + name); };
 const NOW = Date.UTC(2026, 9, 20, 12, 0, 0);
 const json = (d, s = 200, h = {}) => new Response(s === 204 ? null : JSON.stringify(d), { status: s, headers: h });

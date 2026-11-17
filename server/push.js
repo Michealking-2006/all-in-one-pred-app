@@ -1,6 +1,6 @@
 // Sign a device up for (or out of) push alerts.
 //   GET  /api/push                          -> { enabled, publicKey }
-//   POST { action: "subscribe" | "update", subscription, prefs, fixtures, teams }
+//   POST { action: "subscribe" | "update", subscription, prefs, fixtures, teams, players: { playerId: clubId } }
 //   POST { action: "unsubscribe", endpoint }
 // The server later sends to the saved endpoint, so only the browsers' real push
 // services are accepted (never an arbitrary address).
@@ -17,6 +17,13 @@ export function validEndpoint(value) {
 }
 const b64url = (v) => typeof v === "string" && v.length >= 8 && v.length <= 200 && /^[A-Za-z0-9_-]+$/.test(v);
 const ids = (list) => [...new Set((Array.isArray(list) ? list : []).map((n) => Math.floor(Number(n))).filter((n) => Number.isInteger(n) && n > 0 && n < 2 ** 31))].slice(0, 200);
+
+// { playerId: clubId } for followed players, at most 50, positive whole numbers only.
+const playerMap = (m) => {
+  const out = {};
+  if (m && typeof m === "object" && !Array.isArray(m)) for (const [k, v] of Object.entries(m).slice(0, 50)) { const a = Math.floor(Number(k)), b = Math.floor(Number(v)); if (a > 0 && b > 0 && a < 2 ** 31 && b < 2 ** 31) out[a] = b; }
+  return out;
+};
 
 const recent = new Map();
 function limited(ip) {
@@ -52,11 +59,11 @@ export default async function handler(req, res) {
     let userId = null;
     if (req.headers?.authorization) { try { userId = (await verifyUser(req)).id; } catch { userId = null; } } // linking to an account is optional
     const p = body.prefs || {};
-    await sb("/rest/v1/push_subscriptions?on_conflict=endpoint", {
-      method: "POST",
-      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: { endpoint: sub.endpoint, p256dh: sub.keys.p256dh, auth: sub.keys.auth, user_id: userId, prefs: { goals: p.goals === true, kickoff: p.kickoff === true, whistles: p.whistles === true }, fixtures: ids(body.fixtures), teams: ids(body.teams), fail_count: 0, updated_at: new Date().toISOString() },
-    });
+    const row = { endpoint: sub.endpoint, p256dh: sub.keys.p256dh, auth: sub.keys.auth, user_id: userId, prefs: { goals: p.goals === true, kickoff: p.kickoff === true, whistles: p.whistles === true, lineups: p.lineups === true, players: p.players === true }, fixtures: ids(body.fixtures), teams: ids(body.teams), fail_count: 0, updated_at: new Date().toISOString() };
+    const save = (r) => sb("/rest/v1/push_subscriptions?on_conflict=endpoint", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: r });
+    const players = playerMap(body.players);
+    // Followed players need migration 012; until it is run, everything else keeps working without them.
+    try { await save({ ...row, players }); } catch { await save(row); }
     return res.status(200).json({ ok: true });
   } catch (error) {
     if (error instanceof HttpError) return res.status(error.status).json({ error: error.message });

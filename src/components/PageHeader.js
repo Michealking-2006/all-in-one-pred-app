@@ -1,3 +1,4 @@
+import { ClubWordmark } from "../utils/wordmark.js";
 import { h, text } from "../utils/h.js";
 
 export function PageHeader({ title, onBack, action, logo = false }) {
@@ -9,7 +10,8 @@ export function PageHeader({ title, onBack, action, logo = false }) {
   logo
    ? h("h1",{className:"page-header-title is-logo","aria-label":"Scoutwave"},[
       h("img",{className:"nav-logo logo-on-light",src:"/src/assets/scoutwave-wordmark.png",alt:"",width:"127",height:"20",decoding:"async"}),
-      h("img",{className:"nav-logo logo-on-dark",src:"/src/assets/scoutwave-wordmark-dark.png",alt:"",width:"127",height:"20",decoding:"async"})
+      h("img",{className:"nav-logo logo-on-dark",src:"/src/assets/scoutwave-wordmark-dark.png",alt:"",width:"127",height:"20",decoding:"async"}),
+      ClubWordmark(127)
      ])
    : text("h1",{className:"page-header-title"},title),
   action || null

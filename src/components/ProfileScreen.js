@@ -2,6 +2,7 @@ import { h, text } from "../utils/h.js";
 import { SkeletonImage } from "./Skeleton.js";
 import { displayNameOf } from "./EditProfileScreen.js";
 import { VerifiedBadge } from "../utils/ui.js";
+import { ClubTiles, ClubCrest } from "./ClubPicker.js";
 
 function row({icon,label,trailing,onClick,showChevron=true}) {
  return h(onClick ? "button" : "div",{className:"profile-row",onClick},[
@@ -11,13 +12,14 @@ function row({icon,label,trailing,onClick,showChevron=true}) {
  ]);
 }
 const THEME_LABEL={system:"System",light:"Light",dark:"Dark"};
-export function ProfileScreen({isVip,coins,favoritesCount,onOpenFavorites,onRequestUpgrade,onOpenCoins,currentLanguage,theme,fxThemeName,clubName,onNavigate,avatarSrc,authUser,onOpenAuth,onSignOut}){
+export function ProfileScreen({isVip,coins,favoritesCount,onOpenFavorites,onRequestUpgrade,onOpenCoins,currentLanguage,theme,fxThemeName,clubName,club,showClubPrompt,onPickClub,onNavigate,avatarSrc,authUser,onOpenAuth,onSignOut}){
  return h("main",{className:"screen profile-screen"},[
   h("header",{className:"profile-hero"},[
    avatarSrc?SkeletonImage({src:avatarSrc,size:56,radius:"50%"}):h("div",{className:"profile-avatar"},"S"),
    h("div",{className:"profile-identity"},[
     h("strong",{className:"profile-name"},[text("span",{className:"profile-name-text"},displayNameOf(authUser)),isVip?VerifiedBadge({size:19}):null]),
-    text("span",{className:"profile-plan "+(isVip?"vip":"")},isVip?"VIP member":authUser?"Signed in":"Guest")
+    text("span",{className:"profile-plan "+(isVip?"vip":"")},isVip?"VIP member":authUser?"Signed in":"Guest"),
+    club?h("span",{className:"profile-club"},[ClubCrest(club,16),text("span",{},club.name+" supporter")]):null
    ]),
    h("button",{className:"icon-button profile-edit",onClick:()=>onNavigate("edit-profile"),"aria-label":"Edit profile"},[h("i",{"data-lucide":"pencil"})])
   ]),
@@ -34,11 +36,21 @@ export function ProfileScreen({isVip,coins,favoritesCount,onOpenFavorites,onRequ
     h("i",{className:"profile-chevron","data-lucide":"chevron-right"})
    ])
   ]),
+  !showClubPrompt?null:h("section",{className:"club-prompt card profile-club-prompt"},[
+   h("div",{className:"club-prompt-copy"},[text("strong",{},"Which club do you support?"),text("p",{},"Pick yours and the whole app wears its colours and crest.")]),
+   ClubTiles({onSelect:onPickClub,variant:"row"})
+  ]),
   text("div",{className:"profile-section-label"},"Account"),
   h("section",{className:"profile-group tone-red"},[
    row({icon:"user",label:"Edit profile",onClick:()=>onNavigate("edit-profile")}),
    row({icon:"star",label:"My favourites",trailing:text("span",{className:"profile-trailing"},favoritesCount),onClick:onOpenFavorites}),
    row({icon:"key-round",label:"Change password",onClick:()=>onNavigate("change-password")})
+  ]),
+  text("div",{className:"profile-section-label"},"Football"),
+  h("section",{className:"profile-group tone-red"},[
+   row({icon:"calendar",label:"Match diary",onClick:()=>onNavigate("diary")}),
+   row({icon:"arrow-right-left",label:"Transfers & injuries",onClick:()=>onNavigate("hub")}),
+   row({icon:"sparkles",label:"Season recap",onClick:()=>onNavigate("recap")})
   ]),
   text("div",{className:"profile-section-label"},"Preferences"),
   h("section",{className:"profile-group tone-orange"},[

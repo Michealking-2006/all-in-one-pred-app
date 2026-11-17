@@ -198,7 +198,8 @@ export const supabase = {
       try {
         const data = await request(withRedirect("/auth/v1/signup", options.emailRedirectTo), {
           method: "POST",
-          body: { email, password },
+          // `options.data` becomes the account's user_metadata (the club the person supports is saved this way).
+          body: options.data && typeof options.data === "object" ? { email, password, data: options.data } : { email, password },
         });
         if (data?.access_token) {
           writeSession(data);

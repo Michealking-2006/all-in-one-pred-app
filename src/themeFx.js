@@ -223,9 +223,14 @@ export function attachFx(el, layer, getTheme, { ambientMs = 1100 } = {}) {
     if (e.pointerType === "mouse" || e.buttons) { last = now; burst(e, false); }
   });
 
+  // The four previews on the Themes screen each run their own trickle; only the ones scrolled into view should.
+  let visible = true;
+  const io = typeof IntersectionObserver === "function" ? new IntersectionObserver((entries) => { visible = entries[entries.length - 1].isIntersecting; }) : null;
+  io?.observe(el);
+
   const timer = window.setInterval(() => {
-    if (!el.isConnected) { window.clearInterval(timer); return; }
-    if (document.hidden) return;
+    if (!el.isConnected) { window.clearInterval(timer); io?.disconnect(); return; }
+    if (document.hidden || !visible) return;
     const theme = getTheme();
     if (theme) spawn(layer, theme, rand(8, 92), false);
   }, ambientMs);

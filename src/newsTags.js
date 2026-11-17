@@ -1,7 +1,7 @@
 // Hashtags for filtering the news. Shared by the browser (chips, tagging
 // articles) and server/news.js (which turns a tag into a TheNewsAPI search, so
 // only these queries can ever be sent upstream). Club tag ids match the ids in
-// clubTheme.js, so "your club" can be offered first.
+// clubs.js (the four themed clubs), so "your club" can be offered first.
 export const NEWS_TAGS = [
   { id: "premierleague", label: "PremierLeague", query: '"premier league"', match: /premier league|\bEPL\b/i },
   { id: "laliga", label: "LaLiga", query: '"la liga" | laliga', match: /la\s?liga/i },
@@ -12,6 +12,7 @@ export const NEWS_TAGS = [
   { id: "europaleague", label: "EuropaLeague", query: '"europa league"', match: /europa league/i },
   { id: "worldcup", label: "WorldCup", query: '"world cup"', match: /world cup/i },
   { id: "transfers", label: "Transfers", query: '"transfer news" | "transfer window" | "transfer target" | "signs for"', match: /\btransfers?\b|\bsigning\b|\bsigns? for\b|\bloan deal\b/i },
+  { id: "injuries", label: "Injuries", query: '"injury news" | "injury update" | "ruled out" | "injury blow"', match: /\binjur(y|ies|ed)\b|ruled out|sidelined/i },
   { id: "arsenal", label: "Arsenal", query: "arsenal", club: true, match: /arsenal/i },
   { id: "chelsea", label: "Chelsea", query: "chelsea", club: true, match: /chelsea/i },
   { id: "liverpool", label: "Liverpool", query: "liverpool", club: true, match: /liverpool/i },

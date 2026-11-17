@@ -35,6 +35,7 @@ const ENDPOINT_TTL = {
   coachs: 3 * DAY,
   trophies: 3 * DAY,
   transfers: DAY,
+  injuries: 30 * MIN,
 };
 
 
