@@ -31,6 +31,19 @@ const session = {
   clear() { sessionStorage.removeItem("mingt.token"); sessionStorage.removeItem("mingt.exp"); },
 };
 
+// What this browser remembers about how the control room looks (never anything sensitive).
+const prefs = {
+  get(key, fallback) { try { return localStorage.getItem("mingt." + key) ?? fallback; } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem("mingt." + key, value); } catch { /* private window: the choice just isn't remembered */ } },
+};
+function applyAppearance() {
+  const root = document.documentElement, theme = prefs.get("theme", "auto");
+  if (theme === "light" || theme === "dark") root.dataset.theme = theme; else delete root.dataset.theme;
+  root.dataset.density = prefs.get("density", "comfortable") === "compact" ? "compact" : "comfortable";
+  document.querySelector(".shell")?.classList.toggle("rail", prefs.get("rail", "0") === "1");
+}
+applyAppearance();
+
 function toast(message, bad = false) {
   const node = el("div", { class: "toast" + (bad ? " bad" : ""), text: message });
   $toasts.append(node);
@@ -88,12 +101,16 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 // ---------------------------------------------------------------- state
 let overviewCache = null;
 let view = "overview";
+// [section, [[id, label, icon, shortcut key]]]. "G" then the key jumps to a section.
 const NAV = [
-  ["Monitor", [["overview", "Overview", "home"], ["insights", "Insights", "chart"], ["usage", "Usage", "pulse"], ["errors", "Errors", "alert"]]],
-  ["Manage", [["messages", "Messages", "mail"], ["users", "Users", "users"], ["broadcast", "Broadcast", "bell"], ["config", "Remote config", "sliders"]]],
-  ["Grow", [["predictions", "Predictions", "target"], ["placements", "Placements", "layout"], ["seo", "SEO", "search"]]],
-  ["Protect", [["security", "Security", "shield"], ["audit", "Audit log", "list"]]],
+  ["Monitor", [["overview", "Overview", "home", "o"], ["insights", "Insights", "chart", "i"], ["usage", "Usage", "pulse", "a"], ["errors", "Errors", "alert", "e"]]],
+  ["Audience", [["messages", "Messages", "mail", "m"], ["users", "Users", "users", "u"], ["broadcast", "Broadcast", "bell", "b"]]],
+  ["Product", [["predictions", "Predictions", "target", "p"], ["config", "Remote config", "sliders", "c"], ["placements", "Placements", "layout", "l"], ["seo", "SEO", "search", "s"]]],
+  ["Security", [["security", "Security", "shield", "y"], ["audit", "Audit log", "list", "d"]]],
 ];
+const ALL_NAV = NAV.flatMap(([, items]) => items);
+const groupOf = (id) => NAV.find(([, items]) => items.some(([i]) => i === id))?.[0] || "";
+const TAB_IDS = ["overview", "messages", "users", "predictions"];
 const VIEWS = NAV.flatMap(([, items]) => items.map(([id, label]) => [id, label]));
 
 // notice: why the person was signed out (shown on the sign-in screen). Passing nothing is a deliberate
@@ -101,6 +118,7 @@ const VIEWS = NAV.flatMap(([, items]) => items.map(([id, label]) => [id, label])
 function logout(notice) {
   const deliberate = typeof notice !== "string";
   if (deliberate && session.token) api("logout").catch(() => {});
+  clearTimers(); // otherwise the session clock fires again and shows a false "session expired" notice
   session.clear();
   overviewCache = null;
   renderLogin(deliberate ? "" : notice);
@@ -153,40 +171,157 @@ function renderLogin(notice = "", notConfigured = false) {
 }
 
 // ---------------------------------------------------------------- shell
-let sessionTimer = null;
+let sessionTimer = null, statusTimer = null;
+function clearTimers() { clearInterval(sessionTimer); clearInterval(statusTimer); sessionTimer = statusTimer = null; }
+const $ = (sel) => document.querySelector(sel);
+const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || "");
+
+// A small segmented control that remembers its choice (theme, density).
+function segmented(label, key, options, fallback) {
+  const group = el("div", { class: "seg", role: "group", "aria-label": label });
+  const paint = () => group.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.value === prefs.get(key, fallback))));
+  for (const [value, text] of options) group.append(el("button", { type: "button", "data-value": value, text, onClick: () => { prefs.set(key, value); applyAppearance(); paint(); } }));
+  paint();
+  return group;
+}
+const appearanceControls = () => el("div", { class: "appearance" }, [
+  el("div", { class: "appearance-row" }, [el("span", { text: "Theme" }), segmented("Theme", "theme", [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]], "auto")]),
+  el("div", { class: "appearance-row" }, [el("span", { text: "Density" }), segmented("Density", "density", [["comfortable", "Relaxed"], ["compact", "Compact"]], "comfortable")]),
+]);
+
+function toggleRail() {
+  prefs.set("rail", prefs.get("rail", "0") === "1" ? "0" : "1");
+  applyAppearance();
+  const on = prefs.get("rail", "0") === "1";
+  $(".rail-btn")?.setAttribute("aria-label", on ? "Expand sidebar" : "Collapse sidebar");
+}
 
 function renderShell() {
-  const mac = /Mac|iPhone|iPad/.test(navigator.platform || "");
-  const nav = el("nav", { class: "side", "aria-label": "Sections" }, [
-    el("div", { class: "brand" }, [el("span", { class: "brand-dot" }), el("span", { class: "brand-name", text: "Control room" })]),
-    el("button", { class: "search-btn", type: "button", "aria-label": "Search and jump", onClick: () => openPalette() }, [icon("search"), el("span", { class: "search-text", text: "Search or jump to…" }), el("kbd", { text: mac ? "⌘K" : "Ctrl K" })]),
-    ...NAV.flatMap(([group, items]) => [
-      el("div", { class: "nav-group", text: group }),
-      ...items.map(([id, label, ic]) => el("button", { class: "nav-btn", type: "button", "data-view": id, "aria-current": id === view ? "page" : null, onClick: () => { location.hash = "#/" + id; } }, [icon(ic), el("span", { class: "nav-label", text: label }), id === "messages" ? el("span", { class: "count", id: "msg-count", hidden: true }) : null])),
+  clearTimers();
+  let closed;
+  try { closed = new Set(JSON.parse(prefs.get("closed", "[]"))); } catch { closed = new Set(); }
+  const navItem = ([id, label, ic]) => el("button", { class: "nav-btn", type: "button", "data-view": id, title: label, "aria-current": id === view ? "page" : null, onClick: () => { location.hash = "#/" + id; } }, [icon(ic), el("span", { class: "nav-label", text: label }), id === "messages" ? el("span", { class: "count", id: "msg-count", hidden: true }) : null]);
+  const groups = NAV.map(([group, items]) => {
+    const open = !closed.has(group) || items.some(([id]) => id === view);
+    const body = el("div", { class: "nav-items", id: "grp-" + group.toLowerCase(), hidden: !open }, items.map(navItem));
+    const head = el("button", { class: "nav-group", type: "button", "aria-expanded": String(open), "aria-controls": body.id }, [el("span", { text: group }), icon("chevdown")]);
+    head.addEventListener("click", () => {
+      const opening = body.hidden;
+      body.hidden = !opening; head.setAttribute("aria-expanded", String(opening));
+      if (opening) closed.delete(group); else closed.add(group);
+      prefs.set("closed", JSON.stringify([...closed]));
+    });
+    return el("div", { class: "nav-section" }, [head, body]);
+  });
+  const railOn = prefs.get("rail", "0") === "1";
+  const side = el("nav", { class: "side", "aria-label": "Sections" }, [
+    el("div", { class: "side-top" }, [
+      el("div", { class: "brand" }, [el("span", { class: "brand-dot" }), el("span", { class: "brand-name", text: "Control room" })]),
+      el("button", { class: "icon-btn rail-btn", type: "button", "aria-label": railOn ? "Expand sidebar" : "Collapse sidebar", title: "Collapse or expand the sidebar ( [ )", onClick: toggleRail }, [icon("panel")]),
     ]),
+    el("button", { class: "search-btn", type: "button", "aria-label": "Search and jump", title: "Search and jump", onClick: () => openPalette() }, [icon("search"), el("span", { class: "search-text", text: "Search or jump to…" }), el("kbd", { text: isMac() ? "⌘K" : "Ctrl K" })]),
+    el("div", { class: "nav-scroll" }, groups),
     el("div", { class: "side-foot" }, [
+      appearanceControls(),
       el("span", { id: "session-left" }),
-      el("button", { class: "btn small", type: "button", text: "Sign out", onClick: () => logout() }),
+      el("button", { class: "btn small", type: "button", title: "Sign out", "aria-label": "Sign out", onClick: () => logout() }, [icon("logout"), el("span", { class: "nav-label", text: "Sign out" })]),
     ]),
   ]);
+
+  const topbar = el("header", { class: "topbar" }, [
+    el("div", { class: "crumb" }, [el("span", { class: "crumb-root", text: "Control room" }), icon("chevron"), el("span", { class: "crumb-group", id: "crumb-group" }), icon("chevron"), el("strong", { id: "crumb-page" })]),
+    el("span", { class: "spacer" }),
+    el("div", { class: "status-chips", id: "status-chips", "aria-label": "Live status" }),
+    el("button", { class: "icon-btn", type: "button", "aria-label": "Search and jump", title: "Search (" + (isMac() ? "⌘K" : "Ctrl K") + ")", onClick: () => openPalette() }, [icon("search")]),
+    el("button", { class: "icon-btn", type: "button", "aria-label": "Keyboard shortcuts", title: "Keyboard shortcuts ( ? )", onClick: () => openShortcuts() }, [icon("keyboard")]),
+    el("button", { class: "icon-btn", type: "button", "aria-label": "Refresh this section", title: "Refresh this section", onClick: () => route() }, [icon("refresh")]),
+  ]);
   const main = el("main", { class: "main", id: "main", tabindex: "-1" });
-  $app.replaceChildren(el("div", { class: "shell" }, [nav, main]));
-  clearInterval(sessionTimer);
+  const tabbar = el("nav", { class: "tabbar", "aria-label": "Main sections" }, [
+    ...TAB_IDS.map((id) => { const [, label, ic] = ALL_NAV.find(([i]) => i === id); return el("button", { class: "tab-btn", type: "button", "data-view": id, "aria-current": id === view ? "page" : null, onClick: () => { location.hash = "#/" + id; } }, [icon(ic), el("span", { text: label })]); }),
+    el("button", { class: "tab-btn", type: "button", id: "tab-more", onClick: () => openMore() }, [icon("more"), el("span", { text: "More" })]),
+  ]);
+  $app.replaceChildren(el("div", { class: "shell" + (railOn ? " rail" : "") }, [side, el("div", { class: "stage" }, [topbar, main]), tabbar]));
+
   const tick = () => {
     const left = session.expires - Date.now();
     if (left <= 0) { logout("Your session has expired. Sign in again."); return; }
     const t = $("#session-left"); if (t) t.textContent = "Session ends in " + (left > 3600e3 ? Math.floor(left / 3600e3) + " h " + Math.floor((left % 3600e3) / 60e3) + " m" : Math.max(1, Math.round(left / 60e3)) + " m");
   };
   tick(); sessionTimer = setInterval(tick, 30000);
+  statusTimer = setInterval(refreshStatus, 120000);
+
+  // Any table that shows up in a section can be sorted by clicking its column headers.
+  let pending = 0;
+  new MutationObserver(() => { clearTimeout(pending); pending = setTimeout(() => sortableTables(main), 60); }).observe(main, { childList: true, subtree: true });
   route();
+  if (view !== "overview") refreshStatus(); // the overview loads the same figures itself
 }
 
-const $ = (sel) => document.querySelector(sel);
+// ---- the live status strip in the top bar
+function statusChip(ic, text, tone, to, title) {
+  return el("button", { class: "status-chip " + tone, type: "button", title, onClick: () => { location.hash = "#/" + to; } }, [icon(ic), el("span", { text })]);
+}
+function applyStatus(data) {
+  const box = $("#status-chips");
+  if (!box || !data) return;
+  const f = data.football || {};
+  const pct = f.ok && f.limit ? Math.round((f.used / f.limit) * 100) : null;
+  const errors = new Set((data.recentErrors || []).map((e) => e.source + e.kind + e.endpoint)).size;
+  const chips = [];
+  if (pct != null) chips.push(statusChip("pulse", `Football data ${pct}%`, pct >= 85 ? "bad" : pct >= 70 ? "warn" : "ok", "usage", "Football data requests used today"));
+  chips.push(errors ? statusChip("alert", `${errors} error${errors === 1 ? "" : "s"}`, "bad", "errors", "Recent service errors") : statusChip("shield", "No errors", "ok", "errors", "Recent service errors"));
+  if (data.config?.maintenance?.on) chips.push(statusChip("sliders", "Maintenance on", "bad", "config", "Users see the maintenance screen"));
+  box.replaceChildren(...chips);
+  updateInboxCount(data.inbox?.new);
+}
+async function refreshStatus() {
+  if (document.hidden || !session.token) return;
+  try { const data = await api("overview"); overviewCache = data; applyStatus(data); } catch { /* a failed background check stays quiet */ }
+}
+
+// ---- tables: click a column header to sort (numbers, percentages and text)
+function sortableTables(root) {
+  const value = (cell) => {
+    const raw = (cell?.dataset?.sort ?? cell?.textContent ?? "").trim();
+    const n = Number(raw.replace(/[%,\s]/g, ""));
+    return raw !== "" && Number.isFinite(n) ? n : raw.toLowerCase();
+  };
+  for (const table of root.querySelectorAll("table:not([data-sortable])")) {
+    table.dataset.sortable = "1";
+    const head = table.tHead?.rows[0], body = table.tBodies[0];
+    if (!head || !body || body.querySelector("td[colspan]")) continue;
+    [...head.cells].forEach((th, col) => {
+      if (!th.textContent.trim()) return;
+      th.classList.add("sortable"); th.tabIndex = 0; th.setAttribute("aria-sort", "none");
+      const sort = () => {
+        const dir = th.getAttribute("aria-sort") === "ascending" ? "descending" : "ascending";
+        for (const other of head.cells) if (other.classList.contains("sortable")) other.setAttribute("aria-sort", "none");
+        th.setAttribute("aria-sort", dir);
+        const rows = [...body.rows].map((row, i) => ({ row, i, v: value(row.cells[col]) }));
+        rows.sort((x, y) => {
+          const bothNum = typeof x.v === "number" && typeof y.v === "number";
+          const c = bothNum ? x.v - y.v : String(x.v).localeCompare(String(y.v), undefined, { numeric: true });
+          return (dir === "ascending" ? c : -c) || x.i - y.i;
+        });
+        body.append(...rows.map((r) => r.row));
+      };
+      th.addEventListener("click", sort);
+      th.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); sort(); } });
+    });
+  }
+}
 
 function route() {
   const wanted = (location.hash.replace(/^#\//, "") || "overview").split("?")[0];
   view = VIEWS.some(([id]) => id === wanted) ? wanted : "overview";
-  document.querySelectorAll(".nav-btn").forEach((b) => b.setAttribute("aria-current", b.dataset.view === view ? "page" : "false"));
+  document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-current", b.dataset.view === view ? "page" : "false"));
+  $("#tab-more")?.setAttribute("aria-current", TAB_IDS.includes(view) ? "false" : "page");
+  const label = VIEWS.find(([id]) => id === view)?.[1] || "";
+  const g = $("#crumb-group"), pg = $("#crumb-page");
+  if (g) g.textContent = groupOf(view);
+  if (pg) pg.textContent = label;
+  document.title = label + " - Scoutwave control room";
   const main = $("#main");
   if (!main) return;
   main.replaceChildren(skeleton());
@@ -216,8 +351,12 @@ async function viewOverview(main) {
   const f = data.football || {};
   const pct = f.ok && f.limit ? Math.min(100, Math.round((f.used / f.limit) * 100)) : null;
   const cfg = data.config || {};
-  const bar = el("div", { class: "bar" + (pct >= 85 ? " hot" : ""), role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": pct ?? 0, "aria-label": "Football API requests used today" }, [el("span")]);
+  applyStatus(data);
+  // The usage bar, with a marker where the background jobs stop so the app always keeps its share of the day.
+  const keepPct = Math.round((f.keepFreeShare ?? 0.3) * 100);
+  const bar = el("div", { class: "bar quota-bar" + (pct >= 85 ? " hot" : ""), role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": pct ?? 0, "aria-label": "Football data requests used today" }, [el("span"), f.ok ? el("i", { class: "marker", title: `Background jobs stop at ${100 - keepPct}%` }) : null]);
   bar.firstChild.style.width = (pct ?? 0) + "%";
+  if (bar.lastChild !== bar.firstChild) bar.lastChild.style.left = (100 - keepPct) + "%";
   const u = ins?.users, m = ins?.messages, pr = ins?.predictions;
 
   // What needs a person's attention right now.
@@ -258,15 +397,27 @@ async function viewOverview(main) {
   ]);
 
   main.replaceChildren(
-    ...header("Overview", `Health, audience and what needs you · v${data.version} · ${data.deploy.env}${data.deploy.commit ? " · " + data.deploy.commit : ""}`, [refreshButton()]),
+    ...header("Overview", "Health, audience and what needs you.", []),
     el("div", { class: "stack" }, [
+      el("div", { class: "banner " + (todo.some((t) => t.tone === "bad") ? "bad" : todo.length ? "warn" : "ok") }, [
+        el("span", { class: "banner-ico" }, [icon(todo.length ? "alert" : "shield")]),
+        el("div", { class: "banner-text" }, [el("strong", { text: todo.length ? `${todo.length} thing${todo.length === 1 ? "" : "s"} need${todo.length === 1 ? "s" : ""} attention` : "Everything is running normally" }), el("small", { text: todo.length ? "Details are listed below." : "Every check passes and nothing is waiting for you." })]),
+        el("div", { class: "banner-meta" }, [el("span", { text: "Version " + data.version }), el("span", { text: data.deploy.env }), data.deploy.commit ? el("code", { text: data.deploy.commit }) : null, el("span", { text: "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })]),
+      ]),
       el("div", { class: "grid" }, [
-        kpi("Registered users", data.users == null ? "–" : String(data.users), u ? `+${u.new7} this week · ${u.active7} active in 7 days` : "", u?.signups.slice(-14).map((d) => d.signups)),
+        kpi("Registered users", data.users == null ? "–" : String(data.users), u ? `+${u.new7} this week, ${u.active7} active in 7 days` : "", u?.signups.slice(-14).map((d) => d.signups)),
         kpi("New messages", data.inbox?.new == null ? "–" : String(data.inbox.new), data.inbox?.total != null ? `${data.inbox.total} in total` : "", m?.perDay.slice(-14).map((d) => d.messages)),
-        el("div", { class: "card kpi" }, [el("div", { class: "kpi-top" }, [el("span", { class: "lbl", text: "Football API today" })]), el("div", { class: "num", text: pct == null ? "–" : pct + "%" }), el("div", { class: "kpi-sub", text: f.ok ? `${f.used} of ${f.limit} requests` : "Quota unavailable" }), pct == null ? null : bar]),
+        kpi("Football data today", pct == null ? "–" : pct + "%", f.ok ? `${f.used} of ${f.limit} requests used` : "Quota unavailable"),
         kpi("Predictions, next 7 days", pr ? String(pr.upcomingTotal) : "–", pr ? "matches with a prediction" : "", pr?.upcoming.map((d) => d.predictions)),
       ]),
-      attention,
+      el("div", { class: "split" }, [attention, el("div", { class: "card quota" }, [
+        el("div", { class: "card-head" }, [el("h2", { text: "Football data quota" }), f.ok && f.plan ? el("span", { class: "chip", text: f.plan }) : null]),
+        el("div", { class: "num", text: pct == null ? "–" : pct + "%" }),
+        el("div", { class: "kpi-sub", text: f.ok ? `${f.used} of ${f.limit} requests used today` : "The quota could not be read right now." }),
+        f.ok ? bar : null,
+        f.ok ? el("p", { class: "hint", text: `Prediction and grading jobs stop at ${100 - keepPct}%, so ${keepPct}% of the day stays free for the app and push alerts. Top leagues are predicted first.` }) : null,
+        el("div", { class: "row" }, [el("button", { class: "btn small", type: "button", text: "See usage", onClick: () => { location.hash = "#/usage"; } })]),
+      ])]),
       el("div", { class: "grid wide" }, [
         el("div", { class: "card" }, [el("h2", { text: "Health checks" }), el("div", { class: "health" }, data.health.map((h) =>
           el("div", { class: "health-row" }, [el("span", { class: "dot" + (h.ok ? " ok" : ""), role: "img", "aria-label": h.ok ? "OK" : "Needs attention" }), el("div", {}, [el("strong", { text: h.label }), el("small", { text: h.detail })])])))]),
@@ -459,13 +610,13 @@ async function viewMessages(main) {
     return el("article", { class: "card msg" }, [
       el("div", { class: "msg-head" }, [
         el("span", { class: "chip " + (m.status === "new" ? "warn" : m.status === "resolved" ? "ok" : "") , text: m.status }),
-        el("strong", { text: [m.kind, m.category].filter(Boolean).join(" · ") }),
+        el("strong", { text: [m.kind, m.category].filter(Boolean).join(", ") }),
         m.rating ? el("span", { class: "stars", "aria-label": m.rating + " stars", text: "★".repeat(m.rating) + "☆".repeat(5 - m.rating) }) : null,
         el("span", { class: "spacer" }),
         el("span", { class: "msg-meta", title: when(m.created_at), text: ago(m.created_at) }),
       ]),
       el("div", { class: "msg-body", text: m.message }),
-      el("div", { class: "msg-meta", text: [m.name, m.email, m.app_version && "v" + m.app_version, m.page].filter(Boolean).join(" · ") }),
+      el("div", { class: "msg-meta", text: [m.name, m.email, m.app_version && "v" + m.app_version, m.page].filter(Boolean).join(", ") }),
       el("div", { class: "msg-meta", text: m.user_agent || "" }),
       note,
       el("div", { class: "row" }, [
@@ -541,7 +692,7 @@ async function viewUsers(main) {
     const pages = Math.max(1, Math.ceil((st.total || 0) / 50));
     pager.replaceChildren(
       el("button", { class: "btn small", type: "button", text: "Previous", disabled: st.page <= 1, onClick: () => { st.page--; load(); } }),
-      el("span", { class: "sub", text: `Page ${st.page} of ${pages} · ${st.total ?? 0} user${st.total === 1 ? "" : "s"}${st.capped ? " (first 5,000 accounts only)" : ""}` }),
+      el("span", { class: "sub", text: `Page ${st.page} of ${pages}, ${st.total ?? 0} user${st.total === 1 ? "" : "s"}${st.capped ? " (first 5,000 accounts only)" : ""}` }),
       el("button", { class: "btn small", type: "button", text: "Next", disabled: st.page >= pages, onClick: () => { st.page++; load(); } })
     );
   }
@@ -554,7 +705,7 @@ async function viewUsers(main) {
     const coins = el("input", { id: "mg-coins", type: "number", step: "1", placeholder: "e.g. 50 or -10", "aria-label": "Coin change" });
     const reason = el("input", { id: "mg-why", type: "text", maxlength: "200", placeholder: "Reason (kept in the audit log)", "aria-label": "Reason" });
     const body = el("div", { class: "stack" }, [
-      el("p", { class: "msg-meta", text: `Now: ${u.premium ? "Premium" + (u.premiumUntil ? " until " + new Date(u.premiumUntil).toLocaleDateString() : "") : "no Premium"} · ${u.coins == null ? "no coin balance yet" : u.coins + " coins"}` }),
+      el("p", { class: "msg-meta", text: `Now: ${u.premium ? "Premium" + (u.premiumUntil ? " until " + new Date(u.premiumUntil).toLocaleDateString() : "") : "no Premium"}, ${u.coins == null ? "no coin balance yet" : u.coins + " coins"}` }),
       el("div", { class: "field" }, [el("label", { for: "mg-prem", text: "Premium" }), premium]),
       el("div", { class: "field" }, [el("label", { for: "mg-coins", text: "Add or remove coins" }), coins]),
       el("div", { class: "field" }, [el("label", { for: "mg-why", text: "Reason" }), reason]),
@@ -891,7 +1042,7 @@ async function viewPredictions(main) {
   const versus = (name, v) => {
     if (!v || !v.n) return el("div", { class: "card" }, [el("h2", { text: "Scoutwave vs " + name }), el("p", { class: "sub", text: name === "Forebet" ? "Nothing entered yet. Add Forebet's pre-match numbers below for matches Scoutwave tracks." : "No bookmaker odds recorded yet (set PREDICT_ODDS=1)." })]);
     const row = (label, a, b, fmt) => el("tr", {}, [el("td", { text: label }), el("td", { text: fmt(a) }), el("td", { text: fmt(b) })]);
-    return el("div", { class: "card tablewrap" }, [el("h2", { text: `Scoutwave vs ${name} · ${v.n} matches` }), el("table", {}, [
+    return el("div", { class: "card tablewrap" }, [el("h2", { text: `Scoutwave vs ${name}, ${v.n} matches` }), el("table", {}, [
       el("thead", {}, [el("tr", {}, ["", "Scoutwave", name].map((x) => el("th", { text: x })))]),
       el("tbody", {}, [
         v.probs.n ? row(`Brier score, lower is better (${v.probs.n} matches)`, v.probs.scoutwave.brier, v.probs.other.brier, (x) => dec(x)) : null,
@@ -908,7 +1059,7 @@ async function viewPredictions(main) {
   const modelCard = (current, m) => {
     if (!m.n) return el("div", { class: "card" }, [el("h2", { text: `${current} vs ${m.model}` }), el("p", { class: "sub", text: `${m.model} is recorded beside ${current} on the same matches. Nothing graded on both yet.` })]);
     const row = (label, a, b, fmt) => el("tr", {}, [el("td", { text: label }), el("td", { text: fmt(a) }), el("td", { text: fmt(b) })]);
-    return el("div", { class: "card tablewrap" }, [el("h2", { text: `${current} vs ${m.model} · ${m.n} matches both predicted` }), el("table", {}, [
+    return el("div", { class: "card tablewrap" }, [el("h2", { text: `${current} vs ${m.model}, ${m.n} matches both predicted` }), el("table", {}, [
       el("thead", {}, [el("tr", {}, ["", current, m.model].map((x) => el("th", { text: x })))]),
       el("tbody", {}, [
         row("Log loss, lower is better", m.current.logLoss, m.other.logLoss, (x) => dec(x)),
@@ -940,7 +1091,7 @@ async function viewPredictions(main) {
     ...header("Predictions", `Server-side tracking of model ${r.model}: recorded before kick-off, graded on the 90-minute result.`),
     el("div", { class: "stack" }, [
       el("div", { class: "grid" }, [
-        stat(String(c.total ?? 0), `Matches tracked · ${c.pending ?? 0} waiting · ${c.graded ?? 0} graded`),
+        stat(String(c.total ?? 0), `Matches tracked, ${c.pending ?? 0} waiting, ${c.graded ?? 0} graded`),
         stat(pc(h.winnerAccuracy), `Winner picked right (${h.n || 0} matches)`),
         stat(dec(h.brier), "Brier score (0.667 = guessing)"),
         stat(dec(h.logLoss), "Log loss (1.099 = guessing)"),
@@ -991,14 +1142,14 @@ function predictedMatchesCard() {
     try {
       const data = await api("predictions_list", { status: st.status, q: st.q, page: st.page });
       body.replaceChildren(data.matches.length ? el("div", { class: "tablewrap" }, [el("table", {}, [
-        el("thead", {}, [el("tr", {}, ["Kick-off", "Match", "Our pick", "Home / Draw / Away", "Likely score", "Goals O2.5 · BTTS", "Confidence", "Result"].map((h) => el("th", { text: h })))]),
+        el("thead", {}, [el("tr", {}, ["Kick-off", "Match", "Our pick", "Home / Draw / Away", "Likely score", "Goals O2.5 / BTTS", "Confidence", "Result"].map((h) => el("th", { text: h })))]),
         el("tbody", {}, data.matches.map((m) => el("tr", {}, [
           el("td", { title: `Predicted ${when(m.madeAt)}`, text: when(m.kickoff) }),
           el("td", {}, [el("strong", { text: `${m.home} v ${m.away}` }), el("small", { class: "block muted", text: m.league || "" })]),
           el("td", { text: m.pick ? `${pickText(m)}${m.probs?.[m.pick] != null ? ` (${m.probs[m.pick]}%)` : ""}` : "–" }),
           el("td", { class: "mono", text: m.probs ? `${m.probs.home}% / ${m.probs.draw}% / ${m.probs.away}%` : "–" }),
           el("td", { class: "mono", text: m.score ? `${m.score.home}-${m.score.away}` : "–" }),
-          el("td", { class: "mono", text: m.over25 != null ? `${Math.round(m.over25)}% · ${Math.round(m.btts)}%` : "–" }),
+          el("td", { class: "mono", text: m.over25 != null ? `${Math.round(m.over25)}% / ${Math.round(m.btts)}%` : "–" }),
           el("td", {}, [conf(m.confidence)]),
           el("td", {}, [m.status === "graded"
             ? el("span", { class: "chip " + (m.correct ? "ok" : "bad"), text: `${m.result} ${m.correct ? "✓" : "✗"}` })
@@ -1041,6 +1192,11 @@ const ICONS = {
   refresh: "M20 11a8 8 0 00-14.5-4M4 4v4h4|M4 13a8 8 0 0014.5 4M20 20v-4h-4",
   download: "M12 4v11|M7 11l5 5 5-5|M5 20h14",
   chevron: "M9 6l6 6-6 6",
+  chevdown: "M6 9l6 6 6-6",
+  panel: "M4 5h16v14H4z|M9 5v14",
+  keyboard: "M3 6h18v12H3z|M7 10h.01|M11 10h.01|M15 10h.01|M7 14h10",
+  more: "M5 12h.01|M12 12h.01|M19 12h.01",
+  logout: "M9 4H5v16h4|M16 8l4 4-4 4|M20 12H9",
 };
 function icon(name) {
   const svg = document.createElementNS(SVG_NS, "svg");
@@ -1115,6 +1271,8 @@ function openPalette() {
     items = [];
     for (const [id, label, ic] of NAV.flatMap(([, i]) => i)) if (!t || label.toLowerCase().includes(t) || id.includes(t)) items.push({ label: "Go to " + label, ic, run: () => { location.hash = "#/" + id; } });
     if (raw) items.push({ label: `Find users matching “${raw}”`, ic: "users", run: () => { location.hash = "#/users?q=" + encodeURIComponent(raw); route(); } });
+    if (!t || "theme dark light".includes(t)) items.push({ label: "Switch theme (auto, light, dark)", ic: "panel", run: () => { const order = ["auto", "light", "dark"]; prefs.set("theme", order[(order.indexOf(prefs.get("theme", "auto")) + 1) % 3]); applyAppearance(); toast("Theme: " + prefs.get("theme", "auto")); } });
+    if (!t || "keyboard shortcuts help".includes(t)) items.push({ label: "Keyboard shortcuts", ic: "keyboard", run: () => openShortcuts() });
     if (!t || "sign out".includes(t)) items.push({ label: "Sign out", ic: "shield", run: () => logout() });
     sel = Math.max(0, Math.min(sel, items.length - 1));
     list.replaceChildren(...(items.length ? items.map((it, i) => el("button", { class: "palette-item", type: "button", role: "option", "aria-selected": String(i === sel), onClick: () => go(it) }, [icon(it.ic), el("span", { text: it.label })])) : [el("p", { class: "empty", text: "Nothing matches." })]));
@@ -1132,6 +1290,57 @@ function openPalette() {
 }
 document.addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openPalette(); } });
 
+// Phone: everything that doesn't fit in the bottom bar, plus appearance and sign out.
+function openMore() {
+  if (document.querySelector("dialog.sheet")) return;
+  const dlg = el("dialog", { class: "sheet", "aria-label": "All sections" }, [
+    ...NAV.map(([group, items]) => el("div", { class: "sheet-group" }, [
+      el("h3", { text: group }),
+      el("div", { class: "sheet-list" }, items.map(([id, label, ic]) => el("button", { class: "palette-item", type: "button", "aria-current": id === view ? "page" : null, onClick: () => { dlg.close(); location.hash = "#/" + id; } }, [icon(ic), el("span", { text: label })]))),
+    ])),
+    appearanceControls(),
+    el("div", { class: "row" }, [el("button", { class: "btn", type: "button", onClick: () => { dlg.close(); logout(); } }, [icon("logout"), "Sign out"]), el("span", { class: "spacer" }), el("button", { class: "btn", type: "button", text: "Close", onClick: () => dlg.close() })]),
+  ]);
+  dlg.addEventListener("close", () => dlg.remove());
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  document.body.append(dlg); dlg.showModal();
+}
+
+function openShortcuts() {
+  if (document.querySelector("dialog.shortcuts")) return;
+  const row = (keys, text) => el("div", { class: "kbd-row" }, [el("span", { text }), el("span", { class: "kbd-keys" }, keys.map((k) => el("kbd", { text: k })))]);
+  const dlg = el("dialog", { class: "shortcuts", "aria-label": "Keyboard shortcuts" }, [
+    el("h3", { text: "Keyboard shortcuts" }),
+    el("div", { class: "kbd-list" }, [
+      row([isMac() ? "⌘K" : "Ctrl K"], "Search and jump"), row(["/"], "Search and jump"), row(["["], "Collapse or expand the sidebar"), row(["?"], "Show this list"),
+      ...ALL_NAV.map(([, label, , key]) => row(["G", key.toUpperCase()], "Go to " + label)),
+    ]),
+    el("div", { class: "row" }, [el("span", { class: "spacer" }), el("button", { class: "btn primary", type: "button", text: "Done", onClick: () => dlg.close() })]),
+  ]);
+  dlg.addEventListener("close", () => dlg.remove());
+  document.body.append(dlg); dlg.showModal();
+}
+
+// "G" then a letter jumps to a section; ignored while typing or while a dialog is open.
+let goPending = 0;
+document.addEventListener("keydown", (e) => {
+  if (!session.token || !$(".shell") || e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target;
+  if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+  if (document.querySelector("dialog[open]")) return;
+  const k = e.key.toLowerCase();
+  if (goPending && Date.now() - goPending < 1200) {
+    goPending = 0;
+    const hit = ALL_NAV.find(([, , , key]) => key === k);
+    if (hit) { e.preventDefault(); location.hash = "#/" + hit[0]; }
+    return;
+  }
+  if (k === "g") goPending = Date.now();
+  else if (k === "?") { e.preventDefault(); openShortcuts(); }
+  else if (k === "/") { e.preventDefault(); openPalette(); }
+  else if (k === "[") toggleRail();
+});
+
 // ---------------------------------------------------------------- insights
 async function viewInsights(main) {
   const r = await api("insights");
@@ -1148,9 +1357,9 @@ async function viewInsights(main) {
     parts.push(u ? el("div", { class: "grid six" }, [
       kpi("Total accounts", String(u.total), u.capped ? "First 5,000 accounts" : "Everyone who signed up", u.signups.map((d) => d.signups)),
       kpi(`New in ${range} days`, String(range === 7 ? u.new7 : u.new30), range === 7 ? `${u.new30} in 30 days` : `${u.new7} in the last 7`),
-      kpi("Active in 7 days", String(u.active7), `${share(u.active7, u.total)} of accounts · ${u.active1} today`),
+      kpi("Active in 7 days", String(u.active7), `${share(u.active7, u.total)} of accounts, ${u.active1} today`),
       kpi("Active in 30 days", String(u.active30), `${share(u.active30, u.total)} of accounts`),
-      kpi("Premium", String(u.premium), `${share(u.premium, u.total)} of accounts · ${u.coins} coins held`),
+      kpi("Premium", String(u.premium), `${share(u.premium, u.total)} of accounts, ${u.coins} coins held`),
       kpi("Alert devices", ps ? String(ps.devices) : "–", ps ? `${ps.signedIn} signed in` : ""),
     ]) : unavailable("Audience"));
     if (u) parts.push(barChart({ title: `New accounts per day, last ${range} days`, days: u.signups.slice(-range), stacks: [{ label: "New accounts", key: "signups", tone: "tone-a" }] }));
@@ -1232,7 +1441,7 @@ async function viewBroadcast(main) {
         el("div", { class: "row" }, [send, el("span", { class: "hint", text: "One broadcast every 10 minutes." })]),
       ]),
       el("div", { class: "stack" }, [
-        el("div", { class: "card" }, [el("h2", { text: "Preview" }), el("div", { class: "notif" }, [el("span", { class: "brand-dot" }), el("div", {}, [el("small", { text: "Scoutwave · now" }), pvTitle, pvBody])]), el("p", { class: "sub", text: "Phones and computers show it like this, even when the app is closed." })]),
+        el("div", { class: "card" }, [el("h2", { text: "Preview" }), el("div", { class: "notif" }, [el("span", { class: "brand-dot" }), el("div", {}, [el("small", { text: "Scoutwave, now" }), pvTitle, pvBody])]), el("p", { class: "sub", text: "Phones and computers show it like this, even when the app is closed." })]),
         result,
       ]),
     ])

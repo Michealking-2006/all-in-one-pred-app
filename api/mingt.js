@@ -26,6 +26,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let footballStatusCache = { at: 0, value: null };
 
+// The share of the day's football requests the background jobs leave free for the app (see api/_predict.js).
+function keepFreeShare() { const raw = env("PREDICT_KEEP_FREE_SHARE"), n = raw === "" ? 0.3 : Number(raw); return Number.isFinite(n) ? Math.min(0.9, Math.max(0, n)) : 0.3; }
+
 async function footballStatus() {
   if (Date.now() - footballStatusCache.at < 60_000 && footballStatusCache.value) return footballStatusCache.value;
   const key = env("SCOUTWAVE_FOOTBALL_API_KEY");
@@ -83,7 +86,7 @@ async function overview() {
       { id: "site", label: "Public site URL", ok: flag("SITE_URL"), detail: flag("SITE_URL") ? env("SITE_URL") : "SITE_URL not set (the request host is used for canonical links)" },
       { id: "twofa", label: "Admin two-factor sign-in", ok: flag("ADMIN_TOTP_SECRET"), detail: flag("ADMIN_TOTP_SECRET") ? "Enabled" : "Not enabled: strongly recommended (ADMIN_TOTP_SECRET)" },
     ],
-    football: football || { configured: false },
+    football: football ? { ...football, keepFreeShare: keepFreeShare() } : { configured: false },
     recentErrors: Array.isArray(recentErrors) ? recentErrors.map((r) => ({ ...r, label: KIND_LABELS[r.kind] || KIND_LABELS.other })) : [],
     inbox: { new: newMessages, total: totalMessages },
     users,
