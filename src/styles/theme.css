@@ -65,6 +65,8 @@
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --tabbar-h:50px;
+  --app-w:480px; /* width of the app column; grows on tablets and desktops (see "Responsive layout" at the end) */
+  --rail-w:0px; /* width of the desktop side rail; 0 on phones and tablets */
   --toast-bg:rgba(255,255,255,.9);
   --toast-edge:rgba(60,60,67,.14);
   --ease:cubic-bezier(.22,.9,.3,1);
@@ -137,7 +139,7 @@ svg{flex-shrink:0}
 @supports (height:1dvh){#root{min-height:100dvh}}
 
 .app-shell{
-  position:relative;width:100%;max-width:480px;min-height:100vh;margin:0 auto;
+  position:relative;width:100%;max-width:var(--app-w,480px);min-height:100vh;margin:0 auto;
   display:flex;flex-direction:column;background:var(--bg);
   box-shadow:0 0 0 .5px var(--border-soft);
 }
@@ -224,14 +226,14 @@ button:active,[role=button]:active{opacity:.6}
 }
 .back-button{justify-self:start;display:inline-flex;align-items:center;gap:0;height:44px;padding:0 10px 0 2px;color:var(--accent-text);font-size:17px;letter-spacing:-.01em}
 .back-button svg{width:28px;height:28px;stroke-width:2.2;margin-right:-2px}
-.page-header-title{max-width:54vw;font-size:17px;font-weight:600;letter-spacing:-.01em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page-header-title{max-width:min(54vw,calc(var(--app-w,480px) * .54));font-size:17px;font-weight:600;letter-spacing:-.01em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .page-header>:last-child:not(.page-header-title):not(.back-button){justify-self:end}
 .match-star{width:44px;height:44px;display:grid;place-items:center;color:var(--accent);background:none;border-radius:0}
 .match-star svg{width:22px;height:22px}
 
 /* --------------------------------------------------------------- Tab bar */
 .bottom-nav{
-  position:fixed;z-index:50;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;
+  position:fixed;z-index:50;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:var(--app-w,480px);
   display:grid;grid-template-columns:repeat(var(--tabs,4),1fr);min-height:calc(var(--tabbar-h) + var(--safe-bottom));
   padding:6px 6px calc(4px + var(--safe-bottom));
   background:var(--nav-material);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);
@@ -432,6 +434,20 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;height:
 .league-row-copy small{font-size:13px;color:var(--text-muted)}
 .league-row>svg{width:16px;height:16px;color:#c4c4c7;stroke-width:2.6}
 .league-section-kicker{padding-top:16px}
+/* Full league list: country groups, rounded lists, filter and count */
+.league-list{margin:0 16px}
+.league-list>.league-row:first-of-type{border-radius:var(--radius-md) var(--radius-md) 0 0}
+.league-list>.league-row:last-of-type{border-radius:0 0 var(--radius-md) var(--radius-md)}
+.league-list>.league-row:only-of-type{border-radius:var(--radius-md)}
+.league-popular .league-list{margin:0}
+.league-country{content-visibility:auto;contain-intrinsic-size:auto 220px}
+.league-country-head{display:flex;align-items:center;gap:8px;padding:18px 32px 7px;font-size:13px;font-weight:500;color:var(--text-muted)}
+.league-flag{width:18px;height:13px;flex:0 0 18px;border-radius:2px;object-fit:cover;box-shadow:0 0 0 .5px rgba(0,0,0,.14)}
+.league-country-count{margin-left:auto;font-size:12px;font-variant-numeric:tabular-nums}
+.league-count{margin:0 32px 2px;min-height:18px;font-size:13px;color:var(--text-muted)}
+.leagues-screen .league-filter{margin:6px 16px 4px}
+.league-body{padding-bottom:8px}
+.league-body>.empty-state,.league-body>.error-state{margin:24px 16px}
 
 /* Search screen (global search + player search) */
 .search-tabs{display:flex;gap:6px;margin:6px 0 10px;padding:2px 16px;overflow-x:auto;scrollbar-width:none}
@@ -751,7 +767,7 @@ button.info-card{width:calc(100% - 32px);text-align:left}
 .auth-switch{margin:22px 0 0;text-align:center;font-size:15px;color:var(--text-muted)}
 .auth-switch .auth-link{font-weight:600}
 .auth-legal{margin:auto 8px 0;padding-top:20px;text-align:center;font-size:12.5px;line-height:1.5;color:var(--text-muted)}
-.auth-legal button{padding:7px 3px;color:var(--text-dim);text-decoration:underline;text-decoration-color:rgba(60,60,67,.3);text-underline-offset:2px}
+.auth-legal button{position:relative;padding:0 3px;font:inherit;color:var(--text-dim);text-decoration:underline;text-decoration-color:rgba(60,60,67,.3);text-underline-offset:2px}
 
 .auth-sent{display:grid;justify-items:center;text-align:center;gap:0;padding-top:48px}
 .auth-sent-icon{width:88px;height:88px;display:grid;place-items:center;margin-bottom:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);animation:pop .5s var(--ease) both}
@@ -769,7 +785,7 @@ button.info-card{width:calc(100% - 32px);text-align:left}
 /* Custom pull-to-refresh (the browser's native one is disabled via
    overscroll-behavior-y on body) — see src/pullToRefresh.js. The screen content
    moves down with the pull and the dial sits in the gap above it. */
-#pull-refresh-root{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:35;pointer-events:none;display:flex;justify-content:center}
+#pull-refresh-root{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--app-w,480px);z-index:35;pointer-events:none;display:flex;justify-content:center}
 .ptr-root{opacity:0}
 .ptr-root.is-animated{transition:transform .28s var(--ease),opacity .28s var(--ease)}
 .ptr-dial{position:relative;width:36px;height:36px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-md);display:grid;place-items:center}
@@ -829,7 +845,7 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .page-header.has-large-title:not(.is-scrolled){background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:transparent}
 .page-header.has-large-title .page-header-title{opacity:0;transition:opacity .18s var(--ease)}
 .page-header.has-large-title.show-title .page-header-title{opacity:1}
-.nav-compact{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:40;width:100%;max-width:480px;
+.nav-compact{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:40;width:100%;max-width:var(--app-w,480px);
   height:calc(44px + var(--safe-top));padding-top:var(--safe-top);display:grid;place-items:center;
   background:var(--material);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);
   border-bottom:.5px solid var(--separator);opacity:0;pointer-events:none;transition:opacity .18s var(--ease)}
@@ -1324,7 +1340,7 @@ html[data-fx] .bottom-nav,.fx-preview-bar{
   -webkit-backdrop-filter:blur(24px) saturate(200%);backdrop-filter:blur(24px) saturate(200%);
   box-shadow:inset 0 1.5px 0 var(--fx-hi),inset 0 -1px 0 rgba(255,255,255,.12),inset 0 0 22px var(--fx-glow),0 14px 34px var(--fx-shadow);
 }
-html[data-fx] .bottom-nav{left:50%;bottom:calc(8px + var(--safe-bottom));width:calc(100% - 24px);max-width:456px}
+html[data-fx] .bottom-nav{left:50%;bottom:calc(8px + var(--safe-bottom));width:calc(100% - 24px);max-width:calc(var(--app-w,480px) - 24px)}
 .fx-preview-bar{position:relative;display:grid;grid-template-columns:repeat(4,1fr);width:100%}
 html[data-fx] .bottom-nav::before,.fx-preview-bar::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0}
 html[data-fx] .bottom-nav-item,.fx-preview-bar .bottom-nav-item{position:relative;z-index:2}
@@ -2267,3 +2283,155 @@ html[data-lowend] .lc-row.flash,html[data-lowend] .lc-live-dot{animation:none}
 .rv-next span{font-size:13px;color:var(--text-muted)}
 .rv-meeting{display:grid;gap:2px;padding:12px 14px;text-align:left;color:var(--text);min-height:44px}
 .rv-meeting-score{font-weight:700}
+
+/* ---- Profile tab: centred identity, quick stats, premium card, grouped lists ---- */
+.pf-hero{display:flex;flex-direction:column;align-items:center;gap:6px;margin:calc(var(--safe-top) + 20px) 16px 18px;padding:4px 0 2px;text-align:center}
+.pf-avatar-wrap{position:relative;width:92px;height:92px;margin-bottom:6px}
+.pf-avatar-wrap>*:first-child{width:92px;height:92px;border-radius:50%;box-shadow:0 6px 20px var(--accent-glow)}
+.pf-avatar{display:grid;place-items:center;background:linear-gradient(180deg,var(--accent-lift),var(--accent-strong));color:var(--on-accent,#fff);font-size:38px;font-weight:700}
+.pf-avatar-edit{position:absolute;right:-2px;bottom:-2px;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:var(--surface);color:var(--accent-text);border:2px solid var(--bg);box-shadow:var(--shadow-xs)}
+.pf-avatar-edit svg{width:15px;height:15px}
+.pf-avatar-edit::after{content:"";position:absolute;inset:-6px}
+.pf-name{justify-content:center;max-width:100%;font-size:24px;font-weight:700;letter-spacing:-.02em}
+.pf-chips{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px}
+.pf-chips .profile-plan,.pf-chips .profile-club{margin:0;padding:4px 11px;border-radius:999px;background:var(--fill);color:var(--text-dim);font-size:13px;font-weight:600}
+.pf-chips .profile-plan.vip{background:rgba(255,149,0,.15);color:var(--warning)}
+.pf-chips .profile-club{background:var(--accent-soft);color:var(--accent-text)}
+.pf-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 10px}
+.pf-stat{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"i v" "i l";column-gap:12px;align-items:center;text-align:left;padding:14px;background:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow-xs)}
+.pf-stat:active{background:var(--surface-2);opacity:1}
+.pf-stat-icon{grid-area:i;width:38px;height:38px;display:grid;place-items:center;border-radius:11px;color:#fff;background:linear-gradient(180deg,var(--accent-lift),var(--accent))}
+.pf-stat.gold .pf-stat-icon{background:linear-gradient(180deg,#ffd60a,#f5a300)}
+.pf-stat-icon svg{width:20px;height:20px}
+.pf-stat-value{grid-area:v;font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.pf-stat small{grid-area:l;font-size:13px;color:var(--text-muted)}
+.pf-premium{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:0 16px 8px;padding:14px 16px;border-radius:var(--radius-md);text-align:left;background:linear-gradient(135deg,var(--accent-lift),var(--accent-strong));color:var(--on-accent,#fff);box-shadow:0 8px 20px var(--accent-glow)}
+.pf-premium.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-xs)}
+.pf-premium-icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:11px;background:rgba(255,255,255,.22)}
+.pf-premium.active .pf-premium-icon{background:rgba(255,149,0,.15);color:var(--warning)}
+.pf-premium-icon svg{width:20px;height:20px}
+.pf-premium-copy{flex:1;min-width:0;display:grid;gap:2px}
+.pf-premium-copy strong{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.pf-premium-copy small{font-size:13px;opacity:.85}
+.pf-premium .profile-chevron{color:currentColor;opacity:.7}
+.pf-premium:active{filter:brightness(.95);opacity:1}
+:root[data-club] .pf-hero{background:linear-gradient(180deg,var(--accent-soft),transparent 85%);border-radius:var(--radius-md);padding:16px 12px 6px;margin-top:calc(var(--safe-top) + 12px)}
+.pf-premium+.club-prompt{margin-top:10px}.pf-stats+.pf-premium{margin-top:0}
+
+/* ---- One header style on every tab: large title + short line, no red kicker above it ---- */
+.page-intro .section-kicker,.settings-intro .section-kicker,.favorites-intro .section-kicker,.vip-hero .section-kicker,.search-hero .section-kicker,.premium-hero .section-kicker,.news-intro .section-kicker{display:none}
+.vip-hero h1{font-size:34px;font-weight:700;letter-spacing:-.03em}
+.vip-hero p{font-size:16px;max-width:none}
+.vip-hero{padding-bottom:10px}
+
+/* ---- UI scan fixes ---- */
+/* Match header: 1fr columns grow to fit an unbreakable word ("Wolverhampton"), pushing the name against the card edge on
+   360px phones. Let the name wrap inside its column instead (break a word only when it cannot fit). */
+.match-side{min-width:0}
+.match-side strong{max-width:100%;overflow-wrap:anywhere;hyphens:auto}
+/* The legal line on the sign-in pages: the links keep a comfortable tap area without stretching the line spacing. */
+.auth-legal button::after{content:"";position:absolute;inset:-8px -3px}
+/* Images that failed to load (blocked or offline media host, 404): no broken-image icon or alt text; list logos keep
+   their box so nothing jumps, big photos simply leave. */
+img.img-failed{visibility:hidden}
+img.img-failed.venue-image,img.img-failed.stadium-image,img.img-failed.article-hero,img.img-failed.placement-image,img.img-failed.news-thumb{display:none}
+/* 360px phones: a 15px "Wolverhampton" (106px) is wider than its 105px column, so the name and score step down a little
+   instead of the name breaking mid-word. (The 320px rule above keeps its own smaller sizes.) */
+@media (min-width:360px) and (max-width:380px){.match-side{font-size:13.5px}.match-score-big{font-size:40px}}
+
+/* =====================================================================================================================
+   Responsive layout
+   Phones (under 700px) are unchanged. The app column is sized by --app-w, which every centred, fixed element reads.
+   - 700px and up (tablets, large phones turned sideways): a wider column, the tab bar stays at the bottom.
+   - 1024px and up (laptops, desktops): the tab bar becomes a side rail on the left and the column is centred in the
+     space beside it. An advanced theme (html[data-fx]) keeps its floating tab pill instead, because the glass lens
+     and the theme effects are drawn for a horizontal bar.
+   - 1280px and up: Games shows two columns of leagues, and drawers open as centred dialogs.
+   ===================================================================================================================== */
+@media (min-width:700px){
+  :root{--app-w:680px}
+  /* The football pitch is drawn for a phone-width column; keep it from growing into a very tall field. */
+  .pitch{max-width:460px;margin-left:auto;margin-right:auto}
+  /* Match header: keep the two teams and the score together instead of at opposite edges of a wide card. */
+  .match-hero{padding-left:max(8px,calc((100% - 580px) / 2));padding-right:max(8px,calc((100% - 580px) / 2))}
+  /* Drawers: a floating card instead of a full-width sheet. */
+  .share-sheet-wrap{align-items:center;padding:24px}
+  .share-sheet-card{max-width:520px;border-radius:24px;max-height:min(88vh,760px)}
+  .sheet-grabber{display:none}
+  /* Short landscape screens (a phone turned sideways) get a slimmer tab bar. */
+}
+@media (min-width:700px) and (max-height:520px){
+  :root{--tabbar-h:44px}
+  .bottom-nav-item{flex-direction:row;gap:8px;font-size:12px}
+  .bottom-nav-item svg{width:20px;height:20px}
+}
+
+@media (min-width:1024px){
+  :root{--app-w:780px}
+  html:not([data-fx]){--rail-w:232px;--tabbar-h:0px}
+  html:not([data-fx]) body{padding-left:var(--rail-w)}
+
+  /* Side rail */
+  html:not([data-fx]) .bottom-nav{
+    left:0;right:auto;top:0;bottom:0;transform:none;width:var(--rail-w);max-width:none;min-height:0;
+    display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;
+    padding:84px 14px 20px;border-top:0;border-right:.5px solid var(--separator);
+    overflow-y:auto;
+  }
+  html:not([data-fx]) .bottom-nav::before{
+    content:"";position:absolute;top:26px;left:26px;width:150px;height:23px;
+    background:url("/src/assets/scoutwave-wordmark.png") left center/contain no-repeat;
+  }
+  :root[data-theme="dark"]:not([data-fx]) .bottom-nav::before{background-image:url("/src/assets/scoutwave-wordmark-dark.png")}
+  html:not([data-fx]) .bottom-nav-item{
+    position:relative;flex:none;flex-direction:row;justify-content:flex-start;gap:14px;height:46px;padding:0 14px;
+    border-radius:12px;font-size:15px;font-weight:600;letter-spacing:-.01em;transition:background-color .15s var(--ease),color .15s;
+  }
+  html:not([data-fx]) .bottom-nav-item svg{width:22px;height:22px}
+  html:not([data-fx]) .bottom-nav-item.active{background:var(--accent-soft)}
+  html:not([data-fx]) .bottom-nav-item.active svg{transform:none}
+  :root[data-club] .bottom-nav-item.active::after{display:none} /* the club-colour tick above a tab is for the bottom bar */
+  html:not([data-fx]) .bottom-nav-item:active{opacity:.7}
+
+  /* Things that were centred on the whole window are centred on the content beside the rail. */
+  html:not([data-fx]) #pull-refresh-root,html:not([data-fx]) .nav-compact{left:calc(50% + var(--rail-w) / 2)}
+  html:not([data-fx]) #toast-root{left:var(--rail-w)}
+  html:not([data-fx]) #live-card-root{left:var(--rail-w)}
+  html:not([data-fx]) .toast-stack{max-width:460px}
+  html[data-fx] .bottom-nav{max-width:520px}
+
+  /* A framed column reads better than a phone strip on a big screen. */
+  .app-shell{box-shadow:0 0 0 .5px var(--border-soft),0 0 60px rgba(0,0,0,.04)}
+  /* The rail already shows the wordmark. */
+  html:not([data-fx]) .home-title-wrap .home-logo{display:none}
+  .club-tiles-slot{max-width:520px;margin-left:auto;margin-right:auto}
+  .screen{min-height:100vh}
+
+  /* Mouse and keyboard: hover feedback (touch screens never match this). */
+  @media (hover:hover){
+    .ios-match-main:hover,.league-row:hover,.profile-row:hover,.news-item:hover,.search-result:hover{background:var(--fill)}
+    .secondary-button:hover{filter:brightness(.97)}
+    .primary-button:hover{background:var(--accent-strong)}
+    .detail-tab:hover,.pill:hover{filter:brightness(.96)}
+    .header-icon:hover,.icon-button:hover{background:var(--fill-strong)}
+    .bottom-nav-item:hover:not(.active){background:var(--fill)}
+  }
+}
+
+@media (min-width:1280px){
+  :root{--app-w:920px}
+  /* Games: leagues flow into two columns; notices and messages still span the full width. */
+  .ios-home-content{columns:2;column-gap:20px}
+  .ios-home-content>*{break-inside:avoid;column-span:all}
+  .ios-home-content>.ios-league-section{column-span:none;break-inside:avoid;-webkit-column-break-inside:avoid}
+}
+
+/* Very large screens: keep the column readable, not stretched. */
+@media (min-width:1800px){
+  :root{--app-w:980px}
+}
+
+/* Hover is meaningless on touch: make sure the desktop-only rules above never leave a stuck highlight there. */
+@media (hover:none){
+  .ios-match-main:hover,.league-row:hover{background:transparent}
+}

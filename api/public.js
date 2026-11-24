@@ -12,6 +12,7 @@ const ROUTES = {
   feedback: () => import("../server/feedback.js"),
   push: () => import("../server/push.js"),
   news: () => import("../server/news.js"),
+  mcp: () => import("../server/mcp.js"),
 };
 
 export default async function handler(req, res) {

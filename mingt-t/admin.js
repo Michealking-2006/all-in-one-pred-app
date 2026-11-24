@@ -405,7 +405,7 @@ async function viewOverview(main) {
         el("div", { class: "banner-meta" }, [el("span", { text: "Version " + data.version }), el("span", { text: data.deploy.env }), data.deploy.commit ? el("code", { text: data.deploy.commit }) : null, el("span", { text: "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })]),
       ]),
       el("div", { class: "grid" }, [
-        kpi("Registered users", data.users == null ? "–" : String(data.users), u ? `+${u.new7} this week, ${u.active7} active in 7 days` : "", u?.signups.slice(-14).map((d) => d.signups)),
+        kpi("Registered users", data.users == null ? "–" : data.users.toLocaleString(), u ? `+${u.new7} this week, ${u.active7} active in 7 days` : "", u?.signups.slice(-14).map((d) => d.signups)),
         kpi("New messages", data.inbox?.new == null ? "–" : String(data.inbox.new), data.inbox?.total != null ? `${data.inbox.total} in total` : "", m?.perDay.slice(-14).map((d) => d.messages)),
         kpi("Football data today", pct == null ? "–" : pct + "%", f.ok ? `${f.used} of ${f.limit} requests used` : "Quota unavailable"),
         kpi("Predictions, next 7 days", pr ? String(pr.upcomingTotal) : "–", pr ? "matches with a prediction" : "", pr?.upcoming.map((d) => d.predictions)),
@@ -643,7 +643,7 @@ async function viewUsers(main) {
   const params = new URLSearchParams(location.hash.split("?")[1] || "");
   const st = { page: 1, total: null, users: [], q: params.get("q") || "", filter: "all", capped: false };
   const body = el("div", { class: "card tablewrap" });
-  const pager = el("div", { class: "row" });
+  const pager = el("div", { class: "row pager" });
   const filter = el("input", { type: "search", placeholder: "Search by email or id…", "aria-label": "Search users", value: st.q });
   let typing;
   filter.addEventListener("input", () => { clearTimeout(typing); typing = setTimeout(() => { st.q = filter.value; st.page = 1; load(); }, 300); });
@@ -692,7 +692,7 @@ async function viewUsers(main) {
     const pages = Math.max(1, Math.ceil((st.total || 0) / 50));
     pager.replaceChildren(
       el("button", { class: "btn small", type: "button", text: "Previous", disabled: st.page <= 1, onClick: () => { st.page--; load(); } }),
-      el("span", { class: "sub", text: `Page ${st.page} of ${pages}, ${st.total ?? 0} user${st.total === 1 ? "" : "s"}${st.capped ? " (first 5,000 accounts only)" : ""}` }),
+      el("span", { class: "sub", text: `Page ${st.page} of ${pages}, ${(st.total ?? 0).toLocaleString()} user${st.total === 1 ? "" : "s"}${st.capped ? " (first 5,000 accounts only)" : ""}` }),
       el("button", { class: "btn small", type: "button", text: "Next", disabled: st.page >= pages, onClick: () => { st.page++; load(); } })
     );
   }
@@ -780,7 +780,7 @@ async function viewSecurity(main) {
   };
   const everywhere = el("button", { class: "btn small", type: "button", text: "Sign out everywhere" });
   everywhere.addEventListener("click", async () => {
-    if (!confirm("End every admin session, including this one?")) return;
+    if (!(await confirmDialog({ title: "Sign out everywhere?", message: "This ends every admin session, including this one.", ok: "Sign out everywhere", danger: true }))) return;
     everywhere.disabled = true;
     try { await api("sessions_revoke_all"); logout("All sessions were ended. Sign in again."); } catch (err) { toast(err.message, true); everywhere.disabled = false; }
   });
@@ -936,7 +936,7 @@ async function viewErrors(main) {
     el("div", { class: "stack" }, [
       el("div", { class: "grid" }, [
         stat(String(r.last24h), "Different problems in the last 24 hours"),
-        stat(String(r.total14d), "Failed requests, 14 days"),
+        stat(r.total14d.toLocaleString(), "Failed requests, 14 days"),
       ]),
       barChart({ title: "Failed requests per day", days: r.days, stacks: [{ label: "Errors", key: "errors", tone: "tone-d" }], hint: "Counted on the server whenever the football, news or AI provider refuses or doesn't answer." }),
       el("div", { class: "card tablewrap" }, [el("h2", { text: "Problems, last 14 days" }), r.problems.length ? el("table", {}, [
@@ -991,9 +991,9 @@ async function viewUsage(main) {
     el("div", { class: "stack" }, [
       el("div", { class: "grid" }, [
         stat(u.quota ? `${u.quota.used} of ${u.quota.limit}` : "–", "Football API requests used today (all sources)"),
-        stat(String(u.totals.calls14d), "Provider requests, 14 days"),
+        stat(u.totals.calls14d.toLocaleString(), "Provider requests, 14 days"),
         stat(pctOrDash(u.totals.deviceHitRate14d), "Lookups answered on the device, 14 days"),
-        stat(top ? top.endpoint : "–", top ? `Most-used endpoint (${top.calls} requests)` : "Most-used endpoint"),
+        stat(top ? top.endpoint : "–", top ? `Most-used endpoint (${top.calls.toLocaleString()} requests)` : "Most-used endpoint"),
       ]),
       barChart({ title: "Football API requests per day", days: u.days, stacks: [{ label: "The app", key: "proxy", tone: "tone-a" }, { label: "Prediction jobs", key: "cron", tone: "tone-b" }, { label: "Push alerts", key: "push", tone: "tone-c" }], hint: "Counted when a request actually reaches the football provider. Requests answered by the shared cache don't appear here, which is the point." }),
       barChart({ title: "Cache hit rate: on the device", days: rate("deviceHitRate"), stacks: [{ label: "% answered without asking the server", key: "deviceHitRate", tone: "tone-a" }], format: (v) => v + "%", hint: "Share of the app's data lookups answered from memory or the copy saved on the phone. Days with fewer than 20 reported lookups are left blank." }),
@@ -1001,7 +1001,7 @@ async function viewUsage(main) {
       barChart({ title: "Push alerts sent per day", days: u.days, stacks: [{ label: "Delivered to the push service", key: "pushSent", tone: "tone-c" }, { label: "Failed", key: "pushFailed", tone: "tone-d" }] }),
       el("div", { class: "card tablewrap" }, [el("h2", { text: "Busiest endpoints, 14 days" }), u.endpoints.length ? el("table", {}, [
         el("thead", {}, [el("tr", {}, ["Endpoint", "Requests"].map((x) => el("th", { text: x })))]),
-        el("tbody", {}, u.endpoints.map((e) => el("tr", {}, [el("td", {}, [el("code", { text: e.endpoint })]), el("td", { text: String(e.calls) })]))),
+        el("tbody", {}, u.endpoints.map((e) => el("tr", {}, [el("td", {}, [el("code", { text: e.endpoint })]), el("td", { text: e.calls.toLocaleString() })]))),
       ]) : el("div", { class: "empty", text: "Nothing counted yet. Use the app and check back." })]),
     ])
   );

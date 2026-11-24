@@ -9,7 +9,7 @@ export function AboutScreen({onBack}){return h("main",{className:"screen info-sc
   h("img",{src:"/src/assets/scoutwave-wordmark.png",alt:"Scoutwave",className:"about-logo"}),
   ClubWordmark(0,"about-logo"),
   text("span",{className:"section-kicker"},"Scoutwave"),
-  text("h1",{},"Football scores and predictions."),
+  text("h1",{},"Football scores and predictions"),
   text("p",{},"Live scores, stats and odds, plus predictions from our own model, with every result tracked.")
  ]),
  h("article",{className:"legal-copy card"},renderSections(ABOUT_SECTIONS)),

@@ -16,6 +16,7 @@ The API key is never sent to the browser. If a key was ever committed or served 
 - `src/api/footballApi.js` – client with TTL cache + request de-duplication (protects your daily quota).
 - `src/api/supabase.js` – minimal Supabase auth client (password, Google, recovery, profile update).
 - `src/store.js`, `src/router.js`, `src/App.js` – state, path routing, rendering.
+- `server/mcp.js` – MCP server at `/mcp` for AI assistants (read-only tools; see `docs/MCP.md`).
 - `src/config.js` – public settings (support email, social links, version). Confirm before launch.
 - `sw.js`, `manifest.webmanifest`, `icons/` – PWA install + offline shell.
 

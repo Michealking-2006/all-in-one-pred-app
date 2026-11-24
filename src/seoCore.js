@@ -4,7 +4,7 @@
 export const SITE_NAME = "Scoutwave";
 export const DEFAULT_TITLE = "Scoutwave: Live Football Scores, Predictions & Football Data";
 export const DEFAULT_DESCRIPTION =
-  "Live football scores, fixtures, tables, lineups and odds for the Premier League, La Liga, Serie A, the Champions League and more, plus our own match predictions.";
+  "Live football scores, fixtures, tables, lineups and odds, plus match predictions from our own model with every result tracked.";
 
 export const PAGES = {
   "/": { title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION },

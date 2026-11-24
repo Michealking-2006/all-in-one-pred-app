@@ -1,13 +1,7 @@
-// h(tag, props, children) builds a real DOM node declaratively,
-// the same shape as React.createElement(tag, props, children).
-// Props starting with "on" become addEventListener calls.
-// "style" accepts an object. Everything else is setAttribute.
-//
-// Special case: h("i", { "data-lucide": "name", ... }) transparently renders
-// an inline SVG icon instead of a plain <i> element — every call site across
-// the app already uses this exact shape (a leftover convention from when
-// icons were swapped in later by a CDN script), so intercepting it here means
-// zero call sites needed to change when that CDN dependency was removed.
+// h(tag, props, children) builds a DOM node declaratively (same shape as React.createElement).
+// Props starting with "on" become event listeners, "style" takes an object, everything else is setAttribute.
+// h("i", { "data-lucide": "name" }) renders an inline SVG icon (see icons.js), so no call site needed to change
+// when the icon CDN was removed.
 import { safeUrl } from "./safeUrl.js";
 
 // Attributes that load or navigate to a URL, and ones that can run code or inject markup.
@@ -24,11 +18,7 @@ export function h(tag, props = {}, children = []) {
     return Icon(name, { size, color: explicitColor || styleColor || "currentColor", fill, style: restStyle, ...rest });
   }
 
-  // SVG elements are a different namespace from HTML — document.createElement
-  // silently produces an inert, non-rendering element for them (this was the
-  // actual bug that made every icon disappear after the CDN removal: the
-  // "svg" root Icon() builds via h() was being created as a plain HTML
-  // element, so it never rendered any graphics at all).
+  // SVG elements need createElementNS; document.createElement makes them inert (this once made every icon vanish).
   const SVG_TAGS = new Set(["svg", "path", "circle", "rect", "line", "polygon", "polyline", "g", "defs", "text", "title"]);
   const el = SVG_TAGS.has(tag) ? document.createElementNS("http://www.w3.org/2000/svg", tag) : document.createElement(tag);
 
@@ -75,6 +65,12 @@ export function h(tag, props = {}, children = []) {
 
   // Decode images off the main thread: smoother scrolling through long match lists.
   if (tag === "img" && !el.hasAttribute("decoding")) el.setAttribute("decoding", "async");
+  // A failed or address-less image gets "img-failed" (hidden by CSS) instead of a broken icon and alt text.
+  if (tag === "img") {
+    const fail = () => { el.classList?.add("img-failed"); el.setAttribute("alt", ""); };
+    el.addEventListener("error", fail, { once: true });
+    if (!el.getAttribute("src")) fail();
+  }
 
   (Array.isArray(children) ? children : [children]).forEach((child) => {
     if (child == null || child === false) return;

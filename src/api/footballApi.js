@@ -228,16 +228,19 @@ function safe(fn) {
   try { return fn(); } catch { return null; }
 }
 
-// ---------------------------------------------------------------------------
 // Transport
-// ---------------------------------------------------------------------------
 const FRIENDLY_ERRORS = {
   FOOTBALL_API_RATE_LIMIT: "The football data limit has been reached for now. Please try again later.",
   MISSING_FOOTBALL_API_KEY: "Football data is unavailable right now. Please try again shortly.",
   FOOTBALL_API_NETWORK_ERROR: "Couldn't load football data. Please try again.",
 };
 
+// A limit or breaker answer pauses all football requests until the wait is over.
+let pausedUntil = 0;
+const pauseFrom = (res, data) => { if (res.status === 429 || data?.retryAfter) pausedUntil = Date.now() + Math.min(900, Math.max(30, Number(data?.retryAfter) || 60)) * 1000; };
+
 async function requestOnce(endpoint, params) {
+  if (Date.now() < pausedUntil) throw Object.assign(new Error(FRIENDLY_ERRORS.FOOTBALL_API_RATE_LIMIT), { status: 429, code: "FOOTBALL_API_RATE_LIMIT" });
   const query = new URLSearchParams({ endpoint, ...params });
   // Tell the shared cache a match ended long ago (details never change), so one visitor's request serves everyone.
   if (["fixtures/events", "fixtures/lineups", "fixtures/statistics", "fixtures/players"].includes(endpoint) && finishedIds.has(Number(params.fixture))) query.set("settled", "1");
@@ -252,6 +255,7 @@ async function requestOnce(endpoint, params) {
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
+      pauseFrom(res, data);
       const error = new Error(
         FRIENDLY_ERRORS[data?.code] ||
           publicText(data?.error, "") ||
@@ -324,13 +328,10 @@ export function cleanSearch(query) {
     .trim();
 }
 
-// ---------------------------------------------------------------------------
 // Endpoints
-// ---------------------------------------------------------------------------
 export const footballRaw = fetchFootball; // for the lazily loaded extras (src/api/footballExtras.js)
 export const searchLeagues = (query) => fetchFootball("leagues", { search: cleanSearch(query) });
 export const searchTeams = (query) => fetchFootball("teams", { search: cleanSearch(query) });
-// Name search across all players (profiles only: no league needed, unlike the stats endpoint).
 export const searchPlayers = (query) => fetchFootball("players/profiles", { search: cleanSearch(query) });
 export const searchVenues = (query) => fetchFootball("venues", { search: cleanSearch(query) });
 

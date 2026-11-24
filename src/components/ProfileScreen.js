@@ -4,71 +4,84 @@ import { displayNameOf } from "./EditProfileScreen.js";
 import { VerifiedBadge } from "../utils/ui.js";
 import { ClubTiles, ClubCrest } from "./ClubPicker.js";
 
-function row({icon,label,trailing,onClick,showChevron=true}) {
- return h(onClick ? "button" : "div",{className:"profile-row",onClick},[
-  h("span",{className:"profile-row-icon"},[h("i",{"data-lucide":icon,"aria-hidden":"true"})]),
-  text("span",{className:"profile-row-label"},label),
-  trailing || (showChevron?h("i",{className:"profile-chevron","data-lucide":"chevron-right","aria-hidden":"true"}):null)
+const icon = (name, cls) => h("i", { "data-lucide": name, className: cls || "", "aria-hidden": "true" });
+const chevron = () => icon("chevron-right", "profile-chevron");
+
+function row({ icon: name, label, trailing, onClick }) {
+ return h("button", { className: "profile-row", onClick }, [
+  h("span", { className: "profile-row-icon" }, [icon(name)]),
+  text("span", { className: "profile-row-label" }, label),
+  trailing ? text("span", { className: "profile-trailing" }, trailing) : null,
+  chevron()
  ]);
 }
-const THEME_LABEL={system:"System",light:"Light",dark:"Dark"};
-export function ProfileScreen({isVip,coins,favoritesCount,onOpenFavorites,onRequestUpgrade,onOpenCoins,currentLanguage,theme,fxThemeName,clubName,club,showClubPrompt,onPickClub,onNavigate,avatarSrc,authUser,onOpenAuth,onSignOut}){
- return h("main",{className:"screen profile-screen"},[
-  h("header",{className:"profile-hero"},[
-   avatarSrc?SkeletonImage({src:avatarSrc,size:56,radius:"50%"}):h("div",{className:"profile-avatar"},"S"),
-   h("div",{className:"profile-identity"},[
-    h("strong",{className:"profile-name"},[text("span",{className:"profile-name-text"},displayNameOf(authUser)),isVip?VerifiedBadge({size:19}):null]),
-    text("span",{className:"profile-plan "+(isVip?"vip":"")},isVip?"VIP member":authUser?"Signed in":"Guest"),
-    club?h("span",{className:"profile-club"},[ClubCrest(club,16),text("span",{},club.name+" supporter")]):null
+const group = (tone, rows, label) => [
+ label ? text("div", { className: "profile-section-label" }, label) : null,
+ h("section", { className: "profile-group " + tone }, rows)
+];
+function stat({ name, value, label, onClick, tone }) {
+ return h("button", { className: "pf-stat " + tone, onClick }, [
+  h("span", { className: "pf-stat-icon" }, [icon(name)]),
+  text("strong", { className: "pf-stat-value" }, String(value)),
+  text("small", {}, label)
+ ]);
+}
+
+const THEME_LABEL = { system: "System", light: "Light", dark: "Dark" };
+
+export function ProfileScreen({ isVip, coins, favoritesCount, onOpenFavorites, onRequestUpgrade, onOpenCoins, currentLanguage, theme, fxThemeName, clubName, club, showClubPrompt, onPickClub, onNavigate, avatarSrc, authUser, onOpenAuth, onSignOut }) {
+ const status = isVip ? "VIP member" : authUser ? "Signed in" : "Guest";
+ return h("main", { className: "screen profile-screen" }, [
+  h("header", { className: "pf-hero" }, [
+   h("div", { className: "pf-avatar-wrap" }, [
+    avatarSrc ? SkeletonImage({ src: avatarSrc, size: 92, radius: "50%" }) : h("div", { className: "pf-avatar" }, [text("span", {}, (displayNameOf(authUser) || "S").trim().charAt(0).toUpperCase() || "S")]),
+    h("button", { className: "pf-avatar-edit", onClick: () => onNavigate("edit-profile"), "aria-label": "Edit profile" }, [icon("pencil")])
    ]),
-   h("button",{className:"icon-button profile-edit",onClick:()=>onNavigate("edit-profile"),"aria-label":"Edit profile"},[h("i",{"data-lucide":"pencil"})])
-  ]),
-  h("section",{className:"premium-panel"},[
-   h("button",{className:"premium-row",onClick:onRequestUpgrade},[
-    h("span",{className:"premium-icon"},[h("i",{"data-lucide":"gem"})]),
-    h("span",{className:"premium-copy"},[text("strong",{},isVip?"Manage Premium":"Upgrade to Premium"),text("small",{},isVip?"Your premium access is active":"Unlock every prediction")]),
-    h("i",{className:"profile-chevron","data-lucide":"chevron-right"})
-   ]),
-   h("button",{className:"premium-row coins-row",onClick:onOpenCoins},[
-    h("span",{className:"premium-icon"},[h("i",{"data-lucide":"coins"})]),
-    text("strong",{className:"premium-copy single"},"Coins"),
-    text("strong",{className:"coin-value mono"},coins),
-    h("i",{className:"profile-chevron","data-lucide":"chevron-right"})
+   h("strong", { className: "profile-name pf-name" }, [text("span", { className: "profile-name-text" }, displayNameOf(authUser)), isVip ? VerifiedBadge({ size: 20 }) : null]),
+   h("span", { className: "pf-chips" }, [
+    text("span", { className: "profile-plan" + (isVip ? " vip" : "") }, status),
+    club ? h("span", { className: "profile-club" }, [ClubCrest(club, 16), text("span", {}, club.name)]) : null
    ])
   ]),
-  !showClubPrompt?null:h("section",{className:"club-prompt card profile-club-prompt"},[
-   h("div",{className:"club-prompt-copy"},[text("strong",{},"Which club do you support?"),text("p",{},"Pick yours and the whole app wears its colours and crest.")]),
-   ClubTiles({onSelect:onPickClub,variant:"row"})
+  h("section", { className: "pf-stats" }, [
+   stat({ name: "coins", value: coins, label: "Coins", onClick: onOpenCoins, tone: "gold" }),
+   stat({ name: "star", value: favoritesCount, label: "Favourites", onClick: onOpenFavorites, tone: "red" })
   ]),
-  text("div",{className:"profile-section-label"},"Account"),
-  h("section",{className:"profile-group tone-red"},[
-   row({icon:"user",label:"Edit profile",onClick:()=>onNavigate("edit-profile")}),
-   row({icon:"star",label:"My favourites",trailing:text("span",{className:"profile-trailing"},favoritesCount),onClick:onOpenFavorites}),
-   row({icon:"key-round",label:"Change password",onClick:()=>onNavigate("change-password")})
+  h("button", { className: "pf-premium" + (isVip ? " active" : ""), onClick: onRequestUpgrade }, [
+   h("span", { className: "pf-premium-icon" }, [icon("gem")]),
+   h("span", { className: "pf-premium-copy" }, [text("strong", {}, isVip ? "Premium is active" : "Upgrade to Premium"), text("small", {}, isVip ? "Manage your plan" : "Unlock every prediction")]),
+   chevron()
   ]),
-  text("div",{className:"profile-section-label"},"Football"),
-  h("section",{className:"profile-group tone-red"},[
-   row({icon:"calendar",label:"Match diary",onClick:()=>onNavigate("diary")}),
-   row({icon:"arrow-right-left",label:"Transfers & injuries",onClick:()=>onNavigate("hub")}),
-   row({icon:"sparkles",label:"Season recap",onClick:()=>onNavigate("recap")})
+  !showClubPrompt ? null : h("section", { className: "club-prompt card profile-club-prompt" }, [
+   h("div", { className: "club-prompt-copy" }, [text("strong", {}, "Which club do you support?"), text("p", {}, "Pick yours and the whole app wears its colours and crest.")]),
+   ClubTiles({ onSelect: onPickClub, variant: "row" })
   ]),
-  text("div",{className:"profile-section-label"},"Preferences"),
-  h("section",{className:"profile-group tone-orange"},[
-   row({icon:"bell",label:"Notifications",onClick:()=>onNavigate("notifications")}),
-   row({icon:"moon",label:"Appearance",trailing:text("span",{className:"profile-trailing"},clubName||THEME_LABEL[theme]||"System"),onClick:()=>onNavigate("appearance")}),
-   row({icon:"palette",label:"Advanced themes",trailing:fxThemeName?text("span",{className:"profile-trailing"},fxThemeName):null,onClick:()=>onNavigate("themes")})
+  ...group("tone-red", [
+   row({ icon: "user", label: "Edit profile", onClick: () => onNavigate("edit-profile") }),
+   row({ icon: "key-round", label: "Change password", onClick: () => onNavigate("change-password") })
+  ], "Account"),
+  ...group("tone-red", [
+   row({ icon: "calendar", label: "Match diary", onClick: () => onNavigate("diary") }),
+   row({ icon: "arrow-right-left", label: "Transfers & injuries", onClick: () => onNavigate("hub") }),
+   row({ icon: "sparkles", label: "Season recap", onClick: () => onNavigate("recap") })
+  ], "Football"),
+  ...group("tone-orange", [
+   row({ icon: "bell", label: "Notifications", onClick: () => onNavigate("notifications") }),
+   row({ icon: "moon", label: "Appearance", trailing: clubName || THEME_LABEL[theme] || "System", onClick: () => onNavigate("appearance") }),
+   row({ icon: "palette", label: "Advanced themes", trailing: fxThemeName, onClick: () => onNavigate("themes") }),
+   row({ icon: "globe", label: "Language", trailing: currentLanguage, onClick: () => onNavigate("language") })
+  ], "Preferences"),
+  ...group("tone-gray", [
+   row({ icon: "circle-help", label: "Help centre", onClick: () => onNavigate("help-centre") }),
+   row({ icon: "message-square", label: "Send feedback", onClick: () => onNavigate("feedback") }),
+   row({ icon: "triangle-alert", label: "Report issue", onClick: () => onNavigate("report-issue") }),
+   row({ icon: "phone", label: "Contact us", onClick: () => onNavigate("contact-us") })
+  ], "Help"),
+  ...group("tone-gray", [
+   row({ icon: "shield", label: "Privacy policy", onClick: () => onNavigate("privacy-policy") }),
+   row({ icon: "file-text", label: "Terms of use", onClick: () => onNavigate("terms-of-use") }),
+   row({ icon: "info", label: "About", onClick: () => onNavigate("about") })
   ]),
-  text("div",{className:"profile-section-label"},"Support"),
-  h("section",{className:"profile-group tone-gray"},[
-   row({icon:"circle-help",label:"Help centre",onClick:()=>onNavigate("help-centre")}),
-   row({icon:"message-square",label:"Send feedback",onClick:()=>onNavigate("feedback")}),
-   row({icon:"triangle-alert",label:"Report issue",onClick:()=>onNavigate("report-issue")}),
-   row({icon:"phone",label:"Contact us",onClick:()=>onNavigate("contact-us")}),
-   row({icon:"shield",label:"Privacy policy",onClick:()=>onNavigate("privacy-policy")}),
-   row({icon:"file-text",label:"Terms of use",onClick:()=>onNavigate("terms-of-use")}),
-   row({icon:"info",label:"About",onClick:()=>onNavigate("about")}),
-   row({icon:"globe",label:"Language",trailing:text("span",{className:"profile-trailing"},currentLanguage),onClick:()=>onNavigate("language")})
-  ]),
-  h("button",{className:"profile-login"+(authUser?" signout":""),onClick:authUser?onSignOut:onOpenAuth},[text("span",{},authUser?"Sign out":"Log in or create account")])
+  h("button", { className: "profile-login" + (authUser ? " signout" : ""), onClick: authUser ? onSignOut : onOpenAuth }, [text("span", {}, authUser ? "Sign out" : "Log in or create account")])
  ]);
 }

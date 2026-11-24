@@ -41,7 +41,7 @@ async function buildHome(origin) {
   const fixtures = ((await footballData("fixtures", { date: today })) || []).slice(0, 60);
   const sameAs = Object.values(SOCIAL_LINKS || {}).filter((u) => /^https:\/\//.test(u));
   return {
-    jsonLd: jsonLdSite(origin, { sameAs }),
+    jsonLd: [...jsonLdSite(origin, { sameAs }).map((n) => n["@type"] === "WebSite" ? { ...n, alternateName: ["Scoutwave Football", "Scoutwave Live Scores"] } : n), navLd(origin)],
     heading: "Live football scores, predictions and football data",
     cache: 300,
     body: `<p>Live scores, fixtures, league tables, lineups, match stats and odds for the major leagues and cups, plus our own match predictions.</p>` +
@@ -348,6 +348,10 @@ async function buildArticle(id, path, origin) {
 }
 
 // ---------------------------------------------------------------------------
+// The main sections, named the way they should read in a result: a hint for the links Google may show under the site.
+const NAV = [["Livescores", "/livescores"], ["Predictions", "/predictions"], ["Leagues", "/leagues"], ["News", "/news"], ["About", "/about"], ["Privacy policy", "/privacy-policy"]];
+const navLd = (origin) => ({ "@context": "https://schema.org", "@graph": NAV.map(([name, path]) => ({ "@type": "SiteNavigationElement", name, url: origin + path })) });
+
 function shell({ meta, heading, body, jsonLd, origin, path, status = 200 }) {
   const url = origin + (path === "/" ? "/" : path);
   const hasImage = meta.image && /^https:\/\//.test(meta.image);
@@ -373,6 +377,7 @@ ${hasImage ? "" : m("property", "og:image:width", "1200") + m("property", "og:im
 ${m("name", "twitter:card", big ? "summary_large_image" : "summary")}${m("name", "twitter:title", meta.title)}${m("name", "twitter:description", meta.description)}${m("name", "twitter:image", image)}
 ${twitter.length > 1 ? m("name", "twitter:site", twitter) : ""}
 ${m("name", "theme-color", "#d50000")}
+<link rel="icon" href="${esc(origin)}/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="48x48" href="${esc(origin)}/icons/favicon-48.png"><link rel="icon" type="image/png" sizes="96x96" href="${esc(origin)}/icons/favicon-96.png"><link rel="apple-touch-icon" href="${esc(origin)}/icons/apple-touch-icon.png"><link rel="manifest" href="${esc(origin)}/manifest.webmanifest">
 ${(jsonLd || []).filter(Boolean).map((data) => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")}</script>`).join("\n")}
 </head><body>
 <header><a href="/">${SITE_NAME}</a> <nav>${link("/livescores", "Livescores")} ${link("/predictions", "Predictions")} ${link("/leagues", "Leagues")} ${link("/news", "News")}</nav></header>

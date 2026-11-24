@@ -44,7 +44,7 @@ await test("the proxy asks the provider once when many visitors ask for the same
   process.env.SCOUTWAVE_FOOTBALL_API_KEY = "test-key";
   const { default: proxy } = await import("../api/football.js");
   let providerCalls = 0;
-  globalThis.fetch = async () => { providerCalls++; await new Promise((r) => setTimeout(r, 30)); return new Response(JSON.stringify({ response: [{ fixture: { id: 1, status: { short: "NS" }, date: "2026-10-29T18:00:00Z" } }], errors: [] }), { status: 200 }); };
+  globalThis.fetch = async (u) => { if (String(u).endsWith("/status")) return new Response(JSON.stringify({ response: { requests: { current: 10, limit_day: 7500 } } }), { status: 200 }); providerCalls++; await new Promise((r) => setTimeout(r, 30)); return new Response(JSON.stringify({ response: [{ fixture: { id: 1, status: { short: "NS" }, date: "2026-10-29T18:00:00Z" } }], errors: [] }), { status: 200 }); };
   const call = () => new Promise((resolve) => { const out = { headers: {} }; proxy({ method: "GET", query: { endpoint: "fixtures", date: "2026-10-29" } }, { setHeader: (k, v) => (out.headers[k] = v), status(c) { out.status = c; return this; }, json(b) { out.body = b; resolve(out); } }); });
   const all = await Promise.all([call(), call(), call(), call(), call()]);
   assert.equal(providerCalls, 1); assert.ok(all.every((r) => r.status === 200 && r.body.length === 1 && /s-maxage=/.test(r.headers["Cache-Control"])));

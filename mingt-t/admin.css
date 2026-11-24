@@ -434,3 +434,61 @@ dialog.shortcuts{width:min(94vw,420px)}
   dialog.sheet{width:100%;max-width:none;margin:auto 0 0;border-radius:20px 20px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
 }
 @media (max-width:520px){.sheet-list{grid-template-columns:minmax(0,1fr)}}
+
+/* ================= v3 polish ================= */
+/* Sidebar: the section list scrolls on its own so the footer never overlaps it on short screens */
+.side{overflow:hidden}
+.nav-scroll{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;margin-right:-6px;padding-right:6px}
+.side-top,.search-btn,.side-foot{flex:none}
+.side-foot{margin-top:8px}
+/* Quota bar reads green while healthy, red only when hot */
+.quota-bar>span{background:var(--ok)}
+.quota-bar.hot>span{background:var(--bad)}
+/* Pager under tables */
+.pager,.card+.row{margin-top:14px}
+.row>.sub{margin:0;font-size:13px}
+/* Cards in a split row match heights */
+.split{align-items:stretch}
+.split>.card{display:flex;flex-direction:column}
+.quota .row{margin-top:auto;padding-top:4px}
+/* Tables: clearer header, calmer rows */
+th{background:var(--panel-2);position:sticky;top:0}
+.tablewrap th:first-child{border-top-left-radius:8px}.tablewrap th:last-child{border-top-right-radius:8px}
+tbody tr:last-child td{border-bottom:0}
+td .chip{font-size:11.5px}
+/* Inputs: search fields get an icon-free but clearer focus state */
+.filters input[type=search]{-webkit-appearance:none;appearance:none}
+.filters input:hover{border-color:var(--line-strong)}
+/* Buttons: consistent keyboard focus ring */
+.btn:focus-visible,.pill:focus-visible,.tool:focus-visible,.nav-btn:focus-visible,.icon-btn:focus-visible{outline:0;box-shadow:var(--ring)}
+/* Messages: group the action row and quiet the meta text */
+.msg .row{padding-top:4px;border-top:1px solid var(--line);margin-top:2px;padding-top:12px}
+.msg-meta:empty{display:none}
+.msg textarea{min-height:56px}
+/* Mobile: the topbar title duplicates the page heading, so tuck the heading's size down */
+@media (max-width:760px){.main h1{font-size:22px}.pager{flex-wrap:wrap}}
+/* Link-buttons look like buttons; free-standing textareas match the form fields */
+a.btn{text-decoration:none;color:var(--text)}
+a.btn.primary{color:var(--on-accent)}
+.msg textarea{width:100%;padding:10px 13px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel-2);resize:vertical;line-height:1.5;transition:border-color .12s,box-shadow .12s,background .12s}
+.msg textarea:hover{border-color:var(--line-strong)}
+.msg textarea:focus-visible{outline:0;border-color:var(--accent);box-shadow:var(--ring);background:var(--panel)}
+.msg textarea::placeholder{color:var(--muted)}
+/* Cards that hold a table keep the normal card padding (the scroll wrapper had stripped it) */
+.card.tablewrap{padding:20px 20px 12px}
+.card.tablewrap>h2{margin-bottom:10px}
+.card.tablewrap table{min-width:520px}
+.card.tablewrap>.empty{padding:28px 12px}
+.card.tablewrap>.row{margin-top:14px}
+.chart+.sub{margin:12px 0 0;font-size:13px}
+.legend{margin:2px 0 4px}
+@media (max-width:520px){.card.tablewrap{padding:16px 14px 10px}}
+/* Helper text inside cards and check rows never adds trailing space */
+.check .sub,.card .sub:last-child,.card>.sub:last-of-type{margin-bottom:0}
+.check{gap:4px}
+/* Narrow screens: label every other day so the dates stay readable */
+@media (max-width:640px){
+  .chart-col:nth-child(even) .chart-day{visibility:hidden}
+  .chart-day{overflow:visible;text-overflow:clip;font-size:10px}
+  .chart-col{overflow:visible}
+}

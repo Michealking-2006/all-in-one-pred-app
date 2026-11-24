@@ -1,3 +1,70 @@
+# Changes (unreleased) — UI scan
+
+Found by loading all 30 screens in a phone-sized Chromium (360, 390 and 430 px wide) with stubbed data: no console errors, no sideways scrolling, no empty screens. Four real problems, all fixed:
+
+- **Failed images** (a blocked or down media host, a 404, or a missing logo) showed the browser's broken-image icon and alt text on league, venue, club and player pages. Only 4 of the 54 image sites had a fallback. Fixed once in `h()`: a failed or address-less image gets `img-failed`; the stylesheet hides it (list logos keep their box so nothing jumps, big photos collapse).
+- **Match header on 360 px phones:** a long unbreakable name ("Wolverhampton Wanderers") ran to the card's edge. The name now wraps inside its column and steps down slightly (13.5px, score 40px) at 360–380 px; it fits with room to spare. Other widths unchanged.
+- **Sign-in legal line** ("By continuing you agree to our Terms of Use and Privacy Policy") had double line spacing: the link buttons' vertical padding stretched the lines. Padding removed; the tap area is kept with an invisible expansion.
+- `src/utils/h.js` comments shortened to make room for the image fix inside the 180 KB startup budget (it was at 179.9 KB).
+- Not bugs, checked: the 184 "classes with no CSS rule" are admin-only or JS hooks; tab buttons overflowing by 6px are the invisible tap-area `::after`; timers and listeners all clean up. `src/components/PredictionsPanel.js` is unused (dead code, safe to delete).
+- Test: `tests/ui-fixes.test.mjs` (added to `npm test`).
+
+# Changes (unreleased) — MCP server
+
+Scoutwave now speaks the Model Context Protocol, so Claude, ChatGPT, Cursor and other assistants can ask it for football data. **Nothing to run or migrate**; see `docs/MCP.md`.
+
+- **`POST /mcp`** (also `/api/mcp`): Streamable HTTP, stateless, no dependencies. Handler `server/mcp.js`, routed through `api/public.js` (`route=mcp`), so it adds **no serverless function** (still 8 of the 10 the deploy test allows).
+- **12 read-only tools:** `search`, `get_matches`, `get_match_details`, `get_standings`, `get_top_players`, `get_head_to_head`, `get_injuries`, `get_odds`, `get_predictions`, `get_prediction_accuracy`, `get_news`, `get_app_status`. Answers are trimmed and long lists capped.
+- **Goes through the app's own endpoints**, not the provider: the key stays server-side, the shared edge cache answers repeats, and the circuit breaker, quota floor and prediction gate all still apply. `get_predictions` forwards an `Authorization` header (and only that tool does), so a signed-in Premium account sees what it may.
+- **Protection:** every argument is validated (nothing unchecked reaches a query string), 60 tool calls per IP per minute (`MCP_RATE_PER_MIN`), kill switch `MCP_DISABLED=1`, no provider text or addresses in errors.
+- **Rewrite order matters:** `/mcp` sits ahead of the crawler user-agent rewrites, because AI crawler names (`claudebot`, `gptbot`...) would otherwise send it to the SEO page. The test checks this.
+- Files: `server/mcp.js` (new), `api/public.js`, `vercel.json`, `.env.example`, `docs/MCP.md`, `tests/mcp.test.mjs` (added to `npm test`).
+
+# Changes (unreleased) — Leagues lists every competition
+
+The Leagues screen showed six hard-coded "popular" leagues and made you search for the rest (3+ letters, one request each time). It now lists every league and cup that has a season under way.
+
+- **One request, then everything on the device.** `leagues?current=true` is fetched once (the server's shared cache keeps it for 3 days, the app for 6 hours), trimmed to id, name, kind, logo and country (the provider's per-season coverage data is most of the size), and shared if two screens ask at once. Searching, filtering and grouping never touch the provider again, so typing costs no quota.
+- **Popular** (Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Champions League) is picked out of the same list: 6 provider requests fewer than before.
+- **By country**: "World" (international competitions) first, then countries A to Z with their flag and a count; leagues before cups inside each country. Long lists are drawn in pieces (`appendInPieces`), and each country block uses `content-visibility:auto`, so the screen opens fast even with a thousand rows.
+- **Search** runs as you type, ignores accents and case ("super lig" finds "Süper Lig") and matches the name or the country ("england cup"); names starting with what you typed come first.
+- **All / Leagues / Cups** filter and a live count ("1,024 competitions in 172 countries").
+- If the data can't be loaded the screen says so with a Try again button (the filter bar is hidden meanwhile); nothing is cached from a failure.
+- Files: `src/utils/leagueList.js` (new, loaded only with this screen, not in the startup code), `src/components/LeaguesScreen.js`, `src/styles/theme.css` (league list styles). `tests/leagues-list.test.mjs` is added to `npm test`.
+
+# Changes (unreleased) — responsive layout: tablets and desktops
+
+The app was one 480px phone column on every screen. It now adapts to the window; **phones (under 700px) are unchanged** (checked pixel by pixel against the previous build on Games, Leagues, Profile, VIP, a match and a league).
+
+- **One width variable.** `--app-w` (480px on phones) sizes the app column and every centred, fixed element (tab bar, compact header, pull-to-refresh, drawers). `--rail-w` is the width of the desktop side rail (0 elsewhere).
+- **700px and up (tablets, phones turned sideways):** the column grows to 680px, drawers open as a centred card instead of a full-width sheet, the match header keeps the two teams and the score together, and the football pitch stays phone-sized. On a short landscape screen (under 520px tall) the tab bar shrinks to a slim single row.
+- **1024px and up (laptops, desktops):** the tab bar becomes a left side rail with the Scoutwave wordmark (light and dark), the column grows to 780px and is centred in the space beside the rail. Toasts, the live match card, pull-to-refresh and the compact header centre on that space. Hover states for rows, buttons, tabs and header icons (touch screens never get them). An **advanced theme keeps its floating tab pill** and gets no rail, because its glass lens and effects are drawn for a horizontal bar.
+- **1280px and up:** the column is 920px (980px from 1800px) and Games lists leagues in two columns; notices, errors and the club prompt still span the full width.
+- **CSS only.** No JavaScript changed, so the startup budget is untouched. Files: `src/styles/theme.css` (the six fixed `480px` values now read `--app-w`; new "Responsive layout" block at the end).
+- Test: `tests/responsive.test.mjs` (added to `npm test`): viewport meta still allows zoom, no hard-coded 480px in the centred elements, nothing in the new block reaches phones, the rail never applies to an advanced theme, and the lineup test's phone assumptions still hold.
+
+# Changes (unreleased) — the football API is no longer asked while it is refusing us
+
+- **Circuit breaker in the football proxy** (`api/_breaker.js`, `api/football.js`). When the provider answers with a daily limit, a per-minute limit, a suspended account or a rejected key, the proxy stops calling it (limit: until the provider's day rolls over; per-minute: about a minute; suspended: an hour; key: 30 minutes) and answers visitors at once with `Retry-After`. Before, every request that wasn't already cached went to the provider again, so a refusal fed itself. The state is shared between serverless instances through the `api_cache` table (migration 009) and works per instance without it.
+- **Stops before the limit.** The proxy reads the provider's own counters on every answer and stops when 5 or fewer requests are left today (`FOOTBALL_PROXY_FLOOR`) or the minute's allowance is used. Until now only the background jobs kept quota free, visitors could use all of it.
+- **The app backs off too** (`src/api/footballApi.js`): after a limit or breaker answer, no football request leaves the browser until the wait is over, so the live card, match page and Home stop polling together. A single request the plan doesn't cover does not pause anything.
+- **Usage is checked before every provider call** (`usageGate` in `api/_breaker.js`). Each uncached request first looks at today's usage through the provider's status call (free, remembered for 20 s per instance) and adds the calls made since, so loading matches can't run past the floor even when predictions and push alerts spent quota elsewhere. If the status call fails the other guards still apply.
+- Test: `tests/football-breaker.test.mjs` (added to `npm test`); `tests/service-errors.test.mjs` resets the breaker between cases.
+
+# Changes (unreleased) — search result: site name, favicon, sitelink hints
+
+- **Favicon Google can use.** Square PNGs at 48 and 96 px (Google needs a multiple of 48) and a root `/favicon.ico`, linked from the app shell and from every crawler page. The 32 px icon stays for browsers.
+- **Site name.** The home page's WebSite data now has alternate names (Scoutwave Football, Scoutwave Live Scores). A duplicate WebSite/Organization block added by the previous SEO step was removed: the home page already had them from `jsonLdSite`.
+- **Sitelink hints.** The home page lists Livescores, Predictions, Leagues, News, About and Privacy policy as `SiteNavigationElement`s, and the static shell links About and Privacy policy as real links beside the other sections. Google chooses sitelinks itself; this only makes the pages easy to pick.
+- **Description** shortened to 126 characters so it is not cut off in a result.
+- Test: `tests/seo-serp.test.mjs` (added to `npm test`).
+
+# Changes (unreleased) — profile redesign, consistent headers, SEO
+
+- **Profile tab redesigned.** Centred avatar with an edit button, name with the VIP badge, status and club chips; Coins and Favourites as tappable tiles; a full-width Premium card (calm "Premium is active" card for VIP members); lists grouped into Account, Football, Preferences (Language moved here), Help and legal. Same props as before, so `App.js` is unchanged. Styles are added at the end of `theme.css` (`pf-*`).
+- **One header style on every tab.** The red kicker above page titles is hidden, the Predictions title matches the other tabs, the meaningless "Global" chip on Leagues is gone, and titles no longer end with a full stop (Following, Notifications, Advanced themes, Unlock every prediction).
+- **SEO.** Every crawler page links the icon, apple-touch icon and manifest; the static `index.html` has a canonical link, an absolute `og:image` with size and description, `og:url`, locale and a Twitter image.
+
 # Changes (unreleased) — follow players, match diary, your club, transfers & injuries, season recap, rivalry
 
 **Run `supabase/migrations/012_follow_players.sql` once** (and 011 from the previous update) for the push parts; nothing else needs a migration. Without them the app works as before and the push job says what is switched off.

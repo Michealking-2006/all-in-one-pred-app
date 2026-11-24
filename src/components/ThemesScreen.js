@@ -72,7 +72,7 @@ export function ThemesScreen(props) {
     PageHeader({ title: "Advanced themes", onBack: props.onBack }),
     h("section", { className: "settings-intro" }, [
       text("span", { className: "section-kicker" }, "Liquid glass"),
-      text("h1", {}, "Make the app come alive."),
+      text("h1", {}, "Advanced themes"),
       text("p", {}, "A theme restyles the whole app: animated backdrop, glass cards and headers, themed buttons and tap effects, plus the bottom bar. Press and glide across a preview to try it."),
     ]),
     h("button", { type: "button", className: "fx-balance", onClick: props.onOpenCoins }, [

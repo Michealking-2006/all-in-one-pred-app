@@ -74,6 +74,14 @@
       "destination": "/api/public?route=news"
     },
     {
+      "source": "/mcp",
+      "destination": "/api/public?route=mcp"
+    },
+    {
+      "source": "/api/mcp",
+      "destination": "/api/public?route=mcp"
+    },
+    {
       "source": "/api/me",
       "destination": "/api/account?route=me"
     },

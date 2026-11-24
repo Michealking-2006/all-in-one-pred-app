@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 let passed = 0; const test = async (name, fn) => { await fn(); passed++; console.log("ok  " + name); };
 const { classifyError, classifyText } = await import("../api/_errors.js");
+const { resetBreaker } = await import("../api/_breaker.js");
 
 await test("a suspended or blocked account is told apart from a missing key or a limit", () => {
   assert.equal(classifyError({ access: "Your account is suspended." }, 200).kind, "banned");
@@ -16,6 +17,7 @@ await test("a suspended or blocked account is told apart from a missing key or a
 });
 
 await test("the football proxy keeps the provider's words away from the browser", async () => {
+  resetBreaker();
   process.env.SCOUTWAVE_FOOTBALL_API_KEY = "test-key";
   delete process.env.SUPABASE_SERVICE_ROLE_KEY; // nothing is logged in this test
   const secret = "Your account is suspended. Contact api-sports support (key abc123).";
@@ -31,6 +33,7 @@ await test("the football proxy keeps the provider's words away from the browser"
 });
 
 await test("a limit still tells the app to back off, without the provider's text", async () => {
+  resetBreaker();
   globalThis.fetch = async () => new Response(JSON.stringify({ errors: { requests: "You have reached the request limit for the day, Go to https://dashboard.api-football.com" }, response: [] }), { status: 200, headers: { "content-type": "application/json" } });
   const { default: handler } = await import("../api/football.js");
   const out = { headers: {} };

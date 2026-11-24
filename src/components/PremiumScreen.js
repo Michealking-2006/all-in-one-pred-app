@@ -9,7 +9,7 @@ export function PremiumScreen({isVip,live,onSubscribe,onOpenThemes,onBack}){
   h("section",{className:"premium-success"},[
    h("div",{className:"premium-success-icon"},[h("i",{"data-lucide":"gem"})]),
    text("span",{className:"section-kicker"},"Membership active"),
-   text("h1",{},"You're a VIP member."),
+   text("h1",{},"You're a VIP member"),
    text("p",{},"Every prediction is unlocked on this account.")
   ]),
   h("section",{className:"settings-list card premium-perks"},[
@@ -28,7 +28,7 @@ export function PremiumScreen({isVip,live,onSubscribe,onOpenThemes,onBack}){
   PageHeader({title:"Premium",onBack}),
   h("section",{className:"premium-hero"},[
    text("span",{className:"section-kicker"},"Scoutwave Premium"),
-   text("h1",{},"Unlock every prediction."),
+   text("h1",{},"Unlock every prediction"),
    text("p",{},"Premium shows every pick in full, compares odds across bookmakers and tracks how the model performs.")
   ]),
   h("section",{className:"benefit-list card"},BENEFITS.map((item,i)=>h("div",{className:"benefit-row"},[

@@ -153,7 +153,7 @@ export function FavoritesScreen({ favorites, onToggleFavorite, onOpenMatch, onOp
     PageHeader({ title: "My favourites", onBack }),
     h("section", { className: "favorites-intro" }, [
       text("span", { className: "section-kicker" }, "Watchlist"),
-      text("h1", {}, "Things you follow."),
+      text("h1", {}, "Following"),
       text("p", {}, "Your starred matches, clubs, players, venues and leagues."),
     ]),
     body,

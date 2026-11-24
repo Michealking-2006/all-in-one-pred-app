@@ -4,6 +4,8 @@
 
 import { recordUsage } from "./_usage.js";
 import { classifyError, recordServiceError } from "./_errors.js";
+import { breakerOpen, tripBreaker, usageGate } from "./_breaker.js";
+import { footballStatus } from "./_predict.js";
 
 const API_BASE = "https://v3.football.api-sports.io";
 
@@ -100,6 +102,12 @@ async function ask(apiKey, endpoint, params, settled) {
   });
 
   const data = await response.json().catch(() => null);
+  // The provider reports what is left. Stop BEFORE the limit is hit: asking after it is what gets accounts blocked.
+  const left = (name) => { const v = response.headers?.get?.(name); return v == null || v === "" ? null : Number(v); };
+  const dayLeft = left("x-ratelimit-requests-remaining"), minuteLeft = left("x-ratelimit-remaining");
+  const dayFloor = Math.max(0, Number(process.env.FOOTBALL_PROXY_FLOOR ?? 5) || 0);
+  if (dayLeft !== null && Number.isFinite(dayLeft) && dayLeft <= dayFloor) await tripBreaker("quota");
+  else if (minuteLeft !== null && Number.isFinite(minuteLeft) && minuteLeft <= 0) await tripBreaker("rate", Date.now() - 45_000); // ~20 s
   // Every request that reaches here used one provider call (edge-cached answers never get here).
   await recordUsage("proxy", endpoint, 1, !response.ok || (data?.errors && Object.keys(data.errors).length) ? 1 : 0);
 
@@ -109,6 +117,7 @@ async function ask(apiKey, endpoint, params, settled) {
     const why = classifyError(data.errors, response.status);
     await recordServiceError("football", why.kind, endpoint, why.text, response.status);
     console.error("Football data provider refused a request:", why.kind);
+    await tripBreaker(why.kind); // limit / suspended / key: stop asking for a while (shared between instances)
     const rateLimited = why.kind === "rate" || why.kind === "quota";
     // When the limit is hit every visitor would otherwise hit the provider again; let the edge answer for a minute.
     return {
@@ -120,6 +129,7 @@ async function ask(apiKey, endpoint, params, settled) {
 
   if (!response.ok) {
     const why = classifyError(null, response.status);
+    await tripBreaker(why.kind);
     await recordServiceError("football", why.kind, endpoint, why.text, response.status);
     console.error("Football data provider answered HTTP", response.status);
     return { status: response.status >= 500 ? 502 : response.status === 429 ? 429 : 502, cache: null, body: { error: "Football data is unavailable right now.", code: "FOOTBALL_API_HTTP_ERROR" } };
@@ -168,6 +178,17 @@ export default async function handler(req, res) {
   }
 
   const key = endpoint + "?" + params.toString() + (req.query?.settled === "1" ? "&settled" : "");
+  // Cached answers never reach this point (the edge serves them). Everything that does would be a provider call:
+  // while the provider is refusing us, don't make it. Answer at once and tell the app how long to wait.
+  // Also look at today's usage first (free status call, remembered for 20 s): visitors, the prediction jobs and push
+  // alerts share one quota, so this instance can't know from its own calls alone how much is left.
+  const open = (await breakerOpen()) || (await usageGate(footballStatus, { floor: Math.max(0, Number(process.env.FOOTBALL_PROXY_FLOOR ?? 5) || 0) }));
+  if (open) {
+    const limit = open.kind === "quota" || open.kind === "rate";
+    res.setHeader("Retry-After", String(open.retryAfter));
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(limit ? 429 : 502).json({ error: "Football data is unavailable right now.", code: limit ? "FOOTBALL_API_RATE_LIMIT" : "FOOTBALL_API_PROVIDER_ERROR", retryAfter: open.retryAfter });
+  }
   try {
     // Many visitors can ask for the same thing in the same second, for example when a cached answer has just
     // expired. This server instance asks the provider once and gives everyone that answer.
@@ -175,6 +196,7 @@ export default async function handler(req, res) {
     if (!job) { job = ask(apiKey, endpoint, params, req.query?.settled === "1").finally(() => inflight.delete(key)); inflight.set(key, job); }
     const answer = await job;
     if (answer.cache) res.setHeader("Cache-Control", answer.cache);
+    if (answer.status === 429 || answer.status === 502) res.setHeader("Retry-After", "60");
     return res.status(answer.status).json(answer.body);
   } catch (error) {
     console.error("Football API proxy error:", error);

@@ -75,7 +75,7 @@ export function NotificationsScreen({prefs,onTogglePref,onBack}) {
   PageHeader({title:"Notifications",onBack}),
   h("section",{className:"settings-intro"},[
    text("span",{className:"section-kicker"},"Alerts"),
-   text("h1",{},"Stay in the loop."),
+   text("h1",{},"Notifications"),
    text("p",{},"Choose which alerts you get.")
   ]),
   pushCard(),
