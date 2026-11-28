@@ -13,6 +13,9 @@ client and from the `api/football.js` allow-list). Predictions come from our own
 6. **Public pages.** `/predictions`, the dated pages and `/predictions/39-premier-league` show the full prediction table as soon as step 3 works (`SEO_SHOW_PICKS=0` shows only confidence). Submit `/sitemap.xml` in Google Search Console.
 7. **Tune only with evidence.** Read the calibration tables, change one constant in `src/predictions/model.js` or `SAFE_MIN`, bump `MODEL_VERSION`, and keep the change only if the new version wins on the same matches.
 
+## Listing predicted matches (`/api/predicted`)
+The VIP tab and the Slip Generator list matches with `GET /api/predicted?days=3`, which reads the `predictions` table only (kick-off, league and teams are stored with every prediction). No request goes to the football data service. Locked viewers get the match and a teaser, never the pick. Each prediction a viewer may see carries `markets` (win/draw/loss, double chance, Over 1.5/2.5/3.5, both teams to score) summed from the stored score grid; the grid is never sent.
+
 ## Status
 Built and tested, **switched off by default**: the match page shows "Predictions are coming
 soon" and the VIP tab shows its sample notice. Turn it on for one device to try it:

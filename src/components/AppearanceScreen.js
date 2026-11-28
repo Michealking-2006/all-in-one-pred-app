@@ -1,7 +1,8 @@
 import { h, text } from "../utils/h.js";
 import { PageHeader } from "./PageHeader.js";
-import { clubById } from "../clubs.js";
-import { ClubTiles } from "./ClubPicker.js";
+import { clubFromSaved } from "../clubs.js";
+import { ClubTiles, ClubCrest } from "./ClubPicker.js";
+import { ClubSearch } from "./ClubSearch.js";
 
 const OPTIONS = [
   { id: "system", icon: "smartphone", title: "System", subtitle: "Matches your device setting" },
@@ -17,12 +18,19 @@ const PERF_OPTIONS = [
 
 export function AppearanceScreen({ current, club, perfMode = "auto", onPerfMode = () => {}, fxActive = "", onSelect, onSelectClub, onBack }) {
   const activeId = club?.id || null;
-  const active = clubById(activeId);
+  const active = clubFromSaved(club);
 
   const clubSection = [
     text("div", { className: "profile-section-label" }, "Your club"),
     fxActive ? text("p", { className: "screen-note club-paused" }, "The " + fxActive + " theme is active, so club colours are paused. They come back when you switch it off in Advanced themes.") : null,
     h("div", { className: "club-grid-wrap" }, [ClubTiles({ selectedId: activeId, onSelect: onSelectClub })]),
+    // A club found by search has no tile in the grid: it is shown here, ticked, with the search just below.
+    active?.custom ? h("button", { type: "button", className: "club-card selected club-picked-card", "aria-label": active.name + ", your club", style: { "--club-1": active.primary, "--club-2": active.secondary }, onClick: () => onSelectClub(active) }, [
+      h("span", { className: "club-picked-crest" }, [ClubCrest(active, 44)]),
+      h("span", { className: "club-picked-copy" }, [text("span", { className: "club-card-name" }, active.name), active.motto ? text("span", { className: "club-card-motto" }, active.motto) : null]),
+      h("span", { className: "club-card-check", "aria-hidden": "true" }, [h("i", { "data-lucide": "check" })]),
+    ]) : null,
+    h("div", { className: "club-grid-wrap" }, [ClubSearch({ selectedId: activeId, onPick: onSelectClub })]),
     h("section", { className: "selection-list card" }, [
       h("button", { type: "button", className: "selection-row appearance-row", onClick: () => onSelectClub(null) }, [
         h("i", { "data-lucide": "circle-dashed" }),
@@ -30,7 +38,7 @@ export function AppearanceScreen({ current, club, perfMode = "auto", onPerfMode 
         !activeId ? h("i", { "data-lucide": "check" }) : null,
       ]),
     ]),
-    text("p", { className: "screen-note" }, active ? active.motto + ". The whole app wears " + active.name + " colours and crest." : "Pick the club you support and the whole app wears its colours and crest."),
+    text("p", { className: "screen-note" }, active ? (active.custom ? "" : active.motto + ". ") + "The whole app wears " + active.name + " colours and crest." : "Pick the club you support and the whole app wears its colours and crest."),
   ];
 
   return h("main", { className: "screen language-screen" }, [

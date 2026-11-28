@@ -3,7 +3,7 @@
 // leaves Home. Loaded after Home is on screen, and only for people who picked a club.
 import { h, text } from "../utils/h.js";
 import { store } from "../store.js";
-import { clubById } from "../clubs.js";
+import { clubFromSaved } from "../clubs.js";
 import { navigate } from "../router.js";
 import { pollMs } from "../perf.js";
 import { loadClubState, kickoffLabel, recapSeason } from "../myClub.js";
@@ -31,7 +31,7 @@ export function drawWidget(state, club, now = Date.now()) {
 }
 
 export function mountClubWidget(slot) {
-  const club = clubById(store.getState().clubTheme?.id);
+  const club = clubFromSaved(store.getState().clubTheme);
   if (!club) return;
   slot.appendChild(h("div", { className: "club-widget card skeleton-card", "aria-hidden": "true" }));
   let state = null, fetchedAt = 0, busy = false;

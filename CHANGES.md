@@ -1,3 +1,67 @@
+# Changes — predicted matches load from our own server
+
+**No football API call to list predicted matches** (`server/predicted.js`, `src/predictions/engine.js`)
+- New `GET /api/predicted?days=3` (1-7 days) reads the `predictions` table only, which already holds each match's kick-off, league and both teams, and returns the matches with their prediction (crests and league logo are built from the ids). The VIP tab and the Slip Generator now list matches through it, so they no longer call `fixtures` or look up anything on the football data service.
+- Same lock rules as `/api/predictions`: Premium (or a match unlocked with coins) gets the prediction, everyone else gets the match and a teaser with no pick, number or market. The answer is private when the gate is on, cacheable in demo mode. Matches that started or start within 5 minutes are left out; rows from two models collapse to the earliest, as before.
+- `listPredicted()` in the engine also fills the prediction cache, so opening one of these matches does not ask again.
+
+**Better predictions for slips: exact markets** (`marketsFromMatrix` in `src/predictions/metrics.js`)
+- The server now adds `markets` to every prediction a person may see (win/draw/loss, double chance, Over 1.5 / 2.5 / 3.5, both teams to score), summed from the stored 9x9 score grid. The grid itself is still never sent. Over/Under 1.5 and 3.5 are therefore exact instead of estimated; rows without a grid fall back to the earlier goals curve.
+- `/api/predictions` carries the same `markets`.
+
+**Tests:** new `predicted` (lock rules, no leaks, window, earliest-row rule, only our own database is asked); `slip` checks exact markets; `slip-ui` fails if anything but `/api/predicted` is requested.
+
+**Notes**
+- A match shows up only after the 06:00 UTC job has recorded it, as before. Nothing in the app builds a prediction on its own.
+- No database change is needed.
+
+---
+
+# Changes — club search and Slip Generator
+
+**Pick any club, not just four** (`src/components/ClubSearch.js`, `src/clubColors.js`, `src/clubs.js`)
+- The four quick picks stay. Under them (sign-up step, the sign-in prompt, Appearance) there is now a search box over the football data service's clubs (`searchTeams`, 3+ letters, 350 ms debounce, results remembered per visit, national teams left out, errors shown in words).
+- The service gives a name and crest but no colours, so a chosen club's two colours are read from its crest (`crestColors`, via `/api/image-proxy` so the canvas is readable). If the crest can't be read, colours are made from the name so choosing never fails.
+- A searched club is saved whole (`{ id: "t-<teamId>", name, short, teamId, logo, primary, secondary, motto, custom }`) on the phone and on the account (`user_metadata.club_data`); every field is re-checked on load (`clubFromSaved`: colours must be hex, the crest must be on the image host). The four are still saved as `{ id, primary }`, so nothing already saved changes.
+- All readers use `clubFromSaved(state.clubTheme)` instead of `clubById(id)`; the boot script accepts `t-<id>` too.
+
+**Slip Generator** (`src/predictions/slip.js`, `src/components/SlipGenerator.js`, a tab on the VIP screen)
+- Number of games (2-7), Risk (Safe / Balanced / Risky), Today's matches only, leagues, bet types (Winner, Double chance, Over/Under 1.5 / 2.5 / 3.5, Both teams to score), minimum odds per match, Generate. Result: total odds, slip win chance, what a 10 stake returns, a rating line, and the picks (refresh builds another slip; copy puts it on the clipboard).
+- Built only from Scoutwave's own stored predictions. Odds are **model odds** (fair price less a 6% margin), not bookmaker prices, and the screen says so. Win chance is the product of the picks' probabilities. Over/Under 1.5 and 3.5 are read from a goals curve fitted to the model's own Over 2.5 figure, because the server does not send the score grid.
+- Premium: anyone can set it up, Generate opens the Premium page for free accounts (locked teasers carry no pick, so they can never enter a slip).
+
+**Slip Generator, second pass** (`src/predictions/slip.js`, `src/components/SlipGenerator.js`)
+- **Keep, swap, remove** on every pick. Keep (lock) holds a pick through "Build another"; Swap brings in the best pick from a match not already on the slip (and never one you swapped away); Remove drops a pick (not below two).
+- **Build another actually differs**: each try nudges the ranking harder until the slip is not the one on screen.
+- **Fix it for me**: when the settings can't fill the slip, the smallest change that would (lower the minimum odds, all leagues, all bet types, a riskier level) is offered as one button that applies it and builds again.
+- **Stake**: 5 / 10 / 25 / 50 / 100 under the returns line. Settings (games, risk, bet types, minimum odds, stake, today-only) are remembered on the phone; leagues are not, since they depend on the day's matches.
+- **Started matches are never used**: anything that kicks off within 5 minutes is skipped when a slip is built or rebuilt, and a kept pick whose match has started is dropped.
+- Each pick shows the model's expected goals for the match. Over/Under 1.5 and 3.5 are still derived from the model's Over 2.5 figure.
+- Tests: `slip` (lock, started matches, swap, build-another, fix suggestion; dates are relative to now so they never go stale) and `slip-ui` (a full run on a stubbed network: build, keep, swap, remove, rebuild, stake).
+
+**Housekeeping**: startup budget test 180 -> 181 KB (the club validation and two icons are in startup code); service worker cache v33; new tests `slip`, `slip-ui`, and club cases in `clubs`.
+
+---
+
+# Changes (unreleased) — startup redesign
+
+The two things people see before the app is usable were plain: the launch screen was a line of text on a blank page, and "Which club do you support?" was a generic shield over a 2×2 grid. Both are redesigned.
+
+**Launch screen** (`index.html`, `src/styles/boot.css`)
+- The Scoutwave mark on its tile, with two waves spreading from it, the wordmark ("SCOUT" in the accent, "WAVE" in the text colour, cut from the existing wordmark image, no new asset), one line, and a slim loader. The page's real heading, description and links stay in the markup (visually hidden) for crawlers and screen readers.
+- Uses the app's own tokens, so light and dark match the app and there is no colour jump when the app takes over. **A returning supporter's launch screen wears their club's colour from the first paint** (`theme-init.js` already set the accent): mark, lettering, glow, waves and loader.
+- Falls back cleanly: no `color-mix` support gives the red version; no mask support simply omits the lettering. Waves are off for reduced motion and weak phones (`data-lowend`). The error screen from `boot-guard.js` shares the look.
+
+**Club step** (`src/components/ClubStep.js`, `.club-card*` and `.club-step*` in `theme.css`); used for sign-up step 2 and the first screen after signing in
+- Cards are tinted with the club's colours, show the club's motto, and carry a **kit stripe** (primary | secondary) along the bottom, which also tells the two blue-and-gold clubs apart. Choosing one adds a ring, a check badge and a glow in the club's colour and dims the others.
+- The hero starts as the Scoutwave mark (replacing the shield) and becomes the chosen crest, popping in on a halo in the club's colour. The whole screen recolours as before (still a preview until Continue).
+- Selection now updates the cards **in place**: the grid used to be rebuilt on every tap, which dropped keyboard focus. Cards rise in one after another the first time (off for weak phones; `backwards` fill, so it never freezes the selected/pressed transforms).
+- Fits a 390×844 phone without scrolling; on short phones the buttons stay on screen while the cards scroll under them (`overflow:clip` on `.auth-screen` so `position:sticky` engages).
+- The Appearance screen shares the card styles, so its club cards get the new look too (no motto there).
+- `scoutwave-mark-white.png` is preloaded for the launch screen. Startup JS is unchanged at 179.7 KB (`ClubStep` is lazy; everything else is CSS/HTML).
+- Test: `tests/startup-design.test.mjs` (added to `npm test`).
+- Not done: iOS launch images (`apple-touch-startup-image`) and the Android manifest splash colours; those are separate assets.
+
 # Changes (unreleased) — UI scan
 
 Found by loading all 30 screens in a phone-sized Chromium (360, 390 and 430 px wide) with stubbed data: no console errors, no sideways scrolling, no empty screens. Four real problems, all fixed:

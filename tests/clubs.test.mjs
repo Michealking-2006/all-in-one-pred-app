@@ -55,4 +55,22 @@ await test("a saved choice must be one of the four; the colour always comes from
   assert.equal((await load(null, { clubPromptUntil: -5 })).clubPromptUntil, 0);
 });
 
+await test("any other club: kept whole, every field checked, never a strange colour or image", async () => {
+  const { clubFromSaved, clubSnapshot, isClubId } = await import("../src/clubs.js");
+  const { clubFromTeam, pickColors, colorsFromName } = await import("../src/clubColors.js");
+  const psg = clubFromTeam({ id: 85, name: "Paris Saint Germain", code: "PSG", country: "France", logo: "https://media.api-sports.io/football/teams/85.png" }, { primary: "#004170", secondary: "#da291c" });
+  assert.equal(psg.id, "t-85"); assert.equal(psg.teamId, 85); assert.equal(psg.secondary, "#DA291C"); assert.equal(psg.custom, true);
+  assert.deepEqual(clubFromSaved(clubSnapshot(psg)), psg, "round trip");
+  assert.equal(clubFromSaved({ id: "t-85", name: "X", primary: "red", secondary: "#000000" }), null, "bad colour");
+  assert.equal(clubFromSaved({ id: "t-85", primary: "#004170", secondary: "#da291c" }), null, "no name");
+  assert.equal(clubFromSaved({ id: "t-abc", name: "X", primary: "#004170", secondary: "#da291c" }), null, "bad id");
+  assert.match(clubFromSaved({ ...clubSnapshot(psg), logo: "https://evil.example/x.png" }).logo, /^https:\/\/media\.api-sports\.io\//, "foreign image replaced");
+  assert.ok(isClubId("t-85") && isClubId("chelsea") && !isClubId("arsenal"));
+  assert.deepEqual(clubSnapshot(clubById("chelsea")), { id: "chelsea", primary: "#034694" }, "the four stay small");
+  const px = (parts) => parts.flatMap(([r, g, b, n]) => Array.from({ length: n }, () => [r, g, b, 255])).flat();
+  assert.deepEqual(pickColors(px([[0, 65, 112, 500], [218, 41, 28, 150], [255, 255, 255, 400]])), { primary: "#004170", secondary: "#DA291C" }, "crest colours");
+  assert.equal(pickColors(px([[20, 20, 20, 500], [255, 255, 255, 500]])).secondary, "#FFFFFF", "black and white crest");
+  assert.deepEqual(colorsFromName("Ajax"), colorsFromName("Ajax"), "name colours are stable");
+});
+
 console.log(`\n${passed} passed`);

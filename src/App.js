@@ -13,7 +13,7 @@ import { initThemeFx, activeFxTheme, fxThemeById, fxPriceOf } from "./themeFxDat
 import { initRemoteConfig, REMOTE_EVENT } from "./remoteConfig.js";
 import { initEntitlements, serverMode, spendCoins, startCheckout, tipCost } from "./entitlements.js";
 import { blockingNotice, blockingScreen, announcementBar } from "./components/RemoteNotices.js";
-import { clubById, CLUB_IDS } from "./clubs.js";
+import { clubFromSaved, clubSnapshot, isClubId } from "./clubs.js";
 import { initLiveAlerts } from "./liveAlerts.js";
 import { applyRouteSeo } from "./seo.js";
 import { initPerf } from "./perf.js";
@@ -156,13 +156,12 @@ const actions = {
   // checkmark moves to the new choice.
   setTheme: (theme) => store.setState({ theme }),
   setPerfMode: (perfMode) => store.setState({ perfMode }),
-  // One of the four clubs, or null for the standard colours. Remembered on the account too, so it follows the
-  // person to a new phone. Choosing "no club" also stops the "which club do you support?" card for good.
+  // Any club, or null for the standard colours; kept on the account too. "No club" stops the club card for good.
   setClubTheme: (club) => {
     clubWelcomeOpen = false;
-    store.setState({ clubTheme: club ? { id: club.id, primary: club.primary } : null, clubPromptUntil: club ? 0 : Number.MAX_SAFE_INTEGER });
+    store.setState({ clubTheme: clubSnapshot(club), clubPromptUntil: club ? 0 : Number.MAX_SAFE_INTEGER });
     showToast(club ? `${club.name} colours applied` : "Standard colours restored", "success");
-    if (store.getState().authUser) import("./clubSync.js").then((m) => m.saveClubToAccount(club ? club.id : "none")).catch(() => {});
+    if (store.getState().authUser) import("./clubSync.js").then((m) => m.saveClubToAccount(club ? clubSnapshot(club) : "none")).catch(() => {});
   },
   // "Not now" on the Home card: ask again in a week.
   snoozeClubPrompt: () => { clubWelcomeOpen = false; store.setState({ clubPromptUntil: Date.now() + 7 * 86400000 }); },
@@ -208,12 +207,11 @@ const actions = {
   },
 };
 
-// Right after signing in, someone whose account has no club saved is asked once (full screen, same step as in sign-up).
-// Once it has opened it stays until they answer, even if the club preview changes the saved colours underneath it.
+// Right after signing in, someone whose account has no club saved is asked once (full screen) until they answer.
 let clubWelcomeOpen = false;
-// Has this person already answered "which club?" on their account (a club, or "no club")?
-const clubAnsweredOnAccount = (state) => { const remote = state.authUser?.user_metadata?.club; return CLUB_IDS.includes(remote) || remote === "none"; };
-// Should we still ask? Not when a club is chosen, when they said "no club" (here or on their account), or during a snooze.
+// Already answered "which club?" on the account?
+const clubAnsweredOnAccount = (state) => { const remote = state.authUser?.user_metadata?.club; return isClubId(remote) || remote === "none"; };
+// Should we still ask? Not when a club is chosen, "no club" was said, or during a snooze.
 const clubAskable = (state) => !state.clubTheme && !clubAnsweredOnAccount(state) && Date.now() >= state.clubPromptUntil;
 function needsClubWelcome(state) {
   return !!state.authUser && state.tab === "home" && !state.openFixtureId && !state.openEntity && !state.modal && clubAskable(state);
@@ -262,7 +260,7 @@ function App(state) {
       onSelectDay: actions.selectDay,
       onOpenProfile: () => actions.goTab("profile"),
       onOpenSearch: () => actions.goTo("search"),
-      club: state.clubTheme ? clubById(state.clubTheme.id) : null,
+      club: clubFromSaved(state.clubTheme),
       showClubPrompt: clubAskable(state),
       onPickClub: actions.setClubTheme,
       onSnoozeClub: actions.snoozeClubPrompt,
@@ -273,7 +271,7 @@ function App(state) {
   } else if (state.tab === "search") {
     content = lazyScreen("SearchScreen", () => import("./components/SearchScreen.js"), { onBack: actions.closeSubpage });
   } else if (state.tab === "vip") {
-    content = lazyScreen("VipTipsScreen", () => import("./components/VipTipsScreen.js"), { isVip: state.isVip, isUnlocked });
+    content = lazyScreen("VipTipsScreen", () => import("./components/VipTipsScreen.js"), { isVip: state.isVip, isUnlocked, onRequestUpgrade: actions.openPremium });
   } else if (state.tab === "favorites") {
     content = lazyScreen("FavoritesScreen", () => import("./components/FavoritesScreen.js"), {
       favorites: state.favorites,
@@ -328,8 +326,8 @@ function App(state) {
       currentLanguage: state.language,
       theme: state.theme,
       fxThemeName: fxThemeById(activeFxTheme(state))?.name || "",
-      clubName: state.clubTheme ? (clubById(state.clubTheme.id)?.name || "") : "",
-      club: state.clubTheme ? clubById(state.clubTheme.id) : null,
+      clubName: clubFromSaved(state.clubTheme)?.name || "",
+      club: clubFromSaved(state.clubTheme),
       showClubPrompt: !state.clubTheme && !clubAnsweredOnAccount(state) && state.clubPromptUntil !== Number.MAX_SAFE_INTEGER,
       onPickClub: actions.setClubTheme,
       onNavigate: actions.goTo,

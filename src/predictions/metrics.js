@@ -26,6 +26,21 @@ export function safePickFromMatrix(matrix, min = SAFE_MIN) {
   const [market, p] = [["1x", home + draw], ["x2", draw + away], ["over15", over15], ["under35", under35]].map(([m, v]) => [m, Math.round((v / total) * 1e4) / 1e4]).sort((a, b) => b[1] - a[1])[0];
   return p >= min ? { market, prob: Math.round(p * 100) } : null;
 }
+// Every market the Slip Generator can use, as fractions 0..1, worked out from the stored score grid (matrix[i][j] =
+// P(home scores i, away scores j)). Exact: nothing here is estimated. null when the grid is missing or incomplete.
+export function marketsFromMatrix(matrix) {
+  if (!Array.isArray(matrix) || !matrix.length) return null;
+  let home = 0, draw = 0, away = 0, o15 = 0, o25 = 0, o35 = 0, btts = 0, total = 0;
+  matrix.forEach((row, i) => row.forEach((p, j) => {
+    total += p;
+    if (i > j) home += p; else if (i === j) draw += p; else away += p;
+    if (i + j >= 2) o15 += p; if (i + j >= 3) o25 += p; if (i + j >= 4) o35 += p;
+    if (i > 0 && j > 0) btts += p;
+  }));
+  if (!(total > 0.9)) return null;
+  const r = (v) => Math.round((v / total) * 1e4) / 1e4;
+  return { home: r(home), draw: r(draw), away: r(away), dc1x: r(home + draw), dcx2: r(draw + away), dc12: r(home + away), over15: r(o15), over25: r(o25), over35: r(o35), btts: r(btts) };
+}
 export const safeHit = (market, h, a) => (market === "1x" ? h >= a : market === "x2" ? a >= h : market === "over15" ? h + a >= 2 : h + a <= 3);
 
 // matrix[i][j] = P(home scores i, away scores j). 1-based rank of the real score (null if outside the grid).

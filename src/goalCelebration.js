@@ -3,7 +3,7 @@
 // (liveAlerts.js imports it on demand). Presentation only: the layer ignores touches except to dismiss itself.
 import { h, text } from "./utils/h.js";
 import { isLowEnd } from "./perf.js";
-import { clubById } from "./clubs.js";
+import { clubFromSaved } from "./clubs.js";
 
 const reducedMotion = () => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -42,8 +42,8 @@ export function ownClubScored(event, club) {
 }
 
 // Called by liveAlerts for every goal while a club is picked: celebrate it if it was theirs, otherwise the usual banner.
-export function onGoal(event, clubId, { plain, buzz }) {
-  const club = clubById(clubId);
+export function onGoal(event, saved, { plain, buzz }) { // saved: state.clubTheme
+  const club = clubFromSaved(saved);
   if (!ownClubScored(event, club)) { plain(); return; }
   celebrate({ club, fx: event.fx });
   buzz([120, 60, 120, 60, 120, 60, 520]); // a longer, rising buzz for your own club

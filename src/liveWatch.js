@@ -10,7 +10,7 @@ import { showToast } from "./toast.js";
 import { observeFixtures } from "./liveAlerts.js";
 import { isLive, localDateISO } from "./utils/fixtures.js";
 import { pollMs } from "./perf.js";
-import { clubById } from "./clubs.js";
+import { clubFromSaved } from "./clubs.js";
 import { navigate } from "./router.js";
 
 const SOON_MS = 15 * 60 * 1000, IDLE_MS = 5 * 60 * 1000, MAX_IDS = 40;
@@ -49,7 +49,7 @@ try { hidden = JSON.parse(sessionStorage.getItem(HIDDEN_KEY) || "{}") || {}; } c
 const wanted = (state) => {
   const prefs = state.notificationPrefs || {};
   const ids = (state.favorites?.match || []).slice(-MAX_IDS);
-  const club = prefs.goalCelebration !== false ? clubById(state.clubTheme?.id) : null;
+  const club = prefs.goalCelebration !== false ? clubFromSaved(state.clubTheme) : null;
   const players = prefs.players !== false && (state.favorites?.player || []).length > 0;
   return { ids: prefs.liveCard !== false ? ids : [], club, cardOn: prefs.liveCard !== false, players };
 };

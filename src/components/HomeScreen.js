@@ -32,7 +32,6 @@ function leagueSection(group, props) {
   ]);
 }
 
-// Shown until the person picks the club they support (or says "Not now", which hides it for a week).
 function clubPrompt(props) {
   const slot = h("div", { className: "club-tiles-slot" });
   import("./ClubPicker.js").then((m) => slot.replaceChildren(m.ClubTiles({ onSelect: props.onPickClub, variant: "row" }))).catch(() => {});
@@ -42,6 +41,7 @@ function clubPrompt(props) {
       text("p", {}, "Pick yours and the whole app wears its colours and crest."),
     ]),
     slot,
+    props.onOpenAppearance ? text("button", { type: "button", className: "club-prompt-more", onClick: props.onOpenAppearance }, "Another club? Search for it") : null,
     h("button", { type: "button", className: "club-prompt-skip", onClick: props.onSnoozeClub }, "Not now"),
   ]);
 }

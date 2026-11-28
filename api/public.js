@@ -6,6 +6,7 @@ const ROUTES = {
   config: () => import("../server/config.js"),
   accuracy: () => import("../server/accuracy.js"),
   predictions: () => import("../server/predictions.js"),
+  predicted: () => import("../server/predicted.js"),
   usage: () => import("../server/usage.js"),
   "placement-event": () => import("../server/placement-event.js"),
   "csp-report": () => import("../server/csp-report.js"),

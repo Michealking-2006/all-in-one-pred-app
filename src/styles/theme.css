@@ -2072,12 +2072,18 @@ img{image-rendering:auto}
 
 /* Picker, big cards: Appearance and the sign-up step */
 .club-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.club-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 10px 14px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-xs),inset 0 0 0 1px var(--border-soft);text-align:center;transition:transform .12s var(--ease),box-shadow .15s}
+/* A card is tinted with its club's colours and carries a kit stripe (primary | secondary) along the bottom edge. */
+.club-card{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px 20px;border-radius:22px;background:var(--surface);box-shadow:var(--shadow-xs),inset 0 0 0 1px var(--border-soft);text-align:center;transition:transform .14s var(--ease),box-shadow .2s,opacity .2s}
+@supports (background:color-mix(in srgb,red,blue)){.club-card{background:linear-gradient(160deg,color-mix(in srgb,var(--club-1,var(--accent)) 15%,var(--surface)) 0%,var(--surface) 66%)}}
+.club-card::after{content:"";position:absolute;left:22px;right:22px;bottom:0;height:4px;border-radius:4px 4px 0 0;background:linear-gradient(90deg,var(--club-1,var(--accent)) 50%,var(--club-2,var(--accent)) 50%)}
 .club-card:active{transform:scale(.97);opacity:1}
-.club-card.selected{box-shadow:0 0 0 2.5px var(--accent),var(--shadow-xs)}
-.club-card-crest{display:grid;place-items:center;width:88px;height:88px;border-radius:50%;background:var(--crest-plate)}
+.club-card.selected{box-shadow:0 0 0 2.5px var(--club-1,var(--accent)),var(--shadow-xs);transform:translateY(-2px)}
+@supports (background:color-mix(in srgb,red,blue)){.club-card.selected{box-shadow:0 0 0 2.5px var(--club-1,var(--accent)),0 16px 32px color-mix(in srgb,var(--club-1,var(--accent)) 28%,transparent)}}
+.club-card-grid.has-choice .club-card:not(.selected){opacity:.66}
+.club-card-crest{display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:var(--crest-plate)}
 .club-card-name{display:flex;align-items:center;min-height:2.4em;font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-.01em;color:var(--text)}
-.club-card-check{position:absolute;top:10px;right:10px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:var(--accent);color:var(--on-accent);opacity:0;transform:scale(.6);transition:opacity .15s,transform .2s var(--ease)}
+.club-card-motto{margin-top:-4px;font-size:12px;line-height:1.3;color:var(--text-muted);text-wrap:balance}
+.club-card-check{position:absolute;top:10px;right:10px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:var(--club-1,var(--accent));color:var(--on-accent);opacity:0;transform:scale(.6);transition:opacity .15s,transform .2s var(--ease)}
 .club-card-check svg{width:15px;height:15px;stroke-width:3}
 .club-card.selected .club-card-check{opacity:1;transform:none}
 .club-grid-wrap{margin:0 16px 12px}
@@ -2101,14 +2107,26 @@ img{image-rendering:auto}
 
 /* The step itself (sign-up step 2, and the screen after signing in) */
 .club-step{display:grid;justify-items:center}
-.club-step-hero{display:grid;place-items:center;height:108px;margin-bottom:6px}
-.club-step-plate{display:grid;place-items:center;width:104px;height:104px;border-radius:50%;background:#fff;box-shadow:0 12px 28px var(--club-glow),inset 0 0 0 1px var(--border-soft)}
+.club-step-hero{display:grid;place-items:center;height:112px;margin:0 0 8px}
+.club-step-brand{width:88px;height:88px;display:grid;place-items:center;border-radius:28px;background:linear-gradient(165deg,var(--accent-lift),var(--accent-strong));box-shadow:0 18px 38px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.35);animation:club-pop .42s var(--ease) backwards}
+.club-step-brand img{width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(90,0,0,.28))}
+.club-step-plate{display:grid;place-items:center;width:104px;height:104px;border-radius:50%;background:#fff;box-shadow:0 18px 40px var(--club-glow),inset 0 0 0 1px var(--border-soft);animation:club-pop .42s var(--ease) backwards}
+@supports (background:color-mix(in srgb,red,blue)){.club-step-plate{box-shadow:0 0 0 7px color-mix(in srgb,var(--club-1,var(--accent)) 15%,transparent),0 18px 40px var(--club-glow),inset 0 0 0 1px var(--border-soft)}}
 html[data-lowend] .club-step-plate{box-shadow:inset 0 0 0 1px var(--border-soft)}
-.club-step-empty{width:92px;height:92px;display:grid;place-items:center;border-radius:50%;background:var(--fill);color:var(--text-muted)}
-.club-step-empty svg{width:40px;height:40px}
-.club-step-grid{width:100%;margin:20px 0 8px}
-.club-step-actions{width:100%;display:grid;gap:4px;margin-top:10px}
+@keyframes club-pop{from{opacity:0;transform:scale(.78)}60%{transform:scale(1.04)}to{opacity:1;transform:none}}
+.club-step .auth-subtitle{margin-bottom:14px}
+.club-step-grid{width:100%;margin:0}
+/* The cards rise in one after another the first time (backwards fill only: it must not freeze the selected/pressed transforms) */
+@keyframes club-in{from{opacity:0;transform:translateY(10px)}}
+.club-step-grid .club-card{animation:club-in .46s var(--ease) backwards;animation-delay:calc(var(--i,0)*60ms + 80ms)}
+html[data-lowend] .club-step-grid .club-card{animation:none}
+/* On a short phone the buttons stay on screen while the cards scroll under them (needs overflow:clip on the screen, otherwise
+   it counts as the scroll container and sticky never engages). */
+@supports (overflow:clip){.auth-screen{overflow:clip}}
+.club-step-actions{position:sticky;bottom:0;z-index:2;width:calc(100% + 40px);margin:2px -20px 0;padding:12px 20px calc(2px + var(--safe-bottom));display:grid;gap:2px;background:linear-gradient(180deg,transparent 0,var(--surface) 30%)}
+:root[data-theme="dark"] .club-step-actions{background:linear-gradient(180deg,transparent 0,#000 30%)}
 .club-step-skip{min-height:46px;color:var(--text-muted);font-size:16px;font-weight:500}
+@media (max-height:700px){.club-step-hero{height:92px}.club-step-plate{width:88px;height:88px}.club-step-plate img{width:66px;height:66px}.club-card{padding-top:14px;padding-bottom:20px}.club-card-crest{width:68px;height:68px}.club-card-crest img{width:48px;height:48px}}
 
 /* With a club chosen */
 .header-crest{background:#fff;padding:0;box-shadow:var(--shadow-sm),inset 0 0 0 2px var(--club-2)}
@@ -2338,6 +2356,103 @@ img.img-failed.venue-image,img.img-failed.stadium-image,img.img-failed.article-h
 /* 360px phones: a 15px "Wolverhampton" (106px) is wider than its 105px column, so the name and score step down a little
    instead of the name breaking mid-word. (The 320px rule above keeps its own smaller sizes.) */
 @media (min-width:360px) and (max-width:380px){.match-side{font-size:13.5px}.match-score-big{font-size:40px}}
+
+/* ---------------------------------------------------------------- Club search (any club, not only the four) */
+.club-search{display:grid;gap:8px;width:100%;margin-top:18px;text-align:left}
+.club-search-label{font-size:13px;font-weight:600;color:var(--text-muted);padding:0 4px}
+.club-search-field{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:12px;background:var(--fill);color:var(--text-muted)}
+.club-search-field:focus-within{box-shadow:0 0 0 2px var(--accent)}
+.club-search-field svg{width:18px;height:18px;flex:0 0 18px}
+.club-search-input{flex:1;min-width:0;height:44px;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:17px;-webkit-appearance:none;appearance:none}
+.club-search-input::-webkit-search-cancel-button{-webkit-appearance:none}
+.club-search-results:empty{display:none}
+.club-search-list.search-results-group{margin:0}
+.club-search-row{min-height:56px}
+.club-search-row .search-result-image{background:var(--crest-plate,var(--fill))}
+.club-search-row svg{width:20px;height:20px;color:var(--accent-text);flex:0 0 20px}
+.club-search-row.is-busy{opacity:.55;pointer-events:none}
+.club-search-note{margin:0;padding:12px 4px;font-size:14px;color:var(--text-muted)}
+.club-search-note.is-error{color:var(--danger,#d93025)}
+.club-search-loading{display:flex;align-items:center;gap:10px;padding:12px 4px;font-size:14px;color:var(--text-muted)}
+.club-picked-card{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0 0;padding:12px 14px;text-align:left}
+.club-picked-crest{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border-radius:50%;background:var(--crest-plate,#fff);box-shadow:inset 0 0 0 1px var(--border-soft)}
+.club-picked-copy{display:grid;flex:1;min-width:0}
+.club-picked-copy .club-card-name,.club-picked-copy .club-card-motto{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.club-step-picked{width:100%}
+.club-prompt-more{display:block;text-align:center;width:100%;min-height:44px;margin-top:4px;color:var(--accent-text);font-size:15px;font-weight:600}
+
+/* ---------------------------------------------------------------- Predictions tabs and the Slip Generator */
+.vip-tabs{margin:4px 16px 12px}
+.vip-panel[hidden],.slip-slot[hidden]{display:none}
+.slip-generator{display:grid;gap:14px;padding:0 16px 24px}
+.slip-form{display:grid;gap:18px;padding:16px}
+.slip-group{display:grid;gap:10px}
+.slip-label{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.slip-counts{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.slip-count{min-height:44px;border-radius:12px;background:var(--fill);font-size:17px;font-weight:600;color:var(--text-dim)}
+.slip-count[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);box-shadow:0 6px 14px var(--accent-glow)}
+.slip-risk button{min-height:40px;font-size:15px}
+.slip-today{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--fill);cursor:pointer}
+.slip-today-copy{display:grid;flex:1;min-width:0}
+.slip-today-copy small{color:var(--text-muted);font-size:13px}
+.slip-switch-input{-webkit-appearance:none;appearance:none;position:relative;flex:0 0 51px;width:51px;height:31px;border-radius:999px;background:var(--separator,#c7c7cc);transition:background .2s}
+.slip-switch-input::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.3);transition:transform .2s}
+.slip-switch-input:checked{background:var(--accent)}
+.slip-switch-input:checked::after{transform:translateX(20px)}
+.slip-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.slip-chips::-webkit-scrollbar{display:none}
+.slip-chip{flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:999px;background:var(--fill);font-size:15px;font-weight:600;color:var(--text-dim);white-space:nowrap}
+.slip-chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.slip-chips-note{font-size:14px;color:var(--text-muted);padding:10px 2px}
+.slip-odds-row{display:flex;align-items:center;justify-content:space-between}
+.slip-bound{font-size:14px;color:var(--text-muted)}
+.slip-odds-value{padding:6px 18px;border-radius:12px;background:var(--accent-soft);color:var(--accent-text);font-size:22px;font-weight:700}
+.slip-range{width:100%;height:32px;accent-color:var(--accent)}
+.slip-generate{display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.slip-generate svg{width:18px;height:18px}
+.slip-gate{display:flex;align-items:flex-start;gap:12px;padding:14px 16px}
+.slip-gate>svg{width:22px;height:22px;flex:0 0 22px;color:var(--accent-text);margin-top:2px}
+.slip-gate p{margin:2px 0 6px;color:var(--text-muted);font-size:14px}
+.slip-gate-link{color:var(--accent-text);font-weight:600;font-size:15px;min-height:32px}
+.slip-result{display:grid;gap:12px}
+.slip-result:empty{display:none}
+.slip-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.slip-head h2{margin:0;font-size:26px;letter-spacing:-.02em}
+.slip-tools{display:flex;gap:8px}
+.slip-tool{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--fill);color:var(--accent-text)}
+.slip-tool svg{width:20px;height:20px}
+.slip-summary{padding:18px;border-radius:20px;color:var(--on-accent);background:linear-gradient(160deg,var(--accent-lift),var(--accent-strong));box-shadow:0 12px 28px var(--accent-glow)}
+.slip-figures{display:grid;grid-template-columns:1fr 1fr;text-align:center}
+.slip-figures>div+div{border-left:1px solid rgba(255,255,255,.28)}
+.slip-figures span{display:block;font-size:13px;font-weight:600;opacity:.85}
+.slip-figures strong{display:block;margin-top:4px;font-size:34px;letter-spacing:-.02em}
+.slip-returns{margin-top:14px;padding:11px;border-radius:12px;background:rgba(255,255,255,.18);text-align:center;font-size:16px;font-weight:600}
+.slip-tier{display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:14px;font-size:16px;font-weight:600;background:var(--accent-soft);color:var(--accent-text)}
+.slip-tier svg{width:20px;height:20px}
+.slip-tier-low{background:rgba(255,159,10,.16);color:#a35a00}
+:root[data-theme="dark"] .slip-tier-low{color:#ffb340}
+.slip-list{display:grid;gap:10px}
+.slip-pick{display:grid;gap:10px;padding:14px 16px}
+.slip-pick-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--text-muted)}
+.slip-pick-teams{display:grid;gap:6px}
+.slip-team{display:flex;align-items:center;gap:10px;min-width:0;font-size:16px;font-weight:500}
+.slip-team span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slip-pick-bet{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;border-top:.5px solid var(--separator)}
+.slip-pick-bet>div{display:grid;gap:2px;min-width:0}
+.slip-pick-bet strong{font-size:16px}
+.slip-odds{padding:7px 14px;border-radius:10px;background:var(--accent-soft);color:var(--accent-text);font-size:18px;font-weight:700}
+.slip-empty{display:grid;gap:6px;padding:22px 18px;text-align:center}
+.slip-empty p{margin:0;color:var(--text-muted);font-size:15px}
+.slip-stakes{display:flex;gap:6px;margin-top:10px}
+.slip-stakes button{flex:1;min-height:36px;border-radius:10px;background:rgba(255,255,255,.16);color:inherit;font-size:15px;font-weight:600}
+.slip-stakes button[aria-pressed="true"]{background:#fff;color:var(--accent-strong)}
+.slip-fix{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-text);font-size:16px;font-weight:600}
+.slip-fix svg{width:18px;height:18px;flex:0 0 18px}
+.slip-pick.is-locked{box-shadow:inset 0 0 0 2px var(--accent)}
+.slip-pick-actions{display:flex;gap:8px}
+.slip-act{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;min-height:44px;border-radius:12px;background:var(--fill);color:var(--text-dim);font-size:15px;font-weight:600}
+.slip-act svg{width:16px;height:16px}
+.slip-act.on{background:var(--accent);color:var(--on-accent)}
 
 /* =====================================================================================================================
    Responsive layout

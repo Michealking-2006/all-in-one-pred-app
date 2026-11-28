@@ -1,4 +1,4 @@
-import { clubById } from "./clubs.js";
+import { clubFromSaved, clubSnapshot } from "./clubs.js";
 
 const STORAGE_KEY = "scoutwave.app.state.v2";
 const PERSISTED_KEYS = [
@@ -80,11 +80,8 @@ function readPersisted() {
     }
     if (parsed.fxTheme === null || FX_THEME_IDS.includes(parsed.fxTheme)) safe.fxTheme = parsed.fxTheme;
     if (["auto", "on", "off"].includes(parsed.perfMode)) safe.perfMode = parsed.perfMode;
-    // Only the four supported clubs; anything older (another club, a custom colour) goes back to the standard colours.
-    // The colour always comes from our own table, never from what was saved.
-    const club = parsed.clubTheme && typeof parsed.clubTheme === "object" ? clubById(parsed.clubTheme.id) : null;
-    safe.clubTheme = club ? { id: club.id, primary: club.primary } : null;
-    // When to ask "which club do you support?" again (0 = now). Choosing "no club" snoozes it for good.
+    // One of the four clubs (colours from our own table) or a searched club (every field checked); else standard colours.
+    safe.clubTheme = clubSnapshot(clubFromSaved(parsed.clubTheme));
     if (Number.isFinite(parsed.clubPromptUntil) && parsed.clubPromptUntil >= 0) safe.clubPromptUntil = parsed.clubPromptUntil;
     return safe;
   } catch {

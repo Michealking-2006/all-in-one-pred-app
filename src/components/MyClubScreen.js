@@ -2,7 +2,7 @@
 // opens the club picker; if nothing can be found it opens the club's page.
 import { h, text } from "../utils/h.js";
 import { store } from "../store.js";
-import { clubById } from "../clubs.js";
+import { clubFromSaved } from "../clubs.js";
 import { navigate } from "../router.js";
 import { showToast } from "../toast.js";
 import { loadClubState, targetPath } from "../myClub.js";
@@ -10,7 +10,7 @@ import { loadClubState, targetPath } from "../myClub.js";
 let pending = false; // the app redraws this screen on every store change; only look once
 
 export function MyClubScreen() {
-  const club = clubById(store.getState().clubTheme?.id);
+  const club = clubFromSaved(store.getState().clubTheme);
   if (!pending) {
     pending = true;
     if (!club) { pending = false; showToast("Pick the club you support first", "default"); queueMicrotask(() => navigate("/appearance", { replace: true })); }

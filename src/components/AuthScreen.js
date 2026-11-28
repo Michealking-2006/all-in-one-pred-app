@@ -3,6 +3,7 @@ import { supabase, authErrorMessage } from "../api/supabase.js";
 import { navigate, goBack } from "../router.js";
 import { showToast } from "../toast.js";
 import { store } from "../store.js";
+import { clubSnapshot } from "../clubs.js";
 import { ClubStep } from "./ClubStep.js";
 
 const MODE_COPY = {
@@ -225,10 +226,10 @@ export function AuthScreen({ mode = "login" } = {}) {
     const step = clubContent.firstChild;
     step.setBusy(true);
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password: passwordCtl.input.value, options: { emailRedirectTo: redirectTo, data: club ? { club: club.id } : undefined } });
+      const { data, error } = await supabase.auth.signUp({ email, password: passwordCtl.input.value, options: { emailRedirectTo: redirectTo, data: club ? { club: club.id, ...(club.custom ? { club_data: clubSnapshot(club) } : {}) } : undefined } });
       if (error) throw error;
       // Someone who skipped is not asked again straight away (here or on the Home card) for a week.
-      if (club) store.setState({ clubTheme: { id: club.id, primary: club.primary }, clubPromptUntil: 0 });
+      if (club) store.setState({ clubTheme: clubSnapshot(club), clubPromptUntil: 0 });
       else store.setState({ clubPromptUntil: Date.now() + 7 * 86400000 });
       if (data.session) { navigate("/"); return; }
       showForm();
@@ -246,7 +247,7 @@ export function AuthScreen({ mode = "login" } = {}) {
   ]);
   const clubContent = h("div", { className: "auth-content" });
   function showClubStep() {
-    clubContent.replaceChildren(ClubStep({ initialId: store.getState().clubTheme?.id || null, primaryLabel: "Create account", onConfirm: createAccount, onSkip: () => createAccount(null) }));
+    clubContent.replaceChildren(ClubStep({ initialSaved: store.getState().clubTheme, primaryLabel: "Create account", onConfirm: createAccount, onSkip: () => createAccount(null) }));
     container.replaceChildren(glow, clubTopbar, clubContent);
   }
 

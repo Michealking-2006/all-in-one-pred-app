@@ -27,6 +27,7 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Scoutwave","applicationCategory":"SportsApplication","operatingSystem":"Any","description":"Live football scores, fixtures, tables, lineups and odds, plus our own match predictions.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <script src="/src/boot/theme-init.js"></script>
     <link rel="preload" href="/src/assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/assets/scoutwave-mark-white.png" as="image" />
     <link rel="stylesheet" href="/src/styles/boot.css" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -43,11 +44,18 @@
   <body>
     <div id="root">
       <main id="boot-fallback" class="boot-screen">
-        <section class="boot-card">
-          <h1 class="boot-title">Scoutwave: live football scores, predictions and football data</h1>
-          <p class="boot-lede">Live scores, fixtures, league tables, lineups, match stats and odds from every major competition.</p>
-          <nav class="boot-nav"><a href="/livescores">Livescores</a> · <a href="/predictions">Predictions</a> · <a href="/leagues">Leagues</a> · <a href="/news">News</a> · <a href="/about">About</a> · <a href="/privacy-policy">Privacy policy</a></nav>
-          <span id="boot-fallback-message" class="boot-note">Loading Scoutwave…</span>
+        <section class="boot-card boot-splash">
+          <div class="boot-mark" aria-hidden="true">
+            <span class="boot-ring"></span><span class="boot-ring boot-ring-2"></span>
+            <img src="/src/assets/scoutwave-mark-white.png" alt="" width="58" height="58" />
+          </div>
+          <span class="boot-wordmark" aria-hidden="true"></span>
+          <h1 class="boot-sr">Scoutwave: live football scores, predictions and football data</h1>
+          <p class="boot-tagline">Live scores, predictions and stats</p>
+          <p class="boot-lede boot-sr">Live scores, fixtures, league tables, lineups, match stats and odds from every major competition.</p>
+          <nav class="boot-nav boot-sr"><a href="/livescores">Livescores</a> · <a href="/predictions">Predictions</a> · <a href="/leagues">Leagues</a> · <a href="/news">News</a> · <a href="/about">About</a> · <a href="/privacy-policy">Privacy policy</a></nav>
+          <div class="boot-bar" aria-hidden="true"><span></span></div>
+          <span id="boot-fallback-message" class="boot-sr" role="status">Loading Scoutwave…</span>
         </section>
       </main>
     </div>

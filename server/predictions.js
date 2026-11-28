@@ -14,9 +14,10 @@ import { verifyUser, getRow, effective } from "../api/_account.js";
 import { MODEL_VERSION } from "../src/predictions/model.js";
 import { ALL_NAMES } from "../api/_models.js";
 import { q } from "../api/_query.js";
+import { marketsFromMatrix } from "../src/predictions/metrics.js";
 
 // -> (fixtureId) => boolean
-async function entitlementCheck(req, enforce) {
+export async function entitlementCheck(req, enforce) {
   if (!enforce) return () => true;
   if (!req.headers?.authorization) return () => false; // not signed in
   let user;
@@ -32,6 +33,22 @@ async function entitlementCheck(req, enforce) {
   return (id) => e.isVip || unlocked.has(Number(id));
 }
 
+// The earliest row for each match (see the top of this file), from rows that may hold several models per match.
+export function firstRows(found) {
+  const first = new Map();
+  for (const r of found) {
+    const id = Number(r.fixture_id), have = first.get(id);
+    const earlier = !have || new Date(r.made_at) < new Date(have.made_at) || (+new Date(r.made_at) === +new Date(have.made_at) && (r.model || MODEL_VERSION) === MODEL_VERSION && (have.model || MODEL_VERSION) !== MODEL_VERSION);
+    if (earlier) first.set(id, r);
+  }
+  return [...first.values()];
+}
+
+// What a person who may see the pick receives. `markets` (exact, from the stored score grid) is added; the grid itself never is.
+export function shownPrediction(r, order) {
+  return { ...r.prediction, markets: marketsFromMatrix(r.matrix), model: r.model || MODEL_VERSION, madeAt: r.made_at, note: r.note || null, source: "server", order };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -42,21 +59,15 @@ export default async function handler(req, res) {
   try {
     const enforce = (await readConfig({ fresh: true })).flags.serverEntitlements === true; // fresh: turning the gate on must not wait for a cache
     const mayView = await entitlementCheck(req, enforce);
-    const found = (await sb(`/rest/v1/predictions?model=in.(${q.words(ALL_NAMES)})&fixture_id=in.(${q.ints(ids)})&select=fixture_id,model,made_at,prediction,note`)) || [];
-    const first = new Map();
-    for (const r of found) {
-      const id = Number(r.fixture_id), have = first.get(id);
-      const earlier = !have || new Date(r.made_at) < new Date(have.made_at) || (+new Date(r.made_at) === +new Date(have.made_at) && (r.model || MODEL_VERSION) === MODEL_VERSION && (have.model || MODEL_VERSION) !== MODEL_VERSION);
-      if (earlier) first.set(id, r);
-    }
-    const rows = [...first.values()];
+    const found = (await sb(`/rest/v1/predictions?model=in.(${q.words(ALL_NAMES)})&fixture_id=in.(${q.ints(ids)})&select=fixture_id,model,made_at,prediction,note,matrix`)) || [];
+    const rows = firstRows(found);
 
     // Rank among what was asked for, strongest first: lets the app order a feed without revealing a number.
     const order = new Map([...rows].sort((a, b) => (b.prediction?.pickProb ?? 0) - (a.prediction?.pickProb ?? 0)).map((r, i) => [Number(r.fixture_id), i]));
     const predictions = {}, locked = {};
     for (const r of rows) {
       const id = Number(r.fixture_id);
-      if (mayView(id)) predictions[id] = { ...r.prediction, model: r.model || MODEL_VERSION, madeAt: r.made_at, note: r.note || null, source: "server", order: order.get(id) };
+      if (mayView(id)) predictions[id] = shownPrediction(r, order.get(id));
       else locked[id] = { confidence: r.prediction?.confidence || null, order: order.get(id) };
     }
     if (enforce) {

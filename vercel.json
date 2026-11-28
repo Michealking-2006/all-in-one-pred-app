@@ -50,6 +50,10 @@
       "destination": "/api/public?route=predictions"
     },
     {
+      "source": "/api/predicted",
+      "destination": "/api/public?route=predicted"
+    },
+    {
       "source": "/api/usage",
       "destination": "/api/public?route=usage"
     },

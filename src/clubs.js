@@ -1,11 +1,5 @@
-// The four clubs the app can be themed around. No imports on purpose: the store, the boot script's rules and the
-// tests all read this list, and it must be safe to load first.
-//
-// `primary` is the colour the whole app is built around (buttons, active states, links, avatars, headers); `secondary`
-// is the club's other brand colour, used sparingly for highlights (the active-tab marker, the crest ring, the supporter
-// badge). Barcelona is blaugrana (garnet and blue), Real Madrid blue and gold, Chelsea blue and gold, Manchester United
-// red and yellow. Crests come from the same football-data image host as every other team logo in the app (the numbers
-// are that provider's team ids), so they are always the real, current crest.
+// The four quick-pick clubs. No imports on purpose: the store, the boot script's rules and the tests all read this list.
+// `primary` is the colour the app is built around, `secondary` the club's other colour (highlights, crest ring, badge).
 const crest = (teamId) => "https://media.api-sports.io/football/teams/" + teamId + ".png";
 
 export const CLUBS = [
@@ -18,3 +12,18 @@ export const CLUBS = [
 export const CLUB_IDS = CLUBS.map((club) => club.id);
 export const clubById = (id) => CLUBS.find((club) => club.id === id) || null;
 export const isHex = (value) => /^#[0-9a-f]{6}$/i.test(String(value || ""));
+
+// Any other club comes from search, saved whole; its id is "t-" + the team id. Saved values are checked on the way back in.
+const CREST = /^https:\/\/media\.api-sports\.io\/[\w./-]{1,80}$/;
+const ID = /^t-[1-9]\d{0,8}$/;
+export const isClubId = (id) => CLUB_IDS.includes(id) || ID.test(String(id));
+const str = (v, n) => String(v || "").replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, n);
+export const clubFromSaved = (v) => {
+  if (!v || typeof v !== "object") return null;
+  const f = clubById(v.id);
+  if (f) return f;
+  const name = str(v.name, 60), teamId = Number(String(v.id).slice(2));
+  if (!ID.test(String(v.id)) || !name || !isHex(v.primary) || !isHex(v.secondary)) return null;
+  return { id: v.id, name, short: str(v.short, 24) || name, teamId, logo: CREST.test(v.logo) ? v.logo : crest(teamId), primary: v.primary.toUpperCase(), secondary: v.secondary.toUpperCase(), motto: str(v.motto, 40), custom: true };
+};
+export const clubSnapshot = (c) => (!c ? null : c.custom ? { id: c.id, primary: c.primary, secondary: c.secondary, name: c.name, short: c.short, teamId: c.teamId, logo: c.logo, motto: c.motto, custom: true } : { id: c.id, primary: c.primary });

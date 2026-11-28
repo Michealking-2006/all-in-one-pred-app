@@ -41,7 +41,7 @@ export function observeFixtures(rows, options) {
     if (event.type === "goal") {
       const plain = () => { showToast("Goal! " + scoreLine(event.fx), "success", 4000); if (prefs.goalVibration !== false) vibrate([180, 90, 180, 90, 420]); };
       if (prefs.goalCelebration !== false && store.getState().clubTheme?.id) { // the lazy module decides if it was your club
-        import("./goalCelebration.js").then((m) => m.onGoal(event, store.getState().clubTheme.id, { plain, buzz: prefs.goalVibration !== false ? vibrate : () => false })).catch(plain);
+        import("./goalCelebration.js").then((m) => m.onGoal(event, store.getState().clubTheme, { plain, buzz: prefs.goalVibration !== false ? vibrate : () => false })).catch(plain);
       } else if (!vibrated) { plain(); vibrated = prefs.goalVibration !== false; }
     } else if (event.type === "half") {
       showToast("Half time: " + scoreLine(event.fx), "default", 4000);

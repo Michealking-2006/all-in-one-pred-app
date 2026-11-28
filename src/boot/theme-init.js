@@ -18,7 +18,7 @@
     var fxOn = (fx === "water" && saved.isVip === true) || ((fx === "fire" || fx === "ice" || fx === "bubbles") && Array.isArray(saved.unlockedThemes) && saved.unlockedThemes.indexOf(fx) !== -1);
     if (fxOn) document.documentElement.dataset.fx = fx;
     // Club colours: set the accent right away so there is no flash of red; src/clubTheme.js refines it. (Not under an advanced theme: it brings its own colours.)
-    if (!fxOn && saved && saved.clubTheme && /^(barcelona|real-madrid|chelsea|man-united)$/.test(saved.clubTheme.id) && /^#[0-9a-f]{6}$/i.test(saved.clubTheme.primary || "")) document.documentElement.style.setProperty("--accent", saved.clubTheme.primary);
+    if (!fxOn && saved && saved.clubTheme && /^(barcelona|real-madrid|chelsea|man-united|t-\d{1,9})$/.test(saved.clubTheme.id) && /^#[0-9a-f]{6}$/i.test(saved.clubTheme.primary || "")) document.documentElement.style.setProperty("--accent", saved.clubTheme.primary);
     document.documentElement.dataset.themePref = pref;
     // Lighter mode for low-end phones, decided before first paint (same rules as src/perf.js).
     var nav = navigator, mem = nav.deviceMemory, conn = nav.connection || {};

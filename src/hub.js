@@ -6,7 +6,7 @@ import { getTeamTransfers, getTeamInjuries } from "./api/footballExtras.js";
 import { getNews } from "./api/newsApi.js";
 import { tagById } from "./newsTags.js";
 import { seasonFor } from "./myClub.js";
-import { clubById } from "./clubs.js";
+import { clubFromSaved } from "./clubs.js";
 
 const DAY = 864e5;
 const escapeRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -51,7 +51,7 @@ export function newsAbout(articles, club, topic) {
 
 // The clubs to choose from: the one you support first, then the ones you've starred (names looked up, cached for days).
 export async function hubClubs(state) {
-  const own = clubById(state.clubTheme?.id);
+  const own = clubFromSaved(state.clubTheme);
   const list = own ? [{ id: own.teamId, name: own.name, logo: own.logo, tag: own.id }] : [];
   const starred = (state.favorites?.club || []).filter((id) => id !== own?.teamId).slice(0, 6);
   const found = await Promise.all(starred.map((id) => getTeamById(id).then((rows) => rows?.[0]?.team).catch(() => null)));

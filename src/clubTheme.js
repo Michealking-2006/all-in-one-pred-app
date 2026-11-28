@@ -4,7 +4,7 @@
 import { store } from "./store.js";
 import { activeFxTheme } from "./themeFxData.js";
 import { REMOTE_EVENT } from "./remoteConfig.js";
-import { CLUBS, CLUB_IDS, clubById, isHex } from "./clubs.js";
+import { CLUBS, CLUB_IDS, clubById, clubFromSaved, clubSnapshot, isHex } from "./clubs.js";
 
 export { CLUBS, CLUB_IDS, clubById, isHex };
 
@@ -94,7 +94,7 @@ export function applyClubTheme(saved) {
   root.style.removeProperty("--accent"); // also clears the early value the page's boot script sets
   delete root.dataset.club;
   const mode = root.dataset.theme === "dark" ? "dark" : "light";
-  const club = saved && clubById(saved.id);
+  const club = clubFromSaved(saved);
   if (!club) return;
   for (const [name, value] of Object.entries(deriveClubTheme(club, mode))) {
     root.style.setProperty(name, value);
@@ -106,7 +106,7 @@ export function applyClubTheme(saved) {
 // Change the club without redrawing the screen (the sign-up form must keep what was typed): saved and applied now.
 export function previewClub(club) {
   initClubTheme(); // so later changes (dark mode, an advanced theme) keep the colours right
-  store.setState({ clubTheme: club ? { id: club.id, primary: club.primary } : null }, { silent: true });
+  store.setState({ clubTheme: clubSnapshot(club) }, { silent: true });
   applyClubTheme(store.getState().clubTheme);
 }
 

@@ -15,7 +15,7 @@ const LOCKED_REMEMBERED_MS = 30_000; // a lock may just be a hiccup (or a purcha
 let queue = null;
 
 // Unlocking a tip or becoming Premium changes the answers: forget the old ones.
-if (typeof window !== "undefined") window.addEventListener("scoutwave:entitlements-changed", () => serverCache.clear());
+if (typeof window !== "undefined") window.addEventListener("scoutwave:entitlements-changed", () => { serverCache.clear(); listed.clear(); });
 
 let lastUser = store.getState().authUser?.id || null;
 store.subscribe((s) => { const now = s.authUser?.id || null; if (now !== lastUser) { lastUser = now; serverCache.clear(); } }); // signing in or out changes who may see what
@@ -53,6 +53,27 @@ function fromServer(id) {
   }
   queue.ids.add(id);
   return new Promise((resolve) => queue.waiters.push(() => resolve(serverCache.get(id) ?? null)));
+}
+
+// The matches that have a stored prediction in the next few days, with their teams, league and kick-off, from our own
+// server only (no call to the football data service). Resolves to [{ fx, prediction }] in kick-off order, where fx has
+// the same shape as a football-service fixture and prediction is the full prediction or a locked teaser. Rejects when the
+// server can't be reached, so the caller can say so instead of showing an empty list.
+const listed = new Map(); // days -> { at, user, items }
+const LIST_REMEMBERED_MS = 60_000;
+export async function listPredicted(days = 3) {
+  const user = store.getState().authUser?.id || null, have = listed.get(days);
+  if (have && have.user === user && Date.now() - have.at < LIST_REMEMBERED_MS) return have.items;
+  const res = await fetch("/api/predicted?days=" + days, { headers: { Accept: "application/json", ...(await authHeader()) }, cache: "no-store" }).catch(() => null);
+  if (!res?.ok) throw new Error("Predictions are unavailable right now.");
+  const data = await res.json();
+  const items = (data.matches || []).map((m) => {
+    const prediction = m.prediction ? { ...m.prediction, fixtureId: m.id } : { locked: true, fixtureId: m.id, ...m.locked };
+    serverCache.set(m.id, m.prediction ? { full: prediction } : { locked: m.locked, at: Date.now() }); // so a match opened next is not asked for again
+    return { fx: { fixture: { id: m.id, date: m.kickoff, status: { short: "NS" } }, league: m.league, teams: { home: m.home, away: m.away } }, prediction };
+  });
+  listed.set(days, { at: Date.now(), user, items });
+  return items;
 }
 
 export function predictFixture(fx) {
